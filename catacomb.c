@@ -16,83 +16,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#define CATALOG
-
 /*
 ** catacomb II -- the c translation...
 */
 
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "catdefs.h"
+#include "catacomb.h"
 #include "pcrlib.h"
-#include "NGRABCA2.H"
-#include "SOUNDS.H"
-
-#define NUMDEMOS 1
-
-#define maxpics 2047
-#define numtiles 24*24   /*number of tiles displayed on screen*/
-#define numlevels 30
-#define maxobj 200           /*maximum possible active objects*/
-#define solidwall 129
-#define blankfloor 128
-#define leftoff 11
-#define topoff 11
-#define tile2s 256          /*tile number where the 2*2 pictures start*/
-#define tile3s tile2s+67*4
-#define tile4s tile3s+35*9
-#define tile5s tile4s+19*16
-#define lasttile tile5s+19*25
-
-typedef enum {playercmd,gargcmd,dragoncmd,ramstraight,ramdiag,straight,idle,
-    fade,explode,gunthinke,gunthinks} thinktype;
-
-typedef enum {benign,monster,pshot,mshot,nukeshot} tagtype;
-
-typedef enum {nothing,player,goblin,skeleton,ogre,gargoyle,dragon,turbogre,
-    wallhit,shot,bigshot,rock,dead1,dead2,dead3,dead4,dead5,dead6,teleporter,
-    torch,secretgate,gune,guns,lastclass} classtype;
-
-typedef enum {ingame,intitle,inscores} statetype;
-
-
-typedef struct {
-  boolean active;	/*if false, the object has not seen the player yet*/
-  classtype  class;
-  byte  x,y,		/*location of upper left corner in world*/
-    stage,		/*animation frame being drawn*/
-    delay;		/*number of frames to pause without doing anything*/
-  dirtype  dir;		/*direction facing*/
-  char hp;		/*hit points*/
-  byte oldx,oldy;	/*position where it was last drawn*/
-  int oldtile;		/*origin tile when last drawn*/
-  char filler[1];	/*pad to 16 bytes*/
-   } activeobj;
-
-typedef struct {	/*holds a copy of activeobj, and its class info*/
-  boolean  active;	/*if false, the object has not seen the player yet*/
-  classtype  class;
-  byte  x,y,		/*location of upper left corner in world*/
-    stage,		/*animation frame being drawn*/
-    delay;		/*number of frames to pause without doing anything*/
-  dirtype  dir;		/*direction facing*/
-  char hp;		/*hit points*/
-  byte oldx,oldy;		/*position where it was last drawn*/
-  int oldtile;		/*origin tile when last drawn*/
-  char filler[1];	/*pad to 16 bytes*/
-
-  byte think;
-  byte contact;
-  byte solid;
-  word  firstchar;
-  byte  size;
-  byte  stages;
-  byte  dirmask;
-  word  speed;
-  byte  hitpoints;
-  byte  damage;
-  word  points;
-  char filler2[2];	/*pad to 32 bytes*/
-  } objdesc;
-
+#include "ngrabca2.h"
+#include "sounds.h"
 
 /*=================*/
 /*		   */
@@ -140,9 +76,9 @@ typedef struct {	/*holds a copy of activeobj, and its class info*/
 /* global variables */
 /*		    */
 /*==================*/
-  enum {quited,killed,reseted,victorious} gamexit; /*determines what to do after playloop*/
+  exittype gamexit; /*determines what to do after playloop*/
 
-  int oldtiles [numtiles];		/*tile displayed last refresh*/
+  int oldtiles [NUMTILES];		/*tile displayed last refresh*/
   int background[87][86];		/*base map*/
   int view[87][86];			/*base map with objects drawn in*/
   int originx, originy;			/*current world location of ul corn*/
@@ -154,36 +90,21 @@ typedef struct {	/*holds a copy of activeobj, and its class info*/
   int boltsleft;			/*number of shots left in a bolt*/
 
   activeobj o[maxobj+1],saveo[1];	/*everything that moves is here*/
-  objdesc obj , altobj;			/*total info about objecton and alt*/
+  objtype obj , altobj;			/*total info about objecton and alt*/
   int altnum;				/*o[#] of altobj*/
   int numobj,objecton;			/*number of objects in o now*/
 
-  struct {
-    byte think;			/*some of these sizes are for the*/
-    byte contact;			/*convenience of the assembly routines*/
-    byte solid;
-    word firstchar;
-    byte size;
-    byte stages;
-    byte dirmask;
-    word speed;
-    byte hitpoints;
-    byte damage;
-    word points;
-    byte filler[2];
-  } objdef [lastclass];
+  objdeftype objdef [lastclass];
 
-
-  int i,j,k,x,y,z;
   boolean playdone, leveldone;
 
   boolean tempb;
-  char far *tempp;
+  char *tempp;
 
   int chkx,chky,chkspot;		/*spot being checked by walk*/
 
   word frameon;
-  char far *grmem;
+  char *grmem;
   classtype clvar;
 
   int VGAPAL;				// just to make pcrlib happy
@@ -193,7 +114,7 @@ typedef struct {	/*holds a copy of activeobj, and its class info*/
 
   ControlStruct ctrl;
 
-  char far *pics, far *picsexact;
+  char *pics, *picsexact;
 
   unsigned EGADATASTART;
 
@@ -293,13 +214,15 @@ void simplerefresh(void)
 
 void loadgrfiles ()
 {
+	FIXME
+#ifdef NOTYET
   int i;
 
   if (grmode==CGAgr)
   {
     if (picsexact != NULL)
       farfree (picsexact);
-    pics= (char far *)bloadin("CGACHARS.CA2");
+    pics= (char *)bloadin("CGACHARS.CA2");
     picsexact = lastparalloc;
     installgrfile ("CGAPICS.CA2",0,0);
     setscreenmode (grmode);
@@ -310,11 +233,11 @@ void loadgrfiles ()
     installgrfile ("EGAPICS.CA2",0,0);
     setscreenmode (grmode);
     moveega ();
-    pics= (char far *)bloadin("EGACHARS.CA2");
+    pics= (char *)bloadin("EGACHARS.CA2");
     EGAmove ();
     farfree (lastparalloc);		// chars are allready in EGA mem
   }
-
+#endif
 }
 
 
@@ -378,7 +301,7 @@ void charpic(int x,int y, classtype c, dirtype dir, int stage)
 void help (void)
 {
   int x,y;
-  char far *oldcharptr;
+  char *oldcharptr;
 #define OLDSET oldcharptr = charptr;charptr = MK_FP(0xa400,0);
 #define NEWSET charptr = oldcharptr;
 
@@ -566,7 +489,7 @@ void loadlevel(void)
   strcat (filename,".CA2");
 
   LoadFile (filename,rle);
-  RLEExpand(&rle[4],&sm,4096);
+  RLEExpand(&rle[4],sm,4096);
 
   numobj=0;
   o[0].x=13;          /*just defaults if no player token is found*/
@@ -647,11 +570,6 @@ void loadlevel(void)
 
 
 /*==========================================================================*/
-
-
-#include "cat_play.c"
-
-#include "objects.c"
 
 
 /*
@@ -799,6 +717,8 @@ void repaintscreen ()
 
 void dofkeys (void)
 {
+	FIXME
+#ifdef NOTYET
   int i,handle;
   char st2[10];
   int key=bioskey(1)/256;
@@ -926,6 +846,7 @@ void dofkeys (void)
   clearold ();
   clearkeys ();
   repaintscreen ();
+#endif
 }
 
 
@@ -942,6 +863,8 @@ void dofkeys (void)
 
 void dotitlepage (void)
 {
+	FIXME
+#ifdef NOTYET
   int i;
   drawpic (0,0,TITLEPIC);
 
@@ -964,6 +887,7 @@ void dotitlepage (void)
       break;
   }
   gamestate=ingame;
+#endif
 }
 
 
@@ -1028,6 +952,8 @@ void doendpage (void)
 
 void dodemo (void)
 {
+	FIXME
+#ifdef NOTYET
   int i;
 
   while (!exitdemo)
@@ -1037,7 +963,7 @@ void dodemo (void)
     if (exitdemo)
       break;
 
-    i=random(NUMDEMOS)+1;
+    i=(rndt()%NUMDEMOS)+1;
     LoadDemo (i);
     level=0;
     playsetup ();
@@ -1066,6 +992,7 @@ void dodemo (void)
     }
 
   }
+#endif
 }
 
 /*=========================================================================*/
@@ -1082,6 +1009,8 @@ void dodemo (void)
 
 void gameover (void)
 {
+	FIXME
+#ifdef NOTYET
   int i;
 
   expwin (11,4);
@@ -1103,6 +1032,7 @@ void gameover (void)
 	 if (exitdemo)
 		break;
   }
+#endif
 }
 
 
@@ -1155,11 +1085,11 @@ static	char			*EntryParmStrings[] = {"detour",0};
 /*			   */
 /*=========================*/
 
-void main (void)
+void main (int _argc, char* _argv[])
 {
 	boolean LaunchedFromShell = false;
 
-	if (stricmp(_argv[1], "/VER") == 0)
+	if (_argc > 1 && stricmp(_argv[1], "/VER") == 0)
 	{
 		printf("The Catacomb\n");
 		printf("Copyright 1990-93 Softdisk Publishing\n");
@@ -1167,6 +1097,7 @@ void main (void)
 		exit(0);
 	}
 
+	int i;
 	for (i = 1;i < _argc;i++)
 	{
 		switch (US_CheckParm(_argv[i],EntryParmStrings))
@@ -1214,6 +1145,7 @@ void main (void)
 
   side=0;
 
+  int x, y;
   for (x=0; x<=85; x++)
     {
       for (y=0; y<=topoff-1; y++)

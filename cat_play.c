@@ -16,6 +16,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "catdefs.h"
+#include "catacomb.h"
+#include "sounds.h"
+
 /*=====================================*/
 /*				       */
 /* newobject                           */
@@ -839,6 +843,8 @@ boolean walk (void)
 void playercmdthink(void)
 
 {
+	FIXME
+#ifdef NOTYET
   dirtype olddir;
   ControlStruct c;
 
@@ -1084,6 +1090,7 @@ void playercmdthink(void)
       break;
 
   }
+#endif
 }
 
 

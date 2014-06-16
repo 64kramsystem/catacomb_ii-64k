@@ -16,18 +16,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <dos.h>
-#include <mem.h>
-#include <sys\stat.h>
+#ifndef __PCRLIB_H__
+#define __PCRLIB_H__
+
+//#include <dos.h>
+//#include <mem.h>
+//#include <sys\stat.h>
 #include <fcntl.h>
-#include <alloc.h>
-#include <io.h>
-#include <alloc.h>
+//#include <alloc.h>
+//#include <io.h>
 #include <string.h>
 
-typedef enum {false,true} boolean;
-typedef unsigned char byte;
-typedef unsigned int word;
+#include "catdefs.h"
 
 char extern ch,str[80];
 
@@ -53,7 +53,7 @@ typedef struct {char id[4];
 
 
 soundtype extern soundmode;
-char extern huge *SoundData;
+char extern *SoundData;
 
 int extern _dontplay;
 
@@ -73,9 +73,6 @@ void WaitEndSound (void);
 ** The control panel handles all this stuff!
 */
 
-typedef enum {north,east,south,west,northeast,southeast,southwest,
-	      northwest,nodir} dirtype;
-
 typedef struct {dirtype dir;
 		boolean button1,button2;} ControlStruct;
 
@@ -90,10 +87,10 @@ char extern key[8], keyB1, keyB2;
 enum demoenum {notdemo,demoplay,recording};
 enum demoenum extern indemo;
 
-void extern interrupt (*oldint9) ();
+void extern (*oldint9) ();
 
 void SetupKBD ();
-void interrupt Int9ISR ();
+void Int9ISR ();
 void ShutdownKBD ();
 
 void ReadJoystick (int joynum,int *xcount,int *ycount);
@@ -112,14 +109,14 @@ void SaveDemo (int demonum);
 ** Miscellaneous library routines
 */
 
-void extern far *lastparalloc;
+void extern *lastparalloc;
 
-void huge *paralloc (long size);
-long unsigned int LoadFile(char *filename,char huge *buffer);
-void SaveFile(char *filename,char huge *buffer, long size);
-void huge *bloadin (char *filename);
-void huge *bloadinLZW (char *filename);
-long RLEcompress (void far *source, long length, void far *dest);
+void *paralloc (long size);
+long unsigned int LoadFile(char *filename,char *buffer);
+void SaveFile(char *filename,char *buffer, long size);
+void *bloadin (char *filename);
+void *bloadinLZW (char *filename);
+long RLEcompress (void *source, long length, void *dest);
 
 void initrndt (boolean randomize);
 int rndt (void);
@@ -167,7 +164,7 @@ cardtype extern _videocard;
 
 int extern sx,sy,leftedge,xormask;	// stuff for screen text output
 
-word extern CGAylookup [200],EGAylookup[200],VGAylookup[200];
+word extern CGAylookup [200],EGAylookup[256],VGAylookup[200];
 
 unsigned extern crtcaddr;
 
@@ -193,8 +190,8 @@ unsigned extern EGADATASTART;
 typedef struct {
 		 int width;
 		 int height;
-		 void far *shapeptr;		// reletive to spriteptr
-		 void far *maskptr;
+		 void *shapeptr;		// reletive to spriteptr
+		 void *maskptr;
 		 int xl,yl,xh,yh;		// death box pixel offsets
 		 char name[12];
 	       } spritetype;
@@ -202,7 +199,7 @@ typedef struct {
 typedef struct {
 		 int width;
 		 int height;
-		 void far *shapeptr;
+		 void *shapeptr;
 		 char name[8];
 	       } pictype;
 
@@ -212,18 +209,18 @@ int extern numchars,numtiles,numpics,numsprites;
 spritetype extern image, spritetable[NUMSPRITES];	// grfile headers
 pictype extern pictable[NUMPICS];
 
-void extern huge *charptr;		// 8*8 tileset
-void extern huge *tileptr;		// 16*16 tileset
-void extern huge *picptr;		// any size picture set
-void extern huge *spriteptr;		// any size masked and hit rect sprites
-void extern huge *egaspriteptr[4];	// spriteptr for each plane
+void extern *charptr;		// 8*8 tileset
+void extern *tileptr;		// 16*16 tileset
+void extern *picptr;		// any size picture set
+void extern *spriteptr;		// any size masked and hit rect sprites
+void extern *egaspriteptr[4];	// spriteptr for each plane
 
 unsigned extern screenseg;		// loaded into ES in the draw routines
 					// should be adjusted after grmode
 					// switches, page flipping, and scrolls
 
 void moveega (void);
-void installgrfile (char *filename,int unpack,void huge *inmem);
+void installgrfile (char *filename,int unpack,void *inmem);
 
 void drawchar (int x, int y, int charnum);
 void drawtile (int x, int y, int picnum);
@@ -310,12 +307,14 @@ void _quit (char *);		// shuts everything down
 
 
 unsigned int extern RLECompress
-  (char far *source, long sourcelen, char far *dest);
+  (char *source, long sourcelen, char *dest);
 
 void extern RLEExpand
-  (char far *source, char far *dest, long origlen);
+  (char *source, char *dest, long origlen);
 
 
 
 //NOLAN ADDED
 extern boolean GODMODE;
+
+#endif

@@ -18,9 +18,16 @@
 
 #define CATALOG
 
+#include <unistd.h>
+#include <stdlib.h>
 
+#include "catdefs.h"
 #include "pcrlib.h"
-#include <conio.h>
+
+#define MK_FP(a,b) (char*)((a) + (b))
+#define O_BINARY 0
+#define S_IREAD (S_IRUSR|S_IRGRP|S_IRGRP)
+#define S_IWRITE (S_IWUSR|S_IWGRP|S_IWOTH)
 
 char	ch,str[80];	// scratch space
 
@@ -36,7 +43,7 @@ int MouseSensitivity;
 
 char key[8],keyB1,keyB2;
 
-void interrupt (*oldint9) ()=NULL;
+void (*oldint9) ()=NULL;
 
 char	demobuffer[5000];
 char	*demoptr;
@@ -58,7 +65,9 @@ enum demoenum indemo;
 
 void SetupKBD ()
 {
- void far *vect = getvect (9);
+	FIXME
+#ifdef NOTYET
+ void *vect = (void*)getvect (9);
  int i;
 
  for (i=0;i<128;i++)			/* clear our key down table */
@@ -71,6 +80,7 @@ void SetupKBD ()
    oldint9 = vect;
    setvect (9,Int9ISR);
  }
+#endif
 }
 
 
@@ -84,8 +94,10 @@ void SetupKBD ()
 =========================
 */
 
-void interrupt Int9ISR ()
+void Int9ISR ()
 {
+	FIXME
+#ifdef NOTYET
  int key = inportb (0x60);		/* get the key pressed */
 
  if (key>127)
@@ -115,6 +127,7 @@ asm {
    pop	ax
  }
  outport (0x20,0x20);			/* tell the int manager we got it */
+#endif
 }
 
 
@@ -130,8 +143,11 @@ asm {
 
 void ShutdownKBD ()
 {
+	FIXME
+#ifdef NOTYET
  if (oldint9 != NULL)
    setvect (9,oldint9);
+#endif
 }
 
 
@@ -209,6 +225,8 @@ ControlStruct ControlKBD ()
 
 ControlStruct ControlMouse ()
 {
+	FIXME
+#ifdef NOTYET
  int newx,newy,		/* mickeys the mouse has moved */
      xmove = 0,
      ymove = 0;
@@ -261,6 +279,7 @@ ControlStruct ControlMouse ()
  }
 
  return (action);
+#endif
 }
 
 
@@ -275,6 +294,8 @@ ControlStruct ControlMouse ()
 
 void ReadJoystick (int joynum,int *xcount,int *ycount)
 {
+	FIXME
+#ifdef NOTYET
  int portval,a1,a2,xbit,ybit;
 
  if (joynum==1)
@@ -305,6 +326,7 @@ void ReadJoystick (int joynum,int *xcount,int *ycount)
  } while ((a1+a2!=0) && (*xcount<500) && (*ycount<500));
 
  asm sti;
+#endif
 }
 
 
@@ -318,6 +340,8 @@ void ReadJoystick (int joynum,int *xcount,int *ycount)
 
 ControlStruct ControlJoystick (int joynum)
 {
+	FIXME
+#ifdef NOTYET
  int joyx = 0,joyy = 0,		/* resistance in joystick */
      xmove = 0,
      ymove = 0,
@@ -365,6 +389,7 @@ ControlStruct ControlJoystick (int joynum)
    action.button2 = ((buttons & 0x80) == 0);
  }
  return (action);
+#endif
 }
 
 
@@ -447,6 +472,8 @@ void RecordDemo (void)
 
 void LoadDemo (int demonum)
 {
+	FIXME
+#ifdef NOTYET
   char st2[5];
 
   strcpy (str,"DEMO");
@@ -459,10 +486,12 @@ void LoadDemo (int demonum)
   level=demobuffer[0];
   demoptr = &demobuffer[1];
   indemo = demoplay;
+#endif
 }
 
 void SaveDemo (int demonum)
 {
+#ifdef NOTYET
   char st2[5];
 
   strcpy (str,"DEMO");
@@ -473,6 +502,7 @@ void SaveDemo (int demonum)
 
   SaveFile (str,MK_FP(_DS,&demobuffer),(demoptr-&demobuffer[0]));
   indemo = notdemo;
+#endif
 }
 
 
@@ -499,12 +529,15 @@ void SaveDemo (int demonum)
 
 void clearkeys (void)
 {
+	FIXME
+#ifdef NOTYET
   int i;
   while (bioskey (1))
     bioskey(0);
 
   for (i=0;i<128;i++)
     keydown [i]=0;
+#endif
 }
 
 /*
@@ -515,15 +548,17 @@ void clearkeys (void)
 ===========================================
 */
 
-void far *lastparalloc;	// global variable of the EXACT (not paralign)
+void *lastparalloc;	// global variable of the EXACT (not paralign)
 				// last block, so it can be freed right
 
-void huge *paralloc (long size)
+void *paralloc (long size)
 {
- void huge *temp;
+	FIXME
+#ifdef NOTYET
+ void *temp;
  word seg,ofs;
 /* allocate a block with extra space */
- lastparalloc = (void far*)temp = farmalloc (size+15);
+ lastparalloc = temp = farmalloc (size+15);
  if (temp == NULL)
  //
  // not enough memory!
@@ -541,7 +576,8 @@ void huge *paralloc (long size)
   ofs=0;
   temp=MK_FP (seg,ofs);
  }
- return (void huge *) temp;
+ return (void *) temp;
+#endif
 }
 
 //==========================================================================
@@ -555,8 +591,10 @@ void huge *paralloc (long size)
 ==============================================
 */
 
-unsigned long LoadFile(char *filename,char huge *buffer)
+unsigned long LoadFile(char *filename,char *buffer)
 {
+	FIXME
+#ifdef NOTYET
  unsigned int handle,flength1=0,flength2=0,buf1,buf2,foff1,foff2;
 
  buf1=FP_OFF(buffer);
@@ -632,6 +670,7 @@ asm		mov	ah,3eh
 asm		int	21h
 
 return (flength2*0x10000+flength1);
+#endif
 
 }
 
@@ -646,8 +685,10 @@ return (flength2*0x10000+flength1);
 ==============================================
 */
 
-void SaveFile(char *filename,char huge *buffer, long size)
+void SaveFile(char *filename,char *buffer, long size)
 {
+	FIXME
+#ifdef NOTYET
  unsigned int handle,buf1,buf2,foff1,foff2;
 
  buf1=FP_OFF(buffer);
@@ -704,6 +745,7 @@ out:
 asm		mov	bx,handle		// CLOSE w/handle
 asm		mov	ah,3eh
 asm		int	21h
+#endif
 
 }
 
@@ -720,11 +762,13 @@ asm		int	21h
 ====================================
 */
 
-void huge *bloadin (char *filename)
+void *bloadin (char *filename)
 {
+	FIXME
+#ifdef NOTYET
  int handle;
  long length;
- char huge *location;
+ char *location;
 
  if ( (handle = open (filename,O_BINARY)) != -1 )
    {
@@ -736,6 +780,7 @@ void huge *bloadin (char *filename)
    }
  else
    return NULL;
+#endif
 }
 
 
@@ -748,11 +793,11 @@ void huge *bloadin (char *filename)
 grtype grmode;
 cardtype _videocard;
 
-void huge *charptr;		// 8*8 tileset
-void huge *tileptr;		// 16*16 tileset
-void huge *picptr;		// any size picture set
-void huge *spriteptr;		// any size masked and hit rect sprites
-void huge *egaspriteptr[4];	// spriteptr for each ega plane's data
+void *charptr;		// 8*8 tileset
+void *tileptr;		// 16*16 tileset
+void *picptr;		// any size picture set
+void *spriteptr;		// any size masked and hit rect sprites
+void *egaspriteptr[4];	// spriteptr for each ega plane's data
 
 unsigned crtcaddr;
 
@@ -769,6 +814,8 @@ int sx,sy,leftedge;
 
 void setscreenmode (grtype mode)
 {
+	FIXME
+#ifdef NOTYET
   char extern VGAPAL;			// deluxepaint vga pallet .OBJ file
   void far *vgapal = &VGAPAL;
 
@@ -800,6 +847,7 @@ void setscreenmode (grtype mode)
 		break;
   }
   crtcaddr = 0x3d4;		//peek (0x40,0x63) if not for two monitors...
+#endif
 }
 
 
@@ -813,6 +861,8 @@ void setscreenmode (grtype mode)
 
 void egasplitscreen (int linenum)
 {
+	FIXME
+#ifdef NOTYET
   WaitVBL ();
   if (_videocard==VGAcard)
     linenum*=2;
@@ -825,6 +875,7 @@ void egasplitscreen (int linenum)
     outportb (crtcaddr,CRTCMAXSCANLINE);
     outportb (crtcaddr+1,inportb(crtcaddr+1) & (255-64));
   }
+#endif
 }
 
 
@@ -838,11 +889,14 @@ void egasplitscreen (int linenum)
 
 void crtcstart (unsigned start)
 {
+	FIXME
+#ifdef NOTYET
   WaitVBL ();
   outportb (crtcaddr,CRTCSTARTL);
   outportb (crtcaddr+1,start % 256);
   outportb (crtcaddr,CRTCSTARTH);
   outportb (crtcaddr+1,start / 256);
+#endif
 }
 
 
@@ -973,6 +1027,8 @@ void expwinv (int width, int height)
 
 int get (void)
 {
+	FIXME
+#ifdef NOTYET
  int cycle,key;
 
  do
@@ -990,6 +1046,7 @@ int get (void)
  } while (key == 0);
  drawchar (sx,sy,' ');
  return bioskey(0);		// take it out of the buffer
+#endif
 }
 
 
@@ -1047,6 +1104,8 @@ int _MouseStatus;
 ////////////////////////////////////////////////////////////////////
 int _MouseInit(void)
 {
+	FIXME
+#ifdef NOTYET
  union REGS regs;
  unsigned char far *vector;
 
@@ -1058,32 +1117,41 @@ int _MouseInit(void)
  _AX=0;
  geninterrupt(0x33);
  return _MouseStatus = 1;
+#endif
 }
 
 
 
 void _MouseHide(void)
 {
+	FIXME
+#ifdef NOTYET
  if (!_MouseStatus) return;
 
  _AX=2;
  geninterrupt(0x33);
+#endif
 }
 
 
 
 void _MouseShow(void)
 {
+	FIXME
+#ifdef NOTYET
  if (!_MouseStatus) return;
 
  _AX=1;
  geninterrupt(0x33);
+#endif
 }
 
 
 
 int _MouseButton(void)
 {
+	FIXME
+#ifdef NOTYET
  union REGS regs;
 
  if (!_MouseStatus) return 0;
@@ -1091,12 +1159,15 @@ int _MouseButton(void)
  regs.x.ax=3;
  int86(0x33,&regs,&regs);
  return(regs.x.bx);
+#endif
 }
 
 
 
 void _MouseCoords(int *x,int *y)
 {
+	FIXME
+#ifdef NOTYET
  union REGS regs;
 
  if (!_MouseStatus) return;
@@ -1107,6 +1178,7 @@ void _MouseCoords(int *x,int *y)
  *y=regs.x.dx;
 
  *x/=2;
+#endif
 }
 
 
@@ -1119,6 +1191,8 @@ void _MouseCoords(int *x,int *y)
 ////////////////////////////////////////////////////////////////////
 long _Verify(char *filename)
 {
+	FIXME
+#ifdef NOTYET
  int handle;
  long size;
 
@@ -1126,6 +1200,7 @@ long _Verify(char *filename)
  size=filelength(handle);
  close(handle);
  return size;
+#endif
 }
 
 
@@ -1393,7 +1468,7 @@ void _loadhighscores (void)
 
   strcpy (str,"SCORES.");
   strcat (str,_extension);
-  if (LoadFile(str,(char huge *)highscores) == 0 )
+  if (LoadFile(str,(char *)highscores) == 0 )
     for (i=0;i<5;i++)
     {
       highscores[i].score = 100;
@@ -1406,7 +1481,7 @@ void _savehighscores (void)
 {
   strcpy (str,"SCORES.");
   strcat (str,_extension);
-  SaveFile(str,(char huge *)highscores,sizeof (highscores));
+  SaveFile(str,(char *)highscores,sizeof (highscores));
 }
 
 
@@ -1554,7 +1629,7 @@ void _setupgame (void)
   strcpy (str,"SOUNDS.");
   strcat (str,_extension);
 
-  SoundData = (char huge *) bloadin (str);
+  SoundData = (char *) bloadin (str);
 
   StartupSound ();
 
@@ -1576,7 +1651,7 @@ void _setupgame (void)
 //
 ////////////////////
 
-char extern far PIRACY;
+char extern PIRACY;
 
 void _quit (char *error)
 {
@@ -1617,7 +1692,7 @@ void _quit (char *error)
 
 //  bioskey (0);
 
-  clrscr ();
+//  clrscr ();
 
   exit (0);		// quit to DOS
 }

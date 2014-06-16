@@ -19,6 +19,7 @@
 #ifndef __CATDEFS_H__
 #define __CATDEFS_H__
 
+#include <assert.h>
 #include <stdio.h>
 
 #define CATALOG
@@ -29,6 +30,7 @@ typedef unsigned short word;
 
 // Compatibility stuff
 // TODO: Remove?
+#define FIXME { printf("FIXME: %s\n", __FUNCTION__); assert(false && __FUNCTION__); }
 #define MK_FP(a,b) (char*)((a) + (b))
 #define O_BINARY 0
 #define S_IREAD (S_IRUSR|S_IRGRP|S_IRGRP)

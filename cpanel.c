@@ -51,7 +51,10 @@
 //
 /////////////////////////////////
 
-#include "PCRLIB.H"
+#include <stdlib.h>
+
+#include "catdefs.h"
+#include "pcrlib.h"
 
 int rowy[4] = {4,9,14,19};
 int collumnx[4] = {14,20,26,32};
@@ -169,6 +172,8 @@ done:
 ////////////////////////////
 void calibratemouse (void)
 {
+	FIXME
+#ifdef NOTYET
   char ch;
 
   expwin (24,5);
@@ -191,7 +196,7 @@ void calibratemouse (void)
   _DX=100;
   geninterrupt (0x33);		// set mouse status
 
-
+#endif
 }
 
 /////////////////////////////
@@ -355,8 +360,10 @@ void calibratekeys (void)
 
 void getconfig (void)
 {
+	FIXME
+#ifdef NOTYET
   int x,y;
-  int far *vect;
+  int *vect;
 
   spotok [0][0] = 1;
   spotok [0][1] = _egaok;
@@ -381,7 +388,7 @@ void getconfig (void)
     joy1ok = 2;
 
   mouseok = 1;
-  vect = (int far *) getvect (0x33);
+  vect = (int *) getvect (0x33);
 
   if (vect == NULL)
     mouseok = 0;		// vecter is NULL, calling would be bad...
@@ -394,7 +401,7 @@ void getconfig (void)
   spotok [2][2] = joy1ok;
   spotok [2][3] = joy2ok;
   spotok [2][4] = 0;
-
+#endif
 }
 
 //=========================================================================
@@ -620,48 +627,50 @@ void controlpanel (void)
 unsigned egaplane[4];			// main memory paragraph of plane image
 spritetype image, spritetable[NUMSPRITES];	// grfile headers
 pictype pictable[NUMPICS];
-void far *lastgrpic;
+void *lastgrpic;
 
 int numchars,numtiles,numpics,numsprites;
 
-void installgrfile (char *filename, int unpack,void huge *inmem)
+void installgrfile (char *filename, int unpack,void *inmem)
 {
+	FIXME
+#ifdef NOTYET
   int i;
   unsigned long a,b,c,d;
   typedef pictype ptype[NUMPICS];
   typedef spritetype stype[NUMSPRITES];
 
-  typedef struct {void huge *charptr;
-		  void huge *tileptr;
-		  void huge *picptr;
-		  void huge *spriteptr;
-		  ptype huge *pictableptr;
-		  stype huge *spritetableptr;
-		  void huge *plane[4];
+  typedef struct {void *charptr;
+		  void *tileptr;
+		  void *picptr;
+		  void *spriteptr;
+		  ptype *pictableptr;
+		  stype *spritetableptr;
+		  void *plane[4];
 		  int numchars,numtiles,numpics,numsprites;
 		 } picfiletype;
 
-  picfiletype huge *picfile;
+  picfiletype *picfile;
 
-  stype huge *(spriteinfile);
-  ptype huge *(picinfile);
+  stype *(spriteinfile);
+  ptype *(picinfile);
 
 
   if (!filename[0])
 	{
-	 picfile=(picfiletype huge *)inmem;
+	 picfile=(picfiletype *)inmem;
 	}
   else
 	{
 	 if ( (long)lastgrpic )
-	   farfree ((void far *)lastgrpic); // so new graphics modes will free it up
+	   farfree ((void *)lastgrpic); // so new graphics modes will free it up
 
 	 if (unpack)
-	   picfile = (picfiletype huge *) bloadin /* LZW */ (filename);
+	   picfile = (picfiletype *) bloadin /* LZW */ (filename);
 	 else
-	   picfile = (picfiletype huge *) bloadin (filename);
+	   picfile = (picfiletype *) bloadin (filename);
 
-	 lastgrpic = (void far *) lastparalloc;
+	 lastgrpic = (void *) lastparalloc;
 	}
 
   numchars = picfile->numchars;
@@ -702,7 +711,7 @@ void installgrfile (char *filename, int unpack,void huge *inmem)
     pictable[i] = (*picinfile)[i];
   for (i=0; i<NUMSPRITES; i++)
     spritetable[i] = (*spriteinfile)[i];
-
+#endif
 }
 
 
@@ -719,6 +728,8 @@ void installgrfile (char *filename, int unpack,void huge *inmem)
 //////////////////////////
 void moveega (void)
 {
+	FIXME
+#ifdef NOTYET
   int plane;
 
   for (plane=0;plane<4;plane++)
@@ -730,5 +741,6 @@ void moveega (void)
   }
   outportb (SCindex,SCmapmask);		// read map select
   outportb (SCindex+1,15);	// all planes
+#endif
 }
 
