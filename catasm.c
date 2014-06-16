@@ -40,8 +40,8 @@ word table86[] = {
 	7224,7310,7396
 };
 
-void drawobj() {}
-void eraseobj() {}
+void drawobj() FIXME
+void eraseobj() FIXME
 
 #if 0
 .DATA
@@ -60,10 +60,9 @@ EXTRN	refresh:NEAR
 EXTRN	doactive:NEAR
 EXTRN	doinactive:NEAR
 #endif
-void doall() {}
-void egamove() {}
-void cgarefresh() {}
-void egarefresh() {}
+void doall() FIXME
+void cgarefresh() FIXME
+void egarefresh() FIXME
 
 word linetables[2] = {0,0};
 

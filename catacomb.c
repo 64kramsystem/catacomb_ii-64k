@@ -135,7 +135,6 @@
 void extern drawobj (void);
 void extern eraseobj (void);
 void extern doall (void);
-void extern egamove (void);
 void extern cgarefresh (void);
 void extern egarefresh (void);
 void dofkeys (void);
@@ -214,30 +213,26 @@ void simplerefresh(void)
 
 void loadgrfiles ()
 {
-	FIXME
-#ifdef NOTYET
   int i;
 
   if (grmode==CGAgr)
   {
     if (picsexact != NULL)
-      farfree (picsexact);
+      free (picsexact);
     pics= (char *)bloadin("CGACHARS.CA2");
-    picsexact = lastparalloc;
+    picsexact = pics;
     installgrfile ("CGAPICS.CA2",0,0);
     setscreenmode (grmode);
   }
   else
   {
-    EGADATASTART = 0xA800;
+    if (picsexact != NULL)
+      free (picsexact);
+    pics= (char *)bloadin("EGACHARS.CA2");
+    picsexact = pics;
     installgrfile ("EGAPICS.CA2",0,0);
     setscreenmode (grmode);
-    moveega ();
-    pics= (char *)bloadin("EGACHARS.CA2");
-    EGAmove ();
-    farfree (lastparalloc);		// chars are allready in EGA mem
   }
-#endif
 }
 
 

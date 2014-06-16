@@ -19,16 +19,14 @@
 
 #include "pcrlib.h"
 
-static void InitRLE() {}
-static void OutputRep() {}
-static void OutputDif() {}
-void Expand() {}
-void Compress() {}
+static void InitRLE() FIXME
+static void OutputRep() FIXME
+static void OutputDif() FIXME
+void Expand() FIXME
+void Compress() FIXME
 
 unsigned int RLECompress(char *source, long sourcelen, char *dest)
-{
-}
+FIXME
 
 void RLEExpand(char *source, char *dest, long origlen)
-{
-}
+FIXME

@@ -19,15 +19,13 @@
 #define CATALOG
 
 #include <unistd.h>
+#include <sys/stat.h>
 #include <stdlib.h>
+
+#include <SDL.h>
 
 #include "catdefs.h"
 #include "pcrlib.h"
-
-#define MK_FP(a,b) (char*)((a) + (b))
-#define O_BINARY 0
-#define S_IREAD (S_IRUSR|S_IRGRP|S_IRGRP)
-#define S_IWRITE (S_IWUSR|S_IWGRP|S_IWOTH)
 
 char	ch,str[80];	// scratch space
 
@@ -42,8 +40,6 @@ int JoyXlow [3], JoyXhigh [3], JoyYlow [3], JoyYhigh [3];
 int MouseSensitivity;
 
 char key[8],keyB1,keyB2;
-
-void (*oldint9) ()=NULL;
 
 char	demobuffer[5000];
 char	*demoptr;
@@ -65,91 +61,10 @@ enum demoenum indemo;
 
 void SetupKBD ()
 {
-	FIXME
-#ifdef NOTYET
- void *vect = (void*)getvect (9);
- int i;
-
+ unsigned i;
  for (i=0;i<128;i++)			/* clear our key down table */
    keydown[i]= false;
-
- poke (0x40,0x1c,peek(0x40,0x1a));	/* clear the bios key buffer */
-
- if ( &Int9ISR != vect ) 		/* is our handler allready set up? */
- {
-   oldint9 = vect;
-   setvect (9,Int9ISR);
- }
-#endif
 }
-
-
-/*
-=========================
-=
-= Int9ISR
-= Called for every keypress.  Keeps track of which keys are down, and passes
-= the key on to DOS after clearing the dos buffer (max 1 char in buffer).
-=
-=========================
-*/
-
-void Int9ISR ()
-{
-	FIXME
-#ifdef NOTYET
- int key = inportb (0x60);		/* get the key pressed */
-
- if (key>127)
-   keydown [key-128] = false;		/* break scan code */
- else
- {
-   keydown [key] = true;		/* make scan code */
-   poke (0x40,0x1c,peek(0x40,0x1a));	/* clear the bios key buffer */
- }
-asm {
-   push ax
-   push	bx
-   push	cx
-   push	dx
-   push	si
-   push	di
-   push	bp
- }
- oldint9 ();				/* give it to DOS */
-asm {
-   pop	bp
-   pop  di
-   pop	si
-   pop	dx
-   pop	cx
-   pop	bx
-   pop	ax
- }
- outport (0x20,0x20);			/* tell the int manager we got it */
-#endif
-}
-
-
-
-/*
-===========================
-=
-= ShutdownKBD
-= Sets the int 9 vector back to oldint 9
-=
-===========================
-*/
-
-void ShutdownKBD ()
-{
-	FIXME
-#ifdef NOTYET
- if (oldint9 != NULL)
-   setvect (9,oldint9);
-#endif
-}
-
 
 /*
 ===========================
@@ -540,47 +455,16 @@ void clearkeys (void)
 #endif
 }
 
-/*
-===========================================
-=
-= Allocate a block aligned on a paragraph
-=
-===========================================
-*/
-
-void *lastparalloc;	// global variable of the EXACT (not paralign)
-				// last block, so it can be freed right
-
-void *paralloc (long size)
-{
-	FIXME
-#ifdef NOTYET
- void *temp;
- word seg,ofs;
-/* allocate a block with extra space */
- lastparalloc = temp = farmalloc (size+15);
- if (temp == NULL)
- //
- // not enough memory!
- //
- {
-   setscreenmode (text);
-	_quit ("Out of memory!");
- }
-
- ofs=FP_OFF(temp);
- if (ofs!=0)			/* set offset to 0 and bump segment */
- {
-  seg=FP_SEG(temp);
-  seg++;
-  ofs=0;
-  temp=MK_FP (seg,ofs);
- }
- return (void *) temp;
-#endif
-}
-
 //==========================================================================
+
+static long filelength (int fd)
+{
+	struct stat s;
+	if(fstat(fd, &s))
+		return -1;
+
+	return s.st_size;
+}
 
 /*
 ==============================================
@@ -593,85 +477,15 @@ void *paralloc (long size)
 
 unsigned long LoadFile(char *filename,char *buffer)
 {
-	FIXME
-#ifdef NOTYET
- unsigned int handle,flength1=0,flength2=0,buf1,buf2,foff1,foff2;
+	int fd;
+	if((fd = open(filename, S_IREAD)) < 0)
+		return 0;
 
- buf1=FP_OFF(buffer);
- buf2=FP_SEG(buffer);
+	long len = filelength(fd);
+	ssize_t bytesRead = read(fd, buffer, len);
 
-asm		mov	WORD PTR foff1,0  	// file offset = 0 (start)
-asm		mov	WORD PTR foff2,0
-
-asm		mov	dx,filename
-asm		mov	ax,3d00h		// OPEN w/handle (read only)
-asm		int	21h
-asm		jc	out
-
-asm		mov	handle,ax
-asm		mov	bx,ax
-asm		xor	cx,cx
-asm		xor	dx,dx
-asm		mov	ax,4202h
-asm		int	21h			// SEEK (find file length)
-asm		jc	out
-
-asm		mov	flength1,ax
-asm		mov	flength2,dx
-
-asm		mov	cx,flength2
-asm		inc	cx			// <- at least once!
-
-L_1:
-
-asm		push	cx
-
-asm		mov	cx,foff2
-asm		mov	dx,foff1
-asm		mov	ax,4200h
-asm		int	21h			// SEEK from start
-
-asm		push	ds
-asm		mov	bx,handle
-asm		mov	cx,-1
-asm		mov	dx,buf1
-asm		mov	ax,buf2
-asm		mov	ds,ax
-asm		mov	ah,3fh			// READ w/handle
-asm		int	21h
-asm		pop	ds
-
-asm		pop	cx
-asm		jc	out
-asm		cmp	ax,-1
-asm		jne	out
-
-asm		push	cx			// need to read the last byte
-asm		push	ds			// into the segment! IMPORTANT!
-asm		mov	bx,handle
-asm		mov	cx,1
-asm		mov	dx,buf1
-asm		add	dx,-1
-asm		mov	ax,buf2
-asm		mov	ds,ax
-asm		mov	ah,3fh
-asm		int	21h
-asm		pop	ds
-asm		pop	cx
-
-asm		add	buf2,1000h
-asm		inc	WORD PTR foff2
-asm		loop	L_1
-
-out:
-
-asm		mov	bx,handle		// CLOSE w/handle
-asm		mov	ah,3eh
-asm		int	21h
-
-return (flength2*0x10000+flength1);
-#endif
-
+	close(fd);
+	return bytesRead;
 }
 
 //===========================================================================
@@ -751,7 +565,6 @@ asm		int	21h
 
 //==========================================================================
 
-
 /*
 ====================================
 =
@@ -764,8 +577,6 @@ asm		int	21h
 
 void *bloadin (char *filename)
 {
-	FIXME
-#ifdef NOTYET
  int handle;
  long length;
  char *location;
@@ -773,14 +584,13 @@ void *bloadin (char *filename)
  if ( (handle = open (filename,O_BINARY)) != -1 )
    {
     length = filelength (handle);
-    location = paralloc (length);
+    location = malloc (length);
     close (handle);
     LoadFile (filename,location);
     return location;
    }
  else
    return NULL;
-#endif
 }
 
 
@@ -791,13 +601,11 @@ void *bloadin (char *filename)
 */
 
 grtype grmode;
-cardtype _videocard;
 
 void *charptr;		// 8*8 tileset
 void *tileptr;		// 16*16 tileset
 void *picptr;		// any size picture set
 void *spriteptr;		// any size masked and hit rect sprites
-void *egaspriteptr[4];	// spriteptr for each ega plane's data
 
 unsigned crtcaddr;
 
@@ -814,7 +622,8 @@ int sx,sy,leftedge;
 
 void setscreenmode (grtype mode)
 {
-	FIXME
+	printf("STUB: %s\n", __FUNCTION__);
+
 #ifdef NOTYET
   char extern VGAPAL;			// deluxepaint vga pallet .OBJ file
   void far *vgapal = &VGAPAL;
@@ -832,8 +641,8 @@ void setscreenmode (grtype mode)
     case EGAgr: _AX = 0xd;
 		geninterrupt (0x10);
 		screenseg=0xa000;
-		EGAmove ();
-		moveega ();
+		//EGAmove ();
+		//moveega ();
 		break;
     case VGAgr: _AX = 0x13;
 		geninterrupt (0x10);
@@ -864,17 +673,13 @@ void egasplitscreen (int linenum)
 	FIXME
 #ifdef NOTYET
   WaitVBL ();
-  if (_videocard==VGAcard)
-    linenum*=2;
+  linenum*=2;
   outportb (crtcaddr,CRTCLINECOMPARE);
   outportb (crtcaddr+1,linenum % 256);
   outportb (crtcaddr,CRTCOVERFLOW);
   outportb (crtcaddr+1, 1+16*(linenum/256));
-  if (_videocard==VGAcard)
-  {
-    outportb (crtcaddr,CRTCMAXSCANLINE);
-    outportb (crtcaddr+1,inportb(crtcaddr+1) & (255-64));
-  }
+  outportb (crtcaddr,CRTCMAXSCANLINE);
+  outportb (crtcaddr+1,inportb(crtcaddr+1) & (255-64));
 #endif
 }
 
@@ -1602,18 +1407,16 @@ void _checkhighscore (void)
 
 void _setupgame (void)
 {
+  if (SDL_Init (SDL_INIT_VIDEO))
+  {
+    fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
+    exit(1);
+  }
+
 //
 // set up game's library routines
 //
-  _videocard = VideoID ();
-
   grmode = text;
-
-  if (!(_videocard == VGAcard || _videocard == MCGAcard))
-    _vgaok = false;
-
-  if (!(_videocard == EGAcard || _videocard == VGAcard))
-    _egaok = false;
 
   // allways assume CGA compatability for simCGA garbage
 
@@ -1672,7 +1475,6 @@ void _quit (char *error)
 	exit(1);
   }
 
-  ShutdownKBD ();	// shut down the interrupt driven stuff if needed
   ShutdownSound ();
 
 #ifndef CATALOG

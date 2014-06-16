@@ -194,7 +194,6 @@ typedef struct {	/*holds a copy of ActiveObj, and its class info*/
 void extern DrawObj (void);
 void extern EraseObj (void);
 void extern DoAll (void);
-void extern EGAmove (void);
 void extern CGArefresh (void);
 void extern EGArefresh (void);
 

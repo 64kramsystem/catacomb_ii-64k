@@ -27,14 +27,13 @@
 typedef enum {false,true} boolean;
 typedef unsigned char byte;
 typedef unsigned short word;
+typedef signed short sword;
 
 // Compatibility stuff
 // TODO: Remove?
 #define FIXME { printf("FIXME: %s\n", __FUNCTION__); assert(false && __FUNCTION__); }
 #define MK_FP(a,b) (char*)((a) + (b))
 #define O_BINARY 0
-#define S_IREAD (S_IRUSR|S_IRGRP|S_IRGRP)
-#define S_IWRITE (S_IWUSR|S_IWGRP|S_IWOTH)
 static inline char *itoa(int value, char* str, int base)
 {
 	if(base == 16)

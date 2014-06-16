@@ -87,11 +87,7 @@ char extern key[8], keyB1, keyB2;
 enum demoenum {notdemo,demoplay,recording};
 enum demoenum extern indemo;
 
-void extern (*oldint9) ();
-
 void SetupKBD ();
-void Int9ISR ();
-void ShutdownKBD ();
 
 void ReadJoystick (int joynum,int *xcount,int *ycount);
 
@@ -109,9 +105,6 @@ void SaveDemo (int demonum);
 ** Miscellaneous library routines
 */
 
-void extern *lastparalloc;
-
-void *paralloc (long size);
 long unsigned int LoadFile(char *filename,char *buffer);
 void SaveFile(char *filename,char *buffer, long size);
 void *bloadin (char *filename);
@@ -155,12 +148,8 @@ void _printbin(unsigned value);
 #define CRTCSTARTH 0xc
 
 typedef enum {text,CGAgr,EGAgr,VGAgr} grtype;
-typedef enum {NOcard,MDAcard,CGAcard,EGAcard,MCGAcard,VGAcard,
-	      HGCcard=0x80,HGCPcard,HICcard} cardtype;
 
 grtype extern grmode;
-
-cardtype extern _videocard;
 
 int extern sx,sy,leftedge,xormask;	// stuff for screen text output
 
@@ -174,7 +163,6 @@ void EGAplane (int plane);
 void EGAlatch (void);
 void EGAsplitscreen (int linenum);
 void crtcstart (unsigned start);
-cardtype VideoID (void);
 
 /*=========================================================================*/
 
@@ -213,13 +201,11 @@ void extern *charptr;		// 8*8 tileset
 void extern *tileptr;		// 16*16 tileset
 void extern *picptr;		// any size picture set
 void extern *spriteptr;		// any size masked and hit rect sprites
-void extern *egaspriteptr[4];	// spriteptr for each plane
 
 unsigned extern screenseg;		// loaded into ES in the draw routines
 					// should be adjusted after grmode
 					// switches, page flipping, and scrolls
 
-void moveega (void);
 void installgrfile (char *filename,int unpack,void *inmem);
 
 void drawchar (int x, int y, int charnum);

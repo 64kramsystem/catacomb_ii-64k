@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <time.h>
+
 #include "pcrlib.h"
 
 static word SPKactive = 0; //set non zero when started
@@ -108,15 +110,21 @@ word VGAylookup[200] = {
 	-2816,-2496,-2176,-1856
 };
 
-void StartupSound() {}
-void ShutdownSound() {}
-void PlaySound(int sound) {}
-void StopSound() {}
-void PauseSound() {}
-void ContinueSound() {}
-void WaitEndSound() {}
+void StartupSound()
+{
+	printf("STUB: %s\n", __FUNCTION__);
 
-static void UpdateSPKR() {}
+	soundmode = 0;
+}
+
+void ShutdownSound() FIXME
+void PlaySound(int sound) FIXME
+void StopSound() FIXME
+void PauseSound() FIXME
+void ContinueSound() FIXME
+void WaitEndSound() FIXME
+
+static void UpdateSPKR() FIXME
 
 static word rndindex;
 static byte rndtable[256] = {
@@ -158,7 +166,7 @@ static word baseRndArray[] = { 1,1,2,3,5,8,13,21,54,75,129,204,323,527,850,1377,
 // 11-Sep-90	LR	FIX initialization to use TIME!
 //=================================================
 
-void initrnd(boolean randomize) {}
+void initrnd(boolean randomize) FIXME
 
 //=================================================
 //
@@ -168,7 +176,7 @@ void initrnd(boolean randomize) {}
 // 11-Sep-90 LR -modify to save registers!
 //=================================================
 
-void rnd(word maxval) {}
+void rnd(word maxval) FIXME
 
 //=================================================
 //
@@ -177,7 +185,10 @@ void rnd(word maxval) {}
 //
 //=================================================
 
-void initrndt(boolean randomize) {}
+void initrndt(boolean randomize)
+{
+	rndindex = randomize ? time(NULL)&0xFF : 0;
+}
 
 //=================================================
 //
@@ -186,32 +197,24 @@ void initrndt(boolean randomize) {}
 //
 //=================================================
 
-int rndt() {}
+int rndt() FIXME
 
-void WaitVBL() {}
-void EGAplane(int plane) {}
-void EGAlatch() {}
-void drawchar(int x, int y, int charnum) {}
-static void CgaCharOut() {}
-static void EgaCharOut() {}
-static void VgaCharOut() {}
-void drawtile(int x, int y, int picnum) {}
-static void Cgatileout() {}
-static void Egatileout() {}
-static void Vgatileout() {}
-void drawpic(int x, int y, int picnum) {}
-static void CgaDrawpic() {}
-static void EgaDrawpic() {}
-static void VgaDrawpic() {}
-cardtype VideoID() {}
-static void FindPS2() {}
-static void FindEGA() {}
-static void FindCGA() {}
-static void FindMono() {}
-static void Find6845() {}
-static void FindActive() {}
-static void FoundDevice() {}
+void WaitVBL() FIXME
+void EGAplane(int plane) FIXME
+void EGAlatch() FIXME
+void drawchar(int x, int y, int charnum) FIXME
+static void CgaCharOut() FIXME
+static void EgaCharOut() FIXME
+static void VgaCharOut() FIXME
+void drawtile(int x, int y, int picnum) FIXME
+static void Cgatileout() FIXME
+static void Egatileout() FIXME
+static void Vgatileout() FIXME
+void drawpic(int x, int y, int picnum) FIXME
+static void CgaDrawpic() FIXME
+static void EgaDrawpic() FIXME
+static void VgaDrawpic() FIXME
 
 unsigned timecall,timeax,timebx,timecx,timedx,timesi,timedi,timebp,timees;
-int timesub(int ticks) {}
+int timesub(int ticks) FIXME
 
