@@ -158,6 +158,7 @@ word extern CGAylookup [200],EGAylookup[256],VGAylookup[200];
 unsigned extern crtcaddr;
 
 void setscreenmode (grtype mode);
+void UpdateScreen();
 void WaitVBL (void);
 void EGAplane (int plane);
 void EGAlatch (void);
@@ -175,22 +176,23 @@ void crtcstart (unsigned start);
 
 unsigned extern EGADATASTART;
 
+#pragma pack(1)
 typedef struct {
-		 int width;
-		 int height;
-		 void *shapeptr;		// reletive to spriteptr
-		 void *maskptr;
-		 int xl,yl,xh,yh;		// death box pixel offsets
+		 sword width;
+		 sword height;
+		 dword shapeptr;		// reletive to spriteptr
+		 dword maskptr;
+		 sword xl,yl,xh,yh;		// death box pixel offsets
 		 char name[12];
 	       } spritetype;
 
 typedef struct {
-		 int width;
-		 int height;
-		 void *shapeptr;
+		 sword width;
+		 sword height;
+		 dword shapeptr;
 		 char name[8];
 	       } pictype;
-
+#pragma pack()
 
 int extern numchars,numtiles,numpics,numsprites;
 
@@ -201,10 +203,12 @@ void extern *charptr;		// 8*8 tileset
 void extern *tileptr;		// 16*16 tileset
 void extern *picptr;		// any size picture set
 void extern *spriteptr;		// any size masked and hit rect sprites
+extern dword egaplaneofs[4];
 
-unsigned extern screenseg;		// loaded into ES in the draw routines
-					// should be adjusted after grmode
-					// switches, page flipping, and scrolls
+extern byte screenseg[320*200];	// loaded into ES in the draw routines
+							// should be adjusted after grmode
+							// switches, page flipping, and scrolls
+enum { screenpitch = 320 };
 
 void installgrfile (char *filename,int unpack,void *inmem);
 

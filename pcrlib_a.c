@@ -18,6 +18,8 @@
  */
 
 #include <time.h>
+#include <SDL_timer.h>
+#include <SDL_thread.h>
 
 #include "pcrlib.h"
 
@@ -43,8 +45,6 @@ int _dontplay = 0; //set to 1 to avoid all interrupt and timer stuff
 
 int xormask = 0; //to invert characters
 int _yshift = 0; //to shift char lines
-
-unsigned screenseg = 0xa000; //changes with grmode, page flips, & scrolls
 
 //========
 //
@@ -199,13 +199,91 @@ void initrndt(boolean randomize)
 
 int rndt() FIXME
 
-void WaitVBL() FIXME
+enum { VBL_TIME = 1000/70 };
+SDL_sem *vblsem;
+SDL_TimerID vbltimer;
+static Uint32 VBLCallback(Uint32 interval, void *usr)
+{
+	SDL_SemPost(vblsem);
+	return VBL_TIME;
+}
+
+static void ShutdownEmulatedVBL()
+{
+	SDL_RemoveTimer(vbltimer);
+	SDL_DestroySemaphore(vblsem);
+}
+
+void SetupEmulatedVBL()
+{
+	vblsem = SDL_CreateSemaphore(0);
+
+	vbltimer = SDL_AddTimer(VBL_TIME, VBLCallback, NULL);
+	atexit(ShutdownEmulatedVBL);
+}
+
+void WaitVBL()
+{
+	do
+	{
+		SDL_SemWait(vblsem);
+	}
+	while(SDL_SemValue(vblsem));
+}
+
 void EGAplane(int plane) FIXME
 void EGAlatch() FIXME
-void drawchar(int x, int y, int charnum) FIXME
-static void CgaCharOut() FIXME
-static void EgaCharOut() FIXME
-static void VgaCharOut() FIXME
+
+static inline byte EGA(const byte chan[4], byte ofs)
+{
+	return
+		(((chan[3]>>ofs)&1)<<3)|
+		(((chan[2]>>ofs)&1)<<2)|
+		(((chan[1]>>ofs)&1)<<1)|
+		((chan[0]>>ofs)&1);
+}
+
+void drawchar(int x, int y, int charnum)
+{
+	byte *vbuf = screenseg + (y<<3)*screenpitch + (x<<3);
+	byte *src;
+	switch(grmode)
+	{
+	case VGAgr:
+		src = (byte*)charptr + charnum*64;
+		break;
+	case CGAgr:
+		src = (byte*)charptr + charnum*16;
+		break;
+	case EGAgr:
+		src = (byte*)charptr + charnum*8;
+		break;
+	}
+	assert(grmode == EGAgr);
+
+	unsigned i;
+	for (i = 0;i < 8;++i, ++src)
+	{
+		const byte chan[4] = {
+			*(src + egaplaneofs[0]),
+			*(src + egaplaneofs[1]),
+			*(src + egaplaneofs[2]),
+			*(src + egaplaneofs[3])
+		};
+
+		*vbuf++ = EGA(chan,7);
+		*vbuf++ = EGA(chan,6);
+		*vbuf++ = EGA(chan,5);
+		*vbuf++ = EGA(chan,4);
+		*vbuf++ = EGA(chan,3);
+		*vbuf++ = EGA(chan,2);
+		*vbuf++ = EGA(chan,1);
+		*vbuf = EGA(chan,0);
+
+		vbuf += screenpitch-7;
+	}
+}
+
 void drawtile(int x, int y, int picnum) FIXME
 static void Cgatileout() FIXME
 static void Egatileout() FIXME

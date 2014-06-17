@@ -28,6 +28,10 @@ typedef enum {false,true} boolean;
 typedef unsigned char byte;
 typedef unsigned short word;
 typedef signed short sword;
+typedef unsigned int dword;
+typedef signed int sdword;
+typedef struct { word ofs; word seg; } farptr;
+static inline dword flatptr(farptr ptr) { return (ptr.seg<<4) + ptr.ofs; }
 
 // Compatibility stuff
 // TODO: Remove?

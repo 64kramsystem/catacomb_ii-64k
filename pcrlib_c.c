@@ -47,6 +47,10 @@ int	democount;
 int	lastdemoval;		// so demo can be RLE compressed
 enum demoenum indemo;
 
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture *sdltexture;
+
 /*=======================================================================*/
 
 /*
@@ -606,6 +610,7 @@ void *charptr;		// 8*8 tileset
 void *tileptr;		// 16*16 tileset
 void *picptr;		// any size picture set
 void *spriteptr;		// any size masked and hit rect sprites
+dword egaplaneofs[4];
 
 unsigned crtcaddr;
 
@@ -800,6 +805,7 @@ void expwin (int width, int height)
     if (height >2)
       expwinv (width,height-2);
 
+  UpdateScreen();
   WaitVBL ();
   centerwindow (width,height);
 }
@@ -809,6 +815,7 @@ void expwinh (int width, int height)
   if (width > 2)
     expwinh (width-2,height);
 
+  UpdateScreen();
   WaitVBL ();
   centerwindow (width,height);
 }
@@ -818,6 +825,7 @@ void expwinv (int width, int height)
   if (height >2)
     expwinv (width,height-2);
 
+  UpdateScreen();
   WaitVBL ();
   centerwindow (width,height);
 }
@@ -830,18 +838,62 @@ void expwinv (int width, int height)
 //
 /////////////////////////
 
+static int bioskey()
+{
+	int key = 0;
+
+	SDL_Event event;
+	while (SDL_PollEvent (&event))
+	{
+		if(event.type == SDL_KEYDOWN)
+		{
+			key = event.key.keysym.scancode;
+		}
+		else if(event.type == SDL_WINDOWEVENT)
+		{
+			if(event.window.event == SDL_WINDOWEVENT_CLOSE)
+				_quit("");
+		}
+	}
+
+	return key;
+}
+
+void UpdateScreen()
+{
+	static Uint32 EGAPalette[16] = {
+		0x000000, 0x0000AA, 0x00AA00, 0x00AAAA,
+		0xAA0000, 0xAA00AA, 0xAA5500, 0xAAAAAA,
+		0x555555, 0x5555FF, 0x55FF55, 0x55FFFF,
+		0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF
+	};
+	static Uint32 conv[sizeof(screenseg)];
+
+	size_t i = 0;
+	while (i < sizeof(screenseg))
+	{
+		conv[i] = screenseg[i] ? EGAPalette[screenseg[i]] : 0;
+		++i;
+	}
+	SDL_UpdateTexture(sdltexture, NULL, conv, 320*sizeof(Uint32));
+	SDL_RenderClear(renderer);
+	SDL_RenderCopy(renderer, sdltexture, NULL, NULL);
+	SDL_RenderPresent(renderer);
+}
+
 int get (void)
 {
-	FIXME
-#ifdef NOTYET
+ SDL_Event event;
+
  int cycle,key;
 
  do
  {
    cycle = 9;
-   while (!(key = bioskey(1)) && cycle<13)
+   while (!(key = bioskey()) && cycle<13)
    {
      drawchar (sx,sy,cycle++);
+	 UpdateScreen();
      WaitVBL ();
      WaitVBL ();
      WaitVBL ();
@@ -850,8 +902,7 @@ int get (void)
    }
  } while (key == 0);
  drawchar (sx,sy,' ');
- return bioskey(0);		// take it out of the buffer
-#endif
+ return key;		// take it out of the buffer
 }
 
 
@@ -1405,13 +1456,31 @@ void _checkhighscore (void)
 //
 ////////////////////
 
+void SetupEmulatedVBL();
+byte screenseg[320*200];
+
 void _setupgame (void)
 {
-  if (SDL_Init (SDL_INIT_VIDEO))
+  if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER))
   {
     fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
     exit(1);
   }
+
+  if (SDL_CreateWindowAndRenderer (320, 200, 0, &window, &renderer) == -1)
+  {
+    fprintf(stderr, "Failed to create SDL window: %s\n", SDL_GetError());
+    exit(1);
+  }
+  SDL_SetWindowTitle (window, "The Catacomb");
+
+  if (!(sdltexture = SDL_CreateTexture (renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 320, 200)))
+  {
+    fprintf(stderr, "Could not create video buffer: %s\n", SDL_GetError());
+	exit(1);
+  }
+
+  memset(screenseg, 0, sizeof(screenseg));
 
 //
 // set up game's library routines
@@ -1445,6 +1514,7 @@ void _setupgame (void)
 
   loadgrfiles ();	// load the graphic files
 
+  SetupEmulatedVBL();
 }
 
 

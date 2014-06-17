@@ -636,13 +636,13 @@ void installgrfile (char *filename, int unpack,void *inmem)
   typedef pictype ptype[NUMPICS];
   typedef spritetype stype[NUMSPRITES];
 
-  typedef struct {word charptr;
-		  word tileptr;
-		  word picptr;
-		  word spriteptr;
-		  word pictableptr;
-		  word spritetableptr;
-		  word plane[4];
+  typedef struct {farptr charptr;
+		  farptr tileptr;
+		  farptr picptr;
+		  farptr spriteptr;
+		  farptr pictableptr;
+		  farptr spritetableptr;
+		  farptr plane[4];
 		  sword numchars,numtiles,numpics,numsprites;
 		 } picfiletype;
 
@@ -674,16 +674,22 @@ void installgrfile (char *filename, int unpack,void *inmem)
   numpics = picfile->numpics;
   numsprites = picfile->numsprites;
 
-  charptr = (byte*)picfile+picfile->charptr;
-  tileptr = (byte*)picfile+picfile->tileptr;
-  picptr = (byte*)picfile+picfile->picptr;
-  spriteptr = (byte*)picfile+picfile->spriteptr;
+  printf("installgrfile: %s (%d, %d, %d, %d)\n", filename, numchars, numtiles, numpics, numsprites);
+
+  charptr = (byte*)picfile+flatptr(picfile->charptr);
+  tileptr = (byte*)picfile+flatptr(picfile->tileptr);
+  picptr = (byte*)picfile+flatptr(picfile->picptr);
+  spriteptr = (byte*)picfile+flatptr(picfile->spriteptr);
+  egaplaneofs[0] = flatptr(picfile->plane[0]) - flatptr(picfile->charptr);
+  egaplaneofs[1] = flatptr(picfile->plane[1]) - flatptr(picfile->charptr);
+  egaplaneofs[2] = flatptr(picfile->plane[2]) - flatptr(picfile->charptr);
+  egaplaneofs[3] = flatptr(picfile->plane[3]) - flatptr(picfile->charptr);
 
   //
   // copy tables into data segment
   //
-  picinfile = (ptype*)(picfile->pictableptr+(byte*)picfile);
-  spriteinfile = (stype*)(picfile->spritetableptr+(byte*)picfile);
+  picinfile = (ptype*)(flatptr(picfile->pictableptr)+(byte*)picfile);
+  spriteinfile = (stype*)(flatptr(picfile->spritetableptr)+(byte*)picfile);
   for (i=0; i<NUMPICS; i++)
     pictable[i] = (*picinfile)[i];
   for (i=0; i<NUMSPRITES; i++)
