@@ -43,7 +43,7 @@ word table86[] = {
 
 void drawobj()
 {
-	int tilenum = obj.firstchar + squares[obj.size] * (obj.dir&obj.dirmask)*obj.stages + obj.stage;
+	int tilenum = obj.firstchar + squares[obj.size] * ((obj.dir&obj.dirmask)*obj.stages + obj.stage);
 	obj.oldtile = tilenum;
 	obj.oldy = obj.y;
 	obj.oldx = obj.x;
@@ -66,7 +66,7 @@ void drawobj()
 			++ofs;
 		}
 		//position destination at start of next line
-		ofs += 86-1;
+		ofs += 86-obj.size;
 	}
 }
 
@@ -101,7 +101,7 @@ void eraseobj()
 			++ofs;
 		}
 		//position destination at start of next line
-		ofs += 86-1;
+		ofs += 86-obj.size;
 	}
 }
 
@@ -124,8 +124,6 @@ void doall()
 		do
 		{
 			memcpy(&obj, &o[objecton], sizeof(activeobj));
-			if(objecton == 0)
-				printf("Running player\n");
 			if(obj.class != nothing)
 			{
 				memcpy(&obj.think, &objdef[obj.class], sizeof(objdeftype));

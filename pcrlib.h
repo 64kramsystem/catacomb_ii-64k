@@ -167,8 +167,6 @@ void UpdateScreen();
 void WaitVBL (void);
 void EGAplane (int plane);
 void EGAlatch (void);
-void EGAsplitscreen (int linenum);
-void crtcstart (unsigned start);
 
 /*=========================================================================*/
 

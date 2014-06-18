@@ -47,6 +47,8 @@ int	democount;
 int	lastdemoval;		// so demo can be RLE compressed
 enum demoenum indemo;
 
+static SDL_Scancode lastkey = 0;
+
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *sdltexture;
@@ -78,6 +80,7 @@ static void ProcessEvents ()
 		if(event.type == SDL_KEYDOWN)
 		{
 			keydown[event.key.keysym.scancode] = true;
+			lastkey = event.key.keysym.scancode;
 		}
 		else if(event.type == SDL_KEYUP)
 		{
@@ -413,8 +416,6 @@ void RecordDemo (void)
 
 void LoadDemo (int demonum)
 {
-	FIXME
-#ifdef NOTYET
   char st2[5];
 
   strcpy (str,"DEMO");
@@ -423,16 +424,14 @@ void LoadDemo (int demonum)
   strcat (str,".");
   strcat (str,_extension);
 
-  LoadFile (str,MK_FP(_DS,&demobuffer));
+  LoadFile (str,demobuffer);
   level=demobuffer[0];
   demoptr = &demobuffer[1];
   indemo = demoplay;
-#endif
 }
 
 void SaveDemo (int demonum)
 {
-#ifdef NOTYET
   char st2[5];
 
   strcpy (str,"DEMO");
@@ -441,9 +440,8 @@ void SaveDemo (int demonum)
   strcat (str,".");
   strcat (str,_extension);
 
-  SaveFile (str,MK_FP(_DS,&demobuffer),(demoptr-&demobuffer[0]));
+  SaveFile (str,demobuffer,(demoptr-&demobuffer[0]));
   indemo = notdemo;
-#endif
 }
 
 
@@ -680,52 +678,6 @@ void setscreenmode (grtype mode)
 #endif
 }
 
-
-/*
-========================
-=
-= egasplitscreen
-=
-========================
-*/
-
-void egasplitscreen (int linenum)
-{
-	FIXME
-#ifdef NOTYET
-  WaitVBL ();
-  linenum*=2;
-  outportb (crtcaddr,CRTCLINECOMPARE);
-  outportb (crtcaddr+1,linenum % 256);
-  outportb (crtcaddr,CRTCOVERFLOW);
-  outportb (crtcaddr+1, 1+16*(linenum/256));
-  outportb (crtcaddr,CRTCMAXSCANLINE);
-  outportb (crtcaddr+1,inportb(crtcaddr+1) & (255-64));
-#endif
-}
-
-
-/*
-========================
-=
-= crtcstart
-=
-========================
-*/
-
-void crtcstart (unsigned start)
-{
-	FIXME
-#ifdef NOTYET
-  WaitVBL ();
-  outportb (crtcaddr,CRTCSTARTL);
-  outportb (crtcaddr+1,start % 256);
-  outportb (crtcaddr,CRTCSTARTH);
-  outportb (crtcaddr+1,start / 256);
-#endif
-}
-
-
 int win_xl,win_yl,win_xh,win_yh;
 
 int screencenterx = 19,screencentery = 11;
@@ -856,11 +808,10 @@ void expwinv (int width, int height)
 
 int bioskey(int cmd)
 {
-	static int key = 0;
-	if(key)
+	if(lastkey)
 	{
-		int oldkey = key;
-		key = 0;
+		int oldkey = lastkey;
+		lastkey = 0;
 		return oldkey;
 	}
 
@@ -870,7 +821,7 @@ int bioskey(int cmd)
 		if(event.type == SDL_KEYDOWN)
 		{
 			if(cmd == 1)
-				return key = event.key.keysym.scancode;
+				return lastkey = event.key.keysym.scancode;
 			return event.key.keysym.scancode;
 		}
 		else if(event.type == SDL_WINDOWEVENT)
@@ -879,7 +830,7 @@ int bioskey(int cmd)
 				_quit("");
 		}
 	}
-	return key;
+	return lastkey;
 }
 
 void UpdateScreen()
@@ -942,7 +893,7 @@ int get (void)
    }
  } while (key == 0);
  drawchar (sx,sy,' ');
- return key;		// take it out of the buffer
+ return SDL_GetKeyFromScancode(key);		// take it out of the buffer
 }
 
 
@@ -1087,8 +1038,6 @@ void _MouseCoords(int *x,int *y)
 ////////////////////////////////////////////////////////////////////
 long _Verify(char *filename)
 {
-	FIXME
-#ifdef NOTYET
  int handle;
  long size;
 
@@ -1096,7 +1045,6 @@ long _Verify(char *filename)
  size=filelength(handle);
  close(handle);
  return size;
-#endif
 }
 
 

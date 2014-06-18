@@ -339,7 +339,7 @@ static void Vgatileout() FIXME
 
 void drawpic(int x, int y, int picnum)
 {
-	byte *vbuf = screenseg + (y<<3)*screenpitch + (x<<3);
+	byte *vbuf = screenseg + y*screenpitch + x;
 	byte *src;
 	unsigned i;
 

@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "catdefs.h"
 #include "catacomb.h"
@@ -714,27 +715,25 @@ void repaintscreen ()
 
 void dofkeys (void)
 {
-	FIXME
-#ifdef NOTYET
   int i,handle;
   char st2[10];
-  int key=bioskey(1)/256;
-  if (key==1)			// make ESC into F10
-    key=0x44;
-  if (key<0x3b || key>0x44)
+  int key=bioskey(1);
+  if (key==SDL_SCANCODE_ESCAPE)			// make ESC into F10
+    key=SDL_SCANCODE_F10;
+  if (key<SDL_SCANCODE_F1 || key>SDL_SCANCODE_F10)
     return;
 
   switch (key)
   {
-    case 0x3b:			// F1
+    case SDL_SCANCODE_F1:			// F1
       clearkeys ();
       help ();
       break;
-    case 0x3c:          	// F2
+    case SDL_SCANCODE_F2:          	// F2
       clearkeys ();
       controlpanel ();
       break;
-    case 0x3d:			// F3
+    case SDL_SCANCODE_F3:			// F3
       clearkeys ();
       expwin (18,1);
       print ("RESET GAME (Y/N)?");
@@ -743,7 +742,7 @@ void dofkeys (void)
 	resetgame = true;
       break;
 
-    case 0x3e:			// F4
+    case SDL_SCANCODE_F4:			// F4
       clearkeys ();
       expwin (22,4);
       if (indemo != notdemo)
@@ -790,7 +789,7 @@ void dofkeys (void)
       get();
       break;
 
-    case 0x3f:			// F5
+    case SDL_SCANCODE_F5:			// F5
       clearkeys ();
       expwin (22,4);
       print ("Load game #(1-9):");
@@ -820,13 +819,13 @@ void dofkeys (void)
       drawside ();		// draw score, icons, etc
       leveldone = true;
       break;
-    case 0x43:			// F9
+    case SDL_SCANCODE_F9:			// F9
       clearkeys ();
       expwin (7,1);
       print ("PAUSED");
       get ();
       break;
-    case 0x44:			// F10
+    case SDL_SCANCODE_F10:			// F10
       clearkeys ();
       expwin (12,1);
       print ("QUIT (Y/N)?");
@@ -843,7 +842,6 @@ void dofkeys (void)
   clearold ();
   clearkeys ();
   repaintscreen ();
-#endif
 }
 
 
@@ -1001,8 +999,6 @@ void dodemo (void)
 
 void gameover (void)
 {
-	FIXME
-#ifdef NOTYET
   int i;
 
   expwin (11,4);
@@ -1017,14 +1013,13 @@ void gameover (void)
   {
 	 WaitVBL ();
 	 ctrl = ControlPlayer (1);
-	 if (ctrl.button1 || ctrl.button2 || keydown[0x39])
+	 if (ctrl.button1 || ctrl.button2 || keydown[SDL_SCANCODE_SPACE])
 		break;
 	 if (bioskey (1))
 		dofkeys ();
 	 if (exitdemo)
 		break;
   }
-#endif
 }
 
 

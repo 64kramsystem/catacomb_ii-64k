@@ -1105,7 +1105,7 @@ void chasethink (boolean diagonal)
 {
   int deltax,deltay,i;
   dirtype d[3];
-  dirtype tdir, olddir, turnaround;
+  int tdir, olddir, turnaround;
 
   obj.stage=obj.stage & 1;   /*cancle attack or damaged stage*/
   olddir=obj.dir;
