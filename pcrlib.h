@@ -121,9 +121,6 @@ int rndt (void);
 
 void clearkeys (void);
 
-unsigned extern timecall,timeax,timebx,timecx,timedx,timesi,timedi,timebp,timees;
-int timesub (int ticks);
-
 int _MouseInit(void);
 void _MouseHide(void);
 void _MouseShow(void);
@@ -160,13 +157,11 @@ extern int sx,sy,leftedge,xormask;	// stuff for screen text output
 
 extern word CGAylookup [200],EGAylookup[256],VGAylookup[200];
 
-unsigned extern crtcaddr;
+extern unsigned crtcaddr;
 
 void setscreenmode (grtype mode);
 void UpdateScreen();
 void WaitVBL (void);
-void EGAplane (int plane);
-void EGAlatch (void);
 
 /*=========================================================================*/
 
@@ -214,7 +209,6 @@ enum { screenpitch = 320 };
 void installgrfile (char *filename,int unpack,void *inmem);
 
 void drawchar (int x, int y, int charnum);
-void drawtile (int x, int y, int picnum);
 void drawpic (int x, int y, int picnum);
 
 /*=========================================================================*/
@@ -283,7 +277,7 @@ struct scores {
 	};
 #pragma pack()
 
-struct scores extern scoreswap, highscores[5];
+extern struct scores scoreswap, highscores[5];
 
 
 void _loadctrls (void);

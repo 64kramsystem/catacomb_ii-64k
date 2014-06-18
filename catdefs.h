@@ -40,7 +40,6 @@ static inline dword flatptr(farptr ptr) { return (ptr.seg<<4) + ptr.ofs; }
 // Compatibility stuff
 // TODO: Remove?
 #define FIXME { printf("FIXME: %s\n", __FUNCTION__); assert(false); }
-#define MK_FP(a,b) (char*)((a) + (b))
 #define O_BINARY 0
 static inline char *itoa(int value, char* str, int base)
 {

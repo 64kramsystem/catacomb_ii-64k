@@ -272,9 +272,6 @@ void WaitVBL()
 	while(SDL_SemValue(vblsem));
 }
 
-void EGAplane(int plane) FIXME
-void EGAlatch() FIXME
-
 void drawchar(int x, int y, int charnum)
 {
 	byte *vbuf = screenseg + (y<<3)*screenpitch + (x<<3);
@@ -331,11 +328,6 @@ void drawchar(int x, int y, int charnum)
 		break;
 	}
 }
-
-void drawtile(int x, int y, int picnum) FIXME
-static void Cgatileout() FIXME
-static void Egatileout() FIXME
-static void Vgatileout() FIXME
 
 void drawpic(int x, int y, int picnum)
 {
@@ -410,7 +402,3 @@ void drawpic(int x, int y, int picnum)
 			break;
 	}
 }
-
-unsigned timecall,timeax,timebx,timecx,timedx,timesi,timedi,timebp,timees;
-int timesub(int ticks) FIXME
-

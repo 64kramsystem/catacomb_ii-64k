@@ -298,7 +298,7 @@ void help (void)
 {
   int x,y;
   char *oldcharptr;
-#define OLDSET oldcharptr = charptr;charptr = MK_FP(0xa400,0);
+#define OLDSET oldcharptr = charptr;charptr = (char*)0xa400;
 #define NEWSET charptr = oldcharptr;
 
   centerwindow (20,20);
