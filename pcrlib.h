@@ -117,7 +117,9 @@ void *bloadinLZW (char *filename);
 long RLEcompress (void *source, long length, void *dest);
 
 void initrndt (boolean randomize);
+void initrnd (boolean randomize);
 int rndt (void);
+int rnd (word);
 
 void clearkeys (void);
 
@@ -252,8 +254,8 @@ void repaintscreen (void);	// do any screen wierdness and redraw all
 ** game level routines
 */
 
-extern long score;
-extern int level;
+extern sdword score;
+extern sword level;
 
 typedef struct { int width;
 		 int height;

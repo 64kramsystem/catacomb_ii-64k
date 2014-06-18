@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include <SDL.h>
 
@@ -237,7 +238,10 @@ ControlStruct ControlMouse ()
 
 void ReadJoystick (int joynum,int *xcount,int *ycount)
 {
-	FIXME
+	printf("STUB: %s\n", __FUNCTION__);
+	*xcount = INT_MAX;
+	*ycount = INT_MAX;
+
 #ifdef NOTYET
  int portval,a1,a2,xbit,ybit;
 
@@ -468,7 +472,10 @@ void SaveDemo (int demonum)
 
 void clearkeys (void)
 {
-  unsigned i;
+  int i;
+  while (bioskey (1))
+    bioskey(0);
+
   for (i=0;i<128;i++)
     keydown [i]=0;
 }
@@ -519,66 +526,13 @@ unsigned long LoadFile(char *filename,char *buffer)
 
 void SaveFile(char *filename,char *buffer, long size)
 {
-	FIXME
-#ifdef NOTYET
- unsigned int handle,buf1,buf2,foff1,foff2;
+	int fd;
+	if((fd = open(filename, S_IWRITE)) < 0)
+		return;
 
- buf1=FP_OFF(buffer);
- buf2=FP_SEG(buffer);
+	write(fd, buffer, size);
 
-asm		mov	WORD PTR foff1,0  		// file offset = 0 (start)
-asm		mov	WORD PTR foff2,0
-
-asm		mov	dx,filename
-asm		mov	ax,3c00h		// CREATE w/handle (read only)
-asm		xor	cx,cx
-asm		int	21h
-asm		jc	out
-
-asm		mov	handle,ax
-asm		cmp	word ptr size+2,0	// larger than 1 segment?
-asm		je	L2
-
-L1:
-
-asm		push	ds
-asm		mov	bx,handle
-asm		mov	cx,8000h
-asm		mov	dx,buf1
-asm		mov	ax,buf2
-asm		mov	ds,ax
-asm		mov	ah,40h			// WRITE w/handle
-asm		int	21h
-asm		pop	ds
-
-asm		add	buf2,800h		// bump ptr up 1/2 segment
-asm		sub	WORD PTR size,8000h		// done yet?
-asm		sbb	WORD PTR size+2,0
-asm		cmp	WORD PTR size+2,0
-asm		ja	L1
-asm		cmp	WORD PTR size,8000h
-asm		jae	L1
-
-L2:
-
-asm		push	ds
-asm		mov	bx,handle
-asm		mov	cx,WORD PTR size
-asm		mov	dx,buf1
-asm		mov	ax,buf2
-asm		mov	ds,ax
-asm		mov	ah,40h			// WRITE w/handle
-asm		int	21h
-asm		pop	ds
-asm		jmp	out
-
-out:
-
-asm		mov	bx,handle		// CLOSE w/handle
-asm		mov	ah,3eh
-asm		int	21h
-#endif
-
+	close(fd);
 }
 
 //==========================================================================
@@ -811,7 +765,8 @@ int bioskey(int cmd)
 	if(lastkey)
 	{
 		int oldkey = lastkey;
-		lastkey = 0;
+		if(cmd != 1)
+			lastkey = 0;
 		return oldkey;
 	}
 
@@ -1207,8 +1162,8 @@ int _input(char *string,int max)
 
 struct scores scoreswap, highscores[5];
 
-long score;
-int level;
+sdword score;
+sword level;
 int _numlevels, _maxplayers;
 
 char *_extension = "PCR";
@@ -1234,6 +1189,34 @@ static const SDL_Scancode DOSScanCodeMap[128] = {
 	SDL_SCANCODE_PAGEDOWN,SDL_SCANCODE_INSERT,SDL_SCANCODE_DELETE,0,0,
 	0,SDL_SCANCODE_F11,SDL_SCANCODE_F12
 };
+
+static int ScancodeToDOS(SDL_Scancode sc)
+{
+	int i = 0;
+	for(i = 0;i < 128;++i)
+	{
+		if(DOSScanCodeMap[i] == sc)
+			return i;
+	}
+	return 0;
+}
+
+#pragma pack(1)
+typedef struct
+{
+	word grmode;
+	word soundmode;
+	word playermode[3];
+	sword JoyXlow[3];
+	sword JoyYlow[3];
+	sword JoyXhigh[3];
+	sword JoyYhigh[3];
+	sword MouseSensitivity;
+	byte key[8];
+	byte keyB1;
+	byte keyB2;
+} ctlpaneltype;
+#pragma pack()
 
 ////////////////////////
 //
@@ -1278,22 +1261,7 @@ void _loadctrls (void)
   }
   else
   {
-#pragma pack(1)
-	struct
-	{
-		word grmode;
-		word soundmode;
-		word playermode[3];
-		sword JoyXlow[3];
-		sword JoyYlow[3];
-		sword JoyXhigh[3];
-		sword JoyYhigh[3];
-		sword MouseSensitivity;
-		byte key[8];
-		byte keyB1;
-		byte keyB2;
-	} ctlpanel;
-#pragma pack()
+	ctlpaneltype ctlpanel;
 	read(handle, &ctlpanel, sizeof(ctlpanel));
 	close(handle);
 
@@ -1326,17 +1294,25 @@ void _savectrls (void)
   if ((handle = open(str, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE)) == -1)
     return;
 
-  write(handle, &grmode, sizeof(grmode));
-  write(handle, &soundmode, sizeof(soundmode));
-  write(handle, &playermode, sizeof(playermode));
-  write(handle, &JoyXlow, sizeof(JoyXlow));
-  write(handle, &JoyYlow, sizeof(JoyYlow));
-  write(handle, &JoyXhigh, sizeof(JoyXhigh));
-  write(handle, &JoyYhigh, sizeof(JoyYhigh));
-  write(handle, &MouseSensitivity, sizeof(MouseSensitivity));
-  write(handle, &key, sizeof(key));
-  write(handle, &keyB1, sizeof(keyB1));
-  write(handle, &keyB2, sizeof(keyB2));
+  ctlpaneltype ctlpanel;
+  ctlpanel.grmode = grmode;
+  ctlpanel.soundmode = soundmode;
+  unsigned i;
+  for(i = 0;i < 3;++i)
+  {
+	ctlpanel.playermode[i] = playermode[i];
+	ctlpanel.JoyXlow[i] = JoyXlow[i];
+	ctlpanel.JoyYlow[i] = JoyYlow[i];
+	ctlpanel.JoyXhigh[i] = JoyXhigh[i];
+	ctlpanel.JoyYhigh[i] = JoyYhigh[i];
+  }
+  ctlpanel.MouseSensitivity = MouseSensitivity;
+  for(i = 0;i < 8;++i)
+	  ctlpanel.key[i] = ScancodeToDOS(key[i]);
+  ctlpanel.keyB1 = ScancodeToDOS(keyB1);
+  ctlpanel.keyB2 = ScancodeToDOS(keyB2);
+
+  write(handle, &ctlpanel, sizeof(ctlpanel));
 
   close(handle);
 }
@@ -1516,7 +1492,7 @@ void _setupgame (void)
 //
 // set up game's library routines
 //
-  grmode = text;
+  grmode = EGAgr;
 
   // allways assume CGA compatability for simCGA garbage
 
@@ -1539,7 +1515,7 @@ void _setupgame (void)
   SetupKBD ();
 
   initrndt (1);		// setup random routines
-//  initrnd (1);
+  initrnd (1);		// original rng
 
   _loadhighscores ();
 
@@ -1554,8 +1530,6 @@ void _setupgame (void)
 // _quit
 //
 ////////////////////
-
-char extern PIRACY;
 
 void _quit (char *error)
 {

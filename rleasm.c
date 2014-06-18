@@ -19,12 +19,6 @@
 
 #include "pcrlib.h"
 
-static void InitRLE() FIXME
-static void OutputRep() FIXME
-static void OutputDif() FIXME
-void Expand() FIXME
-void Compress() FIXME
-
 unsigned int RLECompress(char *source, long sourcelen, char *dest)
 FIXME
 
@@ -48,5 +42,4 @@ void RLEExpand(char *source, char *dest, long origlen)
 			dest += len;
 		}
 	}
-	assert(dest == end);
 }

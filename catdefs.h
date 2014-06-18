@@ -25,7 +25,9 @@
 
 #define CATALOG
 
-typedef enum {false,true} boolean;
+enum {false,true};
+typedef uint16_t boolean;
+
 typedef uint8_t byte;
 typedef int8_t sbyte;
 typedef uint16_t word;
@@ -85,14 +87,14 @@ typedef enum {ingame,intitle,inscores} statetype;
 #pragma pack(1)
 typedef struct {
   boolean active;	/*if false, the object has not seen the player yet*/
-  classtype  class;
+  word /* classtype */  class;
   byte  x,y,		/*location of upper left corner in world*/
     stage,		/*animation frame being drawn*/
     delay;		/*number of frames to pause without doing anything*/
-  dirtype  dir;		/*direction facing*/
+  word /* dirtype */  dir;		/*direction facing*/
   char hp;		/*hit points*/
   byte oldx,oldy;	/*position where it was last drawn*/
-  int oldtile;		/*origin tile when last drawn*/
+  sword oldtile;		/*origin tile when last drawn*/
   char filler[1];	/*pad to 16 bytes*/
    } activeobj;
 
@@ -113,14 +115,14 @@ typedef struct {
 
 typedef struct {	/*holds a copy of activeobj, and its class info*/
   boolean  active;	/*if false, the object has not seen the player yet*/
-  classtype  class;
+  word  class;
   byte  x,y,		/*location of upper left corner in world*/
     stage,		/*animation frame being drawn*/
     delay;		/*number of frames to pause without doing anything*/
-  dirtype  dir;		/*direction facing*/
+  word  dir;		/*direction facing*/
   char hp;		/*hit points*/
   byte oldx,oldy;		/*position where it was last drawn*/
-  int oldtile;		/*origin tile when last drawn*/
+  sword oldtile;		/*origin tile when last drawn*/
   char filler[1];	/*pad to 16 bytes*/
 
   byte think;

@@ -52,6 +52,7 @@
 /////////////////////////////////
 
 #include <stdlib.h>
+#include <SDL_keycode.h>
 
 #include "catdefs.h"
 #include "pcrlib.h"
@@ -360,8 +361,6 @@ void calibratekeys (void)
 
 void getconfig (void)
 {
-	FIXME
-#ifdef NOTYET
   int x,y;
   int *vect;
 
@@ -385,23 +384,15 @@ void getconfig (void)
     joy1ok = 1;
   ReadJoystick (2,&x,&y);
   if (x<500)
-    joy1ok = 2;
+    joy2ok = 1;
 
   mouseok = 1;
-  vect = (int *) getvect (0x33);
-
-  if (vect == NULL)
-    mouseok = 0;		// vecter is NULL, calling would be bad...
-  else
-    if ((*vect & 255) == 0xcf)	// points to an IRET
-      mouseok = 0;
 
   spotok [2][0] = 1;
   spotok [2][1] = mouseok;
   spotok [2][2] = joy1ok;
   spotok [2][3] = joy2ok;
   spotok [2][4] = 0;
-#endif
 }
 
 //=========================================================================
@@ -519,14 +510,12 @@ void controlpanel (void)
     sx=collumnx[collumn]+2;
     sy=rowy[row]+3;
     chf = get ();
-    chl = chf % 256;
-    chh = chf / 256;
 
-    if (chh==0x48)	// up arrow
+    if (chf==SDLK_UP)	// up arrow
       if (--row<0)
 	row = 2;
 
-    if (chh==0x50)	// down arrow
+    if (chf==SDLK_DOWN)	// down arrow
       if (++row>2)
 	row = 0;
 
@@ -536,14 +525,14 @@ void controlpanel (void)
     while (!spotok[row][collumn])
       collumn--;
 
-    if (chh==0x4b)	// left arrow
+    if (chf==SDLK_LEFT)	// left arrow
     {
       if (collumn==0)
 	collumn=4;
       while (!spotok[row][--collumn]);
     }
 
-    if (chh==0x4d)	// right arrow
+    if (chf==SDLK_RIGHT)	// right arrow
     {
       while (!spotok[row][++collumn] || collumn>3)
 	if (collumn==4)
@@ -551,7 +540,7 @@ void controlpanel (void)
     }
 
 
-    if (chl==13)		// return
+    if (chf==SDLK_RETURN)		// return
     {
       switch (row)
       {
@@ -588,7 +577,7 @@ void controlpanel (void)
 
 //////////////////////////////////////
 
-  } while (chl!=27);	// ESC to quit
+  } while (chf!=SDLK_ESCAPE);	// ESC to quit
 
 //
 // done, so return to game

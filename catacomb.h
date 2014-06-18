@@ -23,6 +23,7 @@
 #include "pcrlib.h"
 
 extern void refresh();
+extern void playloop();
 
   typedef enum {quited,killed,reseted,victorious} exittype;
   extern exittype gamexit; /*determines what to do after playloop*/
@@ -39,7 +40,7 @@ extern void refresh();
   extern int originx, originy;			/*current world location of ul corn*/
   extern byte priority [maxpics+1];		/*tile draw overlap priorities*/
 
-  extern int items[6],saveitems[6];
+  extern sword items[6],saveitems[6];
   extern int shotpower;			/*0-13 characters in power meter*/
   extern int side;	                        /*which side shots come from*/
   extern int boltsleft;			/*number of shots left in a bolt*/
@@ -73,7 +74,7 @@ extern void refresh();
 
   extern unsigned EGADATASTART;
 
-  extern long savescore;
+  extern sdword savescore;
 
   //NOLAN ADDED
   extern boolean GODMODE;

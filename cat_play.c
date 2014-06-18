@@ -1060,9 +1060,10 @@ void playercmdthink(void)
 			GODMODE = true;
 		}
 
+		UpdateScreen();
 		clearkeys();
-		FIXME
-		//i = getch ();
+		while(bioskey(0) == 0)
+			WaitVBL();
 
 		restore();
 		clearkeys();

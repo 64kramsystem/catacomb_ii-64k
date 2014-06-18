@@ -85,7 +85,7 @@
   int originx, originy;			/*current world location of ul corn*/
   byte priority [maxpics+1];		/*tile draw overlap priorities*/
 
-  int items[6],saveitems[6];
+  sword items[6],saveitems[6];
   int shotpower;			/*0-13 characters in power meter*/
   int side;	                        /*which side shots come from*/
   int boltsleft;			/*number of shots left in a bolt*/
@@ -119,7 +119,7 @@
 
   unsigned EGADATASTART;
 
-  long savescore;
+  sdword savescore;
 
 //NOLAN ADDED
 	boolean GODMODE = false;
@@ -876,7 +876,10 @@ void dotitlepage (void)
     }
     indemo = demoplay;
     if (bioskey (1))
+    {
       dofkeys ();
+      UpdateScreen();
+    }
     if (exitdemo)
       break;
   }
@@ -954,7 +957,7 @@ void dodemo (void)
     if (exitdemo)
       break;
 
-    i=(rndt()%NUMDEMOS)+1;
+    i=rnd(NUMDEMOS-1)+1;
     LoadDemo (i);
     level=0;
     playsetup ();

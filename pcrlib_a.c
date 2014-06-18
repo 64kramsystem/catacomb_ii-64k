@@ -203,7 +203,22 @@ static word baseRndArray[] = { 1,1,2,3,5,8,13,21,54,75,129,204,323,527,850,1377,
 // 11-Sep-90	LR	FIX initialization to use TIME!
 //=================================================
 
-void initrnd(boolean randomize) FIXME
+void initrnd(boolean randomize)
+{
+	memcpy(RndArray, baseRndArray, sizeof(baseRndArray));
+
+	LastRnd = 0;
+	indexi = 17;
+	indexj = 5;
+
+	if(randomize)
+	{
+		time_t now = time(NULL);
+		RndArray[16] = now&0xFFFF;
+		RndArray[4] = (now&0xFFFF)^((now>>16)&0xFFFF);
+	}
+	rnd(0xFFFF); // warm up generator!
+}
 
 //=================================================
 //
@@ -213,7 +228,35 @@ void initrnd(boolean randomize) FIXME
 // 11-Sep-90 LR -modify to save registers!
 //=================================================
 
-void rnd(word maxval) FIXME
+int rnd(word maxval)
+{
+	if(maxval == 0)
+		return 0;
+
+	word mask = 0xFFFF;
+
+	word shift = maxval;
+	while(!(shift & 0x8000))
+	{
+		shift <<= 1;
+		mask >>= 1;
+	}
+
+	int val = RndArray[indexi-1] + RndArray[indexj-1] + 1;
+	RndArray[indexi-1] = val;
+	val += LastRnd;
+	LastRnd = val;
+	if(--indexi == 0)
+		indexi = 17;
+	if(--indexj == 0)
+		indexj = 17;
+
+	val &= mask;
+	if(val > maxval)
+		val >>= 1;
+
+	return val;
+}
 
 //=================================================
 //
