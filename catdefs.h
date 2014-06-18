@@ -21,21 +21,25 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #define CATALOG
 
 typedef enum {false,true} boolean;
-typedef unsigned char byte;
-typedef unsigned short word;
-typedef signed short sword;
-typedef unsigned int dword;
-typedef signed int sdword;
+typedef uint8_t byte;
+typedef int8_t sbyte;
+typedef uint16_t word;
+typedef int16_t sword;
+typedef uint32_t dword;
+typedef int32_t sdword;
+typedef uint64_t qword;
+typedef int64_t sqword;
 typedef struct { word ofs; word seg; } farptr;
 static inline dword flatptr(farptr ptr) { return (ptr.seg<<4) + ptr.ofs; }
 
 // Compatibility stuff
 // TODO: Remove?
-#define FIXME { printf("FIXME: %s\n", __FUNCTION__); assert(false && __FUNCTION__); }
+#define FIXME { printf("FIXME: %s\n", __FUNCTION__); assert(false); }
 #define MK_FP(a,b) (char*)((a) + (b))
 #define O_BINARY 0
 static inline char *itoa(int value, char* str, int base)
@@ -79,6 +83,7 @@ typedef enum {nothing,player,goblin,skeleton,ogre,gargoyle,dragon,turbogre,
 typedef enum {ingame,intitle,inscores} statetype;
 
 
+#pragma pack(1)
 typedef struct {
   boolean active;	/*if false, the object has not seen the player yet*/
   classtype  class;
@@ -91,6 +96,21 @@ typedef struct {
   int oldtile;		/*origin tile when last drawn*/
   char filler[1];	/*pad to 16 bytes*/
    } activeobj;
+
+typedef struct {
+    byte think;			/*some of these sizes are for the*/
+    byte contact;			/*convenience of the assembly routines*/
+    byte solid;
+    word firstchar;
+    byte size;
+    byte stages;
+    byte dirmask;
+    word speed;
+    byte hitpoints;
+    byte damage;
+    word points;
+    byte filler[2];
+  } objdeftype;
 
 typedef struct {	/*holds a copy of activeobj, and its class info*/
   boolean  active;	/*if false, the object has not seen the player yet*/
@@ -117,5 +137,6 @@ typedef struct {	/*holds a copy of activeobj, and its class info*/
   word  points;
   char filler2[2];	/*pad to 32 bytes*/
   } objtype;
+#pragma pack()
 
 #endif

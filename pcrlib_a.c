@@ -115,14 +115,51 @@ void StartupSound()
 	printf("STUB: %s\n", __FUNCTION__);
 
 	soundmode = 0;
+	_dontplay = 1;
 }
 
-void ShutdownSound() FIXME
-void PlaySound(int sound) FIXME
-void StopSound() FIXME
-void PauseSound() FIXME
-void ContinueSound() FIXME
-void WaitEndSound() FIXME
+void ShutdownSound()
+{
+	if(_dontplay)
+		return;
+
+	FIXME
+}
+void PlaySound(int sound)
+{
+	if(_dontplay)
+		return;
+
+	FIXME
+}
+void StopSound()
+{
+	if(_dontplay)
+		return;
+
+	FIXME
+}
+void PauseSound()
+{
+	if(_dontplay)
+		return;
+
+	FIXME
+}
+void ContinueSound()
+{
+	if(_dontplay)
+		return;
+
+	FIXME
+}
+void WaitEndSound()
+{
+	if(_dontplay)
+		return;
+
+	FIXME
+}
 
 static void UpdateSPKR() FIXME
 
@@ -197,7 +234,11 @@ void initrndt(boolean randomize)
 //
 //=================================================
 
-int rndt() FIXME
+int rndt()
+{
+	rndindex = (rndindex+1)&0xFF;
+	return rndtable[rndindex];
+}
 
 enum { VBL_TIME = 1000/70 };
 SDL_sem *vblsem;
@@ -234,53 +275,60 @@ void WaitVBL()
 void EGAplane(int plane) FIXME
 void EGAlatch() FIXME
 
-static inline byte EGA(const byte chan[4], byte ofs)
-{
-	return
-		(((chan[3]>>ofs)&1)<<3)|
-		(((chan[2]>>ofs)&1)<<2)|
-		(((chan[1]>>ofs)&1)<<1)|
-		((chan[0]>>ofs)&1);
-}
-
 void drawchar(int x, int y, int charnum)
 {
 	byte *vbuf = screenseg + (y<<3)*screenpitch + (x<<3);
 	byte *src;
+	unsigned i;
+
 	switch(grmode)
 	{
-	case VGAgr:
-		src = (byte*)charptr + charnum*64;
+	case EGAgr:
+		src = (byte*)charptr + charnum*8;
+		for (i = 0;i < 8;++i, ++src)
+		{
+			const byte chan[4] = {
+				src[egaplaneofs[0]],
+				src[egaplaneofs[1]],
+				src[egaplaneofs[2]],
+				src[egaplaneofs[3]]
+			};
+
+			*vbuf++ = EGA(chan,7);
+			*vbuf++ = EGA(chan,6);
+			*vbuf++ = EGA(chan,5);
+			*vbuf++ = EGA(chan,4);
+			*vbuf++ = EGA(chan,3);
+			*vbuf++ = EGA(chan,2);
+			*vbuf++ = EGA(chan,1);
+			*vbuf = EGA(chan,0);
+
+			vbuf += screenpitch-7;
+		}
 		break;
 	case CGAgr:
 		src = (byte*)charptr + charnum*16;
+		for (i = 0;i < 8;++i, src += 2)
+		{
+			*vbuf++ = (src[0]>>6)&3;
+			*vbuf++ = (src[0]>>4)&3;
+			*vbuf++ = (src[0]>>2)&3;
+			*vbuf++ = (src[0]>>0)&3;
+			*vbuf++ = (src[1]>>6)&3;
+			*vbuf++ = (src[1]>>4)&3;
+			*vbuf++ = (src[1]>>2)&3;
+			*vbuf = (src[1]>>0)&3;
+
+			vbuf += screenpitch-7;
+		}
 		break;
-	case EGAgr:
-		src = (byte*)charptr + charnum*8;
+	case VGAgr:
+		src = (byte*)charptr + charnum*64;
+		// [BL] More or less guessing here since we don't have VGA files to
+		// test against.
+		for (i = 0;i < 8;++i, src += 8, vbuf += screenpitch-7)
+			*(qword*)vbuf = *(qword*)src;
 		break;
-	}
-	assert(grmode == EGAgr);
-
-	unsigned i;
-	for (i = 0;i < 8;++i, ++src)
-	{
-		const byte chan[4] = {
-			*(src + egaplaneofs[0]),
-			*(src + egaplaneofs[1]),
-			*(src + egaplaneofs[2]),
-			*(src + egaplaneofs[3])
-		};
-
-		*vbuf++ = EGA(chan,7);
-		*vbuf++ = EGA(chan,6);
-		*vbuf++ = EGA(chan,5);
-		*vbuf++ = EGA(chan,4);
-		*vbuf++ = EGA(chan,3);
-		*vbuf++ = EGA(chan,2);
-		*vbuf++ = EGA(chan,1);
-		*vbuf = EGA(chan,0);
-
-		vbuf += screenpitch-7;
 	}
 }
 
@@ -288,10 +336,80 @@ void drawtile(int x, int y, int picnum) FIXME
 static void Cgatileout() FIXME
 static void Egatileout() FIXME
 static void Vgatileout() FIXME
-void drawpic(int x, int y, int picnum) FIXME
-static void CgaDrawpic() FIXME
-static void EgaDrawpic() FIXME
-static void VgaDrawpic() FIXME
+
+void drawpic(int x, int y, int picnum)
+{
+	byte *vbuf = screenseg + (y<<3)*screenpitch + (x<<3);
+	byte *src;
+	unsigned i;
+
+	unsigned picwidth = pictable[picnum].width;
+	unsigned picheight = pictable[picnum].height;
+	src = (byte*)picptr + pictable[picnum].shapeptr;
+
+	switch(grmode)
+	{
+		case EGAgr:
+			do
+			{
+				i = picwidth;
+				do
+				{
+					const byte chan[4] = {
+						src[egaplaneofs[0]],
+						src[egaplaneofs[1]],
+						src[egaplaneofs[2]],
+						src[egaplaneofs[3]]
+					};
+					++src;
+
+					*vbuf++ = EGA(chan,7);
+					*vbuf++ = EGA(chan,6);
+					*vbuf++ = EGA(chan,5);
+					*vbuf++ = EGA(chan,4);
+					*vbuf++ = EGA(chan,3);
+					*vbuf++ = EGA(chan,2);
+					*vbuf++ = EGA(chan,1);
+					*vbuf++ = EGA(chan,0);
+				}
+				while(--i);
+				vbuf += screenpitch-(picwidth<<3);
+			}
+			while(--picheight);
+			break;
+		case CGAgr:
+			do
+			{
+				i = picwidth;
+				do
+				{
+					*vbuf++ = (src[0]>>6)&3;
+					*vbuf++ = (src[0]>>4)&3;
+					*vbuf++ = (src[0]>>2)&3;
+					*vbuf++ = (src[0]>>0)&3;
+					++src;
+				}
+				while(--i);
+				vbuf += screenpitch-(picwidth<<2);
+			}
+			while(--picheight);
+			break;
+		case VGAgr:
+			// [BL] My best guess.
+			do
+			{
+				i = picwidth;
+				do
+				{
+					*vbuf++ = *src++;
+				}
+				while(--i);
+				vbuf += screenpitch-picwidth;
+			}
+			while(--picheight);
+			break;
+	}
+}
 
 unsigned timecall,timeax,timebx,timecx,timedx,timesi,timedi,timebp,timees;
 int timesub(int ticks) FIXME

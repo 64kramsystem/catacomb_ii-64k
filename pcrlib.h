@@ -29,7 +29,16 @@
 
 #include "catdefs.h"
 
-char extern ch,str[80];
+extern char ch,str[80];
+
+static inline byte EGA(const byte chan[4], byte ofs)
+{
+	return
+		(((chan[3]>>ofs)&1)<<3)|
+		(((chan[2]>>ofs)&1)<<2)|
+		(((chan[1]>>ofs)&1)<<1)|
+		((chan[0]>>ofs)&1);
+}
 
 /*=========================================================================*/
 
@@ -52,10 +61,10 @@ typedef struct {char id[4];
 		word freqdata[];} SPKRtable;
 
 
-soundtype extern soundmode;
-char extern *SoundData;
+extern soundtype soundmode;
+extern char *SoundData;
 
-int extern _dontplay;
+extern int _dontplay;
 
 void StartupSound (void);
 void ShutdownSound (void);
@@ -78,14 +87,14 @@ typedef struct {dirtype dir;
 
 typedef enum {keyboard,mouse,joystick1,joystick2,demo} inputtype;
 
-inputtype extern playermode[3];
-boolean	extern keydown[128];
-int extern JoyXlow[3], JoyXhigh[3], JoyYlow [3], JoyYhigh [3];	// 1&2 are used
-int extern MouseSensitivity;
-char extern key[8], keyB1, keyB2;
+extern inputtype playermode[3];
+extern boolean keydown[128];
+extern int JoyXlow[3], JoyXhigh[3], JoyYlow [3], JoyYhigh [3];	// 1&2 are used
+extern int MouseSensitivity;
+extern char key[8], keyB1, keyB2;
 
 enum demoenum {notdemo,demoplay,recording};
-enum demoenum extern indemo;
+extern enum demoenum indemo;
 
 void SetupKBD ();
 
@@ -149,11 +158,11 @@ void _printbin(unsigned value);
 
 typedef enum {text,CGAgr,EGAgr,VGAgr} grtype;
 
-grtype extern grmode;
+extern grtype grmode;
 
-int extern sx,sy,leftedge,xormask;	// stuff for screen text output
+extern int sx,sy,leftedge,xormask;	// stuff for screen text output
 
-word extern CGAylookup [200],EGAylookup[256],VGAylookup[200];
+extern word CGAylookup [200],EGAylookup[256],VGAylookup[200];
 
 unsigned extern crtcaddr;
 
@@ -174,8 +183,6 @@ void crtcstart (unsigned start);
 #define NUMPICS 64
 #define NUMSPRITES 10
 
-unsigned extern EGADATASTART;
-
 #pragma pack(1)
 typedef struct {
 		 sword width;
@@ -194,15 +201,15 @@ typedef struct {
 	       } pictype;
 #pragma pack()
 
-int extern numchars,numtiles,numpics,numsprites;
+extern int numchars,numtiles,numpics,numsprites;
 
-spritetype extern image, spritetable[NUMSPRITES];	// grfile headers
-pictype extern pictable[NUMPICS];
+extern spritetype image, spritetable[NUMSPRITES];	// grfile headers
+extern pictype pictable[NUMPICS];
 
-void extern *charptr;		// 8*8 tileset
-void extern *tileptr;		// 16*16 tileset
-void extern *picptr;		// any size picture set
-void extern *spriteptr;		// any size masked and hit rect sprites
+extern void *charptr;		// 8*8 tileset
+extern void *tileptr;		// 16*16 tileset
+extern void *picptr;		// any size picture set
+extern void *spriteptr;		// any size masked and hit rect sprites
 extern dword egaplaneofs[4];
 
 extern byte screenseg[320*200];	// loaded into ES in the draw routines
@@ -222,7 +229,7 @@ void drawpic (int x, int y, int picnum);
 ** higher level graphic routines
 */
 
-int extern screencenterx ,screencentery, _yshift;
+extern int screencenterx ,screencentery, _yshift;
 
 void controlpanel (void);
 int get (void);
@@ -257,8 +264,8 @@ void repaintscreen (void);	// do any screen wierdness and redraw all
 ** game level routines
 */
 
-long extern score;
-int extern level;
+extern long score;
+extern int level;
 
 typedef struct { int width;
 		 int height;
@@ -270,15 +277,17 @@ typedef struct { int width;
 		 unsigned planesize;
 	       } LevelDef;
 
-int	extern	_numlevels, _maxplayers;
-boolean	extern	_cgaok, _egaok, _vgaok;
-char	extern	*_extension;
+extern int	_numlevels, _maxplayers;
+extern boolean	_cgaok, _egaok, _vgaok;
+extern char	*_extension;
 
+#pragma pack(1)
 struct scores {
-	 long score;
-	 int level;
+	 sdword score;
+	 sword level;
 	 char initials[4];
 	};
+#pragma pack()
 
 struct scores extern scoreswap, highscores[5];
 
@@ -292,6 +301,8 @@ void _checkhighscore (void);
 
 void _setupgame (void);
 void _quit (char *);		// shuts everything down
+
+int bioskey(int);
 
 /*=========================================================================*/
 

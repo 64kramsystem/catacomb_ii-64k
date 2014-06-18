@@ -70,6 +70,24 @@ void SetupKBD ()
    keydown[i]= false;
 }
 
+static void ProcessEvents ()
+{
+	SDL_Event event;
+	while(SDL_PollEvent(&event))
+	{
+		if(event.type == SDL_KEYDOWN)
+		{
+			if(event.key.keysym.sym < 128)
+				keydown[event.key.keysym.sym] = true;
+		}
+		else if(event.type == SDL_WINDOWEVENT)
+		{
+			if(event.window.event == SDL_WINDOWEVENT_CLOSE)
+				_quit("");
+		}
+	}
+}
+
 /*
 ===========================
 =
@@ -327,6 +345,7 @@ ControlStruct ControlPlayer (int player)
  ControlStruct ret;
  int val;
 
+ ProcessEvents();
  if (indemo == notdemo || indemo == recording)
  {
    switch (playermode[player])
@@ -448,15 +467,9 @@ void SaveDemo (int demonum)
 
 void clearkeys (void)
 {
-	FIXME
-#ifdef NOTYET
-  int i;
-  while (bioskey (1))
-    bioskey(0);
-
+  unsigned i;
   for (i=0;i<128;i++)
     keydown [i]=0;
-#endif
 }
 
 //==========================================================================
@@ -838,16 +851,25 @@ void expwinv (int width, int height)
 //
 /////////////////////////
 
-static int bioskey()
+int bioskey(int cmd)
 {
-	int key = 0;
+	static int key = 0;
+	if(key)
+	{
+		int oldkey = key;
+		key = 0;
+		return oldkey;
+	}
 
 	SDL_Event event;
 	while (SDL_PollEvent (&event))
 	{
 		if(event.type == SDL_KEYDOWN)
 		{
-			key = event.key.keysym.scancode;
+			if(cmd == 1)
+				return key = event.key.keysym.sym;
+			return event.key.keysym.sym;
+			break;
 		}
 		else if(event.type == SDL_WINDOWEVENT)
 		{
@@ -855,7 +877,6 @@ static int bioskey()
 				_quit("");
 		}
 	}
-
 	return key;
 }
 
@@ -867,14 +888,31 @@ void UpdateScreen()
 		0x555555, 0x5555FF, 0x55FF55, 0x55FFFF,
 		0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF
 	};
+	static Uint32 CGAPalette[4] = {
+		0x000000, 0x55FFFF, 0xFF55FF, 0xFFFFFF
+	};
 	static Uint32 conv[sizeof(screenseg)];
 
 	size_t i = 0;
-	while (i < sizeof(screenseg))
+	if(grmode == EGAgr)
 	{
-		conv[i] = screenseg[i] ? EGAPalette[screenseg[i]] : 0;
-		++i;
+		while (i < sizeof(screenseg))
+		{
+			conv[i] = EGAPalette[screenseg[i]];
+			++i;
+		}
 	}
+	else if(grmode == CGAgr)
+	{
+		while (i < sizeof(screenseg))
+		{
+			conv[i] = CGAPalette[screenseg[i]];
+			++i;
+		}
+	}
+	else
+		assert(false && "VGA Palette conversion not implemented.");
+
 	SDL_UpdateTexture(sdltexture, NULL, conv, 320*sizeof(Uint32));
 	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, sdltexture, NULL, NULL);
@@ -890,7 +928,7 @@ int get (void)
  do
  {
    cycle = 9;
-   while (!(key = bioskey()) && cycle<13)
+   while (!(key = bioskey(0)) && cycle<13)
    {
      drawchar (sx,sy,cycle++);
 	 UpdateScreen();
@@ -1224,7 +1262,7 @@ int level;
 int _numlevels, _maxplayers;
 
 char *_extension = "PCR";
-boolean	_cgaok, _egaok, _vgaok;
+boolean	_cgaok = true, _egaok = true, _vgaok = false;
 
 ////////////////////////
 //
@@ -1269,19 +1307,40 @@ void _loadctrls (void)
   }
   else
   {
-    read(handle, &grmode, sizeof(grmode));
-    read(handle, &soundmode, sizeof(soundmode));
-    read(handle, &playermode, sizeof(playermode));
-    read(handle, &JoyXlow, sizeof(JoyXlow));
-    read(handle, &JoyYlow, sizeof(JoyYlow));
-    read(handle, &JoyXhigh, sizeof(JoyXhigh));
-    read(handle, &JoyYhigh, sizeof(JoyYhigh));
-    read(handle, &MouseSensitivity, sizeof(MouseSensitivity));
-    read(handle, &key, sizeof(key));
-    read(handle, &keyB1, sizeof(keyB1));
-    read(handle, &keyB2, sizeof(keyB2));
+#pragma pack(1)
+	struct
+	{
+		word grmode;
+		word soundmode;
+		word playermode[3];
+		sword JoyXlow[3];
+		sword JoyYlow[3];
+		sword JoyXhigh[3];
+		sword JoyYhigh[3];
+		sword MouseSensitivity;
+		byte key[8];
+		byte keyB1;
+		byte keyB2;
+	} ctlpanel;
+#pragma pack()
+	read(handle, &ctlpanel, sizeof(ctlpanel));
+	close(handle);
 
-    close(handle);
+	grmode = ctlpanel.grmode;
+	soundmode = ctlpanel.soundmode;
+	unsigned i;
+	for(i = 0;i < 3;++i)
+	{
+		playermode[i] = ctlpanel.playermode[i];
+		JoyXlow[i] = ctlpanel.JoyXlow[i];
+		JoyYlow[i] = ctlpanel.JoyYlow[i];
+		JoyXhigh[i] = ctlpanel.JoyXhigh[i];
+		JoyYhigh[i] = ctlpanel.JoyYhigh[i];
+	}
+	MouseSensitivity = ctlpanel.MouseSensitivity;
+	memcpy(key, ctlpanel.key, 8);
+	keyB1 = ctlpanel.keyB1;
+	keyB2 = ctlpanel.keyB2;
   }
 }
 

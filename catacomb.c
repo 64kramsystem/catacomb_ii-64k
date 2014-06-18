@@ -132,11 +132,11 @@
 //
 //////////////////////////////////
 
-void extern drawobj (void);
-void extern eraseobj (void);
-void extern doall (void);
-void extern cgarefresh (void);
-void extern egarefresh (void);
+extern void drawobj (void);
+extern void eraseobj (void);
+extern void doall (void);
+extern void cgarefresh (void);
+extern void egarefresh (void);
 void dofkeys (void);
 
 
@@ -475,13 +475,15 @@ void loadlevel(void)
      nothing,nothing};
 
   char filename[64],st[64];
-  int x,y,xx,yy,recs, btile;
+  int x,y,xx,yy,recs;
+  byte btile;
   char sm[4096],rle[4096];
 
-  strcpy (filename,"level");
+  strcpy (filename,"LEVEL");
   itoa (level,st,10);
   strcat (filename,st);
   strcat (filename,".CA2");
+  printf("%s: %s\n", __FUNCTION__, filename);
 
   LoadFile (filename,rle);
   RLEExpand(&rle[4],sm,4096);
@@ -858,10 +860,9 @@ void dofkeys (void)
 
 void dotitlepage (void)
 {
-	FIXME
-#ifdef NOTYET
   int i;
   drawpic (0,0,TITLEPIC);
+  UpdateScreen();
 
   gamestate=intitle;
   for (i=0;i<300;i++)
@@ -882,7 +883,6 @@ void dotitlepage (void)
       break;
   }
   gamestate=ingame;
-#endif
 }
 
 
@@ -947,8 +947,6 @@ void doendpage (void)
 
 void dodemo (void)
 {
-	FIXME
-#ifdef NOTYET
   int i;
 
   while (!exitdemo)
@@ -977,17 +975,16 @@ void dodemo (void)
       ctrl = ControlPlayer (1);
       if (ctrl.button1 || ctrl.button2 || keydown[0x39])
       {
-	exitdemo = true;
-	break;
+        exitdemo = true;
+        break;
       }
       if (bioskey (1))
-	dofkeys ();
+        dofkeys ();
       if (exitdemo)
-	break;
+        break;
     }
 
   }
-#endif
 }
 
 /*=========================================================================*/
@@ -1072,7 +1069,7 @@ US_CheckParm(char *parm,char **strings)
 /***************************************************************************/
 /***************************************************************************/
 
-static	char			*EntryParmStrings[] = {"detour",0};
+static	char			*EntryParmStrings[] = {"detour","cga",0};
 
 /*=========================*/
 /*			   */
@@ -1099,6 +1096,9 @@ void main (int _argc, char* _argv[])
 		{
 		case 0:
 			LaunchedFromShell = true;
+			break;
+		case 1:
+			_egaok = false;
 			break;
 		}
 	}
@@ -1168,10 +1168,6 @@ void main (int _argc, char* _argv[])
 
   _numlevels = 30;
   _maxplayers = 1;
-
-  _cgaok = true;
-  _egaok = true;
-  _vgaok = false;
 
   _extension = "CA2";
 

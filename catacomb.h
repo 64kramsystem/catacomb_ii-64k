@@ -22,20 +22,7 @@
 #include "catdefs.h"
 #include "pcrlib.h"
 
-typedef struct {
-    byte think;			/*some of these sizes are for the*/
-    byte contact;			/*convenience of the assembly routines*/
-    byte solid;
-    word firstchar;
-    byte size;
-    byte stages;
-    byte dirmask;
-    word speed;
-    byte hitpoints;
-    byte damage;
-    word points;
-    byte filler[2];
-  } objdeftype;
+extern void refresh();
 
   typedef enum {quited,killed,reseted,victorious} exittype;
   extern exittype gamexit; /*determines what to do after playloop*/
@@ -44,7 +31,7 @@ typedef struct {
 
   extern char meters[14][14];
 
-  dirtype opposite[9];
+  extern dirtype opposite[9];
 
   extern int oldtiles [NUMTILES];		/*tile displayed last refresh*/
   extern int background[87][86];		/*base map*/

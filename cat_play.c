@@ -843,8 +843,6 @@ boolean walk (void)
 void playercmdthink(void)
 
 {
-	FIXME
-#ifdef NOTYET
   dirtype olddir;
   ControlStruct c;
 
@@ -1063,7 +1061,8 @@ void playercmdthink(void)
 		}
 
 		clearkeys();
-		i = getch ();
+		FIXME
+		//i = getch ();
 
 		restore();
 		clearkeys();
@@ -1090,7 +1089,6 @@ void playercmdthink(void)
       break;
 
   }
-#endif
 }
 
 

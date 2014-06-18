@@ -29,4 +29,24 @@ unsigned int RLECompress(char *source, long sourcelen, char *dest)
 FIXME
 
 void RLEExpand(char *source, char *dest, long origlen)
-FIXME
+{
+	const char * const end = dest + origlen;
+	while(dest < end)
+	{
+		byte val = *(byte*)source++;
+		if(val & 0x80)
+		{
+			byte len = (val&0x7F)+1;
+			memcpy(dest, source, len);
+			source += len;
+			dest += len;
+		}
+		else
+		{
+			byte len = val+3;
+			memset(dest, *(byte*)source++, len);
+			dest += len;
+		}
+	}
+	assert(dest == end);
+}
