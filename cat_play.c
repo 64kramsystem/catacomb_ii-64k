@@ -852,7 +852,7 @@ void playercmdthink(void)
 
 /* cheat key... */
 
-  if (c.button1 && c.button2 && keydown[0x10])   /*'q' + b1 + b2*/
+  if (c.button1 && c.button2 && keydown[SDL_SCANCODE_Q])   /*'q' + b1 + b2*/
     {
       givepotion();
       givescroll();
@@ -995,25 +995,25 @@ void playercmdthink(void)
 
   if (!indemo)
   {
-    if (keydown [0x19] || keydown [0x39])     /*'p' or ' ' keys*/
+    if (keydown [SDL_SCANCODE_Q] || keydown [SDL_SCANCODE_SPACE])     /*'p' or ' ' keys*/
     {
       if (obj.hp<13)  /*don't take a potion if not needed*/
       {
 	takepotion();
-	keydown [0x19]=false;
-	keydown [0x39]=false;
+	keydown [SDL_SCANCODE_Q]=false;
+	keydown [SDL_SCANCODE_SPACE]=false;
       }
     }
-    else if (keydown [0x30])        /*'b' key*/
+    else if (keydown [SDL_SCANCODE_B])        /*'b' key*/
 	  {
 	    castbolt();
-	    keydown [0x30]=false;
+	    keydown [SDL_SCANCODE_B]=false;
 	  }
-    else if (keydown [0x31] || keydown [0x1c])   /*'n' or ret keys*/
+    else if (keydown [SDL_SCANCODE_N] || keydown [SDL_SCANCODE_RETURN])   /*'n' or ret keys*/
     {
       castnuke();
-      keydown [0x31]=false;
-      keydown [0x1c]=false;
+      keydown [SDL_SCANCODE_N]=false;
+      keydown [SDL_SCANCODE_RETURN]=false;
     }
   }
 
@@ -1028,7 +1028,7 @@ void playercmdthink(void)
   switch (indemo)
   {
 	 case notdemo:
-		if (keydown[0x2e] && keydown[0x14] && keydown[0x39])	//'C-T-SPC'
+		if (keydown[SDL_SCANCODE_C] && keydown[SDL_SCANCODE_T] && keydown[SDL_SCANCODE_SPACE])	//'C-T-SPC'
 		{
 	centerwindow (16,2);
 	print ("warp to which\nlevel (1-99)?");
@@ -1044,7 +1044,7 @@ void playercmdthink(void)
 
 
 //NOLAN ADDED
-	if (keydown[0x2e] && keydown[0x14] && keydown[0x22])	// c-t-TAB == GODMODE
+	if (keydown[SDL_SCANCODE_C] && keydown[SDL_SCANCODE_T] && keydown[SDL_SCANCODE_TAB])	// c-t-TAB == GODMODE
 	{
 		int i;
 		if (GODMODE)
@@ -1077,7 +1077,7 @@ void playercmdthink(void)
     //
       indemo = notdemo;
       ctrl = ControlPlayer (1);
-      if (ctrl.button1 || ctrl.button2 || keydown[0x39])
+      if (ctrl.button1 || ctrl.button2 || keydown[SDL_SCANCODE_SPACE])
       {
 	indemo = demoplay;
 	exitdemo = true;
@@ -1588,7 +1588,7 @@ void playloop(void)
     loadlevel(); /*load the level to play*/
     leveldone= false;
 
-    if (keydown[0x41] && keydown[0x20]) // 'D+F7' to record a demo
+    if (keydown[SDL_SCANCODE_F7] && keydown[SDL_SCANCODE_D]) // 'D+F7' to record a demo
     {
       clearold ();
       refresh ();

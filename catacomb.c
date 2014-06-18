@@ -870,7 +870,7 @@ void dotitlepage (void)
     WaitVBL ();
     indemo = notdemo;
     ctrl = ControlPlayer (1);
-    if (ctrl.button1 || ctrl.button2 || keydown[0x39])
+    if (ctrl.button1 || ctrl.button2 || keydown[SDL_SCANCODE_SPACE])
     {
       level = 0;
       exitdemo = true;
@@ -973,7 +973,7 @@ void dodemo (void)
       WaitVBL ();
       indemo = notdemo;
       ctrl = ControlPlayer (1);
-      if (ctrl.button1 || ctrl.button2 || keydown[0x39])
+      if (ctrl.button1 || ctrl.button2 || keydown[SDL_SCANCODE_SPACE])
       {
         exitdemo = true;
         break;

@@ -19,13 +19,9 @@
 #ifndef __PCRLIB_H__
 #define __PCRLIB_H__
 
-//#include <dos.h>
-//#include <mem.h>
-//#include <sys\stat.h>
 #include <fcntl.h>
-//#include <alloc.h>
-//#include <io.h>
 #include <string.h>
+#include <SDL_scancode.h>
 
 #include "catdefs.h"
 
@@ -88,10 +84,10 @@ typedef struct {dirtype dir;
 typedef enum {keyboard,mouse,joystick1,joystick2,demo} inputtype;
 
 extern inputtype playermode[3];
-extern boolean keydown[128];
+extern boolean keydown[SDL_NUM_SCANCODES];
 extern int JoyXlow[3], JoyXhigh[3], JoyYlow [3], JoyYhigh [3];	// 1&2 are used
 extern int MouseSensitivity;
-extern char key[8], keyB1, keyB2;
+extern int key[8], keyB1, keyB2;
 
 enum demoenum {notdemo,demoplay,recording};
 extern enum demoenum indemo;

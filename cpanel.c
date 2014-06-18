@@ -116,7 +116,7 @@ void calibratejoy (int joynum)
       stage=15;
     ReadJoystick (joynum,&xl,&yl);
     ctr = ControlJoystick(joynum);
-    if (keydown[1])
+    if (keydown[SDL_SCANCODE_ESCAPE])
       goto done;
   } while (ctr.button1!= 1);
   drawchar (sx,sy,' ');
@@ -140,7 +140,7 @@ void calibratejoy (int joynum)
       stage=15;
     ReadJoystick (joynum,&xh,&yh);
     ctr = ControlJoystick(joynum);
-    if (keydown[1])
+    if (keydown[SDL_SCANCODE_ESCAPE])
       goto done;
   } while (ctr.button1!= 1);
   drawchar (sx,sy,' ');
