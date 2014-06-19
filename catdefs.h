@@ -42,7 +42,10 @@ static inline dword flatptr(farptr ptr) { return (ptr.seg<<4) + ptr.ofs; }
 // Compatibility stuff
 // TODO: Remove?
 #define FIXME { printf("FIXME: %s\n", __FUNCTION__); assert(false); }
+#ifndef O_BINARY
 #define O_BINARY 0
+#endif
+#ifndef _WIN32
 static inline char *itoa(int value, char* str, int base)
 {
 	if(base == 16)
@@ -52,6 +55,7 @@ static inline char *itoa(int value, char* str, int base)
 	return str;
 }
 static inline char *ltoa(int value, char* str, int base) { return itoa(value, str, base); }
+#endif
 
 #define NUMDEMOS 1
 

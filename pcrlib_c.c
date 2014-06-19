@@ -481,7 +481,7 @@ void clearkeys (void)
 }
 
 //==========================================================================
-
+#ifndef _WIN32
 static long filelength (int fd)
 {
 	struct stat s;
@@ -490,6 +490,7 @@ static long filelength (int fd)
 
 	return s.st_size;
 }
+#endif
 
 /*
 ==============================================
