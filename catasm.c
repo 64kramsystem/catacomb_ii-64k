@@ -149,6 +149,25 @@ void doall()
 
 //=======================================================================
 
+static void drawcgachartile(byte *dest, int tile)
+{
+	byte *src = pics + (tile<<4);
+	unsigned r;
+	for(r = 0;r < 8;++r, src += 2)
+	{
+		*dest++ = (src[0]>>6)&3;
+		*dest++ = (src[0]>>4)&3;
+		*dest++ = (src[0]>>2)&3;
+		*dest++ = (src[0]>>0)&3;
+		*dest++ = (src[1]>>6)&3;
+		*dest++ = (src[1]>>4)&3;
+		*dest++ = (src[1]>>2)&3;
+		*dest = (src[1]>>0)&3;
+
+		dest += screenpitch-7;
+	}
+}
+
 //=========
 //
 // CGAREFRESH redraws the tiles that have changed in the tiled screen area
@@ -169,21 +188,7 @@ void cgarefresh()
 		if(tile != oldtiles[i])
 		{
 			oldtiles[i] = tile;
-			byte *src = pics + (tile<<4);
-			byte *dest = vbuf;
-			for(r = 0;r < 8;++r, src += 2)
-			{
-				*dest++ = (src[0]>>6)&3;
-				*dest++ = (src[0]>>4)&3;
-				*dest++ = (src[0]>>2)&3;
-				*dest++ = (src[0]>>0)&3;
-				*dest++ = (src[1]>>6)&3;
-				*dest++ = (src[1]>>4)&3;
-				*dest++ = (src[1]>>2)&3;
-				*dest = (src[1]>>0)&3;
-
-				dest += screenpitch-7;
-			}
+			drawcgachartile(vbuf, tile);
 		}
 		++i;
 		++ofs;
@@ -205,6 +210,32 @@ void cgarefresh()
 
 //=======================================================================
 
+static void drawegachartile(byte *dest, int tile)
+{
+	byte *src = pics + (tile<<5);
+	unsigned r;
+	for(r = 0;r < 8;++r, ++src)
+	{
+		const byte chan[4] = {
+			src[0],
+			src[8],
+			src[16],
+			src[24]
+		};
+
+		*dest++ = EGA(chan,7);
+		*dest++ = EGA(chan,6);
+		*dest++ = EGA(chan,5);
+		*dest++ = EGA(chan,4);
+		*dest++ = EGA(chan,3);
+		*dest++ = EGA(chan,2);
+		*dest++ = EGA(chan,1);
+		*dest = EGA(chan,0);
+
+		dest += screenpitch-7;
+	}
+}
+
 //=========
 //
 // EGAREFRESH redraws the tiles that have changed in the tiled screen area
@@ -216,7 +247,7 @@ void egarefresh()
 	unsigned ofs = originy*86 + originx;
 
 	int tile;
-	unsigned i = 0, r;
+	unsigned i = 0;
 	unsigned endofrow = ofs + 24;
 	byte *vbuf = screenseg;
 	do
@@ -225,28 +256,7 @@ void egarefresh()
 		if(tile != oldtiles[i])
 		{
 			oldtiles[i] = tile;
-			byte *src = pics + (tile<<5);
-			byte *dest = vbuf;
-			for(r = 0;r < 8;++r, ++src)
-			{
-				const byte chan[4] = {
-					src[0],
-					src[8],
-					src[16],
-					src[24]
-				};
-
-				*dest++ = EGA(chan,7);
-				*dest++ = EGA(chan,6);
-				*dest++ = EGA(chan,5);
-				*dest++ = EGA(chan,4);
-				*dest++ = EGA(chan,3);
-				*dest++ = EGA(chan,2);
-				*dest++ = EGA(chan,1);
-				*dest = EGA(chan,0);
-
-				dest += screenpitch-7;
-			}
+			drawegachartile(vbuf, tile);
 		}
 		++i;
 		++ofs;
@@ -264,4 +274,17 @@ void egarefresh()
 	while(1);
 
 	UpdateScreen();
+}
+
+void drawchartile(int x, int y, int tile)
+{
+	switch(grmode)
+	{
+		case EGAgr:
+			drawegachartile(screenseg + (y<<3)*screenpitch + (x<<3), tile);
+			break;
+		case CGAgr:
+			drawcgachartile(screenseg + (y<<3)*screenpitch + (x<<3), tile);
+			break;
+	}
 }

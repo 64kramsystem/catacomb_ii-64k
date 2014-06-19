@@ -281,7 +281,7 @@ boolean wantmore (void)
 /*	   */
 /* charpic */
 /*	   */
-void charpic(int x,int y, classtype c, dirtype dir, int stage)
+static void charpic(int x,int y, classtype c, dirtype dir, int stage)
 {
   int xx,yy,size,tilenum;
 
@@ -291,15 +291,12 @@ void charpic(int x,int y, classtype c, dirtype dir, int stage)
 
   for (yy=y;yy<=y+size-1;yy++)
     for (xx=x;xx<=x+size-1;xx++)
-	drawchar (xx,yy,tilenum++);
+	drawchartile (xx,yy,tilenum++);
 };
 
 void help (void)
 {
   int x,y;
-  char *oldcharptr;
-#define OLDSET oldcharptr = charptr;charptr = (char*)0xa400;
-#define NEWSET charptr = oldcharptr;
 
   centerwindow (20,20);
   print ("  C A T A C O M B   \n");
@@ -343,19 +340,15 @@ void help (void)
   print ("launched.           \n");
   print ("\n");
 
-  OLDSET;
-
   for (y=11; y<=18; y++)
     for (x=3; x<=20; x++)
-      drawchar (x,y,128);
+      drawchartile (x,y,128);
 
   charpic (4,14,player,east,2);
   charpic (19,15,shot,east,1);
   charpic (17,14,shot,east,0);
   charpic (15,15,shot,east,1);
   charpic (8,14,bigshot,east,0);
-
-  NEWSET;
 
   if (!wantmore())
     return;
@@ -369,22 +362,18 @@ void help (void)
   print ("searching walls and \n");
   print ("fighting retreats.  \n");
 
-  OLDSET;
-
   for (y=11; y<=18; y++)
     for (x=3; x<=20; x++)
       if (y==15)
-	drawchar (x,y,129);
+	drawchartile (x,y,129);
       else if (y==16)
-	drawchar (x,y,131);
+	drawchartile (x,y,131);
       else
-	drawchar (x,y,128);
+	drawchartile (x,y,128);
   charpic (6,13,player,south,2);
   sx=6;
   sy=15;
   print ("\35\35\36\36\37\37");
-
-  NEWSET;
 
   if (!wantmore())
     return;
@@ -420,18 +409,14 @@ void help (void)
   print ("when you are being  \n");
   print ("mobbed by monsters! \n\n");
 
-  OLDSET;
-
-  print ("               \200\200\200\n");
-  print ("POTIONS:       \200\242\200\n");
-  print ("               \200\200\200\n");
-  print ("SCROLLS:       \200\243\200\n");
-  print (" (BOLTS/NUKES) \200\200\200\n");
-  print ("TREASURE:      \200\247\200\n");
-  print (" (POINTS)      \200\200\200\n");
-  print ("               \200\200\200\n");
-
-  NEWSET;
+  printchartile ("               \200\200\200\n");
+  printchartile ("POTIONS:       \200\242\200\n");
+  printchartile ("               \200\200\200\n");
+  printchartile ("SCROLLS:       \200\243\200\n");
+  printchartile (" (BOLTS/NUKES) \200\200\200\n");
+  printchartile ("TREASURE:      \200\247\200\n");
+  printchartile (" (POINTS)      \200\200\200\n");
+  printchartile ("               \200\200\200\n");
 
   wantmore();
 

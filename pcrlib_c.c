@@ -872,7 +872,24 @@ void print (const char *str)
     else if (ch == '\r')
       sx=leftedge;
     else
-      drawchar (sx++,sy,ch);
+      drawchar (sx++,sy,(byte)ch);
+}
+
+// For help screen
+void printchartile (const char *str)
+{
+  char ch;
+
+  while ((ch=*str++) != 0)
+    if (ch == '\n')
+    {
+      sy++;
+      sx=leftedge;
+    }
+    else if (ch == '\r')
+      sx=leftedge;
+    else
+      drawchartile (sx++,sy,(byte)ch);
 }
 
 

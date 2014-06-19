@@ -212,6 +212,7 @@ void installgrfile (char *filename,int unpack,void *inmem);
 
 void drawchar (int x, int y, int charnum);
 void drawpic (int x, int y, int picnum);
+void drawchartile (int x, int y, int tile);
 
 /*=========================================================================*/
 
@@ -226,6 +227,7 @@ int get (void);
 int _input(char *string,int max);
 unsigned _inputint(void);
 void print (const char *str);
+void printchartile (const char *str);
 void _printc(char *string);
 void _printhexb(unsigned char value);
 void _printhex(unsigned value);
