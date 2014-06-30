@@ -159,8 +159,6 @@ extern grtype grmode;
 
 extern int sx,sy,leftedge,xormask;	// stuff for screen text output
 
-extern word CGAylookup [200],EGAylookup[256],VGAylookup[200];
-
 extern unsigned crtcaddr;
 
 void setscreenmode (grtype mode);

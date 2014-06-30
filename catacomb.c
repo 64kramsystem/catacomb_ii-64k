@@ -991,6 +991,7 @@ void gameover (void)
 
   expwin (11,4);
   print ("\n GAME OVER\n     ");
+  UpdateScreen ();
   WaitEndSound ();
   for (i=0;i<120;i++)
     WaitVBL ();
@@ -1005,7 +1006,7 @@ void gameover (void)
 		break;
 	 if (bioskey (1))
 		dofkeys ();
-	 if (exitdemo)
+	 if (exitdemo || indemo == demoplay)
 		break;
   }
 }
@@ -1052,7 +1053,7 @@ US_CheckParm(char *parm,char **strings)
 /***************************************************************************/
 /***************************************************************************/
 
-static	char			*EntryParmStrings[] = {"detour","cga",0};
+static	char			*EntryParmStrings[] = {"detour",0};
 
 /*=========================*/
 /*			   */
@@ -1060,9 +1061,14 @@ static	char			*EntryParmStrings[] = {"detour","cga",0};
 /*			   */
 /*=========================*/
 
-int main (int _argc, char* _argv[])
+int _argc;
+char** _argv;
+int main (int argc, char* argv[])
 {
 	boolean LaunchedFromShell = false;
+
+	_argc = argc;
+	_argv = argv;
 
 	if (_argc > 1 && stricmp(_argv[1], "/VER") == 0)
 	{
@@ -1079,9 +1085,6 @@ int main (int _argc, char* _argv[])
 		{
 		case 0:
 			LaunchedFromShell = true;
-			break;
-		case 1:
-			_egaok = false;
 			break;
 		}
 	}

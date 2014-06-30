@@ -24,6 +24,7 @@
 #include <limits.h>
 
 #include "catdefs.h"
+#include "catacomb.h"
 #include "pcrlib.h"
 
 char	ch,str[80];	// scratch space
@@ -51,6 +52,7 @@ static SDL_Scancode lastkey = 0;
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *sdltexture;
+SDL_Rect updateRect;
 
 /*=======================================================================*/
 
@@ -828,7 +830,7 @@ void UpdateScreen()
 
 	SDL_UpdateTexture(sdltexture, NULL, conv, 320*sizeof(Uint32));
 	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, sdltexture, NULL, NULL);
+	SDL_RenderCopy(renderer, sdltexture, NULL, &updateRect);
 	SDL_RenderPresent(renderer);
 }
 
@@ -1270,16 +1272,16 @@ void _loadctrls (void)
     JoyYhigh[1] = JoyYhigh[2] = 60;
     MouseSensitivity = 5;
 
-    key[north] = 0x48;
-    key[northeast] = 0x49;
-    key[east] = 0x4d;
-    key[southeast] = 0x51;
-    key[south] = 0x50;
-    key[southwest] = 0x4f;
-    key[west] = 0x4b;
-    key[northwest] = 0x47;
-    keyB1 = 0x1d;
-    keyB2 = 0x38;
+    key[north] = SDL_SCANCODE_UP;
+    key[northeast] = SDL_SCANCODE_PAGEUP;
+    key[east] = SDL_SCANCODE_RIGHT;
+    key[southeast] = SDL_SCANCODE_PAGEDOWN;
+    key[south] = SDL_SCANCODE_DOWN;
+    key[southwest] = SDL_SCANCODE_END;
+    key[west] = SDL_SCANCODE_LEFT;
+    key[northwest] = SDL_SCANCODE_HOME;
+    keyB1 = SDL_SCANCODE_LCTRL;
+    keyB2 = SDL_SCANCODE_LALT;
   }
   else
   {
@@ -1452,6 +1454,7 @@ void _checkhighscore (void)
     }
 
   _showhighscores ();
+  UpdateScreen ();
 
   //
   // did get a high score
@@ -1493,6 +1496,8 @@ void _checkhighscore (void)
 void SetupEmulatedVBL();
 byte screenseg[320*200];
 
+static char* VideoParmStrings[] = {"windowed", "screen", 0};
+
 void _setupgame (void)
 {
   if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER))
@@ -1501,17 +1506,70 @@ void _setupgame (void)
     exit(1);
   }
 
-  if (SDL_CreateWindowAndRenderer (320, 200, 0, &window, &renderer) == -1)
+  int i;
+  boolean windowed = false;
+  unsigned winWidth = 640, winHeight = 480;
+  int displayindex = 0;
+  for (i = 1;i < _argc; ++i)
+  {
+    switch (US_CheckParm (_argv[i],VideoParmStrings))
+    {
+    case 0:
+      windowed = true;
+      if (++i < _argc)
+        winWidth = atoi (_argv[i]);
+      if (++i < _argc)
+        winHeight = atoi (_argv[i]);
+        break;
+    case 1:
+      if (++i < _argc)
+        displayindex = atoi (_argv[i]);
+      break;
+    }
+  }
+
+  SDL_DisplayMode mode;
+  SDL_Rect bounds;
+  if (SDL_GetCurrentDisplayMode (displayindex, &mode) < -1 ||
+      SDL_GetDisplayBounds (displayindex, &bounds) < 0)
+  {
+    fprintf(stderr, "Could not get display mode: %s\n", SDL_GetError());
+    exit(1);
+  }
+
+  if (windowed)
+  {
+    mode.w = winWidth;
+    mode.h = winHeight;
+  }
+
+  if ((window = SDL_CreateWindow ("The Catacomb", bounds.x, bounds.y, mode.w, mode.h, windowed ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP)) == NULL ||
+      (renderer = SDL_CreateRenderer (window, -1, 0)) == NULL)
   {
     fprintf(stderr, "Failed to create SDL window: %s\n", SDL_GetError());
     exit(1);
   }
-  SDL_SetWindowTitle (window, "The Catacomb");
 
   if (!(sdltexture = SDL_CreateTexture (renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 320, 200)))
   {
     fprintf(stderr, "Could not create video buffer: %s\n", SDL_GetError());
-	exit(1);
+    exit(1);
+  }
+
+  // Handle 320x200 and 640x400 specially so they are unscaled.
+  if ((mode.w == 320 && mode.h == 200) || (mode.w == 640 && mode.h == 400))
+  {
+    updateRect.w = mode.w;
+    updateRect.h = mode.h;
+    updateRect.x = updateRect.y = 0;
+  }
+  else
+  {
+    // Pillar box the 4:3 game
+    updateRect.h = mode.h;
+    updateRect.w = mode.h*4/3;
+    updateRect.x = (mode.w - updateRect.w)>>1;
+    updateRect.y = 0;
   }
 
   memset(screenseg, 0, sizeof(screenseg));

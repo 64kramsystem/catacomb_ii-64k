@@ -24,6 +24,7 @@
 
 extern void refresh();
 extern void playloop();
+extern int US_CheckParm(char *,char **);
 
   typedef enum {quited,killed,reseted,victorious} exittype;
   extern exittype gamexit; /*determines what to do after playloop*/
@@ -78,5 +79,8 @@ extern void playloop();
 
   //NOLAN ADDED
   extern boolean GODMODE;
+
+  extern int _argc;
+  extern char** _argv;
 
 #endif
