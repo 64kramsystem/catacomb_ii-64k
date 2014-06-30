@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include <SDL.h>
-
 #include "catdefs.h"
 #include "pcrlib.h"
 
@@ -38,7 +36,7 @@ boolean		keydown[SDL_NUM_SCANCODES];
 
 int JoyXlow [3], JoyXhigh [3], JoyYlow [3], JoyYhigh [3];
 
-int MouseSensitivity;
+int MouseSensitivity, MouseEvent;
 
 int key[8],keyB1,keyB2;
 
@@ -75,6 +73,7 @@ void SetupKBD ()
 
 static void ProcessEvents ()
 {
+	MouseEvent = 0;
 	SDL_Event event;
 	while(SDL_PollEvent(&event))
 	{
@@ -91,6 +90,10 @@ static void ProcessEvents ()
 		{
 			if(event.window.event == SDL_WINDOWEVENT_CLOSE)
 				_quit("");
+		}
+		else if(event.type == SDL_MOUSEMOTION)
+		{
+			MouseEvent = 1;
 		}
 	}
 }
@@ -169,26 +172,29 @@ ControlStruct ControlKBD ()
 
 ControlStruct ControlMouse ()
 {
-	FIXME
-#ifdef NOTYET
  int newx,newy,		/* mickeys the mouse has moved */
      xmove = 0,
      ymove = 0;
  ControlStruct action;
+ 
+ int buttons = SDL_GetMouseState(&newx, &newy);		/* mouse status */
 
- _AX = 3;
- geninterrupt (0x33);		/* mouse status */
- newx = _CX;
- newy = _DX;
- action.button1 = _BX & 1;
- action.button2 = (_BX & 2) >> 1;
+ action.button1 = buttons & SDL_BUTTON(1);
+ action.button2 = buttons & SDL_BUTTON(3);
+ 
+ if (MouseEvent == 0)
+ {
+   action.dir = nodir;
+   
+   return (action);
+ }
 
- if ((newx-320)/2>MouseSensitivity)
+ if (newx-(320/2)>MouseSensitivity)
  {
    xmove = 1;
    newx = newx - MouseSensitivity*2;
  }
- else if ((newx-320)/2<-MouseSensitivity)
+ else if (newx-(320/2)<-MouseSensitivity)
  {
    xmove = -1;
    newx = newx + MouseSensitivity*2;
@@ -204,10 +210,9 @@ ControlStruct ControlMouse ()
    newy = newy + MouseSensitivity;
  }
 
-  _AX = 4;
-  _CX=newx;
-  _DX=newy;
-  geninterrupt (0x33);		/* set mouse status */
+ newx = 160;
+ newy = 100;
+ SDL_WarpMouseInWindow(window, newx, newx);		/* set mouse status */
 
  switch (ymove*3+xmove)
  {
@@ -223,7 +228,6 @@ ControlStruct ControlMouse ()
  }
 
  return (action);
-#endif
 }
 
 
@@ -1293,6 +1297,11 @@ void _loadctrls (void)
 		JoyYlow[i] = ctlpanel.JoyYlow[i];
 		JoyXhigh[i] = ctlpanel.JoyXhigh[i];
 		JoyYhigh[i] = ctlpanel.JoyYhigh[i];
+		
+		if (playermode[i] == mouse)
+		{
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+		}
 	}
 	MouseSensitivity = ctlpanel.MouseSensitivity;
 	for(i = 0;i < 8;++i)

@@ -1060,7 +1060,7 @@ static	char			*EntryParmStrings[] = {"detour","cga",0};
 /*			   */
 /*=========================*/
 
-void main (int _argc, char* _argv[])
+int main (int _argc, char* _argv[])
 {
 	boolean LaunchedFromShell = false;
 
@@ -1190,5 +1190,7 @@ void main (int _argc, char* _argv[])
 		gameover ();
 	 }
   }
+  
+  return 0;
 }
 

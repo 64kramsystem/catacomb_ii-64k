@@ -21,6 +21,7 @@
 
 #include <fcntl.h>
 #include <string.h>
+#include <SDL.h>
 #include <SDL_scancode.h>
 
 #include "catdefs.h"
@@ -91,6 +92,7 @@ extern int key[8], keyB1, keyB2;
 
 enum demoenum {notdemo,demoplay,recording};
 extern enum demoenum indemo;
+extern SDL_Window *window;
 
 void SetupKBD ();
 

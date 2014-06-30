@@ -173,8 +173,6 @@ done:
 ////////////////////////////
 void calibratemouse (void)
 {
-	FIXME
-#ifdef NOTYET
   char ch;
 
   expwin (24,5);
@@ -190,14 +188,13 @@ void calibratemouse (void)
   } while (ch<'1' || ch>'9');
   MouseSensitivity = 15-(ch-'0');
   erasewindow ();
-  _AX=0;
-  geninterrupt (0x33);		// initialize the mouse
-  _AX = 4;
-  _CX=320;
-  _DX=100;
-  geninterrupt (0x33);		// set mouse status
 
-#endif
+  SDL_SetRelativeMouseMode(SDL_TRUE);  // initialize the mouse
+
+  int x = 160;
+  int y = 100;
+  
+  SDL_WarpMouseInWindow(window, x, y); // set mouse status
 }
 
 /////////////////////////////
