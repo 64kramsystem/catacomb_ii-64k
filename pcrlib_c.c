@@ -181,7 +181,10 @@ ControlStruct ControlMouse ()
      ymove = 0;
  ControlStruct action;
  
- int buttons = SDL_GetMouseState(&newx, &newy);		/* mouse status */
+ int buttons = SDL_GetRelativeMouseState(&newx, &newy);		/* mouse status */
+ 
+ newx += (mode.w/2);
+ newy += (mode.h/2);
  
  action.button1 = buttons & SDL_BUTTON(1);
  action.button2 = buttons & SDL_BUTTON(3);
