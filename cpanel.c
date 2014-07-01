@@ -191,8 +191,8 @@ void calibratemouse (void)
 
   SDL_SetRelativeMouseMode(SDL_TRUE);  // initialize the mouse
 
-  int x = 160;
-  int y = 100;
+  int x = mode.w/2;
+  int y = mode.h/2;
   
   SDL_WarpMouseInWindow(window, x, y); // set mouse status
 }

@@ -37,7 +37,8 @@ boolean		keydown[SDL_NUM_SCANCODES];
 
 int JoyXlow [3], JoyXhigh [3], JoyYlow [3], JoyYhigh [3];
 
-int MouseSensitivity, MouseEvent;
+int MouseSensitivity;
+boolean mouseEvent;
 
 int key[8],keyB1,keyB2;
 
@@ -53,6 +54,7 @@ SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *sdltexture;
 SDL_Rect updateRect;
+SDL_DisplayMode mode;
 
 /*=======================================================================*/
 
@@ -75,7 +77,7 @@ void SetupKBD ()
 
 static void ProcessEvents ()
 {
-	MouseEvent = 0;
+	mouseEvent = false;
 	SDL_Event event;
 	while(SDL_PollEvent(&event))
 	{
@@ -95,7 +97,7 @@ static void ProcessEvents ()
 		}
 		else if(event.type == SDL_MOUSEMOTION)
 		{
-			MouseEvent = 1;
+			mouseEvent = true;
 		}
 	}
 }
@@ -180,42 +182,40 @@ ControlStruct ControlMouse ()
  ControlStruct action;
  
  int buttons = SDL_GetMouseState(&newx, &newy);		/* mouse status */
-
+ 
  action.button1 = buttons & SDL_BUTTON(1);
  action.button2 = buttons & SDL_BUTTON(3);
  
- if (MouseEvent == 0)
+ if (mouseEvent == false)
  {
-   action.dir = nodir;
-   
-   return (action);
+  action.dir = nodir;
+  
+  return (action);
  }
 
- if (newx-(320/2)>MouseSensitivity)
+ if (newx-(mode.w/2)>MouseSensitivity)
  {
    xmove = 1;
    newx = newx - MouseSensitivity*2;
  }
- else if (newx-(320/2)<-MouseSensitivity)
+ else if (newx-(mode.w/2)<-MouseSensitivity)
  {
    xmove = -1;
    newx = newx + MouseSensitivity*2;
  }
- if ((newy-100)>MouseSensitivity)
+ if ((newy-(mode.h/2))>MouseSensitivity)
  {
    ymove = 1;
    newy = newy - MouseSensitivity;
  }
- else if ((newy-100)<-MouseSensitivity)
+ else if ((newy-(mode.h/2))<-MouseSensitivity)
  {
    ymove = -1;
    newy = newy + MouseSensitivity;
  }
-
- newx = 160;
- newy = 100;
- SDL_WarpMouseInWindow(window, newx, newx);		/* set mouse status */
-
+ 
+ SDL_WarpMouseInWindow(window, newx, newy);		/* set mouse status */
+ 
  switch (ymove*3+xmove)
  {
    case -4: action.dir = northwest; break;
@@ -228,7 +228,7 @@ ControlStruct ControlMouse ()
    case  3: action.dir = south; break;
    case  4: action.dir = southeast; break;
  }
-
+ 
  return (action);
 }
 
@@ -1303,6 +1303,8 @@ void _loadctrls (void)
 		if (playermode[i] == mouse)
 		{
 			SDL_SetRelativeMouseMode(SDL_TRUE);
+			
+			SDL_WarpMouseInWindow(window, mode.w/2, mode.h/2);
 		}
 	}
 	MouseSensitivity = ctlpanel.MouseSensitivity;
@@ -1528,7 +1530,6 @@ void _setupgame (void)
     }
   }
 
-  SDL_DisplayMode mode;
   SDL_Rect bounds;
   if (SDL_GetCurrentDisplayMode (displayindex, &mode) < -1 ||
       SDL_GetDisplayBounds (displayindex, &bounds) < 0)

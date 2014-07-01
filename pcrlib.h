@@ -95,6 +95,7 @@ extern int key[8], keyB1, keyB2;
 enum demoenum {notdemo,demoplay,recording};
 extern enum demoenum indemo;
 extern SDL_Window *window;
+extern SDL_DisplayMode mode;
 
 void SetupKBD ();
 
