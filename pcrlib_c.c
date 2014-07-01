@@ -1593,7 +1593,7 @@ void _setupgame (void)
   strcpy (str,"SOUNDS.");
   strcat (str,_extension);
 
-  SoundData = (char *) bloadin (str);
+  SoundData = (SPKRtable *) bloadin (str);
 
   StartupSound ();
 

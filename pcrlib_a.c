@@ -1,6 +1,6 @@
 /* The Catacomb Source Code
  * Copyright (C) 1993-2014 Flat Rock Software
- * Copyright (C) 2014 Flat Braden "Blzut3" Obrzut
+ * Copyright (C) 2014 Braden "Blzut3" Obrzut
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,86 +18,358 @@
  */
 
 #include <time.h>
-#include <SDL_timer.h>
-#include <SDL_thread.h>
+#include <SDL.h>
 
 #include "pcrlib.h"
 
-static word SPKactive = 0; //set non zero when started
+SPKRtable *SoundData; //two word pointer to SPKR file, PARA aligned
+soundtype soundmode = spkr; //0=nosound, 1=SPKR, 2= adlib...
 
-char *SoundData; //two word pointer to SPKR file, PARA aligned
-soundtype soundmode = 1; //0=nosound, 1=SPKR, 2= adlib...
-static int OldInt8; //StartupSPK saves here, Shutdown restores
-static byte ExtraInts; //number of PlaySPKR's to a regular int 8
-static byte Intcount; //counter for extraints, call OldInt8 at 0
-static word sndspeed; //timer count speed
-
-static word SndPtr; //Pointer to frequency of current sound
 static byte SndPriority; //current sound's priority
 
-static word pausesndptr;
-static byte pausepriority;
-static byte pauseextraints;
-static byte pauseintcount;
-static word pausespeed;
-
+int xormask = 0; //to invert characters
 int _dontplay = 0; //set to 1 to avoid all interrupt and timer stuff
 
-int xormask = 0; //to invert characters
-int _yshift = 0; //to shift char lines
+static SDL_mutex *AudioMutex;
+static SDL_AudioSpec AudioSpec;
+static SDL_AudioDeviceID AudioDev;
+
+/*
+=============================================================================
+
+                     PC SPEAKER EMULATOR -- by K1n9_Duk3
+
+-----------------------------------------------------------------------------
+
+This emulator was designed to be FAST! The sampled audio data created by this
+code might not be 100% true to the output of a real PC Speaker, but it is 
+close enough.
+
+The emulator generates a square wave:
+     _____       _____       _____       _____       _____       _____
+  __|     |     |     |     |     |     |     |     |     |     |     |___
+          |_____|     |_____|     |_____|     |_____|     |_____|
+
+=============================================================================
+*/
+
+static short	pcVolume = 5000;	// for 16-bit mixing (8-bit should use 20)
+static unsigned	pcPhaseTick = 0;
+static unsigned	pcPhaseLength;
+static boolean	pcActive = false;
+static unsigned	pcSamplesPerTick;
+static unsigned	pcNumReadySamples = 0;
+static word		pcLastSample = 0;
+static unsigned	pcLengthLeft;
+static word*	pcSound;
+
+#define PC_BASE_TIMER 1193181
+
+// Note: The inline functions do not lock or unlock 'AudioMutex'. Make sure
+// that the code calling these functions locks/unlocks the mutex before/after
+// calling these functions!
+
+inline void _SDL_turnOnPCSpeaker(word pcSample)
+{
+	pcPhaseLength = (pcSample*AudioSpec.freq)/(2*PC_BASE_TIMER);
+#ifdef PC_VIBRATO
+	//if(pcVolume<0) pcVolume = -pcVolume;
+	pcPhaseTick = 0;
+#endif
+	pcActive = true;
+}
+
+inline void _SDL_turnOffPCSpeaker()
+{
+	pcActive = false;
+	pcPhaseTick = 0;	// Only required in case PC_VIBRATO is not defined
+}
+
+inline void _SDL_PCService()
+{
+	if(pcSound)
+	{
+		if(*pcSound!=pcLastSample)
+		{
+			pcLastSample=*pcSound;
+			if(pcLastSample)
+				_SDL_turnOnPCSpeaker(pcLastSample);	// don't multiply by 60, just pass the byte value
+			else
+				_SDL_turnOffPCSpeaker();
+		}
+		pcSound++;
+		pcLengthLeft--;
+		if(!pcLengthLeft)
+		{
+			pcSound=0;
+			SndPriority=0;
+			_SDL_turnOffPCSpeaker();
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////
+//
+//      SDL_PCPlaySound() - Plays the specified sound on the PC speaker
+//
+///////////////////////////////////////////////////////////////////////////
+static void
+_SDL_PCPlaySound(int sound)
+{
+	SDL_LockMutex(AudioMutex);
+
+	pcPhaseTick = 0;
+	pcLastSample = 0;	// Must be a value that cannot be played, so the PC Speaker is forced to reset (-1 wraps to 255 so it cannot be used here)
+    pcLengthLeft = (SoundData->sounds[sound].start-SoundData->sounds[sound-1].start)>>1;
+    pcSound = (word*)(((byte*)SoundData)+SoundData->sounds[sound-1].start);
+
+	SndPriority = SoundData->sounds[sound-1].priority;
+	pcSamplesPerTick = AudioSpec.freq / ((PC_BASE_TIMER*SoundData->sounds[sound-1].samplerate)>>16);
+
+	SDL_UnlockMutex(AudioMutex);
+}
+
+///////////////////////////////////////////////////////////////////////////
+//
+//      SDL_PCStopSound() - Stops the current sound playing on the PC Speaker
+//
+///////////////////////////////////////////////////////////////////////////
+static void
+_SDL_PCStopSound(void)
+{
+	SDL_LockMutex(AudioMutex);
+
+    pcSound = 0;
+	_SDL_turnOffPCSpeaker();
+
+	SDL_UnlockMutex(AudioMutex);
+}
+
+///////////////////////////////////////////////////////////////////////////
+//
+//      SDL_ShutPC() - Turns off the pc speaker
+//
+///////////////////////////////////////////////////////////////////////////
+static void
+_SDL_ShutPC(void)
+{
+    _SDL_PCStopSound();
+}
+
+///////////////////////////////////////////////////////////////////////////
+//
+//      SDL_PCSpeakerEmulator() - Emulates the pc speaker
+//      (replaces SDL_IMFMusicPlayer if no AdLib emulator is present)
+//
+///////////////////////////////////////////////////////////////////////////
+static void UpdateSPKR(void * udata, Uint8 *stream, int len)
+{
+	if(soundmode != spkr)
+	{
+		memset(stream, 0, len);
+		return;
+	}
+
+    int sampleslen = len>>1;
+    Sint16 *stream16 = (Sint16 *) (void *) stream;    // expect correct alignment
+	
+	SDL_LockMutex(AudioMutex);
+
+	do
+    {
+        if(pcNumReadySamples)
+        {
+			if(pcActive)
+				while(pcNumReadySamples && sampleslen)
+				{
+					pcNumReadySamples--;
+					sampleslen--;
+
+					*stream16++ = pcVolume;
+
+					if(pcPhaseTick++ >= pcPhaseLength)
+					{
+						pcVolume = -pcVolume;
+						pcPhaseTick = 0;
+					}
+				}
+			else
+				while(pcNumReadySamples && sampleslen)
+				{
+					pcNumReadySamples--;
+					sampleslen--;
+
+					*stream16++ = 0;
+					//stream16 += 2;	// No need to set it to 0. SDL should have done that already.
+				}
+
+			if(!sampleslen)
+				break;	// We need to unlock the mutex, so we cannot just return!
+        }
+
+		_SDL_PCService();
+
+        pcNumReadySamples = pcSamplesPerTick;
+    }
+    while(pcNumReadySamples);
+
+	SDL_UnlockMutex(AudioMutex);
+}
+
+/*
+=============================================================================
+======================== End of PC Speaker emulator ========================
+=============================================================================
+*/
+
+//========
+//
+// StartupSound
+//
+//========
 
 void StartupSound()
 {
-	printf("STUB: %s\n", __FUNCTION__);
+	SDL_AudioSpec desired;
+	SDL_zero(desired);
+	desired.freq = 48000;
+	desired.format = AUDIO_S16;
+	desired.channels = 1;
+	desired.samples = 4096;
+	desired.callback = UpdateSPKR;
 
-	soundmode = 0;
-	_dontplay = 1;
+	if((AudioMutex = SDL_CreateMutex()) == NULL ||
+		SDL_InitSubSystem(SDL_INIT_AUDIO) < 0 ||
+		(AudioDev = SDL_OpenAudioDevice(NULL, 0, &desired, &AudioSpec, 0)) == 0)
+	{
+		printf("Audio initialization failed: %s\n", SDL_GetError());
+		soundmode = off;
+		_dontplay = 1;
+		return;
+	}
+
+	// Typical value for init since samplerate is usually 8
+	pcSamplesPerTick = AudioSpec.freq / 145;
+	soundmode = spkr;
+	SDL_PauseAudioDevice(AudioDev, 0);
 }
+
+//========
+//
+// ShutdownSound
+//
+//========
 
 void ShutdownSound()
 {
 	if(_dontplay)
 		return;
 
-	FIXME
+	StopSound();
+	SDL_CloseAudio();
 }
+
+//===========
+//
+// PlaySound (soundnum)
+//
+// If the sound's priority is >= the current priority, SoundPtr, SndPriority,
+// and the timer speed are changed
+//
+//===========
+
 void PlaySound(int sound)
 {
 	if(_dontplay)
 		return;
 
-	FIXME
+	if(SoundData->sounds[sound-1].priority >= SndPriority)
+		_SDL_PCPlaySound(sound);
 }
+
+//===========
+//
+// StopSound
+//
+//===========
+
 void StopSound()
 {
 	if(_dontplay)
 		return;
 
-	FIXME
+	_SDL_PCStopSound();
 }
+
+//===========
+//
+// PauseSound
+//
+//===========
+
+static struct
+{
+	byte SndPriority;
+	unsigned pcSamplesPerTick;
+	unsigned pcLengthLeft;
+	word* pcSound;
+} SavedSound;
+
 void PauseSound()
 {
 	if(_dontplay)
 		return;
 
-	FIXME
+	SDL_LockMutex(AudioMutex);
+
+	SavedSound.SndPriority = SndPriority;
+	SavedSound.pcSamplesPerTick = pcSamplesPerTick;
+	SavedSound.pcLengthLeft = pcLengthLeft;
+	SavedSound.pcSound = pcSound;
+
+	SndPriority = 0;
+	pcLengthLeft = 0;
+	pcSound = NULL;
+	_SDL_turnOffPCSpeaker();
+
+	SDL_UnlockMutex(AudioMutex);
 }
+
+//===========
+//
+// ContinueSound
+//
+//===========
+
 void ContinueSound()
 {
 	if(_dontplay)
 		return;
 
-	FIXME
+	pcPhaseTick = 0;
+	pcLastSample = 0;
+	SndPriority = SavedSound.SndPriority;
+	pcSamplesPerTick = SavedSound.pcSamplesPerTick;
+	pcLengthLeft = SavedSound.pcLengthLeft;
+	pcSound = SavedSound.pcSound;
 }
+
+//========
+//
+// WaitendSound
+// Just waits around until the current sound stops playing
+//
+//========
+
 void WaitEndSound()
 {
 	if(_dontplay)
 		return;
 
-	FIXME
+	UpdateScreen();
+	while(pcSound)
+		WaitVBL();
 }
-
-static void UpdateSPKR() FIXME
 
 static word rndindex;
 static byte rndtable[256] = {

@@ -1,6 +1,6 @@
 /* The Catacomb Source Code
  * Copyright (C) 1993-2014 Flat Rock Software
- * Copyright (C) 2014 Flat Braden "Blzut3" Obrzut
+ * Copyright (C) 2014 Braden "Blzut3" Obrzut
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,6 @@
  */
 
 #include "pcrlib.h"
-
-unsigned int RLECompress(char *source, long sourcelen, char *dest)
-FIXME
 
 void RLEExpand(char *source, char *dest, long origlen)
 {

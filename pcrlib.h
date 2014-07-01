@@ -46,6 +46,7 @@ static inline byte EGA(const byte chan[4], byte ofs)
 
 typedef enum {off,spkr,sdlib} soundtype;
 
+#pragma pack(1)
 typedef struct {word start;
 		byte priority;
 		byte samplerate;
@@ -56,10 +57,11 @@ typedef struct {char id[4];
 		word filler[5];
 		spksndtype sounds[63];
 		word freqdata[];} SPKRtable;
+#pragma pack()
 
 
 extern soundtype soundmode;
-extern char *SoundData;
+extern SPKRtable *SoundData;
 
 extern int _dontplay;
 
