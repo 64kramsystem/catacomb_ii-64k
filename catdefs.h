@@ -96,10 +96,10 @@ typedef struct {
     stage,		/*animation frame being drawn*/
     delay;		/*number of frames to pause without doing anything*/
   word /* dirtype */  dir;		/*direction facing*/
-  char hp;		/*hit points*/
+  sbyte hp;		/*hit points*/
   byte oldx,oldy;	/*position where it was last drawn*/
   sword oldtile;		/*origin tile when last drawn*/
-  char filler[1];	/*pad to 16 bytes*/
+  byte filler[1];	/*pad to 16 bytes*/
    } activeobj;
 
 typedef struct {
@@ -124,10 +124,10 @@ typedef struct {	/*holds a copy of activeobj, and its class info*/
     stage,		/*animation frame being drawn*/
     delay;		/*number of frames to pause without doing anything*/
   word  dir;		/*direction facing*/
-  char hp;		/*hit points*/
+  sbyte hp;		/*hit points*/
   byte oldx,oldy;		/*position where it was last drawn*/
   sword oldtile;		/*origin tile when last drawn*/
-  char filler[1];	/*pad to 16 bytes*/
+  byte filler[1];	/*pad to 16 bytes*/
 
   byte think;
   byte contact;
@@ -140,7 +140,7 @@ typedef struct {	/*holds a copy of activeobj, and its class info*/
   byte  hitpoints;
   byte  damage;
   word  points;
-  char filler2[2];	/*pad to 32 bytes*/
+  byte filler2[2];	/*pad to 32 bytes*/
   } objtype;
 #pragma pack()
 

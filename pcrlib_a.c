@@ -69,7 +69,7 @@ static word*	pcSound;
 // that the code calling these functions locks/unlocks the mutex before/after
 // calling these functions!
 
-inline void _SDL_turnOnPCSpeaker(word pcSample)
+static inline void _SDL_turnOnPCSpeaker(word pcSample)
 {
 	pcPhaseLength = (pcSample*AudioSpec.freq)/(2*PC_BASE_TIMER);
 #ifdef PC_VIBRATO
@@ -79,13 +79,13 @@ inline void _SDL_turnOnPCSpeaker(word pcSample)
 	pcActive = true;
 }
 
-inline void _SDL_turnOffPCSpeaker()
+static inline void _SDL_turnOffPCSpeaker()
 {
 	pcActive = false;
 	pcPhaseTick = 0;	// Only required in case PC_VIBRATO is not defined
 }
 
-inline void _SDL_PCService()
+static inline void _SDL_PCService()
 {
 	if(pcSound)
 	{
@@ -265,7 +265,7 @@ void ShutdownSound()
 	if(_dontplay)
 		return;
 
-	StopSound();
+	_SDL_ShutPC();
 	SDL_CloseAudio();
 }
 
@@ -531,6 +531,7 @@ void drawchar(int x, int y, int charnum)
 
 	switch(grmode)
 	{
+	default:
 	case EGAgr:
 		src = (byte*)charptr + charnum*8;
 		for (i = 0;i < 8;++i, ++src)
@@ -592,6 +593,7 @@ void drawpic(int x, int y, int picnum)
 
 	switch(grmode)
 	{
+		default:
 		case EGAgr:
 			do
 			{

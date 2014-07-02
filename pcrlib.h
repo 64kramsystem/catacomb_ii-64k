@@ -109,6 +109,8 @@ ControlStruct ControlPlayer (int player);
 void LoadDemo (int demonum);
 void SaveDemo (int demonum);
 
+void RecordDemo ();
+
 /*========================================================================*/
 
 /*

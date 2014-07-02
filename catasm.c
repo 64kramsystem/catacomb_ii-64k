@@ -151,7 +151,7 @@ void doall()
 
 static void drawcgachartile(byte *dest, int tile)
 {
-	byte *src = pics + (tile<<4);
+	byte *src = (byte*)pics + (tile<<4);
 	unsigned r;
 	for(r = 0;r < 8;++r, src += 2)
 	{
@@ -179,7 +179,7 @@ void cgarefresh()
 	unsigned ofs = originy*86 + originx;
 
 	int tile;
-	unsigned i = 0, r;
+	unsigned i = 0;
 	unsigned endofrow = ofs + 24;
 	byte *vbuf = screenseg;
 	do
@@ -212,7 +212,7 @@ void cgarefresh()
 
 static void drawegachartile(byte *dest, int tile)
 {
-	byte *src = pics + (tile<<5);
+	byte *src = (byte*)pics + (tile<<5);
 	unsigned r;
 	for(r = 0;r < 8;++r, ++src)
 	{
@@ -280,6 +280,7 @@ void drawchartile(int x, int y, int tile)
 {
 	switch(grmode)
 	{
+		default:
 		case EGAgr:
 			drawegachartile(screenseg + (y<<3)*screenpitch + (x<<3), tile);
 			break;

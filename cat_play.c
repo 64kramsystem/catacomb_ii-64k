@@ -111,7 +111,7 @@ void printbody()
 
 void levelcleared()
 {
-  char warp[2];
+  char warp[3];
   int value;
 
   leveldone=true;
@@ -267,7 +267,7 @@ void castbolt()
 /*	    */
 void castnuke()
 {
-  int i,x,y,n;
+  int i,x,n;
   activeobj base;
 
   if (items[5]==0)
@@ -286,8 +286,8 @@ void castnuke()
   base.active=true;
   base.x=obj.x;
   base.y=obj.y;      /*start bigshot at same coordinate at player*/
-  base.oldx=x;
-  base.oldy=y;
+  base.oldx=base.x;
+  base.oldy=base.y;
   base.oldtile=-1;
   base.class=bigshot;
 
@@ -394,8 +394,6 @@ void playbigshoot()
 
 void givescroll()
 {
-  int r;
-
   if (rndt()<128)
     givebolt ();
   else
@@ -536,7 +534,6 @@ void tagobject ()
 
 boolean intomonster()
 {
-  int i;
   boolean gotit;
 
 /*figure out which object got hit*/
@@ -549,17 +546,21 @@ boolean intomonster()
 
     memcpy (&altobj.active,&o[altnum],sizeof(o[altnum]) );
     if ( (altobj.class>nothing) && (altnum!=objecton) )
-      {
-	memcpy (&altobj.think,&objdef[altobj.class],sizeof(objdef[altobj.class]) );
-	if ( (chkx>=altobj.x) && (chkx-altobj.x<altobj.size)
-	&& (chky>=altobj.y) && (chky-altobj.y<altobj.size) )
-	  if (altobj.solid)
-	    gotit=true;
-	  else
-	    if ( (objecton==0) && (altobj.class==teleporter || altobj.class==secretgate) )
-	    /*player got to the teleporter*/
-	      levelcleared();
-      }
+	{
+		memcpy (&altobj.think,&objdef[altobj.class],sizeof(objdef[altobj.class]) );
+		if ( (chkx>=altobj.x) && (chkx-altobj.x<altobj.size)
+		&& (chky>=altobj.y) && (chky-altobj.y<altobj.size) )
+		{
+			if (altobj.solid)
+				gotit=true;
+			else
+			{
+				if ( (objecton==0) && (altobj.class==teleporter || altobj.class==secretgate) )
+				/*player got to the teleporter*/
+					levelcleared();
+			}
+		}
+	}
     if (!gotit)
       altnum++;
   } while (!(gotit || altnum>numobj) );
@@ -763,7 +764,7 @@ boolean walkthrough()
 boolean walk (void)
 
 {
-  int i,size,newx,newy,deltay,deltax;
+  int i,newx,newy,deltay,deltax;
   boolean try;
 
 
@@ -894,6 +895,8 @@ void playercmdthink(void)
 	    walk();
 	    c.dir = west;
 	    break;
+	  default:
+	    break;
 	}
       else
 	switch (c.dir)
@@ -917,6 +920,8 @@ void playercmdthink(void)
 	    obj.dir = west;
 		 walk();
 	    c.dir = north;
+	    break;
+	  default:
 	    break;
 	}
     }
@@ -946,6 +951,8 @@ void playercmdthink(void)
 	case southwest:
 	case west:
 	  obj.dir = west;
+	  break;
+	case nodir:
 	  break;
       }
 
@@ -1046,7 +1053,6 @@ void playercmdthink(void)
 //NOLAN ADDED
 	if (keydown[SDL_SCANCODE_C] && keydown[SDL_SCANCODE_T] && keydown[SDL_SCANCODE_TAB])	// c-t-TAB == GODMODE
 	{
-		int i;
 		if (GODMODE)
 		{
 			centerwindow (13,1);
@@ -1089,6 +1095,8 @@ void playercmdthink(void)
       indemo = demoplay;
       break;
 
+	default:
+	  break;
   }
 }
 
@@ -1104,7 +1112,7 @@ void playercmdthink(void)
 void chasethink (boolean diagonal)
 
 {
-  int deltax,deltay,i;
+  int deltax,deltay;
   dirtype d[3];
   int tdir, olddir, turnaround;
 
@@ -1219,7 +1227,7 @@ void chasethink (boolean diagonal)
 void gargthink(void)
 
 {
-  int n,deltax,deltay;
+  int n;
 
   if (rndt ()>220)   /*only shoot once in a while*/
   {
@@ -1568,8 +1576,6 @@ void doinactive()
 void playloop(void)
 
 {
-  int i,j;
-
   screencenterx = 11;
 
   do {   /*until playdone*/

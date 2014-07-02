@@ -22,9 +22,31 @@
 #include "catdefs.h"
 #include "pcrlib.h"
 
+extern void initobjects();
+
 extern void refresh();
 extern void playloop();
 extern int US_CheckParm(char *,char **);
+extern void dofkeys();
+extern void loadlevel();
+extern void clearold();
+extern void restore();
+
+extern void doactive();
+extern void doinactive();
+
+extern void printscore();
+extern void printhighscore();
+extern void printshotpower();
+extern void printbody();
+
+extern void givepotion();
+extern void givebolt();
+extern void givenuke();
+
+extern void eraseobj();
+extern void drawobj();
+extern void doall();
 
   typedef enum {quited,killed,reseted,victorious} exittype;
   extern exittype gamexit; /*determines what to do after playloop*/

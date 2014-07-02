@@ -214,22 +214,16 @@ void simplerefresh(void)
 
 void loadgrfiles ()
 {
-  int i;
-
+  if (picsexact != NULL)
+    free (picsexact);
   if (grmode==CGAgr)
   {
-    if (picsexact != NULL)
-      free (picsexact);
-    pics= (char *)bloadin("CGACHARS.CA2");
-    picsexact = pics;
+    picsexact = pics = (char *)bloadin("CGACHARS.CA2");
     installgrfile ("CGAPICS.CA2",0,0);
   }
   else
   {
-    if (picsexact != NULL)
-      free (picsexact);
-    pics= (char *)bloadin("EGACHARS.CA2");
-    picsexact = pics;
+    picsexact = pics = (char *)bloadin("EGACHARS.CA2");
     installgrfile ("EGAPICS.CA2",0,0);
   }
 }
@@ -459,7 +453,7 @@ void loadlevel(void)
      nothing,nothing};
 
   char filename[64],st[64];
-  int x,y,xx,yy,recs;
+  int x,y,xx,yy;
   byte btile;
   char sm[4096],rle[4096];
 
@@ -515,8 +509,9 @@ void loadlevel(void)
 		o[numobj].delay=0;
 		o[numobj].dir=(dirtype)(rndt()/64);  /*random 0-3*/
 		o[numobj].hp=objdef[o[numobj].class].hitpoints;
-		o[numobj].oldx=x;
-		o[numobj].oldy=y;
+		// [BL] These were just x/y which are uninitialized
+		o[numobj].oldx=o[numobj].x;
+		o[numobj].oldy=o[numobj].y;
 		o[numobj].oldtile=-1;
 	      };
 
@@ -697,8 +692,7 @@ void repaintscreen ()
 
 void dofkeys (void)
 {
-  int i,handle;
-  char st2[10];
+  int handle;
   int key=bioskey(1);
   if (key==SDL_SCANCODE_ESCAPE)			// make ESC into F10
     key=SDL_SCANCODE_F10;

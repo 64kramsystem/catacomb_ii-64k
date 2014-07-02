@@ -369,6 +369,7 @@ ControlStruct ControlPlayer (int player)
  {
    switch (playermode[player])
    {
+     default:
      case keyboard : ret = ControlKBD (); break;
      case mouse    : ret = ControlMouse (); break;
      case joystick1: ret = ControlJoystick(1); break;
@@ -789,8 +790,6 @@ void UpdateScreen()
 
 int get (void)
 {
- SDL_Event event;
-
  int cycle,key;
 
  do
@@ -940,7 +939,7 @@ void _printbin(unsigned value)
 
  print("%");
  for (loop=0;loop<16;loop++)
-    if ((value>>15-loop)&1) print("1"); else print("0");
+    if ((value>>(15-loop))&1) print("1"); else print("0");
 }
 
 

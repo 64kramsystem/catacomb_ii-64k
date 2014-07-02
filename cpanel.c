@@ -359,7 +359,6 @@ void calibratekeys (void)
 void getconfig (void)
 {
   int x,y;
-  int *vect;
 
   spotok [0][0] = 1;
   spotok [0][1] = _egaok;
@@ -469,7 +468,6 @@ void drawpanel (void)
 void controlpanel (void)
 {
   int chf;
-  char chl,chh;
   int oldcenterx,oldcentery;
 
   clearkeys ();			// clear out the F2 and other crap
@@ -615,7 +613,6 @@ int numchars,numtiles,numpics,numsprites;
 void installgrfile (char *filename, int unpack,void *inmem)
 {
   int i;
-  unsigned long a,b,c,d;
   typedef pictype ptype[NUMPICS];
   typedef spritetype stype[NUMSPRITES];
 
