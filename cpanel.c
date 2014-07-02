@@ -489,8 +489,6 @@ void controlpanel (void)
   screencenterx = 19;
   screencentery = 11;
 
-  setscreenmode (grmode);
-
 //
 // draw the screen
 //
@@ -547,7 +545,6 @@ void controlpanel (void)
 	       drawchar(collumnx[(int) newgrmode-1]+1,rowy[row]+3,32);
 	       grmode = newgrmode = (grtype) collumn + 1;	// becuase TEXT is 0
 	       loadgrfiles ();
-	       setscreenmode (grmode);
 	       drawwindow (0,0,39,24);
 	       drawpanel ();
 	       break;
@@ -659,8 +656,6 @@ void installgrfile (char *filename, int unpack,void *inmem)
   numtiles = picfile->numtiles;
   numpics = picfile->numpics;
   numsprites = picfile->numsprites;
-
-  printf("installgrfile: %s (%d, %d, %d, %d)\n", filename, numchars, numtiles, numpics, numsprites);
 
   charptr = (byte*)picfile+flatptr(picfile->charptr);
   tileptr = (byte*)picfile+flatptr(picfile->tileptr);

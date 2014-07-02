@@ -590,57 +590,7 @@ void *picptr;		// any size picture set
 void *spriteptr;		// any size masked and hit rect sprites
 dword egaplaneofs[4];
 
-unsigned crtcaddr;
-
 int sx,sy,leftedge;
-
-/*
-========================
-=
-= setscreenmode
-= Call BIOS to set TEXT / CGAgr / EGAgr / VGAgr
-=
-========================
-*/
-
-void setscreenmode (grtype mode)
-{
-	printf("STUB: %s\n", __FUNCTION__);
-
-#ifdef NOTYET
-  char extern VGAPAL;			// deluxepaint vga pallet .OBJ file
-  void far *vgapal = &VGAPAL;
-
-  switch (mode)
-  {
-    case text: _AX = 3;
-	       geninterrupt (0x10);
-	       screenseg=0xb800;
-	       break;
-    case CGAgr: _AX = 4;
-		geninterrupt (0x10);
-		screenseg=0xb800;
-		break;
-    case EGAgr: _AX = 0xd;
-		geninterrupt (0x10);
-		screenseg=0xa000;
-		//EGAmove ();
-		//moveega ();
-		break;
-    case VGAgr: _AX = 0x13;
-		geninterrupt (0x10);
-		screenseg=0xa000;
-		_ES = FP_SEG(vgapal);
-		_DX = FP_OFF(vgapal);
-		_BX = 0;
-		_CX = 0x100;
-		_AX = 0x1012;
-		geninterrupt(0x10);			// set the deluxepaint pallet
-		break;
-  }
-  crtcaddr = 0x3d4;		//peek (0x40,0x63) if not for two monitors...
-#endif
-}
 
 int win_xl,win_yl,win_xh,win_yh;
 
@@ -923,95 +873,6 @@ void printlong (long val)
 }
 
 /*========================================================================*/
-
-int _MouseStatus;
-
-////////////////////////////////////////////////////////////////////
-//
-// Mouse Routines
-//
-////////////////////////////////////////////////////////////////////
-int _MouseInit(void)
-{
-	FIXME
-#ifdef NOTYET
- union REGS regs;
- unsigned char far *vector;
-
- if ((vector=MK_FP(peek(0,0x33*4+2),peek(0,0x33*4)))==NULL) return 0;
-
- if (*vector == 207)
-   return _MouseStatus = 0;
-
- _AX=0;
- geninterrupt(0x33);
- return _MouseStatus = 1;
-#endif
-}
-
-
-
-void _MouseHide(void)
-{
-	FIXME
-#ifdef NOTYET
- if (!_MouseStatus) return;
-
- _AX=2;
- geninterrupt(0x33);
-#endif
-}
-
-
-
-void _MouseShow(void)
-{
-	FIXME
-#ifdef NOTYET
- if (!_MouseStatus) return;
-
- _AX=1;
- geninterrupt(0x33);
-#endif
-}
-
-
-
-int _MouseButton(void)
-{
-	FIXME
-#ifdef NOTYET
- union REGS regs;
-
- if (!_MouseStatus) return 0;
-
- regs.x.ax=3;
- int86(0x33,&regs,&regs);
- return(regs.x.bx);
-#endif
-}
-
-
-
-void _MouseCoords(int *x,int *y)
-{
-	FIXME
-#ifdef NOTYET
- union REGS regs;
-
- if (!_MouseStatus) return;
-
- regs.x.ax=3;
- int86(0x33,&regs,&regs);
- *x=regs.x.cx;
- *y=regs.x.dx;
-
- *x/=2;
-#endif
-}
-
-
-
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -1622,7 +1483,6 @@ void _setupgame (void)
 
 void _quit (char *error)
 {
-  setscreenmode (text);
   if (!(*error))
   {
 	 _savehighscores ();

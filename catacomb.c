@@ -223,7 +223,6 @@ void loadgrfiles ()
     pics= (char *)bloadin("CGACHARS.CA2");
     picsexact = pics;
     installgrfile ("CGAPICS.CA2",0,0);
-    setscreenmode (grmode);
   }
   else
   {
@@ -232,7 +231,6 @@ void loadgrfiles ()
     pics= (char *)bloadin("EGACHARS.CA2");
     picsexact = pics;
     installgrfile ("EGAPICS.CA2",0,0);
-    setscreenmode (grmode);
   }
 }
 
@@ -469,7 +467,6 @@ void loadlevel(void)
   itoa (level,st,10);
   strcat (filename,st);
   strcat (filename,".CA2");
-  printf("%s: %s\n", __FUNCTION__, filename);
 
   LoadFile (filename,rle);
   RLEExpand(&rle[4],sm,4096);

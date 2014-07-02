@@ -128,12 +128,6 @@ int rnd (word);
 
 void clearkeys (void);
 
-int _MouseInit(void);
-void _MouseHide(void);
-void _MouseShow(void);
-int _MouseButton(void);
-void _MouseCoords(int *x,int *y);
-
 long _Verify(char *filename);
 
 void _printhexb(unsigned char value);
@@ -161,8 +155,6 @@ typedef enum {text,CGAgr,EGAgr,VGAgr} grtype;
 extern grtype grmode;
 
 extern int sx,sy,leftedge,xormask;	// stuff for screen text output
-
-extern unsigned crtcaddr;
 
 void setscreenmode (grtype mode);
 void UpdateScreen();
