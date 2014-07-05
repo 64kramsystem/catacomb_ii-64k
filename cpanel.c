@@ -110,6 +110,7 @@ void calibratejoy (int joynum)
   do				// wait for a button press
   {
     drawchar (sx,sy,stage);
+	UpdateScreen();
     WaitVBL ();
     WaitVBL ();
     WaitVBL ();
@@ -125,6 +126,7 @@ void calibratejoy (int joynum)
   {
     ctr = ControlJoystick(joynum);
   } while (ctr.button1);
+  UpdateScreen();
   WaitVBL ();
   WaitVBL ();			// so the button can't bounce
 
@@ -134,6 +136,7 @@ void calibratejoy (int joynum)
   do				// wait for a button press
   {
     drawchar (sx,sy,stage);
+	UpdateScreen();
     WaitVBL ();
     WaitVBL ();
     WaitVBL ();
@@ -149,7 +152,8 @@ void calibratejoy (int joynum)
   {
     ctr = ControlJoystick(joynum);
   } while (ctr.button1);
-
+  UpdateScreen();
+  
   //
   // figure out good boundaries
   //

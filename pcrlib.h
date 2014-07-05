@@ -96,6 +96,8 @@ enum demoenum {notdemo,demoplay,recording};
 extern enum demoenum indemo;
 extern SDL_Window *window;
 extern SDL_DisplayMode mode;
+extern SDL_GameController *gamecontroller;
+extern SDL_Joystick *joystick;
 
 void SetupKBD ();
 

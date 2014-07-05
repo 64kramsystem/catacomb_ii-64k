@@ -1185,6 +1185,22 @@ int main (int argc, char* argv[])
 	 }
   }
   
+  /*
+	Note: Don't call SDL_JoystickClose on the SDL_Joystick object, if we're dealing with a game controller,
+	otherwise SDL will crash.
+  */
+  if (gamecontroller == NULL && joystick != NULL)
+  {
+	SDL_JoystickClose(joystick);
+  }
+  
+  if (gamecontroller != NULL)
+  {
+	SDL_GameControllerClose(gamecontroller);
+  }
+  
+  SDL_Quit();
+  
   return 0;
 }
 

@@ -55,6 +55,8 @@ SDL_Renderer *renderer;
 SDL_Texture *sdltexture;
 SDL_Rect updateRect;
 SDL_DisplayMode mode;
+SDL_GameController *gamecontroller = NULL;
+SDL_Joystick *joystick = NULL;
 
 /*=======================================================================*/
 
@@ -186,8 +188,8 @@ ControlStruct ControlMouse ()
  newx += (mode.w/2);
  newy += (mode.h/2);
  
- action.button1 = buttons & SDL_BUTTON(1);
- action.button2 = buttons & SDL_BUTTON(3);
+ action.button1 = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+ action.button2 = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
  
  if (mouseEvent == false)
  {
@@ -247,42 +249,61 @@ ControlStruct ControlMouse ()
 
 void ReadJoystick (int joynum,int *xcount,int *ycount)
 {
-	printf("STUB: %s\n", __FUNCTION__);
-	*xcount = INT_MAX;
-	*ycount = INT_MAX;
-
-#ifdef NOTYET
- int portval,a1,a2,xbit,ybit;
+ int a1,a2,xbit,ybit;
 
  if (joynum==1)
  {
-  xbit=1;
-  ybit=2;
+  xbit=0;
+  ybit=1;
  }
  else
  {
-  xbit=4;
-  ybit=8;
+  xbit=2;
+  ybit=3;
  }
 
  *xcount = 0;
  *ycount = 0;
 
- outportb (0x201,inportb (0x201));	/* start the signal pulse */
+ SDL_JoystickUpdate();	/* start the signal pulse */
 
- asm cli;
-
- do
+ a1 = (SDL_GameControllerGetAxis(gamecontroller, (SDL_GameControllerAxis)(xbit)));
+ a2 = (SDL_GameControllerGetAxis(gamecontroller, (SDL_GameControllerAxis)(ybit)));
+ 
+ if (a1 > -20000 && a1 < 20000)
  {
-   portval = inportb (0x201);
-   a1 = (portval & xbit) != 0;
-   a2 = (portval & ybit) != 0;
-   *xcount+=a1;
-   *ycount+=a2;
- } while ((a1+a2!=0) && (*xcount<500) && (*ycount<500));
+  a1 = 0;
+ }
+ else
+ {
+  if (a1 < 0)
+  {
+   a1 = JoyXhigh[joynum] - 1;
+  }
+  else
+  {
+   a1 = JoyXlow[joynum] + 1;
+  }
+ }
 
- asm sti;
-#endif
+ if (a2 > -20000 && a2 < 20000)
+ {
+  a2 = 0;
+ }
+ else
+ {
+  if (a2 < 0)
+  {
+   a2 = JoyYhigh[joynum] - 1;
+  }
+  else
+  {
+   a2 = JoyYlow[joynum] + 1;
+  }
+ }
+
+ *xcount = a1;
+ *ycount = a2;
 }
 
 
@@ -296,8 +317,6 @@ void ReadJoystick (int joynum,int *xcount,int *ycount)
 
 ControlStruct ControlJoystick (int joynum)
 {
-	FIXME
-#ifdef NOTYET
  int joyx = 0,joyy = 0,		/* resistance in joystick */
      xmove = 0,
      ymove = 0,
@@ -305,12 +324,26 @@ ControlStruct ControlJoystick (int joynum)
  ControlStruct action;
 
  ReadJoystick (joynum,&joyx,&joyy);
- if ( (joyx>500) | (joyy>500) )
+ 
+  /* get all four button status */
+ if (joynum == 1)
  {
-   joyx=JoyXlow [joynum] + 1;	/* no joystick connected, do nothing */
-   joyy=JoyYlow [joynum] + 1;
+   action.button1 = ((SDL_GameControllerGetButton(gamecontroller, 0)) == 0);
+   action.button2 = ((SDL_GameControllerGetButton(gamecontroller, 1)) == 0);
  }
-
+ else
+ {
+   action.button1 = ((SDL_GameControllerGetButton(gamecontroller, 2)) == 0);
+   action.button2 = ((SDL_GameControllerGetButton(gamecontroller, 3)) == 0);
+ }
+ 
+ if (joyx == 0 && joyy == 0)
+ {
+   action.dir = nodir;
+   
+   return (action); /* no joystick movement, do nothing */
+ }
+ 
  if (joyx > JoyXhigh [joynum])
    xmove = 1;
  else if (joyx < JoyXlow [joynum])
@@ -333,19 +366,7 @@ ControlStruct ControlJoystick (int joynum)
    case  4: action.dir = southeast; break;
  }
 
- buttons = inportb (0x201);	/* get all four button status */
- if (joynum == 1)
- {
-   action.button1 = ((buttons & 0x10) == 0);
-   action.button2 = ((buttons & 0x20) == 0);
- }
- else
- {
-   action.button1 = ((buttons & 0x40) == 0);
-   action.button2 = ((buttons & 0x80) == 0);
- }
  return (action);
-#endif
 }
 
 
@@ -1154,7 +1175,7 @@ void _loadctrls (void)
 
 	grmode = ctlpanel.grmode;
 	soundmode = ctlpanel.soundmode;
-	unsigned i;
+	unsigned i,j;
 	for(i = 0;i < 3;++i)
 	{
 		playermode[i] = ctlpanel.playermode[i];
@@ -1168,6 +1189,28 @@ void _loadctrls (void)
 			SDL_SetRelativeMouseMode(SDL_TRUE);
 			
 			SDL_WarpMouseInWindow(window, mode.w/2, mode.h/2);
+		}
+		
+		if (playermode[i] == joystick1 || playermode[i] == joystick2)
+		{
+			if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0)
+			{
+				fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
+				playermode[i] = keyboard;
+			}
+
+			for (j = 0; j < SDL_NumJoysticks(); ++j)
+			{
+				if (SDL_IsGameController(j))
+				{
+					gamecontroller = SDL_GameControllerOpen(j);
+					joystick = SDL_GameControllerGetJoystick(gamecontroller);
+				}
+				else
+				{
+					fprintf(stderr, "Index \"%i\" is not a compatible controller.\n", j);
+				}
+			}
 		}
 	}
 	MouseSensitivity = ctlpanel.MouseSensitivity;
@@ -1365,7 +1408,7 @@ static char* VideoParmStrings[] = {"windowed", "screen", 0};
 
 void _setupgame (void)
 {
-  if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER))
+  if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0)
   {
     fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
     exit(1);
