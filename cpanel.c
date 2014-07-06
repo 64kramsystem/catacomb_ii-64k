@@ -220,7 +220,7 @@ void printscan (int sc)
   '?','?','?','?','?','?','?','?','?','?','?','?','?','?','?','?',
   '?','?','?','?','?','?','?','?','?','?','?','?','?','?','?','?'};
 
- sc = sc & 0x7f;
+ sc = ScancodeToDOS(sc);
 
  if (sc==1)
    print ("ESC");
@@ -326,12 +326,9 @@ void calibratekeys (void)
     select = ch - '0';
     print ("\n\rPress the new key:");
     clearkeys ();
-    new=-1;
-    while (!keydown[++new])
-      if (new==0x79)
-	new=-1;
-      else if (new==0x29)
-	new++;				// skip STUPID left shifts!
+    UpdateScreen ();
+    while ((new = bioskey (1)) == 0);
+      WaitVBL();
     clearkeys ();
     print ("\r                  ");
     if (select<8)

@@ -1166,7 +1166,7 @@ static const SDL_Scancode DOSScanCodeMap[128] = {
 	0,SDL_SCANCODE_F11,SDL_SCANCODE_F12
 };
 
-static int ScancodeToDOS(SDL_Scancode sc)
+int ScancodeToDOS(SDL_Scancode sc)
 {
 	int i = 0;
 	for(i = 0;i < 128;++i)
