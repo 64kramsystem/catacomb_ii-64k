@@ -96,11 +96,23 @@ enum demoenum {notdemo,demoplay,recording};
 extern enum demoenum indemo;
 extern SDL_Window *window;
 extern SDL_DisplayMode mode;
-extern SDL_GameController *gamecontroller;
-extern SDL_Joystick *joystick;
+
+typedef struct
+{
+	union
+	{
+		SDL_GameController *controller;
+		SDL_Joystick *joy;
+	};
+	int device;
+	boolean isgamecontroller;
+} joyinfo_t;
+extern joyinfo_t joystick[2];
 
 void SetupKBD ();
+void ProcessEvents ();
 
+void ProbeJoysticks ();
 void ReadJoystick (int joynum,int *xcount,int *ycount);
 
 ControlStruct ControlKBD ();

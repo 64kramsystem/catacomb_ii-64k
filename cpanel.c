@@ -116,6 +116,7 @@ void calibratejoy (int joynum)
     WaitVBL ();
     if (++stage==23)
       stage=15;
+    ProcessEvents ();
     ReadJoystick (joynum,&xl,&yl);
     ctr = ControlJoystick(joynum);
     if (keydown[SDL_SCANCODE_ESCAPE])
@@ -142,6 +143,7 @@ void calibratejoy (int joynum)
     WaitVBL ();
     if (++stage==23)
       stage=15;
+    ProcessEvents ();
     ReadJoystick (joynum,&xh,&yh);
     ctr = ControlJoystick(joynum);
     if (keydown[SDL_SCANCODE_ESCAPE])
@@ -376,15 +378,9 @@ void getconfig (void)
   spotok [1][3] = 0;
   spotok [1][4] = 0;
 
-  joy1ok = 0;
-  joy2ok = 0;
-
-  ReadJoystick (1,&x,&y);
-  if (x<500)
-    joy1ok = 1;
-  ReadJoystick (2,&x,&y);
-  if (x<500)
-    joy2ok = 1;
+  int numjoy = SDL_NumJoysticks();
+  joy1ok = numjoy > 0;
+  joy2ok = numjoy > 1;
 
   mouseok = 1;
 
@@ -477,6 +473,9 @@ void controlpanel (void)
   clearkeys ();			// clear out the F2 and other crap
 
   PauseSound ();		// pause any sound that is playing
+
+  // Look for any new joysticks
+  ProbeJoysticks();
 
 //
 // save off current settings so we can tell what changed

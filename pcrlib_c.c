@@ -55,8 +55,7 @@ SDL_Renderer *renderer;
 SDL_Texture *sdltexture;
 SDL_Rect updateRect;
 SDL_DisplayMode mode;
-SDL_GameController *gamecontroller = NULL;
-SDL_Joystick *joystick = NULL;
+joyinfo_t joystick[2];
 
 /*=======================================================================*/
 
@@ -77,7 +76,7 @@ void SetupKBD ()
    keydown[i]= false;
 }
 
-static void ProcessEvents ()
+void ProcessEvents ()
 {
 	mouseEvent = false;
 	SDL_Event event;
@@ -237,6 +236,73 @@ ControlStruct ControlMouse ()
  return (action);
 }
 
+/*
+===============================
+=
+= ShutdownJoysticks
+= Try to identify joysticks and open them.
+=
+===============================
+*/
+
+static void ShutdownJoysticks ()
+{
+	unsigned j;
+	for (j = 0; j < 2; ++j)
+	{
+		if (joystick[j].device < 0)
+			continue;
+
+		if (joystick[j].isgamecontroller)
+		{
+			SDL_GameControllerClose (joystick[j].controller);
+		}
+		else
+		{
+			SDL_JoystickClose (joystick[j].joy);
+		}
+		joystick[j].device = -1;
+	}
+}
+
+/*
+===============================
+=
+= ProbeJoysticks
+= Try to identify joysticks and open them.
+=
+===============================
+*/
+
+void ProbeJoysticks ()
+{
+	unsigned j;
+
+	// See if we already probed before and reset if so.
+	if (joystick[0].device > 0 || joystick[1].device > 0)
+		ShutdownJoysticks();
+
+	for (j = 0; j < 2; ++j)
+	{
+		if (j >= SDL_NumJoysticks())
+		{
+			joystick[j].device = -1;
+			continue;
+		}
+
+		joystick[j].device = j;
+		joystick[j].isgamecontroller = SDL_IsGameController(j);
+		if (SDL_IsGameController(j))
+		{
+			joystick[j].controller = SDL_GameControllerOpen(j);
+		}
+		else
+		{
+			joystick[j].joy = SDL_JoystickOpen(j);
+		}
+	}
+}
+
 
 /*
 ===============================
@@ -249,26 +315,24 @@ ControlStruct ControlMouse ()
 
 void ReadJoystick (int joynum,int *xcount,int *ycount)
 {
- int a1,a2,xbit,ybit;
-
- if (joynum==1)
- {
-  xbit=0;
-  ybit=1;
- }
- else
- {
-  xbit=2;
-  ybit=3;
- }
+ int a1,a2;
+ --joynum; // The DOS code used 1-based indexing
 
  *xcount = 0;
  *ycount = 0;
 
  SDL_JoystickUpdate();	/* start the signal pulse */
 
- a1 = (SDL_GameControllerGetAxis(gamecontroller, (SDL_GameControllerAxis)(xbit)));
- a2 = (SDL_GameControllerGetAxis(gamecontroller, (SDL_GameControllerAxis)(ybit)));
+ if (joystick[joynum].isgamecontroller)
+ {
+	a1 = SDL_GameControllerGetAxis(joystick[joynum].controller, SDL_CONTROLLER_AXIS_LEFTX);
+	a2 = SDL_GameControllerGetAxis(joystick[joynum].controller, SDL_CONTROLLER_AXIS_LEFTY);
+ }
+ else
+ {
+	a1 = SDL_JoystickGetAxis(joystick[joynum].joy, 0);
+	a2 = SDL_JoystickGetAxis(joystick[joynum].joy, 1);
+ }
  
  if (a1 > -20000 && a1 < 20000)
  {
@@ -324,19 +388,20 @@ ControlStruct ControlJoystick (int joynum)
  ControlStruct action;
 
  ReadJoystick (joynum,&joyx,&joyy);
+ --joynum; // The DOS code used 1-based indexing
  
   /* get all four button status */
- if (joynum == 1)
+ if (joystick[joynum].isgamecontroller)
  {
-   action.button1 = ((SDL_GameControllerGetButton(gamecontroller, 0)) == 0);
-   action.button2 = ((SDL_GameControllerGetButton(gamecontroller, 1)) == 0);
+   action.button1 = (SDL_GameControllerGetButton(joystick[joynum].controller, SDL_CONTROLLER_BUTTON_A) != 0);
+   action.button2 = (SDL_GameControllerGetButton(joystick[joynum].controller, SDL_CONTROLLER_BUTTON_B) != 0);
  }
  else
  {
-   action.button1 = ((SDL_GameControllerGetButton(gamecontroller, 2)) == 0);
-   action.button2 = ((SDL_GameControllerGetButton(gamecontroller, 3)) == 0);
+   action.button1 = (SDL_JoystickGetButton(joystick[joynum].joy, 0) != 0);
+   action.button2 = (SDL_JoystickGetButton(joystick[joynum].joy, 1) != 0);
  }
- 
+
  if (joyx == 0 && joyy == 0)
  {
    action.dir = nodir;
@@ -1193,24 +1258,10 @@ void _loadctrls (void)
 		
 		if (playermode[i] == joystick1 || playermode[i] == joystick2)
 		{
-			if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0)
-			{
-				fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
+			ProbeJoysticks();
+			if ((playermode[i] == joystick1 && joystick[0].device < 0) ||
+				(playermode[i] == joystick2 && joystick[1].device < 0))
 				playermode[i] = keyboard;
-			}
-
-			for (j = 0; j < SDL_NumJoysticks(); ++j)
-			{
-				if (SDL_IsGameController(j))
-				{
-					gamecontroller = SDL_GameControllerOpen(j);
-					joystick = SDL_GameControllerGetJoystick(gamecontroller);
-				}
-				else
-				{
-					fprintf(stderr, "Index \"%i\" is not a compatible controller.\n", j);
-				}
-			}
 		}
 	}
 	MouseSensitivity = ctlpanel.MouseSensitivity;
@@ -1408,11 +1459,12 @@ static char* VideoParmStrings[] = {"windowed", "screen", 0};
 
 void _setupgame (void)
 {
-  if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0)
+  if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK|SDL_INIT_GAMECONTROLLER) < 0)
   {
     fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
     exit(1);
   }
+  atexit(SDL_Quit);
 
   int i;
   boolean windowed = false;
@@ -1486,8 +1538,10 @@ void _setupgame (void)
 //
   grmode = EGAgr;
 
-  // allways assume CGA compatability for simCGA garbage
 
+  // Invalidate joysticks.
+  joystick[0].device = joystick[1].device = -1;
+ 
   _loadctrls ();
 
   if (grmode==VGAgr && _vgaok)
@@ -1542,25 +1596,7 @@ void _quit (char *error)
   }
 
   ShutdownSound ();
-
-#ifndef CATALOG
-	_argc = 2;
-	_argv[1] = "LAST.SHL";
-	_argv[2] = "ENDSCN.SCN";
-	_argv[3] = NULL;
-	if (execv("LOADSCN.EXE", _argv) == -1)
-		_quit("Couldn't find executable LOADSCN.EXE.\n");
-#endif
-
-
-
-//  movedata (FP_SEG(&PIRACY),FP_OFF(&PIRACY),0xb800,0,4000);
-
-//  clearkeys ();
-
-//  bioskey (0);
-
-//  clrscr ();
+  ShutdownJoysticks ();
 
   exit (0);		// quit to DOS
 }
