@@ -1603,6 +1603,10 @@ void _quit (char *error)
   ShutdownSound ();
   ShutdownJoysticks ();
 
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  renderer = window = NULL;
+
   exit (0);		// quit to DOS
 }
 
