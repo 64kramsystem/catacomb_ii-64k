@@ -98,16 +98,18 @@ void ProcessEvents ()
 		{
 			keydown[event.key.keysym.scancode] = false;
 		}
-		else if(event.type == SDL_WINDOWEVENT)
-		{
-			if(event.window.event == SDL_WINDOWEVENT_CLOSE)
-				_quit("");
-		}
 		else if(event.type == SDL_MOUSEMOTION)
 		{
 			mouseEvent = true;
 		}
 	}
+}
+
+static int WatchCloseEvent (void *udata, SDL_Event *event)
+{
+	if (event->type == SDL_QUIT)
+		_quit("");
+	return 0;
 }
 
 /*
@@ -832,11 +834,6 @@ int bioskey(int cmd)
 				return lastkey = event.key.keysym.scancode;
 			return event.key.keysym.scancode;
 		}
-		else if(event.type == SDL_WINDOWEVENT)
-		{
-			if(event.window.event == SDL_WINDOWEVENT_CLOSE)
-				_quit("");
-		}
 	}
 	return lastkey;
 }
@@ -1471,6 +1468,8 @@ void _setupgame (void)
     exit(1);
   }
   atexit(SDL_Quit);
+
+  SDL_AddEventWatch (WatchCloseEvent, NULL);
 
   int i;
   boolean windowed = false;
