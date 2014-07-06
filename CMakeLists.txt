@@ -18,6 +18,9 @@ include_directories(${SDL2_INCLUDE_DIR})
 
 if(MSVC)
 	add_definitions("/wd4996")
+else(MSVC)
+	set(CMAKE_C_FLAGS "-Wall -Wno-unused-result ${CMAKE_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-result ${CMAKE_CXX_FLAGS}")
 endif(MSVC)
 
 # Typically reasonable to assume that an h file has a c/cpp file with it, so

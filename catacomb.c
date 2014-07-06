@@ -1049,8 +1049,6 @@ US_CheckParm(char *parm,char **strings)
 /***************************************************************************/
 /***************************************************************************/
 
-static	char			*EntryParmStrings[] = {"detour",0};
-
 /*=========================*/
 /*			   */
 /* m a i n   p r o g r a m */
@@ -1061,7 +1059,7 @@ int _argc;
 char** _argv;
 int main (int argc, char* argv[])
 {
-	boolean LaunchedFromShell = false;
+	int i;
 
 	_argc = argc;
 	_argv = argv;
@@ -1073,26 +1071,6 @@ int main (int argc, char* argv[])
 		printf("Version 1.02\n");
 		exit(0);
 	}
-
-	int i;
-	for (i = 1;i < _argc;i++)
-	{
-		switch (US_CheckParm(_argv[i],EntryParmStrings))
-		{
-		case 0:
-			LaunchedFromShell = true;
-			break;
-		}
-	}
-#ifndef CATALOG
-	if (!LaunchedFromShell)
-	{
-		clrscr();
-		puts("You must type START at the DOS prompt to run THE CATACOMB.");
-		exit(0);
-	}
-#endif
-
 
   initobjects();
 
