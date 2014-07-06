@@ -131,7 +131,7 @@ void RecordDemo ();
 ** Miscellaneous library routines
 */
 
-long unsigned int LoadFile(char *filename,char *buffer);
+unsigned long LoadFile(char *filename,char *buffer);
 void SaveFile(char *filename,char *buffer, long size);
 void *bloadin (char *filename);
 void *bloadinLZW (char *filename);

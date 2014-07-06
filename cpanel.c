@@ -364,8 +364,6 @@ void calibratekeys (void)
 
 void getconfig (void)
 {
-  int x,y;
-
   spotok [0][0] = 1;
   spotok [0][1] = _egaok;
   spotok [0][2] = _vgaok;

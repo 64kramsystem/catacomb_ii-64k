@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <stdlib.h>
 #include <time.h>
 #include <SDL.h>
 
@@ -438,19 +439,22 @@ void initrnd(boolean randomize)
 
 int rnd(word maxval)
 {
+	word mask, shift;
+	int val;
+
 	if(maxval == 0)
 		return 0;
 
-	word mask = 0xFFFF;
+	mask = 0xFFFF;
 
-	word shift = maxval;
+	shift = maxval;
 	while(!(shift & 0x8000))
 	{
 		shift <<= 1;
 		mask >>= 1;
 	}
 
-	int val = RndArray[indexi-1] + RndArray[indexj-1] + 1;
+	val = RndArray[indexi-1] + RndArray[indexj-1] + 1;
 	RndArray[indexi-1] = val;
 	val += LastRnd;
 	LastRnd = val;
@@ -500,7 +504,7 @@ static Uint32 VBLCallback(Uint32 interval, void *usr)
 	return VBL_TIME;
 }
 
-static void ShutdownEmulatedVBL()
+static void ShutdownEmulatedVBL(void)
 {
 	SDL_RemoveTimer(vbltimer);
 	SDL_DestroySemaphore(vblsem);

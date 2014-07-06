@@ -23,6 +23,12 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#ifdef _MSC_VER
+#include <fcntl.h>
+// Since Microsoft can't be bothered to update their C compiler
+#define inline __inline
+#endif
+
 #define CATALOG
 
 enum {false,true};
@@ -40,8 +46,6 @@ typedef struct { word ofs; word seg; } farptr;
 static inline dword flatptr(farptr ptr) { return (ptr.seg<<4) + ptr.ofs; }
 
 // Compatibility stuff
-// TODO: Remove?
-#define FIXME { printf("FIXME: %s\n", __FUNCTION__); assert(false); }
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif

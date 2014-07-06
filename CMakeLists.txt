@@ -16,6 +16,10 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/;${CMAKE_MODULE_PATH}")
 find_package(SDL2)
 include_directories(${SDL2_INCLUDE_DIR})
 
+if(MSVC)
+	add_definitions("/wd4996")
+endif(MSVC)
+
 # Typically reasonable to assume that an h file has a c/cpp file with it, so
 # we can take the easy way and glob them.
 file(GLOB HEADER_FILES *.h)

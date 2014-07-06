@@ -20,9 +20,14 @@
 ** catacomb II -- the c translation...
 */
 
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <sys/stat.h>
 
 #include "catdefs.h"

@@ -18,10 +18,17 @@
 
 #define CATALOG
 
+#ifdef _MSC_VER
+#include <io.h>
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#else
 #include <unistd.h>
+#endif
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <ctype.h>
 
 #include "catdefs.h"
 #include "catacomb.h"
@@ -276,7 +283,7 @@ static void ShutdownJoysticks ()
 
 void ProbeJoysticks ()
 {
-	unsigned j;
+	int j;
 
 	// See if we already probed before and reset if so.
 	if (joystick[0].device > 0 || joystick[1].device > 0)
@@ -383,8 +390,7 @@ ControlStruct ControlJoystick (int joynum)
 {
  int joyx = 0,joyy = 0,		/* resistance in joystick */
      xmove = 0,
-     ymove = 0,
-     buttons;
+     ymove = 0;
  ControlStruct action;
 
  ReadJoystick (joynum,&joyx,&joyy);
@@ -500,7 +506,7 @@ ControlStruct ControlPlayer (int player)
 
 void RecordDemo (void)
 {
-  demobuffer[0]=level;
+  demobuffer[0]=(char)level;
   demoptr = &demobuffer[1];
   indemo = recording;
 }
@@ -540,7 +546,7 @@ void SaveDemo (int demonum)
   strcat (str,".");
   strcat (str,_extension);
 
-  SaveFile (str,demobuffer,(demoptr-&demobuffer[0]));
+  SaveFile (str,demobuffer,(long)(demoptr-&demobuffer[0]));
   indemo = notdemo;
 }
 
@@ -607,7 +613,7 @@ unsigned long LoadFile(char *filename,char *buffer)
 	ssize_t bytesRead = read(fd, buffer, len);
 
 	close(fd);
-	return bytesRead;
+	return (long)bytesRead;
 }
 
 //===========================================================================
@@ -1038,7 +1044,7 @@ void _printbin(unsigned value)
 ////////////////////////////////////////////////////////////////////
 void _printc(char *string)
 {
- sx=1+screencenterx-(strlen(string)/2);
+ sx=1+screencenterx-(int)(strlen(string)/2);
  print(string);
 }
 
@@ -1058,7 +1064,7 @@ unsigned _inputint(void)
  _input(string,17);
  if (string[0]=='$')
    {
-    int digits;
+    size_t digits;
 
     digits=strlen(string)-2;
     if (digits<0) return 0;
@@ -1076,7 +1082,7 @@ unsigned _inputint(void)
    }
  else if (string[0]=='%')
    {
-    int digits;
+    size_t digits;
 
     digits=strlen(string)-2;
     if (digits<0) return 0;
@@ -1240,7 +1246,7 @@ void _loadctrls (void)
 
 	grmode = ctlpanel.grmode;
 	soundmode = ctlpanel.soundmode;
-	unsigned i,j;
+	unsigned i;
 	for(i = 0;i < 3;++i)
 	{
 		playermode[i] = ctlpanel.playermode[i];
@@ -1275,6 +1281,7 @@ void _loadctrls (void)
 void _savectrls (void)
 {
   int handle;
+  ctlpaneltype ctlpanel;
 
   strcpy (str,"CTLPANEL.");
   strcat (str,_extension);
@@ -1282,7 +1289,6 @@ void _savectrls (void)
   if ((handle = open(str, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE)) == -1)
     return;
 
-  ctlpaneltype ctlpanel;
   ctlpanel.grmode = grmode;
   ctlpanel.soundmode = soundmode;
   unsigned i;
