@@ -1064,12 +1064,12 @@ unsigned _inputint(void)
  _input(string,17);
  if (string[0]=='$')
    {
-    size_t digits;
+    ssize_t digits;
 
     digits=strlen(string)-2;
     if (digits<0) return 0;
 
-    for (value=0,loop1=0;loop1<=digits;loop1++)
+    for (value=0,loop1=0;loop1<=(size_t)digits;loop1++)
       {
        digit=toupper(string[loop1+1]);
        for (loop=0;loop<16;loop++)
@@ -1082,12 +1082,12 @@ unsigned _inputint(void)
    }
  else if (string[0]=='%')
    {
-    size_t digits;
+    ssize_t digits;
 
     digits=strlen(string)-2;
     if (digits<0) return 0;
 
-    for (value=0,loop1=0;loop1<=digits;loop1++)
+    for (value=0,loop1=0;loop1<=(size_t)digits;loop1++)
       {
        if (string[loop1+1]<'0' || string[loop1+1]>'1') return 0;
        value|=(string[loop1+1]-'0')<<(digits-loop1);
