@@ -598,7 +598,7 @@ unsigned long LoadFile(char *filename,char *buffer)
 void SaveFile(char *filename,char *buffer, long size)
 {
 	int fd;
-	if((fd = open(filename, S_IWRITE)) < 0)
+	if((fd = open(filename, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE)) < 0)
 		return;
 
 	write(fd, buffer, size);
@@ -862,6 +862,7 @@ int get (void)
    }
  } while (key == 0);
  drawchar (sx,sy,' ');
+ UpdateScreen();
  return SDL_GetKeyFromScancode(key);		// take it out of the buffer
 }
 

@@ -950,6 +950,7 @@ void dodemo (void)
     gamestate=inscores;
     indemo = demoplay;
     _showhighscores ();
+	UpdateScreen();
     for (i=0;i<500;i++)
     {
       WaitVBL ();
