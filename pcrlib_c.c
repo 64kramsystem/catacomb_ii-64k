@@ -62,7 +62,7 @@ SDL_Renderer *renderer;
 SDL_Texture *sdltexture;
 SDL_Rect updateRect;
 SDL_DisplayMode mode;
-joyinfo_t joystick[2];
+joyinfo_t joystick[3];
 
 /*=======================================================================*/
 
@@ -257,7 +257,7 @@ ControlStruct ControlMouse ()
 static void ShutdownJoysticks ()
 {
 	unsigned j;
-	for (j = 0; j < 2; ++j)
+	for (j = 1; j < 3; ++j)
 	{
 		if (joystick[j].device < 0)
 			continue;
@@ -288,26 +288,26 @@ void ProbeJoysticks ()
 	int j;
 
 	// See if we already probed before and reset if so.
-	if (joystick[0].device > 0 || joystick[1].device > 0)
+	if (joystick[1].device > 0 || joystick[2].device > 0)
 		ShutdownJoysticks();
 
-	for (j = 0; j < 2; ++j)
+	for (j = 1; j < 3; ++j)
 	{
-		if (j >= SDL_NumJoysticks())
+		if (j-1 >= SDL_NumJoysticks())
 		{
 			joystick[j].device = -1;
 			continue;
 		}
 
-		joystick[j].device = j;
-		joystick[j].isgamecontroller = SDL_IsGameController(j);
-		if (SDL_IsGameController(j))
+		joystick[j].device = j-1;
+		joystick[j].isgamecontroller = SDL_IsGameController(j-1);
+		if (SDL_IsGameController(j-1))
 		{
-			joystick[j].controller = SDL_GameControllerOpen(j);
+			joystick[j].controller = SDL_GameControllerOpen(j-1);
 		}
 		else
 		{
-			joystick[j].joy = SDL_JoystickOpen(j);
+			joystick[j].joy = SDL_JoystickOpen(j-1);
 		}
 	}
 }
@@ -325,7 +325,6 @@ void ProbeJoysticks ()
 void ReadJoystick (int joynum,int *xcount,int *ycount)
 {
  int a1,a2;
- --joynum; // The DOS code used 1-based indexing
 
  *xcount = 0;
  *ycount = 0;
@@ -343,38 +342,6 @@ void ReadJoystick (int joynum,int *xcount,int *ycount)
 	a2 = SDL_JoystickGetAxis(joystick[joynum].joy, 1);
  }
  
- if (a1 > -20000 && a1 < 20000)
- {
-  a1 = 0;
- }
- else
- {
-  if (a1 < 0)
-  {
-   a1 = JoyXhigh[joynum] - 1;
-  }
-  else
-  {
-   a1 = JoyXlow[joynum] + 1;
-  }
- }
-
- if (a2 > -20000 && a2 < 20000)
- {
-  a2 = 0;
- }
- else
- {
-  if (a2 < 0)
-  {
-   a2 = JoyYhigh[joynum] - 1;
-  }
-  else
-  {
-   a2 = JoyYlow[joynum] + 1;
-  }
- }
-
  *xcount = a1;
  *ycount = a2;
 }
@@ -396,7 +363,6 @@ ControlStruct ControlJoystick (int joynum)
  ControlStruct action;
 
  ReadJoystick (joynum,&joyx,&joyy);
- --joynum; // The DOS code used 1-based indexing
  
   /* get all four button status */
  if (joystick[joynum].isgamecontroller)
@@ -416,7 +382,7 @@ ControlStruct ControlJoystick (int joynum)
    
    return (action); /* no joystick movement, do nothing */
  }
- 
+
  if (joyx > JoyXhigh [joynum])
    xmove = 1;
  else if (joyx < JoyXlow [joynum])
@@ -1262,8 +1228,8 @@ void _loadctrls (void)
 		if (playermode[i] == joystick1 || playermode[i] == joystick2)
 		{
 			ProbeJoysticks();
-			if ((playermode[i] == joystick1 && joystick[0].device < 0) ||
-				(playermode[i] == joystick2 && joystick[1].device < 0))
+			if ((playermode[i] == joystick1 && joystick[1].device < 0) ||
+				(playermode[i] == joystick2 && joystick[2].device < 0))
 				playermode[i] = keyboard;
 		}
 	}
@@ -1545,7 +1511,7 @@ void _setupgame (void)
 
 
   // Invalidate joysticks.
-  joystick[0].device = joystick[1].device = -1;
+  joystick[1].device = joystick[2].device = -1;
  
   _loadctrls ();
 
@@ -1605,7 +1571,8 @@ void _quit (char *error)
 
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
-  renderer = window = NULL;
+  renderer = NULL;
+  window = NULL;
 
   exit (0);		// quit to DOS
 }

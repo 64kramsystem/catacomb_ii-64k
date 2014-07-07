@@ -1004,7 +1004,7 @@ void playercmdthink(void)
 
   if (!indemo)
   {
-    if (keydown [SDL_SCANCODE_Q] || keydown [SDL_SCANCODE_SPACE])     /*'p' or ' ' keys*/
+    if (keydown [SDL_SCANCODE_P] || keydown [SDL_SCANCODE_SPACE])     /*'p' or ' ' keys*/
     {
       if (obj.hp<13)  /*don't take a potion if not needed*/
       {

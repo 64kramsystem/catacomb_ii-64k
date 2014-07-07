@@ -107,7 +107,7 @@ typedef struct
 	int device;
 	boolean isgamecontroller;
 } joyinfo_t;
-extern joyinfo_t joystick[2];
+extern joyinfo_t joystick[3];
 
 void SetupKBD ();
 void ProcessEvents ();
