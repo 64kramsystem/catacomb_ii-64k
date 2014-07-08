@@ -1500,6 +1500,8 @@ void _setupgame (void)
 
   if (windowed)
   {
+    bounds.x = SDL_WINDOWPOS_UNDEFINED;
+	bounds.y = SDL_WINDOWPOS_UNDEFINED;
     mode.w = winWidth;
     mode.h = winHeight;
   }
