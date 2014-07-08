@@ -1067,9 +1067,17 @@ int main (int argc, char* argv[])
 
 	if (_argc > 1 && stricmp(_argv[1], "/VER") == 0)
 	{
-		printf("The Catacomb\n");
-		printf("Copyright 1990-93 Softdisk Publishing\n");
-		printf("Version 1.02\n");
+		printf(
+			"CatacombSDL\n"
+			"Version 1.03\n"
+			"\n"
+			"Usage: catacomb [windowed <width> <height>] [screen <num>]\n"
+			"\n"
+			"Ported by Braden \"Blzut3\" Obrzut and Rene \"Havoc\" Nicolaus\n"
+			"Includes PC Speaker emulator by K1n9_Duk3\n"
+			"Based on The Catacomb source code:\n"
+			"Copyright 1990-1993 Softdisk Publishing\n"
+			"Copyright 1993-2014 Flat Rock Software\n");
 		exit(0);
 	}
 
