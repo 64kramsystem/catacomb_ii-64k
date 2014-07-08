@@ -112,6 +112,7 @@ extern joyinfo_t joystick[3];
 void SetupKBD ();
 void ProcessEvents ();
 int ScancodeToDOS(SDL_Scancode sc);
+void CheckMouseMode ();
 
 void ProbeJoysticks ();
 void ReadJoystick (int joynum,int *xcount,int *ycount);

@@ -105,10 +105,46 @@ void ProcessEvents ()
 	}
 }
 
-static int WatchCloseEvent (void *udata, SDL_Event *event)
+/*
+=======================
+=
+= WatchUIEvents
+= Event filter which hooks into the user interface (trying to close the window
+= or other windowing events).
+=
+=======================
+*/
+
+static boolean hasFocus = true;
+static int WatchUIEvents (void *udata, SDL_Event *event)
 {
 	if (event->type == SDL_QUIT)
 		_quit("");
+	else if (event->type == SDL_WINDOWEVENT)
+	{
+		switch(event->window.event)
+		{
+			case SDL_WINDOWEVENT_FOCUS_LOST:
+				hasFocus = false;
+				CheckMouseMode ();
+				break;
+			case SDL_WINDOWEVENT_FOCUS_GAINED:
+				// Try to wait until the window obtains mouse focus before
+				// regrabbing input in order to try to prevent grabbing while
+				// the user is trying to move the window around.
+				while(SDL_GetMouseFocus () != window)
+				{
+					SDL_PumpEvents();
+					SDL_Delay(10);
+				}
+
+				hasFocus = true;
+				CheckMouseMode ();
+				break;
+			default:
+				break;
+		}
+	}
 	return 0;
 }
 
@@ -193,9 +229,6 @@ ControlStruct ControlMouse ()
  
  int buttons = SDL_GetRelativeMouseState(&newx, &newy);		/* mouse status */
  
- newx += (mode.w/2);
- newy += (mode.h/2);
- 
  action.button1 = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
  action.button2 = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
  
@@ -206,28 +239,22 @@ ControlStruct ControlMouse ()
   return (action);
  }
 
- if (newx-(mode.w/2)>MouseSensitivity)
+ if (newx>MouseSensitivity)
  {
    xmove = 1;
-   newx = newx - MouseSensitivity*2;
  }
- else if (newx-(mode.w/2)<-MouseSensitivity)
+ else if (newx<-MouseSensitivity)
  {
    xmove = -1;
-   newx = newx + MouseSensitivity*2;
  }
- if ((newy-(mode.h/2))>MouseSensitivity)
+ if (newy>MouseSensitivity)
  {
    ymove = 1;
-   newy = newy - MouseSensitivity;
  }
- else if ((newy-(mode.h/2))<-MouseSensitivity)
+ else if (newy<-MouseSensitivity)
  {
    ymove = -1;
-   newy = newy + MouseSensitivity;
  }
- 
- SDL_WarpMouseInWindow(window, newx, newy);		/* set mouse status */
  
  switch (ymove*3+xmove)
  {
@@ -1161,6 +1188,13 @@ typedef struct
 } ctlpaneltype;
 #pragma pack()
 
+// Enable and disable mouse grabbing
+void CheckMouseMode()
+{
+	SDL_SetRelativeMouseMode(hasFocus &&
+		(playermode[1] == mouse || playermode[2] == mouse));
+}
+
 ////////////////////////
 //
 // _loadctrls
@@ -1220,11 +1254,7 @@ void _loadctrls (void)
 		JoyYhigh[i] = ctlpanel.JoyYhigh[i];
 		
 		if (playermode[i] == mouse)
-		{
-			SDL_SetRelativeMouseMode(SDL_TRUE);
-			
-			SDL_WarpMouseInWindow(window, mode.w/2, mode.h/2);
-		}
+			CheckMouseMode();
 		
 		if (playermode[i] == joystick1 || playermode[i] == joystick2)
 		{
@@ -1436,7 +1466,7 @@ void _setupgame (void)
   }
   atexit(SDL_Quit);
 
-  SDL_AddEventWatch (WatchCloseEvent, NULL);
+  SDL_AddEventWatch (WatchUIEvents, NULL);
 
   int i;
   boolean windowed = false;

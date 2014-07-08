@@ -194,13 +194,6 @@ void calibratemouse (void)
   } while (ch<'1' || ch>'9');
   MouseSensitivity = 15-(ch-'0');
   erasewindow ();
-
-  SDL_SetRelativeMouseMode(SDL_TRUE);  // initialize the mouse
-
-  int x = mode.w/2;
-  int y = mode.h/2;
-  
-  SDL_WarpMouseInWindow(window, x, y); // set mouse status
 }
 
 /////////////////////////////
@@ -574,6 +567,8 @@ void controlpanel (void)
 //
   playermode[1] = newplayermode[1];
   playermode[2] = newplayermode[2];
+
+  CheckMouseMode ();
 
   grmode = newgrmode;
 
