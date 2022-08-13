@@ -137,17 +137,17 @@ pub type C2RustUnnamed_2 = libc::c_uint;
 pub const VBL_TIME: C2RustUnnamed_2 = 14;
 #[inline]
 unsafe extern "C" fn EGA(mut chan: *const byte, mut ofs: byte) -> byte {
-    return ((*chan.offset(3 as libc::c_int as isize) as libc::c_int >> ofs as libc::c_int
-        & 1 as libc::c_int)
-        << 3 as libc::c_int
-        | (*chan.offset(2 as libc::c_int as isize) as libc::c_int >> ofs as libc::c_int
-            & 1 as libc::c_int)
-            << 2 as libc::c_int
-        | (*chan.offset(1 as libc::c_int as isize) as libc::c_int >> ofs as libc::c_int
-            & 1 as libc::c_int)
-            << 1 as libc::c_int
-        | *chan.offset(0 as libc::c_int as isize) as libc::c_int >> ofs as libc::c_int
-            & 1 as libc::c_int) as byte;
+    return ((*chan.offset(3) as libc::c_int >> ofs as libc::c_int
+        & 1)
+        << 3
+        | (*chan.offset(2) as libc::c_int >> ofs as libc::c_int
+            & 1)
+            << 2
+        | (*chan.offset(1) as libc::c_int >> ofs as libc::c_int
+            & 1)
+            << 1
+        | *chan.offset(0) as libc::c_int >> ofs as libc::c_int
+            & 1) as byte;
 }
 #[no_mangle]
 pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
@@ -155,9 +155,9 @@ pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtab
 pub static mut soundmode: soundtype = spkr;
 static mut SndPriority: byte = 0;
 #[no_mangle]
-pub static mut xormask: libc::c_int = 0 as libc::c_int;
+pub static mut xormask: libc::c_int = 0;
 #[no_mangle]
-pub static mut _dontplay: libc::c_int = 0 as libc::c_int;
+pub static mut _dontplay: libc::c_int = 0;
 static mut AudioMutex: *mut SDL_mutex = 0 as *const SDL_mutex as *mut SDL_mutex;
 static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {
     freq: 0,
@@ -171,13 +171,13 @@ static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {
     userdata: 0 as *const libc::c_void as *mut libc::c_void,
 };
 static mut AudioDev: SDL_AudioDeviceID = 0;
-static mut pcVolume: libc::c_short = 5000 as libc::c_int as libc::c_short;
-static mut pcPhaseTick: libc::c_uint = 0 as libc::c_int as libc::c_uint;
+static mut pcVolume: libc::c_short = 5000;
+static mut pcPhaseTick: libc::c_uint = 0;
 static mut pcPhaseLength: libc::c_uint = 0;
 static mut pcActive: boolean = false as boolean;
 static mut pcSamplesPerTick: libc::c_uint = 0;
-static mut pcNumReadySamples: libc::c_uint = 0 as libc::c_int as libc::c_uint;
-static mut pcLastSample: word = 0 as libc::c_int as word;
+static mut pcNumReadySamples: libc::c_uint = 0;
+static mut pcLastSample: word = 0;
 static mut pcLengthLeft: libc::c_uint = 0;
 static mut pcSound: *mut word = 0 as *const word as *mut word;
 #[inline]
@@ -192,7 +192,7 @@ unsafe extern "C" fn _SDL_turnOnPCSpeaker(mut pcSample: word) {
 #[inline]
 unsafe extern "C" fn _SDL_turnOffPCSpeaker() {
     pcActive = false as boolean;
-    pcPhaseTick = 0 as libc::c_int as libc::c_uint;
+    pcPhaseTick = 0;
 }
 #[inline]
 unsafe extern "C" fn _SDL_PCService() {
@@ -216,19 +216,19 @@ unsafe extern "C" fn _SDL_PCService() {
 }
 unsafe extern "C" fn _SDL_PCPlaySound(mut sound: libc::c_int) {
     SDL_LockMutex(AudioMutex);
-    pcPhaseTick = 0 as libc::c_int as libc::c_uint;
-    pcLastSample = 0 as libc::c_int as word;
+    pcPhaseTick = 0;
+    pcLastSample = 0;
     pcLengthLeft = ((*SoundData).sounds[sound as usize].start as libc::c_int
-        - (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].start as libc::c_int
-        >> 1 as libc::c_int) as libc::c_uint;
+        - (*SoundData).sounds[(sound - 1) as usize].start as libc::c_int
+        >> 1) as libc::c_uint;
     pcSound = (SoundData as *mut byte).offset(
-        (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].start as libc::c_int as isize,
+        (*SoundData).sounds[(sound - 1) as usize].start as libc::c_int as isize,
     ) as *mut word;
-    SndPriority = (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].priority;
+    SndPriority = (*SoundData).sounds[(sound - 1) as usize].priority;
     pcSamplesPerTick = (AudioSpec.freq
-        / (1193181 as libc::c_int
-            * (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].samplerate as libc::c_int
-            >> 16 as libc::c_int)) as libc::c_uint;
+        / (1193181
+            * (*SoundData).sounds[(sound - 1) as usize].samplerate as libc::c_int
+            >> 16)) as libc::c_uint;
     SDL_UnlockMutex(AudioMutex);
 }
 unsafe extern "C" fn _SDL_PCStopSound() {
@@ -248,12 +248,12 @@ unsafe extern "C" fn UpdateSPKR(
     if soundmode as libc::c_uint != spkr as libc::c_int as libc::c_uint {
         memset(
             stream as *mut libc::c_void,
-            0 as libc::c_int,
+            0,
             len as libc::c_ulong,
         );
         return;
     }
-    let mut sampleslen: libc::c_int = len >> 1 as libc::c_int;
+    let mut sampleslen: libc::c_int = len >> 1;
     let mut stream16: *mut Sint16 = stream as *mut libc::c_void as *mut Sint16;
     SDL_LockMutex(AudioMutex);
     loop {
@@ -269,7 +269,7 @@ unsafe extern "C" fn UpdateSPKR(
                     pcPhaseTick = pcPhaseTick.wrapping_add(1);
                     if fresh1 >= pcPhaseLength {
                         pcVolume = -(pcVolume as libc::c_int) as libc::c_short;
-                        pcPhaseTick = 0 as libc::c_int as libc::c_uint;
+                        pcPhaseTick = 0;
                     }
                 }
             } else {
@@ -278,7 +278,7 @@ unsafe extern "C" fn UpdateSPKR(
                     sampleslen -= 1;
                     let fresh2 = stream16;
                     stream16 = stream16.offset(1);
-                    *fresh2 = 0 as libc::c_int as Sint16;
+                    *fresh2 = 0 as Sint16;
                 }
             }
             if sampleslen == 0 {
@@ -308,37 +308,37 @@ pub unsafe extern "C" fn StartupSound() {
     };
     SDL_memset(
         &mut desired as *mut SDL_AudioSpec as *mut libc::c_void,
-        0 as libc::c_int,
+        0,
         ::std::mem::size_of::<SDL_AudioSpec>() as libc::c_ulong,
     );
-    desired.freq = 48000 as libc::c_int;
+    desired.freq = 48000;
     desired.format = 0x8010 as libc::c_int as SDL_AudioFormat;
-    desired.channels = 1 as libc::c_int as Uint8;
-    desired.samples = 4096 as libc::c_int as Uint16;
+    desired.channels = 1 as Uint8;
+    desired.samples = 4096 as Uint16;
     desired.callback =
         Some(UpdateSPKR as unsafe extern "C" fn(*mut libc::c_void, *mut Uint8, libc::c_int) -> ());
     AudioMutex = SDL_CreateMutex();
-    if AudioMutex.is_null() || SDL_InitSubSystem(0x10 as libc::c_uint) < 0 as libc::c_int || {
+    if AudioMutex.is_null() || SDL_InitSubSystem(0x10 as libc::c_uint) < 0 || {
         AudioDev = SDL_OpenAudioDevice(
             0 as *const libc::c_char,
-            0 as libc::c_int,
+            0,
             &mut desired,
             &mut AudioSpec,
-            0 as libc::c_int,
+            0,
         );
-        AudioDev == 0 as libc::c_int as libc::c_uint
+        AudioDev == 0
     } {
         printf(
             b"Audio initialization failed: %s\n\0" as *const u8 as *const libc::c_char,
             SDL_GetError(),
         );
         soundmode = off;
-        _dontplay = 1 as libc::c_int;
+        _dontplay = 1;
         return;
     }
-    pcSamplesPerTick = (AudioSpec.freq / 145 as libc::c_int) as libc::c_uint;
+    pcSamplesPerTick = (AudioSpec.freq / 145) as libc::c_uint;
     soundmode = spkr;
-    SDL_PauseAudioDevice(AudioDev, 0 as libc::c_int);
+    SDL_PauseAudioDevice(AudioDev, 0);
 }
 #[no_mangle]
 pub unsafe extern "C" fn ShutdownSound() {
@@ -353,7 +353,7 @@ pub unsafe extern "C" fn PlaySound(mut sound: libc::c_int) {
     if _dontplay != 0 {
         return;
     }
-    if (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].priority as libc::c_int
+    if (*SoundData).sounds[(sound - 1) as usize].priority as libc::c_int
         >= SndPriority as libc::c_int
     {
         _SDL_PCPlaySound(sound);
@@ -383,7 +383,7 @@ pub unsafe extern "C" fn PauseSound() {
     SavedSound.pcLengthLeft = pcLengthLeft;
     SavedSound.pcSound = pcSound;
     SndPriority = 0;
-    pcLengthLeft = 0 as libc::c_int as libc::c_uint;
+    pcLengthLeft = 0;
     pcSound = 0 as *mut word;
     _SDL_turnOffPCSpeaker();
     SDL_UnlockMutex(AudioMutex);
@@ -393,8 +393,8 @@ pub unsafe extern "C" fn ContinueSound() {
     if _dontplay != 0 {
         return;
     }
-    pcPhaseTick = 0 as libc::c_int as libc::c_uint;
-    pcLastSample = 0 as libc::c_int as word;
+    pcPhaseTick = 0;
+    pcLastSample = 0;
     SndPriority = SavedSound.SndPriority;
     pcSamplesPerTick = SavedSound.pcSamplesPerTick;
     pcLengthLeft = SavedSound.pcLengthLeft;
@@ -445,10 +445,10 @@ pub unsafe extern "C" fn initrnd(mut randomize: boolean) {
     indexj = 5;
     if randomize != 0 {
         let mut now: time_t = time(0 as *mut time_t);
-        RndArray[16 as libc::c_int as usize] =
+        RndArray[16] =
             (now & 0xffff as libc::c_int as libc::c_long) as word;
-        RndArray[4 as libc::c_int as usize] = (now & 0xffff as libc::c_int as libc::c_long
-            ^ now >> 16 as libc::c_int & 0xffff as libc::c_int as libc::c_long)
+        RndArray[4] = (now & 0xffff as libc::c_int as libc::c_long
+            ^ now >> 16 & 0xffff as libc::c_int as libc::c_long)
             as word;
     }
     rnd(0xffff as libc::c_int as word);
@@ -458,32 +458,32 @@ pub unsafe extern "C" fn rnd(mut maxval: word) -> libc::c_int {
     let mut mask: word = 0;
     let mut shift: word = 0;
     let mut val: libc::c_int = 0;
-    if maxval as libc::c_int == 0 as libc::c_int {
-        return 0 as libc::c_int;
+    if maxval as libc::c_int == 0 {
+        return 0;
     }
     mask = 0xffff as libc::c_int as word;
     shift = maxval;
     while shift as libc::c_int & 0x8000 as libc::c_int == 0 {
-        shift = ((shift as libc::c_int) << 1 as libc::c_int) as word;
-        mask = (mask as libc::c_int >> 1 as libc::c_int) as word;
+        shift = ((shift as libc::c_int) << 1) as word;
+        mask = (mask as libc::c_int >> 1) as word;
     }
-    val = RndArray[(indexi as libc::c_int - 1 as libc::c_int) as usize] as libc::c_int
-        + RndArray[(indexj as libc::c_int - 1 as libc::c_int) as usize] as libc::c_int
-        + 1 as libc::c_int;
-    RndArray[(indexi as libc::c_int - 1 as libc::c_int) as usize] = val as word;
+    val = RndArray[(indexi as libc::c_int - 1) as usize] as libc::c_int
+        + RndArray[(indexj as libc::c_int - 1) as usize] as libc::c_int
+        + 1;
+    RndArray[(indexi as libc::c_int - 1) as usize] = val as word;
     val += LastRnd as libc::c_int;
     LastRnd = val as word;
     indexi = indexi.wrapping_sub(1);
-    if indexi as libc::c_int == 0 as libc::c_int {
-        indexi = 17 as libc::c_int as word;
+    if indexi as libc::c_int == 0 {
+        indexi = 17;
     }
     indexj = indexj.wrapping_sub(1);
-    if indexj as libc::c_int == 0 as libc::c_int {
-        indexj = 17 as libc::c_int as word;
+    if indexj as libc::c_int == 0 {
+        indexj = 17;
     }
     val &= mask as libc::c_int;
     if val > maxval as libc::c_int {
-        val >>= 1 as libc::c_int;
+        val >>= 1;
     }
     return val;
 }
@@ -492,12 +492,12 @@ pub unsafe extern "C" fn initrndt(mut randomize: boolean) {
     rndindex = (if randomize as libc::c_int != 0 {
         time(0 as *mut time_t) & 0xff as libc::c_int as libc::c_long
     } else {
-        0 as libc::c_int as libc::c_long
+        0
     }) as word;
 }
 #[no_mangle]
 pub unsafe extern "C" fn rndt() -> libc::c_int {
-    rndindex = (rndindex as libc::c_int + 1 as libc::c_int & 0xff as libc::c_int) as word;
+    rndindex = (rndindex as libc::c_int + 1 & 0xff as libc::c_int) as word;
     return rndtable[rndindex as usize] as libc::c_int;
 }
 #[no_mangle]
@@ -514,7 +514,7 @@ unsafe extern "C" fn ShutdownEmulatedVBL() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn SetupEmulatedVBL() {
-    vblsem = SDL_CreateSemaphore(0 as libc::c_int as Uint32);
+    vblsem = SDL_CreateSemaphore(0 as Uint32);
     vbltimer = SDL_AddTimer(
         VBL_TIME as libc::c_int as Uint32,
         Some(VBLCallback as unsafe extern "C" fn(Uint32, *mut libc::c_void) -> Uint32),
@@ -539,76 +539,76 @@ pub unsafe extern "C" fn drawchar(
 ) {
     let mut vbuf: *mut byte = screenseg
         .as_mut_ptr()
-        .offset(((y << 3 as libc::c_int) * screenpitch as libc::c_int) as isize)
-        .offset((x << 3 as libc::c_int) as isize);
+        .offset(((y << 3) * screenpitch as libc::c_int) as isize)
+        .offset((x << 3) as isize);
     let mut src: *mut byte = 0 as *mut byte;
     let mut i: libc::c_uint = 0;
     match grmode as libc::c_uint {
         1 => {
-            src = (charptr as *mut byte).offset((charnum * 16 as libc::c_int) as isize);
-            i = 0 as libc::c_int as libc::c_uint;
-            while i < 8 as libc::c_int as libc::c_uint {
+            src = (charptr as *mut byte).offset((charnum * 16) as isize);
+            i = 0;
+            while i < 8 {
                 let fresh10 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh10 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 6 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh10 = (*src.offset(0) as libc::c_int
+                    >> 6
+                    & 3) as byte;
                 let fresh11 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh11 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 4 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh11 = (*src.offset(0) as libc::c_int
+                    >> 4
+                    & 3) as byte;
                 let fresh12 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh12 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 2 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh12 = (*src.offset(0) as libc::c_int
+                    >> 2
+                    & 3) as byte;
                 let fresh13 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh13 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 0 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh13 = (*src.offset(0) as libc::c_int
+                    >> 0
+                    & 3) as byte;
                 let fresh14 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh14 = (*src.offset(1 as libc::c_int as isize) as libc::c_int
-                    >> 6 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh14 = (*src.offset(1) as libc::c_int
+                    >> 6
+                    & 3) as byte;
                 let fresh15 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh15 = (*src.offset(1 as libc::c_int as isize) as libc::c_int
-                    >> 4 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh15 = (*src.offset(1) as libc::c_int
+                    >> 4
+                    & 3) as byte;
                 let fresh16 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh16 = (*src.offset(1 as libc::c_int as isize) as libc::c_int
-                    >> 2 as libc::c_int
-                    & 3 as libc::c_int) as byte;
-                *vbuf = (*src.offset(1 as libc::c_int as isize) as libc::c_int >> 0 as libc::c_int
-                    & 3 as libc::c_int) as byte;
-                vbuf = vbuf.offset((screenpitch as libc::c_int - 7 as libc::c_int) as isize);
+                *fresh16 = (*src.offset(1) as libc::c_int
+                    >> 2
+                    & 3) as byte;
+                *vbuf = (*src.offset(1) as libc::c_int >> 0
+                    & 3) as byte;
+                vbuf = vbuf.offset((screenpitch as libc::c_int - 7) as isize);
                 i = i.wrapping_add(1);
-                src = src.offset(2 as libc::c_int as isize);
+                src = src.offset(2);
             }
         }
         3 => {
-            src = (charptr as *mut byte).offset((charnum * 64 as libc::c_int) as isize);
-            i = 0 as libc::c_int as libc::c_uint;
-            while i < 8 as libc::c_int as libc::c_uint {
+            src = (charptr as *mut byte).offset((charnum * 64) as isize);
+            i = 0;
+            while i < 8 {
                 *(vbuf as *mut qword) = *(src as *mut qword);
                 i = i.wrapping_add(1);
-                src = src.offset(8 as libc::c_int as isize);
-                vbuf = vbuf.offset((screenpitch as libc::c_int - 7 as libc::c_int) as isize);
+                src = src.offset(8);
+                vbuf = vbuf.offset((screenpitch as libc::c_int - 7) as isize);
             }
         }
         2 | _ => {
-            src = (charptr as *mut byte).offset((charnum * 8 as libc::c_int) as isize);
-            i = 0 as libc::c_int as libc::c_uint;
-            while i < 8 as libc::c_int as libc::c_uint {
+            src = (charptr as *mut byte).offset((charnum * 8) as isize);
+            i = 0;
+            while i < 8 {
                 let chan: [byte; 4] = [
-                    *src.offset(egaplaneofs[0 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[1 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[2 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[3 as libc::c_int as usize] as isize),
+                    *src.offset(egaplaneofs[0] as isize),
+                    *src.offset(egaplaneofs[1] as isize),
+                    *src.offset(egaplaneofs[2] as isize),
+                    *src.offset(egaplaneofs[3] as isize),
                 ];
                 let fresh3 = vbuf;
                 vbuf = vbuf.offset(1);
@@ -632,7 +632,7 @@ pub unsafe extern "C" fn drawchar(
                 vbuf = vbuf.offset(1);
                 *fresh9 = EGA(chan.as_ptr(), 1);
                 *vbuf = EGA(chan.as_ptr(), 0);
-                vbuf = vbuf.offset((screenpitch as libc::c_int - 7 as libc::c_int) as isize);
+                vbuf = vbuf.offset((screenpitch as libc::c_int - 7) as isize);
                 i = i.wrapping_add(1);
                 src = src.offset(1);
             }
@@ -656,24 +656,24 @@ pub unsafe extern "C" fn drawpic(mut x: libc::c_int, mut y: libc::c_int, mut pic
             loop {
                 let fresh25 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh25 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 6 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh25 = (*src.offset(0) as libc::c_int
+                    >> 6
+                    & 3) as byte;
                 let fresh26 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh26 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 4 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh26 = (*src.offset(0) as libc::c_int
+                    >> 4
+                    & 3) as byte;
                 let fresh27 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh27 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 2 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh27 = (*src.offset(0) as libc::c_int
+                    >> 2
+                    & 3) as byte;
                 let fresh28 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh28 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 0 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh28 = (*src.offset(0) as libc::c_int
+                    >> 0
+                    & 3) as byte;
                 src = src.offset(1);
                 i = i.wrapping_sub(1);
                 if !(i != 0) {
@@ -682,7 +682,7 @@ pub unsafe extern "C" fn drawpic(mut x: libc::c_int, mut y: libc::c_int, mut pic
             }
             vbuf = vbuf.offset(
                 (screenpitch as libc::c_int as libc::c_uint)
-                    .wrapping_sub(picwidth << 2 as libc::c_int) as isize,
+                    .wrapping_sub(picwidth << 2) as isize,
             );
             picheight = picheight.wrapping_sub(1);
             if !(picheight != 0) {
@@ -714,10 +714,10 @@ pub unsafe extern "C" fn drawpic(mut x: libc::c_int, mut y: libc::c_int, mut pic
             i = picwidth;
             loop {
                 let chan: [byte; 4] = [
-                    *src.offset(egaplaneofs[0 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[1 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[2 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[3 as libc::c_int as usize] as isize),
+                    *src.offset(egaplaneofs[0] as isize),
+                    *src.offset(egaplaneofs[1] as isize),
+                    *src.offset(egaplaneofs[2] as isize),
+                    *src.offset(egaplaneofs[3] as isize),
                 ];
                 src = src.offset(1);
                 let fresh17 = vbuf;
@@ -751,7 +751,7 @@ pub unsafe extern "C" fn drawpic(mut x: libc::c_int, mut y: libc::c_int, mut pic
             }
             vbuf = vbuf.offset(
                 (screenpitch as libc::c_int as libc::c_uint)
-                    .wrapping_sub(picwidth << 3 as libc::c_int) as isize,
+                    .wrapping_sub(picwidth << 3) as isize,
             );
             picheight = picheight.wrapping_sub(1);
             if !(picheight != 0) {

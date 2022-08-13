@@ -494,7 +494,7 @@ unsafe extern "C" fn itoa(
     mut str_0: *mut libc::c_char,
     mut base: libc::c_int,
 ) -> *mut libc::c_char {
-    if base == 16 as libc::c_int {
+    if base == 16 {
         sprintf(str_0, b"%X\0" as *const u8 as *const libc::c_char, value);
     } else {
         sprintf(str_0, b"%d\0" as *const u8 as *const libc::c_char, value);
@@ -504,454 +504,454 @@ unsafe extern "C" fn itoa(
 #[no_mangle]
 pub static mut altmeters: [[libc::c_char; 14]; 14] = [
     [
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        25,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        25,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        25,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        25,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        24,
+        25,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        24,
+        24,
+        25,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        25,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        25,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        25,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        25,
+        127,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        25,
+        127,
         0,
     ],
     [
-        23 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        24 as libc::c_int as libc::c_char,
-        25 as libc::c_int as libc::c_char,
+        23,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        25,
         0,
     ],
 ];
 #[no_mangle]
 pub static mut meters: [[libc::c_char; 14]; 14] = [
     [
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        28,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        28,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        28,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        28,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        27,
+        28,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28,
+        127,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28,
+        127,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28,
+        127,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28,
+        127,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28,
+        127,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
-        127 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28,
+        127,
         0,
     ],
     [
-        26 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        27 as libc::c_int as libc::c_char,
-        28 as libc::c_int as libc::c_char,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28,
         0,
     ],
 ];
@@ -1135,25 +1135,25 @@ pub static mut GODMODE: boolean = false as boolean;
 #[no_mangle]
 pub static mut demowin: [[libc::c_char; 16]; 5] = [
     [
-        14 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        15 as libc::c_int as libc::c_char,
-        16 as libc::c_int as libc::c_char,
+        14,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        16,
     ],
     [
-        17 as libc::c_int as libc::c_char,
+        17,
         ' ' as i32 as libc::c_char,
         '-' as i32 as libc::c_char,
         '-' as i32 as libc::c_char,
@@ -1168,10 +1168,10 @@ pub static mut demowin: [[libc::c_char; 16]; 5] = [
         '-' as i32 as libc::c_char,
         '-' as i32 as libc::c_char,
         ' ' as i32 as libc::c_char,
-        18 as libc::c_int as libc::c_char,
+        18,
     ],
     [
-        17 as libc::c_int as libc::c_char,
+        17,
         'S' as i32 as libc::c_char,
         'P' as i32 as libc::c_char,
         'A' as i32 as libc::c_char,
@@ -1186,10 +1186,10 @@ pub static mut demowin: [[libc::c_char; 16]; 5] = [
         'A' as i32 as libc::c_char,
         'R' as i32 as libc::c_char,
         'T' as i32 as libc::c_char,
-        18 as libc::c_int as libc::c_char,
+        18,
     ],
     [
-        17 as libc::c_int as libc::c_char,
+        17,
         'F' as i32 as libc::c_char,
         '1' as i32 as libc::c_char,
         ' ' as i32 as libc::c_char,
@@ -1204,25 +1204,25 @@ pub static mut demowin: [[libc::c_char; 16]; 5] = [
         'E' as i32 as libc::c_char,
         'L' as i32 as libc::c_char,
         'P' as i32 as libc::c_char,
-        18 as libc::c_int as libc::c_char,
+        18,
     ],
     [
-        19 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        20 as libc::c_int as libc::c_char,
-        21 as libc::c_int as libc::c_char,
+        19,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        21,
     ],
 ];
 #[no_mangle]
@@ -1232,13 +1232,13 @@ pub unsafe extern "C" fn refresh() {
     let mut basex: libc::c_int = 0;
     let mut basey: libc::c_int = 0;
     let mut underwin: [[word; 16]; 5] = [[0; 16]; 5];
-    basex = originx + 4 as libc::c_int;
-    basey = originy + 17 as libc::c_int;
+    basex = originx + 4;
+    basey = originy + 17;
     if indemo as u64 != 0 {
-        y = 0 as libc::c_int;
-        while y <= 4 as libc::c_int {
-            x = 0 as libc::c_int;
-            while x <= 15 as libc::c_int {
+        y = 0;
+        while y <= 4 {
+            x = 0;
+            while x <= 15 {
                 underwin[y as usize][x as usize] =
                     view[(y + basey) as usize][(x + basex) as usize] as word;
                 view[(y + basey) as usize][(x + basex) as usize] =
@@ -1255,10 +1255,10 @@ pub unsafe extern "C" fn refresh() {
         egarefresh();
     }
     if indemo as u64 != 0 {
-        y = 0 as libc::c_int;
-        while y <= 4 as libc::c_int {
-            x = 0 as libc::c_int;
-            while x <= 15 as libc::c_int {
+        y = 0;
+        while y <= 4 {
+            x = 0;
+            while x <= 15 {
                 view[(y + basey) as usize][(x + basex) as usize] =
                     underwin[y as usize][x as usize] as libc::c_int;
                 x += 1;
@@ -1315,13 +1315,13 @@ pub unsafe extern "C" fn restore() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn wantmore() -> boolean {
-    sx = 2 as libc::c_int;
-    sy = 20 as libc::c_int;
+    sx = 2;
+    sy = 20;
     print(b"(space for more/esc)\0" as *const u8 as *const libc::c_char);
-    sx = 12 as libc::c_int;
-    sy = 21 as libc::c_int;
+    sx = 12;
+    sy = 21;
     ch = get() as libc::c_char;
-    if ch as libc::c_int == 27 as libc::c_int {
+    if ch as libc::c_int == 27 {
         return false as boolean;
     }
     return true as boolean;
@@ -1346,9 +1346,9 @@ unsafe extern "C" fn charpic(
         ),
     ) as libc::c_int;
     yy = y;
-    while yy <= y + size - 1 as libc::c_int {
+    while yy <= y + size - 1 {
         xx = x;
-        while xx <= x + size - 1 as libc::c_int {
+        while xx <= x + size - 1 {
             let fresh0 = tilenum;
             tilenum = tilenum + 1;
             drawchartile(xx, yy, fresh0);
@@ -1361,7 +1361,7 @@ unsafe extern "C" fn charpic(
 pub unsafe extern "C" fn help() {
     let mut x: libc::c_int = 0;
     let mut y: libc::c_int = 0;
-    centerwindow(20 as libc::c_int, 20 as libc::c_int);
+    centerwindow(20, 20);
     print(b"  C A T A C O M B   \n\0" as *const u8 as *const libc::c_char);
     print(b"   - - - - - - -    \n\0" as *const u8 as *const libc::c_char);
     print(b" by John Carmack    \n\0" as *const u8 as *const libc::c_char);
@@ -1380,7 +1380,7 @@ pub unsafe extern "C" fn help() {
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20 as libc::c_int, 20 as libc::c_int);
+    centerwindow(20, 20);
     print(b"\nKeyboard controls:  \n\n\0" as *const u8 as *const libc::c_char);
     print(b"move    : arrows    \n\0" as *const u8 as *const libc::c_char);
     print(b"button1 : ctrl      \n\0" as *const u8 as *const libc::c_char);
@@ -1391,7 +1391,7 @@ pub unsafe extern "C" fn help() {
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20 as libc::c_int, 20 as libc::c_int);
+    centerwindow(20, 20);
     print(b"Button 1 / ctrl key:\n\0" as *const u8 as *const libc::c_char);
     print(b"Builds shot power.  \n\0" as *const u8 as *const libc::c_char);
     print(b"If the shot power   \n\0" as *const u8 as *const libc::c_char);
@@ -1401,54 +1401,54 @@ pub unsafe extern "C" fn help() {
     print(b"shot will be        \n\0" as *const u8 as *const libc::c_char);
     print(b"launched.           \n\0" as *const u8 as *const libc::c_char);
     print(b"\n\0" as *const u8 as *const libc::c_char);
-    y = 11 as libc::c_int;
-    while y <= 18 as libc::c_int {
-        x = 3 as libc::c_int;
-        while x <= 20 as libc::c_int {
-            drawchartile(x, y, 128 as libc::c_int);
+    y = 11;
+    while y <= 18 {
+        x = 3;
+        while x <= 20 {
+            drawchartile(x, y, 128);
             x += 1;
         }
         y += 1;
     }
     charpic(
-        4 as libc::c_int,
-        14 as libc::c_int,
+        4,
+        14,
         player,
         east,
-        2 as libc::c_int,
+        2,
     );
     charpic(
-        19 as libc::c_int,
-        15 as libc::c_int,
+        19,
+        15,
         shot,
         east,
-        1 as libc::c_int,
+        1,
     );
     charpic(
-        17 as libc::c_int,
-        14 as libc::c_int,
+        17,
+        14,
         shot,
         east,
-        0 as libc::c_int,
+        0,
     );
     charpic(
-        15 as libc::c_int,
-        15 as libc::c_int,
+        15,
+        15,
         shot,
         east,
-        1 as libc::c_int,
+        1,
     );
     charpic(
-        8 as libc::c_int,
-        14 as libc::c_int,
+        8,
+        14,
         bigshot,
         east,
-        0 as libc::c_int,
+        0,
     );
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20 as libc::c_int, 20 as libc::c_int);
+    centerwindow(20, 20);
     print(b"Button 2 / alt key:\n\0" as *const u8 as *const libc::c_char);
     print(b"Allows you to move  \n\0" as *const u8 as *const libc::c_char);
     print(b"without changing the\n\0" as *const u8 as *const libc::c_char);
@@ -1456,35 +1456,35 @@ pub unsafe extern "C" fn help() {
     print(b"facing.  Good for   \n\0" as *const u8 as *const libc::c_char);
     print(b"searching walls and \n\0" as *const u8 as *const libc::c_char);
     print(b"fighting retreats.  \n\0" as *const u8 as *const libc::c_char);
-    y = 11 as libc::c_int;
-    while y <= 18 as libc::c_int {
-        x = 3 as libc::c_int;
-        while x <= 20 as libc::c_int {
-            if y == 15 as libc::c_int {
-                drawchartile(x, y, 129 as libc::c_int);
-            } else if y == 16 as libc::c_int {
-                drawchartile(x, y, 131 as libc::c_int);
+    y = 11;
+    while y <= 18 {
+        x = 3;
+        while x <= 20 {
+            if y == 15 {
+                drawchartile(x, y, 129);
+            } else if y == 16 {
+                drawchartile(x, y, 131);
             } else {
-                drawchartile(x, y, 128 as libc::c_int);
+                drawchartile(x, y, 128);
             }
             x += 1;
         }
         y += 1;
     }
     charpic(
-        6 as libc::c_int,
-        13 as libc::c_int,
+        6,
+        13,
         player,
         south,
-        2 as libc::c_int,
+        2,
     );
-    sx = 6 as libc::c_int;
-    sy = 15 as libc::c_int;
+    sx = 6;
+    sy = 15;
     print(b"\x1D\x1D\x1E\x1E\x1F\x1F\0" as *const u8 as *const libc::c_char);
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20 as libc::c_int, 20 as libc::c_int);
+    centerwindow(20, 20);
     print(b"\"P\" or \"space\" will \n\0" as *const u8 as *const libc::c_char);
     print(b"take a healing      \n\0" as *const u8 as *const libc::c_char);
     print(b"potion if you have  \n\0" as *const u8 as *const libc::c_char);
@@ -1504,7 +1504,7 @@ pub unsafe extern "C" fn help() {
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20 as libc::c_int, 20 as libc::c_int);
+    centerwindow(20, 20);
     print(b"\"N\" or \"enter\" will \n\0" as *const u8 as *const libc::c_char);
     print(b"cast a nuke spell.  \n\0" as *const u8 as *const libc::c_char);
     print(b"This usually wipes  \n\0" as *const u8 as *const libc::c_char);
@@ -1525,7 +1525,7 @@ pub unsafe extern "C" fn help() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn reset() {
-    centerwindow(18 as libc::c_int, 1 as libc::c_int);
+    centerwindow(18, 1);
     print(b"reset game (y/n)?\0" as *const u8 as *const libc::c_char);
     ch = get() as libc::c_char;
     if ch as libc::c_int == 'y' as i32 {
@@ -1554,7 +1554,7 @@ pub unsafe extern "C" fn loadlevel() {
         filename.as_mut_ptr(),
         b"LEVEL\0" as *const u8 as *const libc::c_char,
     );
-    itoa(level as libc::c_int, st.as_mut_ptr(), 10 as libc::c_int);
+    itoa(level as libc::c_int, st.as_mut_ptr(), 10);
     strcat(filename.as_mut_ptr(), st.as_mut_ptr());
     strcat(
         filename.as_mut_ptr(),
@@ -1562,99 +1562,99 @@ pub unsafe extern "C" fn loadlevel() {
     );
     LoadFile(filename.as_mut_ptr(), rle.as_mut_ptr());
     RLEExpand(
-        &mut *rle.as_mut_ptr().offset(4 as libc::c_int as isize),
+        &mut *rle.as_mut_ptr().offset(4),
         sm.as_mut_ptr(),
-        4096 as libc::c_int as libc::c_long,
+        4096,
     );
-    numobj = 0 as libc::c_int;
-    o[0 as libc::c_int as usize].x = 13 as libc::c_int as byte;
-    o[0 as libc::c_int as usize].y = 13 as libc::c_int as byte;
-    o[0 as libc::c_int as usize].stage = 0 as libc::c_int as byte;
-    o[0 as libc::c_int as usize].delay = 0 as libc::c_int as byte;
-    o[0 as libc::c_int as usize].dir = east as libc::c_int as word;
-    o[0 as libc::c_int as usize].oldx = 0 as libc::c_int as byte;
-    o[0 as libc::c_int as usize].oldy = 0 as libc::c_int as byte;
-    o[0 as libc::c_int as usize].oldtile = -(1 as libc::c_int) as sword;
-    yy = 0 as libc::c_int;
-    while yy < 64 as libc::c_int {
-        xx = 0 as libc::c_int;
-        while xx < 64 as libc::c_int {
-            btile = sm[(yy * 64 as libc::c_int + xx) as usize] as byte;
-            if (btile as libc::c_int) < 230 as libc::c_int {
-                background[(yy + 11 as libc::c_int) as usize][(xx + 11 as libc::c_int) as usize] =
+    numobj = 0;
+    o[0].x = 13;
+    o[0].y = 13;
+    o[0].stage = 0;
+    o[0].delay = 0;
+    o[0].dir = east as libc::c_int as word;
+    o[0].oldx = 0;
+    o[0].oldy = 0;
+    o[0].oldtile = -(1) as sword;
+    yy = 0;
+    while yy < 64 {
+        xx = 0;
+        while xx < 64 {
+            btile = sm[(yy * 64 + xx) as usize] as byte;
+            if (btile as libc::c_int) < 230 {
+                background[(yy + 11) as usize][(xx + 11) as usize] =
                     btile as libc::c_int;
             } else {
-                background[(yy + 11 as libc::c_int) as usize][(xx + 11 as libc::c_int) as usize] =
-                    128 as libc::c_int;
-                if tokens[(btile as libc::c_int - 230 as libc::c_int) as usize] as libc::c_uint
+                background[(yy + 11) as usize][(xx + 11) as usize] =
+                    128;
+                if tokens[(btile as libc::c_int - 230) as usize] as libc::c_uint
                     == player as libc::c_int as libc::c_uint
                 {
-                    o[0 as libc::c_int as usize].x = (xx + 11 as libc::c_int) as byte;
-                    o[0 as libc::c_int as usize].y = (yy + 11 as libc::c_int) as byte;
+                    o[0].x = (xx + 11) as byte;
+                    o[0].y = (yy + 11) as byte;
                 } else {
                     numobj += 1;
                     o[numobj as usize].active = false as boolean;
                     o[numobj as usize].class =
-                        tokens[(btile as libc::c_int - 230 as libc::c_int) as usize] as word;
-                    o[numobj as usize].x = (xx + 11 as libc::c_int) as byte;
-                    o[numobj as usize].y = (yy + 11 as libc::c_int) as byte;
-                    o[numobj as usize].stage = 0 as libc::c_int as byte;
-                    o[numobj as usize].delay = 0 as libc::c_int as byte;
-                    o[numobj as usize].dir = (rndt() / 64 as libc::c_int) as dirtype as word;
+                        tokens[(btile as libc::c_int - 230) as usize] as word;
+                    o[numobj as usize].x = (xx + 11) as byte;
+                    o[numobj as usize].y = (yy + 11) as byte;
+                    o[numobj as usize].stage = 0;
+                    o[numobj as usize].delay = 0;
+                    o[numobj as usize].dir = (rndt() / 64) as dirtype as word;
                     o[numobj as usize].hp =
                         objdef[o[numobj as usize].class as usize].hitpoints as sbyte;
                     o[numobj as usize].oldx = o[numobj as usize].x;
                     o[numobj as usize].oldy = o[numobj as usize].y;
-                    o[numobj as usize].oldtile = -(1 as libc::c_int) as sword;
+                    o[numobj as usize].oldtile = -(1) as sword;
                 }
             }
             xx += 1;
         }
         yy += 1;
     }
-    originx = o[0 as libc::c_int as usize].x as libc::c_int - 11 as libc::c_int;
-    originy = o[0 as libc::c_int as usize].y as libc::c_int - 11 as libc::c_int;
-    shotpower = 0 as libc::c_int;
-    y = 11 as libc::c_int - 1 as libc::c_int;
-    while y < 65 as libc::c_int + 11 as libc::c_int {
-        x = 11 as libc::c_int - 1 as libc::c_int;
-        while x < 64 as libc::c_int + 11 as libc::c_int {
+    originx = o[0].x as libc::c_int - 11;
+    originy = o[0].y as libc::c_int - 11;
+    shotpower = 0;
+    y = 11 - 1;
+    while y < 65 + 11 {
+        x = 11 - 1;
+        while x < 64 + 11 {
             view[y as usize][x as usize] = background[y as usize][x as usize];
             x += 1;
         }
         y += 1;
     }
-    sx = 33 as libc::c_int;
-    sy = 1 as libc::c_int;
+    sx = 33;
+    sy = 1;
     printint(level as libc::c_int);
     print(b" \0" as *const u8 as *const libc::c_char);
     restore();
-    i = 0 as libc::c_int;
-    while i < 6 as libc::c_int {
+    i = 0;
+    while i < 6 {
         saveitems[i as usize] = items[i as usize];
         i += 1;
     }
     savescore = score;
-    saveo[0 as libc::c_int as usize] = o[0 as libc::c_int as usize];
+    saveo[0] = o[0];
 }
 #[no_mangle]
 pub unsafe extern "C" fn drawside() {
     let mut i: libc::c_int = 0;
-    sx = 0 as libc::c_int;
-    while sx < 40 as libc::c_int {
-        drawchar(sx, 24 as libc::c_int, 0 as libc::c_int);
+    sx = 0;
+    while sx < 40 {
+        drawchar(sx, 24, 0);
         sx += 1;
     }
-    sy = 0 as libc::c_int;
-    while sy < 24 as libc::c_int {
-        drawchar(39 as libc::c_int, sy, 0 as libc::c_int);
+    sy = 0;
+    while sy < 24 {
+        drawchar(39, sy, 0);
         sy += 1;
     }
     drawwindow(
-        24 as libc::c_int,
-        0 as libc::c_int,
-        38 as libc::c_int,
-        23 as libc::c_int,
+        24,
+        0,
+        38,
+        23,
     );
     print(
         b"  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n\0" as *const u8 as *const libc::c_char,
@@ -1664,60 +1664,60 @@ pub unsafe extern "C" fn drawside() {
     printbody();
     printshotpower();
     printscore();
-    sx = 33 as libc::c_int;
-    sy = 1 as libc::c_int;
+    sx = 33;
+    sy = 1;
     printint(level as libc::c_int);
     drawpic(
-        25 as libc::c_int * 8 as libc::c_int,
-        17 as libc::c_int * 8 as libc::c_int,
-        13 as libc::c_int,
+        25 * 8,
+        17 * 8,
+        13,
     );
-    i = 1 as libc::c_int;
-    while i <= items[1 as libc::c_int as usize] as libc::c_int && i < 11 as libc::c_int {
-        drawchar(26 as libc::c_int + i, 7 as libc::c_int, 31 as libc::c_int);
+    i = 1;
+    while i <= items[1] as libc::c_int && i < 11 {
+        drawchar(26 + i, 7, 31);
         i += 1;
     }
-    i = 1 as libc::c_int;
-    while i <= items[2 as libc::c_int as usize] as libc::c_int && i < 11 as libc::c_int {
-        drawchar(26 as libc::c_int + i, 8 as libc::c_int, 29 as libc::c_int);
+    i = 1;
+    while i <= items[2] as libc::c_int && i < 11 {
+        drawchar(26 + i, 8, 29);
         i += 1;
     }
-    i = 1 as libc::c_int;
-    while i <= items[3 as libc::c_int as usize] as libc::c_int && i < 11 as libc::c_int {
-        drawchar(26 as libc::c_int + i, 9 as libc::c_int, 30 as libc::c_int);
+    i = 1;
+    while i <= items[3] as libc::c_int && i < 11 {
+        drawchar(26 + i, 9, 30);
         i += 1;
     }
-    i = 1 as libc::c_int;
-    while i <= items[5 as libc::c_int as usize] as libc::c_int && i < 11 as libc::c_int {
-        drawchar(26 as libc::c_int + i, 10 as libc::c_int, 30 as libc::c_int);
+    i = 1;
+    while i <= items[5] as libc::c_int && i < 11 {
+        drawchar(26 + i, 10, 30);
         i += 1;
     }
 }
 #[no_mangle]
 pub unsafe extern "C" fn playsetup() {
     let mut i: libc::c_int = 0;
-    shotpower = 0 as libc::c_int;
+    shotpower = 0;
     bar(
-        0 as libc::c_int,
-        0 as libc::c_int,
-        23 as libc::c_int,
-        23 as libc::c_int,
-        0 as libc::c_int,
+        0,
+        0,
+        23,
+        23,
+        0,
     );
-    if level as libc::c_int == 0 as libc::c_int {
-        i = 1 as libc::c_int;
-        while i < 6 as libc::c_int {
-            items[i as usize] = 0 as libc::c_int as sword;
+    if level as libc::c_int == 0 {
+        i = 1;
+        while i < 6 {
+            items[i as usize] = 0;
             i += 1;
         }
-        score = 0 as libc::c_int;
-        level = 1 as libc::c_int as sword;
-        o[0 as libc::c_int as usize].active = true as boolean;
-        o[0 as libc::c_int as usize].class = player as libc::c_int as word;
-        o[0 as libc::c_int as usize].hp = 13 as libc::c_int as sbyte;
-        o[0 as libc::c_int as usize].dir = west as libc::c_int as word;
-        o[0 as libc::c_int as usize].stage = 0 as libc::c_int as byte;
-        o[0 as libc::c_int as usize].delay = 0 as libc::c_int as byte;
+        score = 0;
+        level = 1;
+        o[0].active = true as boolean;
+        o[0].class = player as libc::c_int as word;
+        o[0].hp = 13;
+        o[0].dir = west as libc::c_int as word;
+        o[0].stage = 0;
+        o[0].delay = 0;
         drawside();
         givenuke();
         givenuke();
@@ -1735,27 +1735,27 @@ pub unsafe extern "C" fn playsetup() {
 pub unsafe extern "C" fn repaintscreen() {
     match gamestate as libc::c_uint {
         1 => {
-            drawpic(0 as libc::c_int, 0 as libc::c_int, 14 as libc::c_int);
+            drawpic(0, 0, 14);
         }
         0 => {
             restore();
             drawside();
             printscore();
-            sx = 33 as libc::c_int;
-            sy = 1 as libc::c_int;
+            sx = 33;
+            sy = 1;
             printint(level as libc::c_int);
         }
         2 => {
             restore();
             drawside();
             printscore();
-            sx = 33 as libc::c_int;
-            sy = 1 as libc::c_int;
+            sx = 33;
+            sy = 1;
             printint(level as libc::c_int);
             indemo = demoplay;
         }
         _ => {
-            sy = 10 as libc::c_int;
+            sy = 10;
             sx = sy;
             print(b"Bad gamestate!\0" as *const u8 as *const libc::c_char);
             clearkeys();
@@ -1766,7 +1766,7 @@ pub unsafe extern "C" fn repaintscreen() {
 #[no_mangle]
 pub unsafe extern "C" fn dofkeys() {
     let mut handle: libc::c_int = 0;
-    let mut key: libc::c_int = bioskey(1 as libc::c_int);
+    let mut key: libc::c_int = bioskey(1);
     if key == SDL_SCANCODE_ESCAPE as libc::c_int {
         key = SDL_SCANCODE_F10 as libc::c_int;
     }
@@ -1785,7 +1785,7 @@ pub unsafe extern "C" fn dofkeys() {
         }
         60 => {
             clearkeys();
-            expwin(18 as libc::c_int, 1 as libc::c_int);
+            expwin(18, 1);
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
             if ch as libc::c_int == 'Y' as i32 {
@@ -1794,7 +1794,7 @@ pub unsafe extern "C" fn dofkeys() {
         }
         61 => {
             clearkeys();
-            expwin(22 as libc::c_int, 4 as libc::c_int);
+            expwin(22, 4);
             if indemo as libc::c_uint != notdemo as libc::c_int as libc::c_uint {
                 print(b"Can't save game here!\0" as *const u8 as *const libc::c_char);
                 get();
@@ -1807,7 +1807,7 @@ pub unsafe extern "C" fn dofkeys() {
                         str.as_mut_ptr(),
                         b"GAME0.CA2\0" as *const u8 as *const libc::c_char,
                     );
-                    str[4 as libc::c_int as usize] = ch;
+                    str[4] = ch;
                     if _Verify(str.as_mut_ptr()) != 0 {
                         print(
                             b"\nGame exists,\noverwrite (Y/N)?\0" as *const u8
@@ -1835,12 +1835,12 @@ pub unsafe extern "C" fn dofkeys() {
                             handle = open(
                                 str.as_mut_ptr(),
                                 0o1 as libc::c_int
-                                    | 0 as libc::c_int
+                                    | 0
                                     | 0o100 as libc::c_int
                                     | 0o1000 as libc::c_int,
                                 0o400 as libc::c_int | 0o200 as libc::c_int,
                             );
-                            if handle == -(1 as libc::c_int) {
+                            if handle == -(1) {
                                 return;
                             }
                             write(
@@ -1860,7 +1860,7 @@ pub unsafe extern "C" fn dofkeys() {
                             );
                             write(
                                 handle,
-                                &mut *saveo.as_mut_ptr().offset(0 as libc::c_int as isize)
+                                &mut *saveo.as_mut_ptr().offset(0)
                                     as *mut activeobj
                                     as *const libc::c_void,
                                 ::std::mem::size_of::<activeobj>() as libc::c_ulong,
@@ -1877,7 +1877,7 @@ pub unsafe extern "C" fn dofkeys() {
         }
         62 => {
             clearkeys();
-            expwin(22 as libc::c_int, 4 as libc::c_int);
+            expwin(22, 4);
             print(b"Load game #(1-9):\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
             drawchar(sx, sy, ch as libc::c_int);
@@ -1886,7 +1886,7 @@ pub unsafe extern "C" fn dofkeys() {
                     str.as_mut_ptr(),
                     b"GAME0.CA2\0" as *const u8 as *const libc::c_char,
                 );
-                str[4 as libc::c_int as usize] = ch;
+                str[4] = ch;
                 // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
                 // project.
                 handle = open(
@@ -1894,7 +1894,7 @@ pub unsafe extern "C" fn dofkeys() {
                     O_RDONLY | O_BINARY,
                     0o200 as libc::c_int | 0o400 as libc::c_int,
                 );
-                if handle == -(1 as libc::c_int) {
+                if handle == -(1) {
                     print(b"\nGame not found.\0" as *const u8 as *const libc::c_char);
                     get();
                 } else {
@@ -1915,7 +1915,7 @@ pub unsafe extern "C" fn dofkeys() {
                     );
                     read(
                         handle,
-                        &mut *o.as_mut_ptr().offset(0 as libc::c_int as isize) as *mut activeobj
+                        &mut *o.as_mut_ptr().offset(0) as *mut activeobj
                             as *mut libc::c_void,
                         ::std::mem::size_of::<activeobj>() as libc::c_ulong,
                     );
@@ -1931,13 +1931,13 @@ pub unsafe extern "C" fn dofkeys() {
         }
         66 => {
             clearkeys();
-            expwin(7 as libc::c_int, 1 as libc::c_int);
+            expwin(7, 1);
             print(b"PAUSED\0" as *const u8 as *const libc::c_char);
             get();
         }
         67 => {
             clearkeys();
-            expwin(12 as libc::c_int, 1 as libc::c_int);
+            expwin(12, 1);
             print(b"QUIT (Y/N)?\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
             if ch as libc::c_int == 'Y' as i32 {
@@ -1953,24 +1953,24 @@ pub unsafe extern "C" fn dofkeys() {
 #[no_mangle]
 pub unsafe extern "C" fn dotitlepage() {
     let mut i: libc::c_int = 0;
-    drawpic(0 as libc::c_int, 0 as libc::c_int, 14 as libc::c_int);
+    drawpic(0, 0, 14);
     UpdateScreen();
     gamestate = intitle;
-    i = 0 as libc::c_int;
-    while i < 300 as libc::c_int {
+    i = 0;
+    while i < 300 {
         WaitVBL();
         indemo = notdemo;
-        ctrl = ControlPlayer(1 as libc::c_int);
+        ctrl = ControlPlayer(1);
         if ctrl.button1 as libc::c_int != 0
             || ctrl.button2 as libc::c_int != 0
             || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
         {
-            level = 0 as libc::c_int as sword;
+            level = 0;
             exitdemo = true as boolean;
             break;
         } else {
             indemo = demoplay;
-            if bioskey(1 as libc::c_int) != 0 {
+            if bioskey(1) != 0 {
                 dofkeys();
                 UpdateScreen();
             }
@@ -1985,20 +1985,20 @@ pub unsafe extern "C" fn dotitlepage() {
 #[no_mangle]
 pub unsafe extern "C" fn doendpage() {
     WaitEndSound();
-    drawpic(0 as libc::c_int, 0 as libc::c_int, 15 as libc::c_int);
-    PlaySound(3 as libc::c_int);
+    drawpic(0, 0, 15);
+    PlaySound(3);
     WaitEndSound();
-    PlaySound(3 as libc::c_int);
+    PlaySound(3);
     WaitEndSound();
-    PlaySound(3 as libc::c_int);
+    PlaySound(3);
     WaitEndSound();
-    PlaySound(3 as libc::c_int);
+    PlaySound(3);
     WaitEndSound();
     drawwindow(
-        0 as libc::c_int,
-        0 as libc::c_int,
-        17 as libc::c_int,
-        9 as libc::c_int,
+        0,
+        0,
+        17,
+        9,
     );
     print(b"Congratulation! \n\0" as *const u8 as *const libc::c_char);
     print(b"One as skilled  \n\0" as *const u8 as *const libc::c_char);
@@ -2010,10 +2010,10 @@ pub unsafe extern "C" fn doendpage() {
     clearkeys();
     get();
     drawwindow(
-        0 as libc::c_int,
-        0 as libc::c_int,
-        17 as libc::c_int,
-        9 as libc::c_int,
+        0,
+        0,
+        17,
+        9,
     );
     print(b"Let us know what\n\0" as *const u8 as *const libc::c_char);
     print(b"you enjoyed     \n\0" as *const u8 as *const libc::c_char);
@@ -2032,24 +2032,24 @@ pub unsafe extern "C" fn dodemo() {
         if exitdemo != 0 {
             break;
         }
-        i = rnd(NUM_DEMOS - 1) + 1 as libc::c_int;
+        i = rnd(NUM_DEMOS - 1) + 1;
         LoadDemo(i);
-        level = 0 as libc::c_int as sword;
+        level = 0;
         playsetup();
         playloop();
         if exitdemo != 0 {
             break;
         }
-        level = 0 as libc::c_int as sword;
+        level = 0;
         gamestate = inscores;
         indemo = demoplay;
         _showhighscores();
         UpdateScreen();
-        i = 0 as libc::c_int;
-        while i < 500 as libc::c_int {
+        i = 0;
+        while i < 500 {
             WaitVBL();
             indemo = notdemo;
-            ctrl = ControlPlayer(1 as libc::c_int);
+            ctrl = ControlPlayer(1);
             if ctrl.button1 as libc::c_int != 0
                 || ctrl.button2 as libc::c_int != 0
                 || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
@@ -2057,7 +2057,7 @@ pub unsafe extern "C" fn dodemo() {
                 exitdemo = true as boolean;
                 break;
             } else {
-                if bioskey(1 as libc::c_int) != 0 {
+                if bioskey(1) != 0 {
                     dofkeys();
                 }
                 if exitdemo != 0 {
@@ -2071,29 +2071,29 @@ pub unsafe extern "C" fn dodemo() {
 #[no_mangle]
 pub unsafe extern "C" fn gameover() {
     let mut i: libc::c_int = 0;
-    expwin(11 as libc::c_int, 4 as libc::c_int);
+    expwin(11, 4);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const libc::c_char);
     UpdateScreen();
     WaitEndSound();
-    i = 0 as libc::c_int;
-    while i < 120 as libc::c_int {
+    i = 0;
+    while i < 120 {
         WaitVBL();
         i += 1;
     }
     gamestate = inscores;
     _checkhighscore();
-    level = 0 as libc::c_int as sword;
-    i = 0 as libc::c_int;
-    while i < 500 as libc::c_int {
+    level = 0;
+    i = 0;
+    while i < 500 {
         WaitVBL();
-        ctrl = ControlPlayer(1 as libc::c_int);
+        ctrl = ControlPlayer(1);
         if ctrl.button1 as libc::c_int != 0
             || ctrl.button2 as libc::c_int != 0
             || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
         {
             break;
         }
-        if bioskey(1 as libc::c_int) != 0 {
+        if bioskey(1) != 0 {
             dofkeys();
         }
         if exitdemo as libc::c_int != 0
@@ -2120,13 +2120,13 @@ pub unsafe extern "C" fn US_CheckParm(
     {
         parm = parm.offset(1);
     }
-    i = 0 as libc::c_int;
+    i = 0;
     while !(*strings).is_null() && **strings as libc::c_int != 0 {
         let fresh1 = strings;
         strings = strings.offset(1);
         s = *fresh1;
         p = parm;
-        cp = 0 as libc::c_int as libc::c_char;
+        cp = 0;
         cs = cp;
         while cs as libc::c_int == cp as libc::c_int {
             let fresh2 = s;
@@ -2153,7 +2153,7 @@ pub unsafe extern "C" fn US_CheckParm(
         }
         i += 1;
     }
-    return -(1 as libc::c_int);
+    return -(1);
 }
 
 unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
@@ -2164,20 +2164,20 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
             b"CatacombSDL\nVersion 1.03\n\nUsage: catacomb [windowed <width> <height>] [screen <num>]\n\nPorted by Braden \"Blzut3\" Obrzut and Rene \"Havoc\" Nicolaus\nIncludes PC Speaker emulator by K1n9_Duk3\nBased on The Catacomb source code:\nCopyright 1990-1993 Softdisk Publishing\nCopyright 1993-2014 Flat Rock Software\n\0"
                 as *const u8 as *const libc::c_char,
         );
-        exit(0 as libc::c_int);
+        exit(0);
     }
     initobjects();
     memset(
         &mut priority as *mut [byte; 2048] as *mut libc::c_void,
-        99 as libc::c_int,
+        99,
         ::std::mem::size_of::<[byte; 2048]>() as libc::c_ulong,
     );
-    priority[128 as libc::c_int as usize] = 0 as libc::c_int as byte;
+    priority[128] = 0;
     i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
     while i
-        <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20 as libc::c_int
+        <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20
     {
-        priority[i as usize] = 0 as libc::c_int as byte;
+        priority[i as usize] = 0;
         i += 1;
     }
     clvar = dead2;
@@ -2188,75 +2188,75 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
                 + objdef[clvar as usize].size as libc::c_int
                     * objdef[clvar as usize].size as libc::c_int
         {
-            priority[i as usize] = 0 as libc::c_int as byte;
+            priority[i as usize] = 0;
             i += 1;
         }
         clvar += 1;
     }
-    i = 152 as libc::c_int;
-    while i <= 161 as libc::c_int {
-        priority[i as usize] = 2 as libc::c_int as byte;
+    i = 152;
+    while i <= 161 {
+        priority[i as usize] = 2;
         i += 1;
     }
     i = objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int;
-    while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31 as libc::c_int
+    while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31
     {
-        priority[i as usize] = 2 as libc::c_int as byte;
+        priority[i as usize] = 2;
         i += 1;
     }
-    i = 0 as libc::c_int;
-    while i <= 256 as libc::c_int - 1 as libc::c_int {
-        if priority[i as usize] as libc::c_int == 99 as libc::c_int {
-            priority[i as usize] = 3 as libc::c_int as byte;
+    i = 0;
+    while i <= 256 - 1 {
+        if priority[i as usize] as libc::c_int == 99 {
+            priority[i as usize] = 3;
         }
         i += 1;
     }
-    priority[167 as libc::c_int as usize] = 1 as libc::c_int as byte;
-    i = 256 as libc::c_int;
-    while i <= 2047 as libc::c_int {
-        if priority[i as usize] as libc::c_int == 99 as libc::c_int {
-            priority[i as usize] = 4 as libc::c_int as byte;
+    priority[167] = 1;
+    i = 256;
+    while i <= 2047 {
+        if priority[i as usize] as libc::c_int == 99 {
+            priority[i as usize] = 4;
         }
         i += 1;
     }
     i = objdef[player as libc::c_int as usize].firstchar as libc::c_int;
-    while i <= objdef[player as libc::c_int as usize].firstchar as libc::c_int + 63 as libc::c_int {
-        priority[i as usize] = 5 as libc::c_int as byte;
+    while i <= objdef[player as libc::c_int as usize].firstchar as libc::c_int + 63 {
+        priority[i as usize] = 5;
         i += 1;
     }
-    side = 0 as libc::c_int;
+    side = 0;
     let mut x: libc::c_int = 0;
     let mut y: libc::c_int = 0;
-    x = 0 as libc::c_int;
-    while x <= 85 as libc::c_int {
-        y = 0 as libc::c_int;
-        while y <= 11 as libc::c_int - 1 as libc::c_int {
-            view[x as usize][y as usize] = 129 as libc::c_int;
-            view[x as usize][(85 as libc::c_int - y) as usize] = 129 as libc::c_int;
-            background[x as usize][y as usize] = 129 as libc::c_int;
-            background[x as usize][(85 as libc::c_int - y) as usize] = 129 as libc::c_int;
+    x = 0;
+    while x <= 85 {
+        y = 0;
+        while y <= 11 - 1 {
+            view[x as usize][y as usize] = 129;
+            view[x as usize][(85 - y) as usize] = 129;
+            background[x as usize][y as usize] = 129;
+            background[x as usize][(85 - y) as usize] = 129;
             y += 1;
         }
-        view[86 as libc::c_int as usize][x as usize] = 129 as libc::c_int;
+        view[86][x as usize] = 129;
         x += 1;
     }
-    y = 11 as libc::c_int;
-    while y <= 74 as libc::c_int {
-        x = 0 as libc::c_int;
-        while x <= 11 as libc::c_int - 1 as libc::c_int {
-            view[x as usize][y as usize] = 129 as libc::c_int;
-            view[(85 as libc::c_int - x) as usize][y as usize] = 129 as libc::c_int;
-            background[x as usize][y as usize] = 129 as libc::c_int;
-            background[(85 as libc::c_int - x) as usize][y as usize] = 129 as libc::c_int;
+    y = 11;
+    while y <= 74 {
+        x = 0;
+        while x <= 11 - 1 {
+            view[x as usize][y as usize] = 129;
+            view[(85 - x) as usize][y as usize] = 129;
+            background[x as usize][y as usize] = 129;
+            background[(85 - x) as usize][y as usize] = 129;
             x += 1;
         }
         y += 1;
     }
-    _numlevels = 30 as libc::c_int;
-    _maxplayers = 1 as libc::c_int;
+    _numlevels = 30;
+    _maxplayers = 1;
     _extension = b"CA2\0" as *const u8 as *const libc::c_char;
     _setupgame(args);
-    expwin(33 as libc::c_int, 13 as libc::c_int);
+    expwin(33, 13);
     print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const libc::c_char);
     print(b"          The Catacomb\n\n\0" as *const u8 as *const libc::c_char);
     print(b"        By John Carmack\n\n\0" as *const u8 as *const libc::c_char);
@@ -2267,10 +2267,10 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
     print(b"         Press a key:\0" as *const u8 as *const libc::c_char);
     get();
     clearkeys();
-    screencentery = 11 as libc::c_int;
-    screencenterx = 11 as libc::c_int;
+    screencentery = 11;
+    screencenterx = 11;
     exitdemo = false as boolean;
-    level = 0 as libc::c_int as sword;
+    level = 0;
     loop {
         dodemo();
         playsetup();
@@ -2279,7 +2279,7 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
         playloop();
         if indemo as u64 == 0 {
             exitdemo = false as boolean;
-            if level as libc::c_int > 30 as libc::c_int {
+            if level as libc::c_int > 30 {
                 doendpage();
             }
             gameover();
