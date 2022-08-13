@@ -1408,7 +1408,6 @@ pub static mut numsprites: libc::c_int = 0;
 #[no_mangle]
 pub unsafe extern "C" fn installgrfile(
     mut filename: *mut libc::c_char,
-    mut unpack: libc::c_int,
     mut inmem: *mut libc::c_void,
 ) {
     let mut i: libc::c_int = 0;
@@ -1421,11 +1420,7 @@ pub unsafe extern "C" fn installgrfile(
         if lastgrpic as libc::c_long != 0 {
             free(lastgrpic);
         }
-        if unpack != 0 {
-            picfile = bloadin(filename) as *mut picfiletype;
-        } else {
-            picfile = bloadin(filename) as *mut picfiletype;
-        }
+        picfile = bloadin(filename) as *mut picfiletype;
         lastgrpic = picfile as *mut libc::c_void;
     }
     numchars = (*picfile).numchars as libc::c_int;

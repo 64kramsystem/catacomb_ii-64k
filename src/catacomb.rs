@@ -63,7 +63,7 @@ extern "C" {
     fn drawchartile(x: libc::c_int, y: libc::c_int, tile: libc::c_int);
     fn drawpic(x: libc::c_int, y: libc::c_int, picnum: libc::c_int);
     fn drawchar(x: libc::c_int, y: libc::c_int, charnum: libc::c_int);
-    fn installgrfile(filename: *mut libc::c_char, unpack: libc::c_int, inmem: *mut libc::c_void);
+    fn installgrfile(filename: *mut libc::c_char, inmem: *mut libc::c_void);
     fn WaitVBL();
     fn UpdateScreen();
     static mut leftedge: libc::c_int;
@@ -1287,7 +1287,6 @@ pub unsafe extern "C" fn loadgrfiles() {
         picsexact = pics;
         installgrfile(
             b"CGAPICS.CA2\0" as *const u8 as *const libc::c_char as *mut libc::c_char,
-            0 as libc::c_int,
             0 as *mut libc::c_void,
         );
     } else {
@@ -1296,7 +1295,6 @@ pub unsafe extern "C" fn loadgrfiles() {
         picsexact = pics;
         installgrfile(
             b"EGAPICS.CA2\0" as *const u8 as *const libc::c_char as *mut libc::c_char,
-            0 as libc::c_int,
             0 as *mut libc::c_void,
         );
     };
