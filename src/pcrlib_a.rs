@@ -239,7 +239,7 @@ unsafe extern "C" fn _SDL_ShutPC() {
     _SDL_PCStopSound();
 }
 unsafe extern "C" fn UpdateSPKR(
-    mut udata: *mut libc::c_void,
+    mut _userdata: *mut libc::c_void,
     mut stream: *mut Uint8,
     mut len: libc::c_int,
 ) {
@@ -761,7 +761,7 @@ pub unsafe extern "C" fn rndt() -> libc::c_int {
 pub static mut vblsem: *mut SDL_sem = 0 as *const SDL_sem as *mut SDL_sem;
 #[no_mangle]
 pub static mut vbltimer: SDL_TimerID = 0;
-unsafe extern "C" fn VBLCallback(mut interval: Uint32, mut usr: *mut libc::c_void) -> Uint32 {
+unsafe extern "C" fn VBLCallback(mut _interval: Uint32, mut _param: *mut libc::c_void) -> Uint32 {
     SDL_SemPost(vblsem);
     return VBL_TIME as libc::c_int as Uint32;
 }

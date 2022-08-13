@@ -1175,7 +1175,7 @@ pub unsafe extern "C" fn ProcessEvents() {
 }
 static mut hasFocus: boolean = true_0 as libc::c_int as boolean;
 unsafe extern "C" fn WatchUIEvents(
-    mut udata: *mut libc::c_void,
+    mut _userdata: *mut libc::c_void,
     mut event: *mut SDL_Event,
 ) -> libc::c_int {
     if (*event).type_0 == SDL_QUIT as libc::c_int as libc::c_uint {
