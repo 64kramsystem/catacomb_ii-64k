@@ -209,9 +209,6 @@ pub type FILE = _IO_FILE;
 pub type uint8_t = __uint8_t;
 pub type uint16_t = __uint16_t;
 pub type uint32_t = __uint32_t;
-pub type C2RustUnnamed = libc::c_uint;
-pub const true_0: C2RustUnnamed = 1;
-pub const false_0: C2RustUnnamed = 0;
 pub type boolean = uint16_t;
 pub type byte = uint8_t;
 pub type word = uint16_t;
@@ -1158,26 +1155,26 @@ pub unsafe extern "C" fn SetupKBD() {
     let mut i: libc::c_uint = 0;
     i = 0 as libc::c_int as libc::c_uint;
     while i < 128 as libc::c_int as libc::c_uint {
-        keydown[i as usize] = false_0 as libc::c_int as boolean;
+        keydown[i as usize] = false as boolean;
         i = i.wrapping_add(1);
     }
 }
 #[no_mangle]
 pub unsafe extern "C" fn ProcessEvents() {
-    mouseEvent = false_0 as libc::c_int as boolean;
+    mouseEvent = false as boolean;
     let mut event: SDL_Event = SDL_Event { type_0: 0 };
     while SDL_PollEvent(&mut event) != 0 {
         if event.type_0 == SDL_KEYDOWN as libc::c_int as libc::c_uint {
-            keydown[event.key.keysym.scancode as usize] = true_0 as libc::c_int as boolean;
+            keydown[event.key.keysym.scancode as usize] = true as boolean;
             lastkey = event.key.keysym.scancode;
         } else if event.type_0 == SDL_KEYUP as libc::c_int as libc::c_uint {
-            keydown[event.key.keysym.scancode as usize] = false_0 as libc::c_int as boolean;
+            keydown[event.key.keysym.scancode as usize] = false as boolean;
         } else if event.type_0 == SDL_MOUSEMOTION as libc::c_int as libc::c_uint {
-            mouseEvent = true_0 as libc::c_int as boolean;
+            mouseEvent = true as boolean;
         }
     }
 }
-static mut hasFocus: boolean = true_0 as libc::c_int as boolean;
+static mut hasFocus: boolean = true as boolean;
 unsafe extern "C" fn WatchUIEvents(
     mut _userdata: *mut libc::c_void,
     mut event: *mut SDL_Event,
@@ -1187,7 +1184,7 @@ unsafe extern "C" fn WatchUIEvents(
     } else if (*event).type_0 == SDL_WINDOWEVENT as libc::c_int as libc::c_uint {
         match (*event).window.event as libc::c_int {
             13 => {
-                hasFocus = false_0 as libc::c_int as boolean;
+                hasFocus = false as boolean;
                 CheckMouseMode();
             }
             12 => {
@@ -1195,7 +1192,7 @@ unsafe extern "C" fn WatchUIEvents(
                     SDL_PumpEvents();
                     SDL_Delay(10 as libc::c_int as Uint32);
                 }
-                hasFocus = true_0 as libc::c_int as boolean;
+                hasFocus = true as boolean;
                 CheckMouseMode();
             }
             _ => {}
@@ -1289,7 +1286,7 @@ pub unsafe extern "C" fn ControlMouse() -> ControlStruct {
     let mut buttons: libc::c_int = SDL_GetRelativeMouseState(&mut newx, &mut newy) as libc::c_int;
     action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) as boolean;
     action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) as boolean;
-    if mouseEvent as libc::c_int == false_0 as libc::c_int {
+    if mouseEvent as libc::c_int == false as libc::c_int {
         action.dir = nodir;
         return action;
     }
@@ -1870,20 +1867,8 @@ pub unsafe extern "C" fn UpdateScreen() {
             conv[i as usize] = CGAPalette[screenseg[i as usize] as usize];
             i = i.wrapping_add(1);
         }
-    } else if false_0 as libc::c_int != 0
-        && !(b"VGA Palette conversion not implemented.\0" as *const u8 as *const libc::c_char)
-            .is_null()
-    {
     } else {
-        __assert_fail(
-            b"false && \"VGA Palette conversion not implemented.\"\0" as *const u8
-                as *const libc::c_char,
-            b"/home/saverio/code/catacomb_ii_sdl-dev/source_project/pcrlib_c.c\0" as *const u8
-                as *const libc::c_char,
-            865 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<&[u8; 20], &[libc::c_char; 20]>(b"void UpdateScreen()\0"))
-                .as_ptr(),
-        );
+        panic!("VGA Palette conversion not implemented.");
     }
     SDL_UpdateTexture(
         sdltexture,
@@ -2164,11 +2149,11 @@ pub static mut _maxplayers: libc::c_int = 0;
 #[no_mangle]
 pub static mut _extension: *const libc::c_char = b"PCR\0" as *const u8 as *const libc::c_char;
 #[no_mangle]
-pub static mut _cgaok: boolean = true_0 as libc::c_int as boolean;
+pub static mut _cgaok: boolean = true as boolean;
 #[no_mangle]
-pub static mut _egaok: boolean = true_0 as libc::c_int as boolean;
+pub static mut _egaok: boolean = true as boolean;
 #[no_mangle]
-pub static mut _vgaok: boolean = false_0 as libc::c_int as boolean;
+pub static mut _vgaok: boolean = false as boolean;
 static mut DOSScanCodeMap: [SDL_Scancode; 128] = [
     SDL_SCANCODE_UNKNOWN,
     SDL_SCANCODE_ESCAPE,
@@ -2652,7 +2637,7 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
         ),
         0 as *mut libc::c_void,
     );
-    let mut windowed: boolean = false_0 as libc::c_int as boolean;
+    let mut windowed: boolean = false as boolean;
     let mut winWidth: libc::c_uint = 640 as libc::c_int as libc::c_uint;
     let mut winHeight: libc::c_uint = 480 as libc::c_int as libc::c_uint;
     let mut displayindex: libc::c_int = 0 as libc::c_int;
@@ -2663,7 +2648,7 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
             VideoParmStrings.as_mut_ptr() as *mut *mut libc::c_char,
         ) {
             0 => {
-                windowed = true_0 as libc::c_int as boolean;
+                windowed = true as boolean;
                 i += 1;
                 if i < args.len() {
                     winWidth = atoi(args[i]) as libc::c_uint;

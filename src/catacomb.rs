@@ -117,9 +117,6 @@ pub const _ISlower: C2RustUnnamed = 512;
 pub const _ISupper: C2RustUnnamed = 256;
 pub type uint8_t = __uint8_t;
 pub type uint16_t = __uint16_t;
-pub type C2RustUnnamed_0 = libc::c_uint;
-pub const true_0: C2RustUnnamed_0 = 1;
-pub const false_0: C2RustUnnamed_0 = 0;
 pub type boolean = uint16_t;
 pub type byte = uint8_t;
 pub type sbyte = int8_t;
@@ -1134,7 +1131,7 @@ pub static mut EGADATASTART: libc::c_uint = 0;
 #[no_mangle]
 pub static mut savescore: sdword = 0;
 #[no_mangle]
-pub static mut GODMODE: boolean = false_0 as libc::c_int as boolean;
+pub static mut GODMODE: boolean = false as boolean;
 #[no_mangle]
 pub static mut demowin: [[libc::c_char; 16]; 5] = [
     [
@@ -1325,9 +1322,9 @@ pub unsafe extern "C" fn wantmore() -> boolean {
     sy = 21 as libc::c_int;
     ch = get() as libc::c_char;
     if ch as libc::c_int == 27 as libc::c_int {
-        return false_0 as libc::c_int as boolean;
+        return false as boolean;
     }
-    return true_0 as libc::c_int as boolean;
+    return true as boolean;
 }
 unsafe extern "C" fn charpic(
     mut x: libc::c_int,
@@ -1533,7 +1530,7 @@ pub unsafe extern "C" fn reset() {
     ch = get() as libc::c_char;
     if ch as libc::c_int == 'y' as i32 {
         gamexit = killed;
-        playdone = true_0 as libc::c_int as boolean;
+        playdone = true as boolean;
     }
 }
 #[no_mangle]
@@ -1596,7 +1593,7 @@ pub unsafe extern "C" fn loadlevel() {
                     o[0 as libc::c_int as usize].y = (yy + 11 as libc::c_int) as byte;
                 } else {
                     numobj += 1;
-                    o[numobj as usize].active = false_0 as libc::c_int as boolean;
+                    o[numobj as usize].active = false as boolean;
                     o[numobj as usize].class =
                         tokens[(btile as libc::c_int - 230 as libc::c_int) as usize] as word;
                     o[numobj as usize].x = (xx + 11 as libc::c_int) as byte;
@@ -1715,7 +1712,7 @@ pub unsafe extern "C" fn playsetup() {
         }
         score = 0 as libc::c_int;
         level = 1 as libc::c_int as sword;
-        o[0 as libc::c_int as usize].active = true_0 as libc::c_int as boolean;
+        o[0 as libc::c_int as usize].active = true as boolean;
         o[0 as libc::c_int as usize].class = player as libc::c_int as word;
         o[0 as libc::c_int as usize].hp = 13 as libc::c_int as sbyte;
         o[0 as libc::c_int as usize].dir = west as libc::c_int as word;
@@ -1792,7 +1789,7 @@ pub unsafe extern "C" fn dofkeys() {
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
             if ch as libc::c_int == 'Y' as i32 {
-                resetgame = true_0 as libc::c_int as boolean;
+                resetgame = true as boolean;
             }
         }
         61 => {
@@ -1923,12 +1920,12 @@ pub unsafe extern "C" fn dofkeys() {
                         ::std::mem::size_of::<activeobj>() as libc::c_ulong,
                     );
                     close(handle);
-                    exitdemo = true_0 as libc::c_int as boolean;
+                    exitdemo = true as boolean;
                     if indemo as libc::c_uint != notdemo as libc::c_int as libc::c_uint {
-                        playdone = true_0 as libc::c_int as boolean;
+                        playdone = true as boolean;
                     }
                     drawside();
-                    leveldone = true_0 as libc::c_int as boolean;
+                    leveldone = true as boolean;
                 }
             }
         }
@@ -1969,7 +1966,7 @@ pub unsafe extern "C" fn dotitlepage() {
             || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
         {
             level = 0 as libc::c_int as sword;
-            exitdemo = true_0 as libc::c_int as boolean;
+            exitdemo = true as boolean;
             break;
         } else {
             indemo = demoplay;
@@ -2057,7 +2054,7 @@ pub unsafe extern "C" fn dodemo() {
                 || ctrl.button2 as libc::c_int != 0
                 || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
             {
-                exitdemo = true_0 as libc::c_int as boolean;
+                exitdemo = true as boolean;
                 break;
             } else {
                 if bioskey(1 as libc::c_int) != 0 {
@@ -2272,7 +2269,7 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
     clearkeys();
     screencentery = 11 as libc::c_int;
     screencenterx = 11 as libc::c_int;
-    exitdemo = false_0 as libc::c_int as boolean;
+    exitdemo = false as boolean;
     level = 0 as libc::c_int as sword;
     loop {
         dodemo();
@@ -2281,7 +2278,7 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
         gamestate = ingame;
         playloop();
         if indemo as u64 == 0 {
-            exitdemo = false_0 as libc::c_int as boolean;
+            exitdemo = false as boolean;
             if level as libc::c_int > 30 as libc::c_int {
                 doendpage();
             }

@@ -83,9 +83,6 @@ pub struct SDL_AudioSpec {
 pub type SDL_AudioDeviceID = Uint32;
 pub type SDL_TimerCallback = Option<unsafe extern "C" fn(Uint32, *mut libc::c_void) -> Uint32>;
 pub type SDL_TimerID = libc::c_int;
-pub type C2RustUnnamed = libc::c_uint;
-pub const true_0: C2RustUnnamed = 1;
-pub const false_0: C2RustUnnamed = 0;
 pub type boolean = uint16_t;
 pub type byte = uint8_t;
 pub type word = uint16_t;
@@ -177,7 +174,7 @@ static mut AudioDev: SDL_AudioDeviceID = 0;
 static mut pcVolume: libc::c_short = 5000 as libc::c_int as libc::c_short;
 static mut pcPhaseTick: libc::c_uint = 0 as libc::c_int as libc::c_uint;
 static mut pcPhaseLength: libc::c_uint = 0;
-static mut pcActive: boolean = false_0 as libc::c_int as boolean;
+static mut pcActive: boolean = false as boolean;
 static mut pcSamplesPerTick: libc::c_uint = 0;
 static mut pcNumReadySamples: libc::c_uint = 0 as libc::c_int as libc::c_uint;
 static mut pcLastSample: word = 0 as libc::c_int as word;
@@ -190,11 +187,11 @@ unsafe extern "C" fn _SDL_turnOnPCSpeaker(mut pcSample: word) {
     // result range (u32).
     //
     pcPhaseLength = pcSample as libc::c_uint * AudioSpec.freq as libc::c_uint / (2 * PC_BASE_TIMER);
-    pcActive = true_0 as libc::c_int as boolean;
+    pcActive = true as boolean;
 }
 #[inline]
 unsafe extern "C" fn _SDL_turnOffPCSpeaker() {
-    pcActive = false_0 as libc::c_int as boolean;
+    pcActive = false as boolean;
     pcPhaseTick = 0 as libc::c_int as libc::c_uint;
 }
 #[inline]

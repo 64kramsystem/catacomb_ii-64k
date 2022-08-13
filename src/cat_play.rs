@@ -78,9 +78,6 @@ pub type int16_t = __int16_t;
 pub type int32_t = __int32_t;
 pub type uint8_t = __uint8_t;
 pub type uint16_t = __uint16_t;
-pub type C2RustUnnamed = libc::c_uint;
-pub const true_0: C2RustUnnamed = 1;
-pub const false_0: C2RustUnnamed = 0;
 pub type boolean = uint16_t;
 pub type byte = uint8_t;
 pub type sbyte = int8_t;
@@ -572,7 +569,7 @@ pub unsafe extern "C" fn printbody() {
 pub unsafe extern "C" fn levelcleared() {
     let mut warp: [libc::c_char; 3] = [0; 3];
     let mut value: libc::c_int = 0;
-    leveldone = true_0 as libc::c_int as boolean;
+    leveldone = true as boolean;
     warp[0 as libc::c_int as usize] = (background
         [(altobj.y as libc::c_int + 2 as libc::c_int) as usize][altobj.x as usize]
         as libc::c_char as libc::c_int
@@ -599,7 +596,7 @@ pub unsafe extern "C" fn levelcleared() {
         level += 1;
     }
     if level as libc::c_int > 30 as libc::c_int {
-        playdone = true_0 as libc::c_int as boolean;
+        playdone = true as boolean;
         gamexit = victorious;
     }
 }
@@ -649,10 +646,10 @@ pub unsafe extern "C" fn takekey() -> boolean {
             drawchar(27 as libc::c_int + i, 7 as libc::c_int, 32 as libc::c_int);
         }
         PlaySound(11 as libc::c_int);
-        return true_0 as libc::c_int as boolean;
+        return true as boolean;
     } else {
         PlaySound(14 as libc::c_int);
-        return false_0 as libc::c_int as boolean;
+        return false as boolean;
     };
 }
 #[no_mangle]
@@ -717,7 +714,7 @@ pub unsafe extern "C" fn castnuke() {
     }
     base.delay = 0 as libc::c_int as byte;
     base.stage = 0 as libc::c_int as byte;
-    base.active = true_0 as libc::c_int as boolean;
+    base.active = true as boolean;
     base.x = obj.x;
     base.y = obj.y;
     base.oldx = base.x;
@@ -759,7 +756,7 @@ pub unsafe extern "C" fn playshoot() {
     side ^= 1 as libc::c_int;
     o[new as usize].delay = 0 as libc::c_int as byte;
     o[new as usize].stage = 0 as libc::c_int as byte;
-    o[new as usize].active = true_0 as libc::c_int as boolean;
+    o[new as usize].active = true as boolean;
     o[new as usize].dir = obj.dir;
     match o[new as usize].dir as libc::c_int {
         0 => {
@@ -792,7 +789,7 @@ pub unsafe extern "C" fn playbigshoot() {
     new = newobject();
     o[new as usize].delay = 0 as libc::c_int as byte;
     o[new as usize].stage = 0 as libc::c_int as byte;
-    o[new as usize].active = true_0 as libc::c_int as boolean;
+    o[new as usize].active = true as boolean;
     o[new as usize].dir = obj.dir;
     o[new as usize].x = obj.x;
     o[new as usize].y = obj.y;
@@ -858,7 +855,7 @@ pub unsafe extern "C" fn tagobject() {
             altobj.hp = o[0 as libc::c_int as usize].hp;
             printbody();
             PlaySound(10 as libc::c_int);
-            playdone = true_0 as libc::c_int as boolean;
+            playdone = true as boolean;
             gamexit = killed;
         } else {
             score = score + altobj.points as libc::c_int;
@@ -891,7 +888,7 @@ pub unsafe extern "C" fn tagobject() {
 pub unsafe extern "C" fn intomonster() -> boolean {
     let mut gotit: boolean = 0;
     altnum = 0 as libc::c_int;
-    gotit = false_0 as libc::c_int as boolean;
+    gotit = false as boolean;
     loop {
         altobj.update_from_active(o[altnum as usize]);
         if altobj.class as libc::c_int > nothing as libc::c_int && altnum != objecton {
@@ -907,7 +904,7 @@ pub unsafe extern "C" fn intomonster() -> boolean {
                 && (chky - altobj.y as libc::c_int) < altobj.size as libc::c_int
             {
                 if altobj.solid != 0 {
-                    gotit = true_0 as libc::c_int as boolean;
+                    gotit = true as boolean;
                 } else if objecton == 0 as libc::c_int
                     && (altobj.class as libc::c_int == teleporter as libc::c_int
                         || altobj.class as libc::c_int == secretgate as libc::c_int)
@@ -924,39 +921,39 @@ pub unsafe extern "C" fn intomonster() -> boolean {
         }
     }
     if gotit == 0 {
-        return true_0 as libc::c_int as boolean;
+        return true as boolean;
     }
     match obj.contact as libc::c_int {
-        0 => return false_0 as libc::c_int as boolean,
+        0 => return false as boolean,
         1 | 3 => {
             if altnum == 0 as libc::c_int {
                 tagobject();
                 obj.stage = 2 as libc::c_int as byte;
                 obj.delay = 20 as libc::c_int as byte;
             } else if altobj.class as libc::c_int == shot as libc::c_int {
-                return true_0 as libc::c_int as boolean;
+                return true as boolean;
             }
-            return false_0 as libc::c_int as boolean;
+            return false as boolean;
         }
         2 => {
             if altnum > 0 as libc::c_int {
                 tagobject();
             }
-            return false_0 as libc::c_int as boolean;
+            return false as boolean;
         }
         4 => {
             tagobject();
-            return true_0 as libc::c_int as boolean;
+            return true as boolean;
         }
         _ => {}
     }
-    return false_0 as libc::c_int as boolean;
+    return false as boolean;
 }
 #[no_mangle]
 pub unsafe extern "C" fn walkthrough() -> boolean {
     let mut new: libc::c_int = 0;
     if chkspot == 128 as libc::c_int {
-        return true_0 as libc::c_int as boolean;
+        return true as boolean;
     }
     if chkspot >= 256 as libc::c_int
         && chkspot
@@ -974,7 +971,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
             || obj.contact as libc::c_int == mshot as libc::c_int
         {
             new = newobject();
-            o[new as usize].active = true_0 as libc::c_int as boolean;
+            o[new as usize].active = true as boolean;
             o[new as usize].x = chkx as byte;
             o[new as usize].y = chky as byte;
             o[new as usize].stage = 0 as libc::c_int as byte;
@@ -982,7 +979,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
             o[new as usize].class = wallhit as libc::c_int as word;
             PlaySound(6 as libc::c_int);
         }
-        return false_0 as libc::c_int as boolean;
+        return false as boolean;
     }
     if chkspot >= 136 as libc::c_int && chkspot <= 145 as libc::c_int {
         if obj.contact as libc::c_int == pshot as libc::c_int
@@ -995,19 +992,19 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
                 background[chky as usize][chkx as usize] = chkspot + 19 as libc::c_int;
             }
             new = newobject();
-            o[new as usize].active = true_0 as libc::c_int as boolean;
+            o[new as usize].active = true as boolean;
             o[new as usize].x = chkx as byte;
             o[new as usize].y = chky as byte;
             o[new as usize].stage = 0 as libc::c_int as byte;
             o[new as usize].delay = 2 as libc::c_int as byte;
             o[new as usize].class = dead1 as libc::c_int as word;
             if obj.contact as libc::c_int == pshot as libc::c_int {
-                return false_0 as libc::c_int as boolean;
+                return false as boolean;
             } else {
-                return true_0 as libc::c_int as boolean;
+                return true as boolean;
             }
         } else {
-            return false_0 as libc::c_int as boolean;
+            return false as boolean;
         }
     }
     if chkspot == 162 as libc::c_int {
@@ -1017,7 +1014,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
             background[chky as usize][chkx as usize] = 128 as libc::c_int;
             PlaySound(2 as libc::c_int);
         }
-        return true_0 as libc::c_int as boolean;
+        return true as boolean;
     }
     if chkspot == 163 as libc::c_int {
         if obj.class as libc::c_int == player as libc::c_int {
@@ -1026,7 +1023,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
             background[chky as usize][chkx as usize] = 128 as libc::c_int;
             PlaySound(2 as libc::c_int);
         }
-        return true_0 as libc::c_int as boolean;
+        return true as boolean;
     }
     if chkspot == 164 as libc::c_int {
         if obj.class as libc::c_int == player as libc::c_int {
@@ -1035,16 +1032,16 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
             background[chky as usize][chkx as usize] = 128 as libc::c_int;
             PlaySound(2 as libc::c_int);
         }
-        return true_0 as libc::c_int as boolean;
+        return true as boolean;
     }
     if chkspot == 165 as libc::c_int || chkspot == 166 as libc::c_int {
         if obj.class as libc::c_int == player as libc::c_int {
             if takekey() != 0 {
                 opendoor();
-                return true_0 as libc::c_int as boolean;
+                return true as boolean;
             }
         }
-        return false_0 as libc::c_int as boolean;
+        return false as boolean;
     }
     if chkspot == 167 as libc::c_int {
         if obj.class as libc::c_int == player as libc::c_int {
@@ -1054,12 +1051,12 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
             view[chky as usize][chkx as usize] = 128 as libc::c_int;
             PlaySound(3 as libc::c_int);
         }
-        return true_0 as libc::c_int as boolean;
+        return true as boolean;
     }
     if chkspot >= 29 as libc::c_int && chkspot <= 31 as libc::c_int {
-        return true_0 as libc::c_int as boolean;
+        return true as boolean;
     }
-    return false_0 as libc::c_int as boolean;
+    return false as boolean;
 }
 #[no_mangle]
 pub unsafe extern "C" fn walk() -> boolean {
@@ -1102,7 +1099,7 @@ pub unsafe extern "C" fn walk() -> boolean {
             deltax = 0 as libc::c_int;
             deltay = 1 as libc::c_int;
         }
-        _ => return false_0 as libc::c_int as boolean,
+        _ => return false as boolean,
     }
     i = 1 as libc::c_int;
     while i <= obj.size as libc::c_int {
@@ -1110,13 +1107,13 @@ pub unsafe extern "C" fn walk() -> boolean {
         if chkspot != 128 as libc::c_int {
             try_0 = walkthrough();
             if leveldone != 0 {
-                return true_0 as libc::c_int as boolean;
+                return true as boolean;
             }
             if obj.stage as libc::c_int == 2 as libc::c_int {
-                return true_0 as libc::c_int as boolean;
+                return true as boolean;
             }
             if try_0 == 0 {
-                return false_0 as libc::c_int as boolean;
+                return false as boolean;
             }
         }
         chkx = chkx + deltax;
@@ -1126,7 +1123,7 @@ pub unsafe extern "C" fn walk() -> boolean {
     obj.x = newx as byte;
     obj.y = newy as byte;
     obj.stage = (obj.stage as libc::c_int ^ 1 as libc::c_int) as byte;
-    return true_0 as libc::c_int as boolean;
+    return true as boolean;
 }
 #[no_mangle]
 pub unsafe extern "C" fn playercmdthink() {
@@ -1256,26 +1253,24 @@ pub unsafe extern "C" fn playercmdthink() {
         {
             if (obj.hp as libc::c_int) < 13 as libc::c_int {
                 takepotion();
-                keydown[SDL_SCANCODE_Q as libc::c_int as usize] = false_0 as libc::c_int as boolean;
-                keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] =
-                    false_0 as libc::c_int as boolean;
+                keydown[SDL_SCANCODE_Q as libc::c_int as usize] = false as boolean;
+                keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] = false as boolean;
             }
         } else if keydown[SDL_SCANCODE_B as libc::c_int as usize] != 0 {
             castbolt();
-            keydown[SDL_SCANCODE_B as libc::c_int as usize] = false_0 as libc::c_int as boolean;
+            keydown[SDL_SCANCODE_B as libc::c_int as usize] = false as boolean;
         } else if keydown[SDL_SCANCODE_N as libc::c_int as usize] as libc::c_int != 0
             || keydown[SDL_SCANCODE_RETURN as libc::c_int as usize] as libc::c_int != 0
         {
             castnuke();
-            keydown[SDL_SCANCODE_N as libc::c_int as usize] = false_0 as libc::c_int as boolean;
-            keydown[SDL_SCANCODE_RETURN as libc::c_int as usize] =
-                false_0 as libc::c_int as boolean;
+            keydown[SDL_SCANCODE_N as libc::c_int as usize] = false as boolean;
+            keydown[SDL_SCANCODE_RETURN as libc::c_int as usize] = false as boolean;
         }
     }
     dofkeys();
     if resetgame != 0 {
-        resetgame = false_0 as libc::c_int as boolean;
-        playdone = true_0 as libc::c_int as boolean;
+        resetgame = false as boolean;
+        playdone = true as boolean;
         return;
     }
     match indemo as libc::c_uint {
@@ -1295,7 +1290,7 @@ pub unsafe extern "C" fn playercmdthink() {
                     level = 30 as libc::c_int as sword;
                 }
                 restore();
-                leveldone = true_0 as libc::c_int as boolean;
+                leveldone = true as boolean;
             }
             if keydown[SDL_SCANCODE_C as libc::c_int as usize] as libc::c_int != 0
                 && keydown[SDL_SCANCODE_T as libc::c_int as usize] as libc::c_int != 0
@@ -1304,11 +1299,11 @@ pub unsafe extern "C" fn playercmdthink() {
                 if GODMODE != 0 {
                     centerwindow(13 as libc::c_int, 1 as libc::c_int);
                     print(b"God Mode Off\0" as *const u8 as *const libc::c_char);
-                    GODMODE = false_0 as libc::c_int as boolean;
+                    GODMODE = false as boolean;
                 } else {
                     centerwindow(12 as libc::c_int, 1 as libc::c_int);
                     print(b"God Mode On\0" as *const u8 as *const libc::c_char);
-                    GODMODE = true_0 as libc::c_int as boolean;
+                    GODMODE = true as boolean;
                 }
                 UpdateScreen();
                 clearkeys();
@@ -1327,8 +1322,8 @@ pub unsafe extern "C" fn playercmdthink() {
                 || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
             {
                 indemo = demoplay;
-                exitdemo = true_0 as libc::c_int as boolean;
-                leveldone = true_0 as libc::c_int as boolean;
+                exitdemo = true as boolean;
+                leveldone = true as boolean;
                 level = 0 as libc::c_int as sword;
                 return;
             }
@@ -1443,7 +1438,7 @@ pub unsafe extern "C" fn gargthink() {
         o[n as usize].class = rock as libc::c_int as word;
         o[n as usize].delay = 0 as libc::c_int as byte;
         o[n as usize].stage = 0 as libc::c_int as byte;
-        o[n as usize].active = true_0 as libc::c_int as boolean;
+        o[n as usize].active = true as boolean;
         o[n as usize].dir = obj.dir;
         match obj.dir as libc::c_int {
             0 => {
@@ -1466,7 +1461,7 @@ pub unsafe extern "C" fn gargthink() {
         }
         return;
     } else {
-        chasethink(false_0 as libc::c_int as boolean);
+        chasethink(false as boolean);
     };
 }
 #[no_mangle]
@@ -1480,7 +1475,7 @@ pub unsafe extern "C" fn dragonthink() {
         o[n as usize].class = bigshot as libc::c_int as word;
         o[n as usize].delay = 0 as libc::c_int as byte;
         o[n as usize].stage = 0 as libc::c_int as byte;
-        o[n as usize].active = true_0 as libc::c_int as boolean;
+        o[n as usize].active = true as boolean;
         o[n as usize].dir = obj.dir;
         match o[n as usize].dir as libc::c_int {
             0 => {
@@ -1503,7 +1498,7 @@ pub unsafe extern "C" fn dragonthink() {
         }
         return;
     } else {
-        chasethink(false_0 as libc::c_int as boolean);
+        chasethink(false as boolean);
     };
 }
 #[no_mangle]
@@ -1515,7 +1510,7 @@ pub unsafe extern "C" fn gunthink(mut dir: libc::c_int) {
     o[n as usize].class = bigshot as libc::c_int as word;
     o[n as usize].delay = 0 as libc::c_int as byte;
     o[n as usize].stage = 0 as libc::c_int as byte;
-    o[n as usize].active = true_0 as libc::c_int as boolean;
+    o[n as usize].active = true as boolean;
     o[n as usize].dir = dir as word;
     o[n as usize].x = obj.x;
     o[n as usize].y = obj.y;
@@ -1563,7 +1558,7 @@ pub unsafe extern "C" fn killnear(mut chkx_0: libc::c_int, mut chky_0: libc::c_i
         background[chky_0 as usize][chkx_0 as usize] = spot + 19 as libc::c_int;
     }
     new = newobject();
-    o[new as usize].active = true_0 as libc::c_int as boolean;
+    o[new as usize].active = true as boolean;
     o[new as usize].x = chkx_0 as byte;
     o[new as usize].y = chky_0 as byte;
     o[new as usize].stage = 0 as libc::c_int as byte;
@@ -1606,10 +1601,10 @@ pub unsafe extern "C" fn think() {
                 playercmdthink();
             }
             3 => {
-                chasethink(false_0 as libc::c_int as boolean);
+                chasethink(false as boolean);
             }
             4 => {
-                chasethink(true_0 as libc::c_int as boolean);
+                chasethink(true as boolean);
             }
             1 => {
                 gargthink();
@@ -1647,7 +1642,7 @@ pub unsafe extern "C" fn doactive() {
             || (obj.y as libc::c_int) < originy - 10 as libc::c_int
             || obj.y as libc::c_int > originy + 34 as libc::c_int)
     {
-        o[objecton as usize].active = false_0 as libc::c_int as boolean;
+        o[objecton as usize].active = false as boolean;
     } else {
         think();
         eraseobj();
@@ -1671,7 +1666,7 @@ pub unsafe extern "C" fn doinactive() {
         && obj.y as libc::c_int + obj.size as libc::c_int >= originy
         && (obj.y as libc::c_int) < originy + 24 as libc::c_int
     {
-        obj.active = true_0 as libc::c_int as boolean;
+        obj.active = true as boolean;
         obj.dir = north as libc::c_int as word;
         o[objecton as usize] = obj.into();
     }
@@ -1690,7 +1685,7 @@ pub unsafe extern "C" fn playloop() {
         }
         clearold();
         loadlevel();
-        leveldone = false_0 as libc::c_int as boolean;
+        leveldone = false as boolean;
         if keydown[SDL_SCANCODE_F7 as libc::c_int as usize] as libc::c_int != 0
             && keydown[SDL_SCANCODE_D as libc::c_int as usize] as libc::c_int != 0
         {
@@ -1710,11 +1705,11 @@ pub unsafe extern "C" fn playloop() {
             clearold();
             clearkeys();
         }
-        playdone = false_0 as libc::c_int as boolean;
+        playdone = false as boolean;
         frameon = 0 as libc::c_int as word;
         boltsleft = 0 as libc::c_int;
         shotpower = 0 as libc::c_int;
-        initrndt(false_0 as libc::c_int as boolean);
+        initrndt(false as boolean);
         printshotpower();
         doall();
         if indemo as libc::c_uint == recording as libc::c_int as libc::c_uint {
@@ -1733,7 +1728,7 @@ pub unsafe extern "C" fn playloop() {
             refresh();
         }
         if indemo as u64 != 0 {
-            playdone = true_0 as libc::c_int as boolean;
+            playdone = true as boolean;
         }
         if !(playdone == 0) {
             break;
