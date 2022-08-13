@@ -13,7 +13,7 @@
 #![feature(register_tool)]
 #[allow(unused_imports)] // the import is actually used!
 use ::catacomb_lib::*;
-use catacomb_lib::extra_constants::O_BINARY;
+use catacomb_lib::extra_constants::{NUM_DEMOS, O_BINARY};
 use libc::O_RDONLY;
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
@@ -2033,7 +2033,7 @@ pub unsafe extern "C" fn dodemo() {
         if exitdemo != 0 {
             break;
         }
-        i = rnd((1 as libc::c_int - 1 as libc::c_int) as word) + 1 as libc::c_int;
+        i = rnd(NUM_DEMOS - 1) + 1 as libc::c_int;
         LoadDemo(i);
         level = 0 as libc::c_int as sword;
         playsetup();
