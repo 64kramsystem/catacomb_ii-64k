@@ -1672,6 +1672,7 @@ pub unsafe extern "C" fn US_CheckParm(
 
 pub fn main() {
     let mut args: Vec<*mut libc::c_char> = Vec::new();
+
     for arg in ::std::env::args() {
         args.push(
             (::std::ffi::CString::new(arg))
@@ -1691,12 +1692,15 @@ pub fn main() {
             );
             exit(0);
         }
+
         initobjects();
+
         memset(
             &mut priority as *mut [byte; 2048] as *mut libc::c_void,
             99,
             ::std::mem::size_of::<[byte; 2048]>() as libc::c_ulong,
         );
+
         priority[128] = 0;
         i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
         while i <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20 {
@@ -1746,7 +1750,9 @@ pub fn main() {
             priority[i as usize] = 5; /*player*/
             i += 1;
         }
+
         side = 0;
+
         let mut x: libc::c_int = 0;
         let mut y: libc::c_int = 0;
         x = 0;
@@ -1781,8 +1787,11 @@ pub fn main() {
 
         _numlevels = 30;
         _maxplayers = 1;
+
         _extension = b"CA2\0" as *const u8 as *const libc::c_char;
+
         _setupgame(args);
+
         expwin(33, 13);
         print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const libc::c_char);
         print(b"          The Catacomb\n\n\0" as *const u8 as *const libc::c_char);
@@ -1793,9 +1802,12 @@ pub fn main() {
         print(b"\n\n\0" as *const u8 as *const libc::c_char);
         print(b"         Press a key:\0" as *const u8 as *const libc::c_char);
         get();
+
         clearkeys();
+
         screencentery = 11;
         screencenterx = 11;
+
         exitdemo = false as boolean;
         level = 0;
 
