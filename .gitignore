@@ -13,6 +13,10 @@ source_project/catacomb
 
 *.CA2
 
+# Visual Studio stuff
+
+/build
+
 # CMake commands, for C2Rust
 
 source_project/compile_commands.json
