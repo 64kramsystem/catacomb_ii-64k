@@ -225,16 +225,8 @@ pub unsafe extern "C" fn eraseobj() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn doall() {
-    if numobj > 0 {
-    } else {
-        __assert_fail(
-            b"numobj > 0\0" as *const u8 as *const libc::c_char,
-            b"/home/saverio/code/catacomb_ii_sdl-dev/source_project/catasm.c\0" as *const u8
-                as *const libc::c_char,
-            119,
-            (*::std::mem::transmute::<&[u8; 13], &[libc::c_char; 13]>(b"void doall()\0")).as_ptr(),
-        );
-    }
+    assert!(numobj > 0);
+
     loop {
         objecton = numobj;
         loop {
