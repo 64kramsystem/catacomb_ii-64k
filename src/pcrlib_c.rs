@@ -1190,7 +1190,7 @@ unsafe extern "C" fn WatchUIEvents(
             12 => {
                 while SDL_GetMouseFocus() != window {
                     SDL_PumpEvents();
-                    SDL_Delay(10 as libc::c_int as Uint32);
+                    SDL_Delay(10);
                 }
                 hasFocus = true as boolean;
                 CheckMouseMode();
@@ -1832,29 +1832,10 @@ pub unsafe extern "C" fn bioskey(mut cmd: libc::c_int) -> libc::c_int {
 #[no_mangle]
 pub unsafe extern "C" fn UpdateScreen() {
     static mut EGAPalette: [Uint32; 16] = [
-        0 as libc::c_int as Uint32,
-        0xaa as libc::c_int as Uint32,
-        0xaa00 as libc::c_int as Uint32,
-        0xaaaa as libc::c_int as Uint32,
-        0xaa0000 as libc::c_int as Uint32,
-        0xaa00aa as libc::c_int as Uint32,
-        0xaa5500 as libc::c_int as Uint32,
-        0xaaaaaa as libc::c_int as Uint32,
-        0x555555 as libc::c_int as Uint32,
-        0x5555ff as libc::c_int as Uint32,
-        0x55ff55 as libc::c_int as Uint32,
-        0x55ffff as libc::c_int as Uint32,
-        0xff5555 as libc::c_int as Uint32,
-        0xff55ff as libc::c_int as Uint32,
-        0xffff55 as libc::c_int as Uint32,
-        0xffffff as libc::c_int as Uint32,
+        0, 0xaa, 0xaa00, 0xaaaa, 0xaa0000, 0xaa00aa, 0xaa5500, 0xaaaaaa, 0x555555, 0x5555ff,
+        0x55ff55, 0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff,
     ];
-    static mut CGAPalette: [Uint32; 4] = [
-        0 as libc::c_int as Uint32,
-        0x55ffff as libc::c_int as Uint32,
-        0xff55ff as libc::c_int as Uint32,
-        0xffffff as libc::c_int as Uint32,
-    ];
+    static mut CGAPalette: [Uint32; 4] = [0, 0x55ffff, 0xff55ff, 0xffffff];
     static mut conv: [Uint32; 64000] = [0; 64000];
     let mut i: size_t = 0 as libc::c_int as size_t;
     if grmode as libc::c_uint == EGAgr as libc::c_int as libc::c_uint {
@@ -2324,25 +2305,25 @@ pub unsafe extern "C" fn _loadctrls() {
     if handle == -(1 as libc::c_int) {
         grmode = VGAgr;
         soundmode = spkr;
-        playermode[1 as libc::c_int as usize] = keyboard;
-        playermode[2 as libc::c_int as usize] = joystick1;
-        JoyXlow[2 as libc::c_int as usize] = 20 as libc::c_int;
-        JoyXlow[1 as libc::c_int as usize] = JoyXlow[2 as libc::c_int as usize];
-        JoyXhigh[2 as libc::c_int as usize] = 60 as libc::c_int;
-        JoyXhigh[1 as libc::c_int as usize] = JoyXhigh[2 as libc::c_int as usize];
-        JoyYlow[2 as libc::c_int as usize] = 20 as libc::c_int;
-        JoyYlow[1 as libc::c_int as usize] = JoyYlow[2 as libc::c_int as usize];
-        JoyYhigh[2 as libc::c_int as usize] = 60 as libc::c_int;
-        JoyYhigh[1 as libc::c_int as usize] = JoyYhigh[2 as libc::c_int as usize];
-        MouseSensitivity = 5 as libc::c_int;
-        key[north as libc::c_int as usize] = SDL_SCANCODE_UP as libc::c_int;
-        key[northeast as libc::c_int as usize] = SDL_SCANCODE_PAGEUP as libc::c_int;
-        key[east as libc::c_int as usize] = SDL_SCANCODE_RIGHT as libc::c_int;
-        key[southeast as libc::c_int as usize] = SDL_SCANCODE_PAGEDOWN as libc::c_int;
-        key[south as libc::c_int as usize] = SDL_SCANCODE_DOWN as libc::c_int;
-        key[southwest as libc::c_int as usize] = SDL_SCANCODE_END as libc::c_int;
-        key[west as libc::c_int as usize] = SDL_SCANCODE_LEFT as libc::c_int;
-        key[northwest as libc::c_int as usize] = SDL_SCANCODE_HOME as libc::c_int;
+        playermode[1] = keyboard;
+        playermode[2] = joystick1;
+        JoyXlow[2] = 20;
+        JoyXlow[1] = JoyXlow[2];
+        JoyXhigh[2] = 60;
+        JoyXhigh[1] = JoyXhigh[2];
+        JoyYlow[2] = 20;
+        JoyYlow[1] = JoyYlow[2];
+        JoyYhigh[2] = 60;
+        JoyYhigh[1] = JoyYhigh[2];
+        MouseSensitivity = 5;
+        key[north as usize] = SDL_SCANCODE_UP as libc::c_int;
+        key[northeast as usize] = SDL_SCANCODE_PAGEUP as libc::c_int;
+        key[east as usize] = SDL_SCANCODE_RIGHT as libc::c_int;
+        key[southeast as usize] = SDL_SCANCODE_PAGEDOWN as libc::c_int;
+        key[south as usize] = SDL_SCANCODE_DOWN as libc::c_int;
+        key[southwest as usize] = SDL_SCANCODE_END as libc::c_int;
+        key[west as usize] = SDL_SCANCODE_LEFT as libc::c_int;
+        key[northwest as usize] = SDL_SCANCODE_HOME as libc::c_int;
         keyB1 = SDL_SCANCODE_LCTRL as libc::c_int;
         keyB2 = SDL_SCANCODE_LALT as libc::c_int;
     } else {
@@ -2436,19 +2417,18 @@ pub unsafe extern "C" fn _savectrls() {
     }
     ctlpanel.grmode = grmode as word;
     ctlpanel.soundmode = soundmode as word;
-    let mut i: libc::c_uint = 0;
-    i = 0 as libc::c_int as libc::c_uint;
-    while i < 3 as libc::c_int as libc::c_uint {
-        ctlpanel.playermode[i as usize] = playermode[i as usize] as word;
-        ctlpanel.JoyXlow[i as usize] = JoyXlow[i as usize] as sword;
-        ctlpanel.JoyYlow[i as usize] = JoyYlow[i as usize] as sword;
-        ctlpanel.JoyXhigh[i as usize] = JoyXhigh[i as usize] as sword;
-        ctlpanel.JoyYhigh[i as usize] = JoyYhigh[i as usize] as sword;
+    let mut i = 0;
+    while i < 3 {
+        ctlpanel.playermode[i] = playermode[i] as word;
+        ctlpanel.JoyXlow[i] = JoyXlow[i] as sword;
+        ctlpanel.JoyYlow[i] = JoyYlow[i] as sword;
+        ctlpanel.JoyXhigh[i] = JoyXhigh[i] as sword;
+        ctlpanel.JoyYhigh[i] = JoyYhigh[i] as sword;
         i = i.wrapping_add(1);
     }
     ctlpanel.MouseSensitivity = MouseSensitivity as sword;
-    i = 0 as libc::c_int as libc::c_uint;
-    while i < 8 as libc::c_int as libc::c_uint {
+    i = 0;
+    while i < 8 {
         ctlpanel.key[i as usize] = ScancodeToDOS(key[i as usize] as SDL_Scancode) as byte;
         i = i.wrapping_add(1);
     }
@@ -2703,7 +2683,7 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
         }) as Uint32,
     );
     if window.is_null() || {
-        renderer = SDL_CreateRenderer(window, -(1 as libc::c_int), 0 as libc::c_int as Uint32);
+        renderer = SDL_CreateRenderer(window, -(1 as libc::c_int), 0);
         renderer.is_null()
     } {
         fprintf(
@@ -2715,7 +2695,7 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
     }
     sdltexture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_ARGB8888 as libc::c_int as Uint32,
+        SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING as libc::c_int,
         320 as libc::c_int,
         200 as libc::c_int,

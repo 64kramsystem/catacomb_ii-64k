@@ -209,7 +209,7 @@ unsafe extern "C" fn _SDL_PCService() {
         pcLengthLeft = pcLengthLeft.wrapping_sub(1);
         if pcLengthLeft == 0 {
             pcSound = 0 as *mut word;
-            SndPriority = 0 as libc::c_int as byte;
+            SndPriority = 0;
             _SDL_turnOffPCSpeaker();
         }
     }
@@ -382,7 +382,7 @@ pub unsafe extern "C" fn PauseSound() {
     SavedSound.pcSamplesPerTick = pcSamplesPerTick;
     SavedSound.pcLengthLeft = pcLengthLeft;
     SavedSound.pcSound = pcSound;
-    SndPriority = 0 as libc::c_int as byte;
+    SndPriority = 0;
     pcLengthLeft = 0 as libc::c_int as libc::c_uint;
     pcSound = 0 as *mut word;
     _SDL_turnOffPCSpeaker();
@@ -412,285 +412,26 @@ pub unsafe extern "C" fn WaitEndSound() {
 }
 static mut rndindex: word = 0;
 static mut rndtable: [byte; 256] = [
-    0 as libc::c_int as byte,
-    8 as libc::c_int as byte,
-    109 as libc::c_int as byte,
-    220 as libc::c_int as byte,
-    222 as libc::c_int as byte,
-    241 as libc::c_int as byte,
-    149 as libc::c_int as byte,
-    107 as libc::c_int as byte,
-    75 as libc::c_int as byte,
-    248 as libc::c_int as byte,
-    254 as libc::c_int as byte,
-    140 as libc::c_int as byte,
-    16 as libc::c_int as byte,
-    66 as libc::c_int as byte,
-    74 as libc::c_int as byte,
-    21 as libc::c_int as byte,
-    211 as libc::c_int as byte,
-    47 as libc::c_int as byte,
-    80 as libc::c_int as byte,
-    242 as libc::c_int as byte,
-    154 as libc::c_int as byte,
-    27 as libc::c_int as byte,
-    205 as libc::c_int as byte,
-    128 as libc::c_int as byte,
-    161 as libc::c_int as byte,
-    89 as libc::c_int as byte,
-    77 as libc::c_int as byte,
-    36 as libc::c_int as byte,
-    95 as libc::c_int as byte,
-    110 as libc::c_int as byte,
-    85 as libc::c_int as byte,
-    48 as libc::c_int as byte,
-    212 as libc::c_int as byte,
-    140 as libc::c_int as byte,
-    211 as libc::c_int as byte,
-    249 as libc::c_int as byte,
-    22 as libc::c_int as byte,
-    79 as libc::c_int as byte,
-    200 as libc::c_int as byte,
-    50 as libc::c_int as byte,
-    28 as libc::c_int as byte,
-    188 as libc::c_int as byte,
-    52 as libc::c_int as byte,
-    140 as libc::c_int as byte,
-    202 as libc::c_int as byte,
-    120 as libc::c_int as byte,
-    68 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    62 as libc::c_int as byte,
-    70 as libc::c_int as byte,
-    184 as libc::c_int as byte,
-    190 as libc::c_int as byte,
-    91 as libc::c_int as byte,
-    197 as libc::c_int as byte,
-    152 as libc::c_int as byte,
-    224 as libc::c_int as byte,
-    149 as libc::c_int as byte,
-    104 as libc::c_int as byte,
-    25 as libc::c_int as byte,
-    178 as libc::c_int as byte,
-    252 as libc::c_int as byte,
-    182 as libc::c_int as byte,
-    202 as libc::c_int as byte,
-    182 as libc::c_int as byte,
-    141 as libc::c_int as byte,
-    197 as libc::c_int as byte,
-    4 as libc::c_int as byte,
-    81 as libc::c_int as byte,
-    181 as libc::c_int as byte,
-    242 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    42 as libc::c_int as byte,
-    39 as libc::c_int as byte,
-    227 as libc::c_int as byte,
-    156 as libc::c_int as byte,
-    198 as libc::c_int as byte,
-    225 as libc::c_int as byte,
-    193 as libc::c_int as byte,
-    219 as libc::c_int as byte,
-    93 as libc::c_int as byte,
-    122 as libc::c_int as byte,
-    175 as libc::c_int as byte,
-    249 as libc::c_int as byte,
-    0 as libc::c_int as byte,
-    175 as libc::c_int as byte,
-    143 as libc::c_int as byte,
-    70 as libc::c_int as byte,
-    239 as libc::c_int as byte,
-    46 as libc::c_int as byte,
-    246 as libc::c_int as byte,
-    163 as libc::c_int as byte,
-    53 as libc::c_int as byte,
-    163 as libc::c_int as byte,
-    109 as libc::c_int as byte,
-    168 as libc::c_int as byte,
-    135 as libc::c_int as byte,
-    2 as libc::c_int as byte,
-    235 as libc::c_int as byte,
-    25 as libc::c_int as byte,
-    92 as libc::c_int as byte,
-    20 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    138 as libc::c_int as byte,
-    77 as libc::c_int as byte,
-    69 as libc::c_int as byte,
-    166 as libc::c_int as byte,
-    78 as libc::c_int as byte,
-    176 as libc::c_int as byte,
-    173 as libc::c_int as byte,
-    212 as libc::c_int as byte,
-    166 as libc::c_int as byte,
-    113 as libc::c_int as byte,
-    94 as libc::c_int as byte,
-    161 as libc::c_int as byte,
-    41 as libc::c_int as byte,
-    50 as libc::c_int as byte,
-    239 as libc::c_int as byte,
-    49 as libc::c_int as byte,
-    111 as libc::c_int as byte,
-    164 as libc::c_int as byte,
-    70 as libc::c_int as byte,
-    60 as libc::c_int as byte,
-    2 as libc::c_int as byte,
-    37 as libc::c_int as byte,
-    171 as libc::c_int as byte,
-    75 as libc::c_int as byte,
-    136 as libc::c_int as byte,
-    156 as libc::c_int as byte,
-    11 as libc::c_int as byte,
-    56 as libc::c_int as byte,
-    42 as libc::c_int as byte,
-    146 as libc::c_int as byte,
-    138 as libc::c_int as byte,
-    229 as libc::c_int as byte,
-    73 as libc::c_int as byte,
-    146 as libc::c_int as byte,
-    77 as libc::c_int as byte,
-    61 as libc::c_int as byte,
-    98 as libc::c_int as byte,
-    196 as libc::c_int as byte,
-    135 as libc::c_int as byte,
-    106 as libc::c_int as byte,
-    63 as libc::c_int as byte,
-    197 as libc::c_int as byte,
-    195 as libc::c_int as byte,
-    86 as libc::c_int as byte,
-    96 as libc::c_int as byte,
-    203 as libc::c_int as byte,
-    113 as libc::c_int as byte,
-    101 as libc::c_int as byte,
-    170 as libc::c_int as byte,
-    247 as libc::c_int as byte,
-    181 as libc::c_int as byte,
-    113 as libc::c_int as byte,
-    80 as libc::c_int as byte,
-    250 as libc::c_int as byte,
-    108 as libc::c_int as byte,
-    7 as libc::c_int as byte,
-    255 as libc::c_int as byte,
-    237 as libc::c_int as byte,
-    129 as libc::c_int as byte,
-    226 as libc::c_int as byte,
-    79 as libc::c_int as byte,
-    107 as libc::c_int as byte,
-    112 as libc::c_int as byte,
-    166 as libc::c_int as byte,
-    103 as libc::c_int as byte,
-    241 as libc::c_int as byte,
-    24 as libc::c_int as byte,
-    223 as libc::c_int as byte,
-    239 as libc::c_int as byte,
-    120 as libc::c_int as byte,
-    198 as libc::c_int as byte,
-    58 as libc::c_int as byte,
-    60 as libc::c_int as byte,
-    82 as libc::c_int as byte,
-    128 as libc::c_int as byte,
-    3 as libc::c_int as byte,
-    184 as libc::c_int as byte,
-    66 as libc::c_int as byte,
-    143 as libc::c_int as byte,
-    224 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    224 as libc::c_int as byte,
-    81 as libc::c_int as byte,
-    206 as libc::c_int as byte,
-    163 as libc::c_int as byte,
-    45 as libc::c_int as byte,
-    63 as libc::c_int as byte,
-    90 as libc::c_int as byte,
-    168 as libc::c_int as byte,
-    114 as libc::c_int as byte,
-    59 as libc::c_int as byte,
-    33 as libc::c_int as byte,
-    159 as libc::c_int as byte,
-    95 as libc::c_int as byte,
-    28 as libc::c_int as byte,
-    139 as libc::c_int as byte,
-    123 as libc::c_int as byte,
-    98 as libc::c_int as byte,
-    125 as libc::c_int as byte,
-    196 as libc::c_int as byte,
-    15 as libc::c_int as byte,
-    70 as libc::c_int as byte,
-    194 as libc::c_int as byte,
-    253 as libc::c_int as byte,
-    54 as libc::c_int as byte,
-    14 as libc::c_int as byte,
-    109 as libc::c_int as byte,
-    226 as libc::c_int as byte,
-    71 as libc::c_int as byte,
-    17 as libc::c_int as byte,
-    161 as libc::c_int as byte,
-    93 as libc::c_int as byte,
-    186 as libc::c_int as byte,
-    87 as libc::c_int as byte,
-    244 as libc::c_int as byte,
-    138 as libc::c_int as byte,
-    20 as libc::c_int as byte,
-    52 as libc::c_int as byte,
-    123 as libc::c_int as byte,
-    251 as libc::c_int as byte,
-    26 as libc::c_int as byte,
-    36 as libc::c_int as byte,
-    17 as libc::c_int as byte,
-    46 as libc::c_int as byte,
-    52 as libc::c_int as byte,
-    231 as libc::c_int as byte,
-    232 as libc::c_int as byte,
-    76 as libc::c_int as byte,
-    31 as libc::c_int as byte,
-    221 as libc::c_int as byte,
-    84 as libc::c_int as byte,
-    37 as libc::c_int as byte,
-    216 as libc::c_int as byte,
-    165 as libc::c_int as byte,
-    212 as libc::c_int as byte,
-    106 as libc::c_int as byte,
-    197 as libc::c_int as byte,
-    242 as libc::c_int as byte,
-    98 as libc::c_int as byte,
-    43 as libc::c_int as byte,
-    39 as libc::c_int as byte,
-    175 as libc::c_int as byte,
-    254 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    190 as libc::c_int as byte,
-    84 as libc::c_int as byte,
-    118 as libc::c_int as byte,
-    222 as libc::c_int as byte,
-    187 as libc::c_int as byte,
-    136 as libc::c_int as byte,
-    120 as libc::c_int as byte,
-    163 as libc::c_int as byte,
-    236 as libc::c_int as byte,
-    249 as libc::c_int as byte,
+    0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66, 74, 21, 211, 47, 80, 242, 154,
+    27, 205, 128, 161, 89, 77, 36, 95, 110, 85, 48, 212, 140, 211, 249, 22, 79, 200, 50, 28, 188,
+    52, 140, 202, 120, 68, 145, 62, 70, 184, 190, 91, 197, 152, 224, 149, 104, 25, 178, 252, 182,
+    202, 182, 141, 197, 4, 81, 181, 242, 145, 42, 39, 227, 156, 198, 225, 193, 219, 93, 122, 175,
+    249, 0, 175, 143, 70, 239, 46, 246, 163, 53, 163, 109, 168, 135, 2, 235, 25, 92, 20, 145, 138,
+    77, 69, 166, 78, 176, 173, 212, 166, 113, 94, 161, 41, 50, 239, 49, 111, 164, 70, 60, 2, 37,
+    171, 75, 136, 156, 11, 56, 42, 146, 138, 229, 73, 146, 77, 61, 98, 196, 135, 106, 63, 197, 195,
+    86, 96, 203, 113, 101, 170, 247, 181, 113, 80, 250, 108, 7, 255, 237, 129, 226, 79, 107, 112,
+    166, 103, 241, 24, 223, 239, 120, 198, 58, 60, 82, 128, 3, 184, 66, 143, 224, 145, 224, 81,
+    206, 163, 45, 63, 90, 168, 114, 59, 33, 159, 95, 28, 139, 123, 98, 125, 196, 15, 70, 194, 253,
+    54, 14, 109, 226, 71, 17, 161, 93, 186, 87, 244, 138, 20, 52, 123, 251, 26, 36, 17, 46, 52,
+    231, 232, 76, 31, 221, 84, 37, 216, 165, 212, 106, 197, 242, 98, 43, 39, 175, 254, 145, 190,
+    84, 118, 222, 187, 136, 120, 163, 236, 249,
 ];
 static mut indexi: word = 0;
 static mut indexj: word = 0;
 static mut LastRnd: word = 0;
 static mut RndArray: [word; 17] = [0; 17];
 static mut baseRndArray: [word; 17] = [
-    1 as libc::c_int as word,
-    1 as libc::c_int as word,
-    2 as libc::c_int as word,
-    3 as libc::c_int as word,
-    5 as libc::c_int as word,
-    8 as libc::c_int as word,
-    13 as libc::c_int as word,
-    21 as libc::c_int as word,
-    54 as libc::c_int as word,
-    75 as libc::c_int as word,
-    129 as libc::c_int as word,
-    204 as libc::c_int as word,
-    323 as libc::c_int as word,
-    527 as libc::c_int as word,
-    850 as libc::c_int as word,
-    1377 as libc::c_int as word,
-    2227 as libc::c_int as word,
+    1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
 #[no_mangle]
 pub unsafe extern "C" fn initrnd(mut randomize: boolean) {
@@ -699,9 +440,9 @@ pub unsafe extern "C" fn initrnd(mut randomize: boolean) {
         baseRndArray.as_mut_ptr() as *const libc::c_void,
         ::std::mem::size_of::<[word; 17]>() as libc::c_ulong,
     );
-    LastRnd = 0 as libc::c_int as word;
-    indexi = 17 as libc::c_int as word;
-    indexj = 5 as libc::c_int as word;
+    LastRnd = 0;
+    indexi = 17;
+    indexj = 5;
     if randomize != 0 {
         let mut now: time_t = time(0 as *mut time_t);
         RndArray[16 as libc::c_int as usize] =
@@ -871,26 +612,26 @@ pub unsafe extern "C" fn drawchar(
                 ];
                 let fresh3 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh3 = EGA(chan.as_ptr(), 7 as libc::c_int as byte);
+                *fresh3 = EGA(chan.as_ptr(), 7);
                 let fresh4 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh4 = EGA(chan.as_ptr(), 6 as libc::c_int as byte);
+                *fresh4 = EGA(chan.as_ptr(), 6);
                 let fresh5 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh5 = EGA(chan.as_ptr(), 5 as libc::c_int as byte);
+                *fresh5 = EGA(chan.as_ptr(), 5);
                 let fresh6 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh6 = EGA(chan.as_ptr(), 4 as libc::c_int as byte);
+                *fresh6 = EGA(chan.as_ptr(), 4);
                 let fresh7 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh7 = EGA(chan.as_ptr(), 3 as libc::c_int as byte);
+                *fresh7 = EGA(chan.as_ptr(), 3);
                 let fresh8 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh8 = EGA(chan.as_ptr(), 2 as libc::c_int as byte);
+                *fresh8 = EGA(chan.as_ptr(), 2);
                 let fresh9 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh9 = EGA(chan.as_ptr(), 1 as libc::c_int as byte);
-                *vbuf = EGA(chan.as_ptr(), 0 as libc::c_int as byte);
+                *fresh9 = EGA(chan.as_ptr(), 1);
+                *vbuf = EGA(chan.as_ptr(), 0);
                 vbuf = vbuf.offset((screenpitch as libc::c_int - 7 as libc::c_int) as isize);
                 i = i.wrapping_add(1);
                 src = src.offset(1);
@@ -981,28 +722,28 @@ pub unsafe extern "C" fn drawpic(mut x: libc::c_int, mut y: libc::c_int, mut pic
                 src = src.offset(1);
                 let fresh17 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh17 = EGA(chan.as_ptr(), 7 as libc::c_int as byte);
+                *fresh17 = EGA(chan.as_ptr(), 7);
                 let fresh18 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh18 = EGA(chan.as_ptr(), 6 as libc::c_int as byte);
+                *fresh18 = EGA(chan.as_ptr(), 6);
                 let fresh19 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh19 = EGA(chan.as_ptr(), 5 as libc::c_int as byte);
+                *fresh19 = EGA(chan.as_ptr(), 5);
                 let fresh20 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh20 = EGA(chan.as_ptr(), 4 as libc::c_int as byte);
+                *fresh20 = EGA(chan.as_ptr(), 4);
                 let fresh21 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh21 = EGA(chan.as_ptr(), 3 as libc::c_int as byte);
+                *fresh21 = EGA(chan.as_ptr(), 3);
                 let fresh22 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh22 = EGA(chan.as_ptr(), 2 as libc::c_int as byte);
+                *fresh22 = EGA(chan.as_ptr(), 2);
                 let fresh23 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh23 = EGA(chan.as_ptr(), 1 as libc::c_int as byte);
+                *fresh23 = EGA(chan.as_ptr(), 1);
                 let fresh24 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh24 = EGA(chan.as_ptr(), 0 as libc::c_int as byte);
+                *fresh24 = EGA(chan.as_ptr(), 0);
                 i = i.wrapping_sub(1);
                 if !(i != 0) {
                     break;
