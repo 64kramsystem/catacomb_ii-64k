@@ -1,22 +1,14 @@
-#![allow(clippy::all)]
-#![deny(clippy::correctness)]
-#![allow(
-    dead_code,
-    mutable_transmutes,
-    non_camel_case_types,
-    non_snake_case,
-    non_upper_case_globals,
-    unused_assignments,
-    unused_mut
-)]
-#![register_tool(c2rust)]
-#![feature(register_tool)]
-#[allow(unused_imports)] // the import is actually used!
-use ::catacomb_lib::*;
-use catacomb_lib::{
-    cat_play::playloop, demo_enum::demoenum, extra_constants::*, pcrlib_c::_setupgame,
-};
 use libc::O_RDONLY;
+
+use crate::{
+    cat_play::playloop,
+    demo_enum::demoenum,
+    extra_constants::{
+        blankfloor, leftoff, maxpics, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
+    },
+    indemo,
+    pcrlib_c::_setupgame,
+};
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
     fn read(__fd: libc::c_int, __buf: *mut libc::c_void, __nbytes: size_t) -> ssize_t;
@@ -1655,7 +1647,7 @@ pub unsafe extern "C" fn US_CheckParm(
 /*			   */
 /*=========================*/
 
-pub fn main() {
+pub fn original_main() {
     /***************************************************************************/
     // Ex-globals
 

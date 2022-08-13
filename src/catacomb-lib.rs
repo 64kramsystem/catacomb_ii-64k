@@ -16,6 +16,7 @@ use demo_enum::demoenum;
 
 extern crate libc;
 pub mod cat_play;
+pub mod catacomb;
 pub mod catasm;
 pub mod cpanel;
 pub mod demo_enum;
