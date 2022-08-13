@@ -13,6 +13,8 @@
 #![feature(register_tool)]
 #[allow(unused_imports)] // the import is actually used!
 use ::catacomb_lib::*;
+use catacomb_lib::extra_constants::O_BINARY;
+use libc::O_RDONLY;
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
     fn read(__fd: libc::c_int, __buf: *mut libc::c_void, __nbytes: size_t) -> ssize_t;
@@ -1886,9 +1888,11 @@ pub unsafe extern "C" fn dofkeys() {
                     b"GAME0.CA2\0" as *const u8 as *const libc::c_char,
                 );
                 str[4 as libc::c_int as usize] = ch;
+                // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
+                // project.
                 handle = open(
                     str.as_mut_ptr(),
-                    0 as libc::c_int | 0 as libc::c_int,
+                    O_RDONLY | O_BINARY,
                     0o200 as libc::c_int | 0o400 as libc::c_int,
                 );
                 if handle == -(1 as libc::c_int) {

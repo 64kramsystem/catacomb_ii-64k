@@ -1,7 +1,8 @@
 use ::libc;
+use libc::O_RDONLY;
 
 use crate::{
-    extra_constants::{SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
+    extra_constants::{O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
 };
 extern "C" {
@@ -2330,9 +2331,11 @@ pub unsafe extern "C" fn _loadctrls() {
         b"CTLPANEL.\0" as *const u8 as *const libc::c_char,
     );
     strcat(str.as_mut_ptr(), _extension);
+    // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
+    // project.
     handle = open(
         str.as_mut_ptr(),
-        0 as libc::c_int | 0 as libc::c_int,
+        O_RDONLY | O_BINARY,
         0o200 as libc::c_int | 0o400 as libc::c_int,
     );
     if handle == -(1 as libc::c_int) {
