@@ -12,7 +12,6 @@
 #![feature(register_tool)]
 #![register_tool(c2rust)]
 
-
 extern crate libc;
 pub mod cat_play;
 pub mod catasm;
