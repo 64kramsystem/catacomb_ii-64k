@@ -1482,7 +1482,7 @@ void _setupgame (void)
         winWidth = atoi (_argv[i]);
       if (++i < _argc)
         winHeight = atoi (_argv[i]);
-        break;
+      break;
     case 1:
       if (++i < _argc)
         displayindex = atoi (_argv[i]);
