@@ -12,3 +12,12 @@ source_project/catacomb
 # Data files
 
 *.CA2
+
+# CMake commands, for C2Rust
+
+source_project/compile_commands.json
+
+# Rust
+
+/Cargo.lock
+/target

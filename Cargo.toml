@@ -1,0 +1,16 @@
+[package]
+name = "catacomb"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "catacomb_lib"
+path = "src/catacomb-lib.rs"
+crate-type = ["staticlib", "rlib"]
+
+[[bin]]
+path = "src/catacomb.rs"
+name = "catacomb"
+
+[dependencies]
+libc = "0.2"
