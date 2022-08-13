@@ -1661,141 +1661,6 @@ pub unsafe extern "C" fn US_CheckParm(
     return -(1);
 }
 
-unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
-    let mut i: libc::c_int = 0;
-
-    if args.len() > 1 && strcasecmp(args[1], b"/VER\0" as *const u8 as *const libc::c_char) == 0 {
-        printf(
-            b"CatacombSDL\nVersion 1.03\n\nUsage: catacomb [windowed <width> <height>] [screen <num>]\n\nPorted by Braden \"Blzut3\" Obrzut and Rene \"Havoc\" Nicolaus\nIncludes PC Speaker emulator by K1n9_Duk3\nBased on The Catacomb source code:\nCopyright 1990-1993 Softdisk Publishing\nCopyright 1993-2014 Flat Rock Software\n\0"
-                as *const u8 as *const libc::c_char,
-        );
-        exit(0);
-    }
-    initobjects();
-    memset(
-        &mut priority as *mut [byte; 2048] as *mut libc::c_void,
-        99,
-        ::std::mem::size_of::<[byte; 2048]>() as libc::c_ulong,
-    );
-    priority[128] = 0;
-    i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
-    while i <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20 {
-        priority[i as usize] = 0; /*deadthing*/
-        i += 1;
-    }
-    clvar = dead2;
-    while clvar as libc::c_uint <= dead5 as libc::c_int as libc::c_uint {
-        i = objdef[clvar as usize].firstchar as libc::c_int;
-        while i
-            <= objdef[clvar as usize].firstchar as libc::c_int
-                + objdef[clvar as usize].size as libc::c_int
-                    * objdef[clvar as usize].size as libc::c_int
-        {
-            priority[i as usize] = 0;
-            i += 1;
-        }
-        clvar += 1;
-    }
-    i = 152;
-    while i <= 161 {
-        priority[i as usize] = 2; /*shots*/
-        i += 1;
-    }
-    i = objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int;
-    while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31 {
-        priority[i as usize] = 2; /*bigshot*/
-        i += 1;
-    }
-    i = 0;
-    while i <= 256 - 1 {
-        if priority[i as usize] as libc::c_int == 99 {
-            priority[i as usize] = 3; /*most 1*1 tiles are walls, etc*/
-        }
-        i += 1;
-    }
-    priority[167] = 1; // chest
-    i = 256;
-    while i <= 2047 {
-        if priority[i as usize] as libc::c_int == 99 {
-            priority[i as usize] = 4; /*most bigger tiles are monsters*/
-        }
-        i += 1;
-    }
-    i = objdef[player as libc::c_int as usize].firstchar as libc::c_int;
-    while i <= objdef[player as libc::c_int as usize].firstchar as libc::c_int + 63 {
-        priority[i as usize] = 5; /*player*/
-        i += 1;
-    }
-    side = 0;
-    let mut x: libc::c_int = 0;
-    let mut y: libc::c_int = 0;
-    x = 0;
-    while x <= 85 {
-        y = 0;
-        while y <= 11 - 1 {
-            view[x as usize][y as usize] = 129;
-            view[x as usize][(85 - y) as usize] = 129;
-            background[x as usize][y as usize] = 129;
-            background[x as usize][(85 - y) as usize] = 129;
-            y += 1;
-        }
-        view[86][x as usize] = 129;
-        x += 1;
-    }
-    y = 11;
-    while y <= 74 {
-        x = 0;
-        while x <= 11 - 1 {
-            view[x as usize][y as usize] = 129;
-            view[(85 - x) as usize][y as usize] = 129;
-            background[x as usize][y as usize] = 129;
-            background[(85 - x) as usize][y as usize] = 129;
-            x += 1;
-        }
-        y += 1;
-    }
-
-    //   puts ("CATACOMB II is executing");
-
-    //  _dontplay = 1;	// no sounds for debugging and profiling
-
-    _numlevels = 30;
-    _maxplayers = 1;
-    _extension = b"CA2\0" as *const u8 as *const libc::c_char;
-    _setupgame(args);
-    expwin(33, 13);
-    print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const libc::c_char);
-    print(b"          The Catacomb\n\n\0" as *const u8 as *const libc::c_char);
-    print(b"        By John Carmack\n\n\0" as *const u8 as *const libc::c_char);
-    print(b"       Copyright 1990-93\n\0" as *const u8 as *const libc::c_char);
-    print(b"      Softdisk Publishing\0" as *const u8 as *const libc::c_char);
-    print(b"\n\n\0" as *const u8 as *const libc::c_char);
-    print(b"\n\n\0" as *const u8 as *const libc::c_char);
-    print(b"         Press a key:\0" as *const u8 as *const libc::c_char);
-    get();
-    clearkeys();
-    screencentery = 11;
-    screencenterx = 11;
-    exitdemo = false as boolean;
-    level = 0;
-
-    // go until quit () is called
-    loop {
-        dodemo();
-        playsetup();
-        indemo = notdemo;
-        gamestate = ingame;
-        playloop();
-        if indemo as u64 == 0 {
-            exitdemo = false as boolean;
-            if level as libc::c_int > 30 {
-                doendpage(); // finished all levels
-            }
-            gameover();
-        }
-    }
-}
-
 /***************************************************************************/
 /***************************************************************************/
 
@@ -1814,5 +1679,140 @@ pub fn main() {
                 .into_raw(),
         );
     }
-    unsafe { ::std::process::exit(main_0(args) as i32) }
+
+    unsafe {
+        let mut i: libc::c_int = 0;
+
+        if args.len() > 1 && strcasecmp(args[1], b"/VER\0" as *const u8 as *const libc::c_char) == 0
+        {
+            printf(
+                b"CatacombSDL\nVersion 1.03\n\nUsage: catacomb [windowed <width> <height>] [screen <num>]\n\nPorted by Braden \"Blzut3\" Obrzut and Rene \"Havoc\" Nicolaus\nIncludes PC Speaker emulator by K1n9_Duk3\nBased on The Catacomb source code:\nCopyright 1990-1993 Softdisk Publishing\nCopyright 1993-2014 Flat Rock Software\n\0"
+                    as *const u8 as *const libc::c_char,
+            );
+            exit(0);
+        }
+        initobjects();
+        memset(
+            &mut priority as *mut [byte; 2048] as *mut libc::c_void,
+            99,
+            ::std::mem::size_of::<[byte; 2048]>() as libc::c_ulong,
+        );
+        priority[128] = 0;
+        i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
+        while i <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20 {
+            priority[i as usize] = 0; /*deadthing*/
+            i += 1;
+        }
+        clvar = dead2;
+        while clvar as libc::c_uint <= dead5 as libc::c_int as libc::c_uint {
+            i = objdef[clvar as usize].firstchar as libc::c_int;
+            while i
+                <= objdef[clvar as usize].firstchar as libc::c_int
+                    + objdef[clvar as usize].size as libc::c_int
+                        * objdef[clvar as usize].size as libc::c_int
+            {
+                priority[i as usize] = 0;
+                i += 1;
+            }
+            clvar += 1;
+        }
+        i = 152;
+        while i <= 161 {
+            priority[i as usize] = 2; /*shots*/
+            i += 1;
+        }
+        i = objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int;
+        while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31 {
+            priority[i as usize] = 2; /*bigshot*/
+            i += 1;
+        }
+        i = 0;
+        while i <= 256 - 1 {
+            if priority[i as usize] as libc::c_int == 99 {
+                priority[i as usize] = 3; /*most 1*1 tiles are walls, etc*/
+            }
+            i += 1;
+        }
+        priority[167] = 1; // chest
+        i = 256;
+        while i <= 2047 {
+            if priority[i as usize] as libc::c_int == 99 {
+                priority[i as usize] = 4; /*most bigger tiles are monsters*/
+            }
+            i += 1;
+        }
+        i = objdef[player as libc::c_int as usize].firstchar as libc::c_int;
+        while i <= objdef[player as libc::c_int as usize].firstchar as libc::c_int + 63 {
+            priority[i as usize] = 5; /*player*/
+            i += 1;
+        }
+        side = 0;
+        let mut x: libc::c_int = 0;
+        let mut y: libc::c_int = 0;
+        x = 0;
+        while x <= 85 {
+            y = 0;
+            while y <= 11 - 1 {
+                view[x as usize][y as usize] = 129;
+                view[x as usize][(85 - y) as usize] = 129;
+                background[x as usize][y as usize] = 129;
+                background[x as usize][(85 - y) as usize] = 129;
+                y += 1;
+            }
+            view[86][x as usize] = 129;
+            x += 1;
+        }
+        y = 11;
+        while y <= 74 {
+            x = 0;
+            while x <= 11 - 1 {
+                view[x as usize][y as usize] = 129;
+                view[(85 - x) as usize][y as usize] = 129;
+                background[x as usize][y as usize] = 129;
+                background[(85 - x) as usize][y as usize] = 129;
+                x += 1;
+            }
+            y += 1;
+        }
+
+        //   puts ("CATACOMB II is executing");
+
+        //  _dontplay = 1;	// no sounds for debugging and profiling
+
+        _numlevels = 30;
+        _maxplayers = 1;
+        _extension = b"CA2\0" as *const u8 as *const libc::c_char;
+        _setupgame(args);
+        expwin(33, 13);
+        print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const libc::c_char);
+        print(b"          The Catacomb\n\n\0" as *const u8 as *const libc::c_char);
+        print(b"        By John Carmack\n\n\0" as *const u8 as *const libc::c_char);
+        print(b"       Copyright 1990-93\n\0" as *const u8 as *const libc::c_char);
+        print(b"      Softdisk Publishing\0" as *const u8 as *const libc::c_char);
+        print(b"\n\n\0" as *const u8 as *const libc::c_char);
+        print(b"\n\n\0" as *const u8 as *const libc::c_char);
+        print(b"         Press a key:\0" as *const u8 as *const libc::c_char);
+        get();
+        clearkeys();
+        screencentery = 11;
+        screencenterx = 11;
+        exitdemo = false as boolean;
+        level = 0;
+
+        // go until quit () is called
+        loop {
+            dodemo();
+            playsetup();
+            indemo = notdemo;
+            gamestate = ingame;
+            playloop();
+            if indemo as u64 == 0 {
+                exitdemo = false as boolean;
+                if level as libc::c_int > 30 {
+                    doendpage(); // finished all levels
+                }
+                gameover();
+            }
+        }
+    }
 }
