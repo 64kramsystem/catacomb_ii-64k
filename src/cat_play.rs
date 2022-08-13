@@ -156,6 +156,26 @@ pub struct activeobj {
     pub oldtile: sword,
     pub filler: [byte; 1],
 }
+
+impl From<objtype> for activeobj {
+    fn from(source: objtype) -> Self {
+        Self {
+            active: source.active,
+            class: source.class,
+            x: source.x,
+            y: source.y,
+            stage: source.stage,
+            delay: source.delay,
+            dir: source.dir,
+            hp: source.hp,
+            oldx: source.oldx,
+            oldy: source.oldy,
+            oldtile: source.oldtile,
+            filler: source.filler,
+        }
+    }
+}
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct objdeftype {
@@ -200,6 +220,24 @@ pub struct objtype {
     pub points: word,
     pub filler2: [byte; 2],
 }
+
+impl objtype {
+    pub fn update_from_active(&mut self, active_o: activeobj) {
+        self.active = active_o.active;
+        self.class = active_o.class;
+        self.x = active_o.x;
+        self.y = active_o.y;
+        self.stage = active_o.stage;
+        self.delay = active_o.delay;
+        self.dir = active_o.dir;
+        self.hp = active_o.hp;
+        self.oldx = active_o.oldx;
+        self.oldy = active_o.oldy;
+        self.oldtile = active_o.oldtile;
+        self.filler = active_o.filler;
+    }
+}
+
 pub type C2RustUnnamed_2 = libc::c_uint;
 pub const SDL_NUM_SCANCODES: C2RustUnnamed_2 = 512;
 pub const SDL_SCANCODE_AUDIOFASTFORWARD: C2RustUnnamed_2 = 286;
@@ -855,11 +893,7 @@ pub unsafe extern "C" fn intomonster() -> boolean {
     altnum = 0 as libc::c_int;
     gotit = false_0 as libc::c_int as boolean;
     loop {
-        memcpy(
-            &mut altobj.active as *mut boolean as *mut libc::c_void,
-            &mut *o.as_mut_ptr().offset(altnum as isize) as *mut activeobj as *const libc::c_void,
-            ::std::mem::size_of::<activeobj>() as libc::c_ulong,
-        );
+        altobj.update_from_active(o[altnum as usize]);
         if altobj.class as libc::c_int > nothing as libc::c_int && altnum != objecton {
             memcpy(
                 &mut altobj.think as *mut byte as *mut libc::c_void,
@@ -1639,11 +1673,7 @@ pub unsafe extern "C" fn doinactive() {
     {
         obj.active = true_0 as libc::c_int as boolean;
         obj.dir = north as libc::c_int as word;
-        memcpy(
-            &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj as *mut libc::c_void,
-            &mut obj.active as *mut boolean as *const libc::c_void,
-            ::std::mem::size_of::<activeobj>() as libc::c_ulong,
-        );
+        o[objecton as usize] = obj.into();
     }
 }
 #[no_mangle]
