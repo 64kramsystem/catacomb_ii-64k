@@ -1,4 +1,6 @@
 use ::libc;
+
+use crate::{demo_enum::demoenum, indemo};
 extern "C" {
     fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
     fn abs(_: libc::c_int) -> libc::c_int;
@@ -62,7 +64,6 @@ extern "C" {
     fn RecordDemo();
     fn SaveDemo(demonum: libc::c_int);
     fn ControlPlayer(player_0: libc::c_int) -> ControlStruct;
-    static mut indemo: demoenum;
     static mut keydown: [boolean; 512];
     fn WaitEndSound();
     fn PlaySound(sound: libc::c_int);
@@ -487,10 +488,7 @@ pub struct ControlStruct {
     pub button1: boolean,
     pub button2: boolean,
 }
-pub type demoenum = libc::c_uint;
-pub const recording: demoenum = 2;
-pub const demoplay: demoenum = 1;
-pub const notdemo: demoenum = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct scores {
@@ -1233,7 +1231,7 @@ pub unsafe extern "C" fn playercmdthink() {
         shotpower = 0;
         printshotpower();
     }
-    if indemo as u64 == 0 {
+    if indemo == demoenum::notdemo {
         if keydown[SDL_SCANCODE_P as libc::c_int as usize] as libc::c_int != 0
             || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
         {
@@ -1259,8 +1257,8 @@ pub unsafe extern "C" fn playercmdthink() {
         playdone = true as boolean;
         return;
     }
-    match indemo as libc::c_uint {
-        0 => {
+    match indemo {
+        demoenum::notdemo => {
             if keydown[SDL_SCANCODE_C as libc::c_int as usize] as libc::c_int != 0
                 && keydown[SDL_SCANCODE_T as libc::c_int as usize] as libc::c_int != 0
                 && keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
@@ -1300,20 +1298,20 @@ pub unsafe extern "C" fn playercmdthink() {
                 clearkeys();
             }
         }
-        1 => {
-            indemo = notdemo;
+        demoenum::demoplay => {
+            indemo = demoenum::notdemo;
             ctrl = ControlPlayer(1);
             if ctrl.button1 as libc::c_int != 0
                 || ctrl.button2 as libc::c_int != 0
                 || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
             {
-                indemo = demoplay;
+                indemo = demoenum::demoplay;
                 exitdemo = true as boolean;
                 leveldone = true as boolean;
                 level = 0;
                 return;
             }
-            indemo = demoplay;
+            indemo = demoenum::demoplay;
         }
         _ => {}
     };
@@ -1649,7 +1647,7 @@ pub unsafe extern "C" fn doinactive() {
 pub unsafe extern "C" fn playloop() {
     screencenterx = 11;
     loop {
-        if indemo as u64 == 0 {
+        if indemo == demoenum::notdemo {
             centerwindow(11, 2);
             print(b" Entering\nlevel \0" as *const u8 as *const libc::c_char);
             printint(level as libc::c_int);
@@ -1686,7 +1684,7 @@ pub unsafe extern "C" fn playloop() {
         initrndt(false as boolean);
         printshotpower();
         doall();
-        if indemo as libc::c_uint == recording as libc::c_int as libc::c_uint {
+        if indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1);
             print(b"SAVE AS DEMO#:\0" as *const u8 as *const libc::c_char);
@@ -1701,7 +1699,7 @@ pub unsafe extern "C" fn playloop() {
             refresh();
             refresh();
         }
-        if indemo as u64 != 0 {
+        if indemo != demoenum::notdemo {
             playdone = true as boolean;
         }
         if !(playdone == 0) {

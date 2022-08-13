@@ -13,7 +13,7 @@
 #![feature(register_tool)]
 #[allow(unused_imports)] // the import is actually used!
 use ::catacomb_lib::*;
-use catacomb_lib::{extra_constants::*, pcrlib_c::_setupgame};
+use catacomb_lib::{demo_enum::demoenum, extra_constants::*, pcrlib_c::_setupgame};
 use libc::O_RDONLY;
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
@@ -79,7 +79,6 @@ extern "C" {
     fn LoadFile(filename: *mut libc::c_char, buffer: *mut libc::c_char) -> libc::c_ulong;
     fn LoadDemo(demonum: libc::c_int);
     fn ControlPlayer(player_0: libc::c_int) -> ControlStruct;
-    static mut indemo: demoenum;
     static mut keydown: [boolean; 512];
     fn WaitEndSound();
     fn PlaySound(sound: libc::c_int);
@@ -474,10 +473,7 @@ pub struct ControlStruct {
     pub button1: boolean,
     pub button2: boolean,
 }
-pub type demoenum = libc::c_uint;
-pub const recording: demoenum = 2;
-pub const demoplay: demoenum = 1;
-pub const notdemo: demoenum = 0;
+
 pub type grtype = libc::c_uint;
 pub const VGAgr: grtype = 3;
 pub const EGAgr: grtype = 2;
@@ -806,7 +802,7 @@ pub unsafe extern "C" fn refresh() {
     let mut underwin: [[word; 16]; 5] = [[0; 16]; 5];
     basex = originx + 4;
     basey = originy + 17;
-    if indemo as u64 != 0 {
+    if indemo != demoenum::notdemo {
         y = 0;
         while y <= 4 {
             x = 0;
@@ -826,7 +822,7 @@ pub unsafe extern "C" fn refresh() {
     } else {
         egarefresh();
     }
-    if indemo as u64 != 0 {
+    if indemo != demoenum::notdemo {
         y = 0;
         while y <= 4 {
             x = 0;
@@ -1267,7 +1263,7 @@ pub unsafe extern "C" fn repaintscreen() {
             sx = 33;
             sy = 1;
             printint(level as libc::c_int);
-            indemo = demoplay;
+            indemo = demoenum::demoplay;
         }
     };
 }
@@ -1303,7 +1299,7 @@ pub unsafe extern "C" fn dofkeys() {
         61 => {
             clearkeys();
             expwin(22, 4);
-            if indemo as libc::c_uint != notdemo as libc::c_int as libc::c_uint {
+            if indemo != demoenum::notdemo {
                 print(b"Can't save game here!\0" as *const u8 as *const libc::c_char);
                 get();
             } else {
@@ -1427,7 +1423,7 @@ pub unsafe extern "C" fn dofkeys() {
                     );
                     close(handle);
                     exitdemo = true;
-                    if indemo as libc::c_uint != notdemo as libc::c_int as libc::c_uint {
+                    if indemo != demoenum::notdemo {
                         playdone = true as boolean;
                     }
                     drawside();
@@ -1465,7 +1461,7 @@ pub unsafe extern "C" fn dotitlepage() {
     i = 0;
     while i < 300 {
         WaitVBL();
-        indemo = notdemo;
+        indemo = demoenum::notdemo;
         ctrl = ControlPlayer(1);
         if ctrl.button1 as libc::c_int != 0
             || ctrl.button2 as libc::c_int != 0
@@ -1475,7 +1471,7 @@ pub unsafe extern "C" fn dotitlepage() {
             exitdemo = true;
             break;
         } else {
-            indemo = demoplay;
+            indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
                 dofkeys();
                 UpdateScreen();
@@ -1538,13 +1534,13 @@ pub unsafe extern "C" fn dodemo() {
         }
         level = 0;
         gamestate = statetype::inscores;
-        indemo = demoplay;
+        indemo = demoenum::demoplay;
         _showhighscores();
         UpdateScreen();
         i = 0;
         while i < 500 {
             WaitVBL();
-            indemo = notdemo;
+            indemo = demoenum::notdemo;
             ctrl = ControlPlayer(1);
             if ctrl.button1 as libc::c_int != 0
                 || ctrl.button2 as libc::c_int != 0
@@ -1592,9 +1588,7 @@ pub unsafe extern "C" fn gameover() {
         if bioskey(1) != 0 {
             dofkeys();
         }
-        if exitdemo as libc::c_int != 0
-            || indemo as libc::c_uint == demoplay as libc::c_int as libc::c_uint
-        {
+        if exitdemo as libc::c_int != 0 || indemo == demoenum::demoplay {
             break;
         }
         i += 1;
@@ -1784,10 +1778,10 @@ pub fn main() {
         loop {
             dodemo();
             playsetup();
-            indemo = notdemo;
+            indemo = demoenum::notdemo;
             gamestate = statetype::ingame;
             playloop();
-            if indemo == 0 {
+            if indemo == demoenum::notdemo {
                 exitdemo = false;
                 if level > 30 {
                     doendpage(); // finished all levels

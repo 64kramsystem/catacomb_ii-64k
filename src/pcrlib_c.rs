@@ -2,8 +2,10 @@ use ::libc;
 use libc::O_RDONLY;
 
 use crate::{
+    demo_enum::demoenum,
     extra_constants::{O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
+    indemo,
 };
 extern "C" {
     pub type _IO_wide_data;
@@ -1019,10 +1021,7 @@ pub const joystick2: inputtype = 3;
 pub const joystick1: inputtype = 2;
 pub const mouse: inputtype = 1;
 pub const keyboard: inputtype = 0;
-pub type demoenum = libc::c_uint;
-pub const recording: demoenum = 2;
-pub const demoplay: demoenum = 1;
-pub const notdemo: demoenum = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct joyinfo_t {
@@ -1118,8 +1117,6 @@ pub static mut demoptr: *mut libc::c_char = 0 as *const libc::c_char as *mut lib
 pub static mut democount: libc::c_int = 0;
 #[no_mangle]
 pub static mut lastdemoval: libc::c_int = 0;
-#[no_mangle]
-pub static mut indemo: demoenum = notdemo;
 static mut lastkey: SDL_Scancode = SDL_SCANCODE_UNKNOWN;
 #[no_mangle]
 pub static mut window: *mut SDL_Window = 0 as *const SDL_Window as *mut SDL_Window;
@@ -1482,9 +1479,7 @@ pub unsafe extern "C" fn ControlPlayer(mut player: libc::c_int) -> ControlStruct
     };
     let mut val: libc::c_int = 0;
     ProcessEvents();
-    if indemo as libc::c_uint == notdemo as libc::c_int as libc::c_uint
-        || indemo as libc::c_uint == recording as libc::c_int as libc::c_uint
-    {
+    if indemo == demoenum::notdemo || indemo == demoenum::recording {
         match playermode[player as usize] as libc::c_uint {
             1 => {
                 ret = ControlMouse();
@@ -1499,7 +1494,7 @@ pub unsafe extern "C" fn ControlPlayer(mut player: libc::c_int) -> ControlStruct
                 ret = ControlKBD();
             }
         }
-        if indemo as libc::c_uint == recording as libc::c_int as libc::c_uint {
+        if indemo == demoenum::recording {
             val = ((ret.dir as libc::c_uint) << 2
                 | ((ret.button2 as libc::c_int) << 1) as libc::c_uint
                 | ret.button1 as libc::c_uint) as libc::c_int;
@@ -1521,7 +1516,7 @@ pub unsafe extern "C" fn ControlPlayer(mut player: libc::c_int) -> ControlStruct
 pub unsafe extern "C" fn RecordDemo() {
     demobuffer[0] = level as libc::c_char;
     demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut libc::c_char;
-    indemo = recording;
+    indemo = demoenum::recording;
 }
 #[no_mangle]
 pub unsafe extern "C" fn LoadDemo(mut demonum: libc::c_int) {
@@ -1537,7 +1532,7 @@ pub unsafe extern "C" fn LoadDemo(mut demonum: libc::c_int) {
     LoadFile(str.as_mut_ptr(), demobuffer.as_mut_ptr());
     level = demobuffer[0] as sword;
     demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut libc::c_char;
-    indemo = demoplay;
+    indemo = demoenum::demoplay;
 }
 #[no_mangle]
 pub unsafe extern "C" fn SaveDemo(mut demonum: libc::c_int) {
@@ -1556,7 +1551,7 @@ pub unsafe extern "C" fn SaveDemo(mut demonum: libc::c_int) {
         demoptr.offset_from(&mut *demobuffer.as_mut_ptr().offset(0) as *mut libc::c_char)
             as libc::c_long,
     );
-    indemo = notdemo;
+    indemo = demoenum::notdemo;
 }
 #[no_mangle]
 pub unsafe extern "C" fn clearkeys() {
