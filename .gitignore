@@ -1,13 +1,13 @@
 # CMake
 
-source_project/CMakeCache.txt
-source_project/CMakeFiles/
-source_project/Makefile
-source_project/cmake_install.cmake
+sdl_port_project/CMakeCache.txt
+sdl_port_project/CMakeFiles/
+sdl_port_project/Makefile
+sdl_port_project/cmake_install.cmake
 
 # Compiled binary
 
-source_project/catacomb
+sdl_port_project/catacomb
 
 # Data files
 
@@ -19,7 +19,7 @@ source_project/catacomb
 
 # CMake commands, for C2Rust
 
-source_project/compile_commands.json
+sdl_port_project/compile_commands.json
 
 # Rust
 
