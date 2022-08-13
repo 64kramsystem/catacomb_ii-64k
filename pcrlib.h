@@ -284,7 +284,7 @@ typedef struct { int width;
 
 extern int	_numlevels, _maxplayers;
 extern boolean	_cgaok, _egaok, _vgaok;
-extern char	*_extension;
+extern const char	*_extension;
 
 #pragma pack(1)
 struct scores {

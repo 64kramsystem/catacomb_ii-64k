@@ -119,7 +119,7 @@ static boolean hasFocus = true;
 static int WatchUIEvents (void *udata, SDL_Event *event)
 {
 	if (event->type == SDL_QUIT)
-		_quit("");
+		_quit((char*)"");
 	else if (event->type == SDL_WINDOWEVENT)
 	{
 		switch(event->window.event)
@@ -1136,7 +1136,7 @@ sdword score;
 sword level;
 int _numlevels, _maxplayers;
 
-char *_extension = "PCR";
+const char *_extension = "PCR";
 boolean	_cgaok = true, _egaok = true, _vgaok = false;
 
 static const SDL_Scancode DOSScanCodeMap[128] = {
@@ -1455,7 +1455,7 @@ void _checkhighscore (void)
 void SetupEmulatedVBL();
 byte screenseg[320*200];
 
-static char* VideoParmStrings[] = {"windowed", "screen", 0};
+static const char* VideoParmStrings[] = {"windowed", "screen", 0};
 
 void _setupgame (void)
 {
@@ -1474,7 +1474,7 @@ void _setupgame (void)
   int displayindex = 0;
   for (i = 1;i < _argc; ++i)
   {
-    switch (US_CheckParm (_argv[i],VideoParmStrings))
+    switch (US_CheckParm (_argv[i],(char**)VideoParmStrings))
     {
     case 0:
       windowed = true;
