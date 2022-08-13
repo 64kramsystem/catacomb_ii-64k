@@ -320,7 +320,7 @@ void calibratekeys (void)
     print ("\n\rPress the new key:");
     clearkeys ();
     UpdateScreen ();
-    while ((new = bioskey (1)) == 0);
+    while ((new = bioskey (1)) == 0)
       WaitVBL();
     clearkeys ();
     print ("\r                  ");
