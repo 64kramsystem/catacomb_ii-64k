@@ -1,0 +1,14 @@
+# CMake
+
+source_project/CMakeCache.txt
+source_project/CMakeFiles/
+source_project/Makefile
+source_project/cmake_install.cmake
+
+# Compiled binary
+
+source_project/catacomb
+
+# Data files
+
+*.CA2
