@@ -1680,7 +1680,7 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
     priority[128] = 0;
     i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
     while i <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20 {
-        priority[i as usize] = 0;
+        priority[i as usize] = 0; /*deadthing*/
         i += 1;
     }
     clvar = dead2;
@@ -1698,32 +1698,32 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
     }
     i = 152;
     while i <= 161 {
-        priority[i as usize] = 2;
+        priority[i as usize] = 2; /*shots*/
         i += 1;
     }
     i = objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int;
     while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31 {
-        priority[i as usize] = 2;
+        priority[i as usize] = 2; /*bigshot*/
         i += 1;
     }
     i = 0;
     while i <= 256 - 1 {
         if priority[i as usize] as libc::c_int == 99 {
-            priority[i as usize] = 3;
+            priority[i as usize] = 3; /*most 1*1 tiles are walls, etc*/
         }
         i += 1;
     }
-    priority[167] = 1;
+    priority[167] = 1; // chest
     i = 256;
     while i <= 2047 {
         if priority[i as usize] as libc::c_int == 99 {
-            priority[i as usize] = 4;
+            priority[i as usize] = 4; /*most bigger tiles are monsters*/
         }
         i += 1;
     }
     i = objdef[player as libc::c_int as usize].firstchar as libc::c_int;
     while i <= objdef[player as libc::c_int as usize].firstchar as libc::c_int + 63 {
-        priority[i as usize] = 5;
+        priority[i as usize] = 5; /*player*/
         i += 1;
     }
     side = 0;
@@ -1754,6 +1754,11 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
         }
         y += 1;
     }
+
+    //   puts ("CATACOMB II is executing");
+
+    //  _dontplay = 1;	// no sounds for debugging and profiling
+
     _numlevels = 30;
     _maxplayers = 1;
     _extension = b"CA2\0" as *const u8 as *const libc::c_char;
@@ -1773,6 +1778,8 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
     screencenterx = 11;
     exitdemo = false as boolean;
     level = 0;
+
+    // go until quit () is called
     loop {
         dodemo();
         playsetup();
@@ -1782,12 +1789,22 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
         if indemo as u64 == 0 {
             exitdemo = false as boolean;
             if level as libc::c_int > 30 {
-                doendpage();
+                doendpage(); // finished all levels
             }
             gameover();
         }
     }
 }
+
+/***************************************************************************/
+/***************************************************************************/
+
+/*=========================*/
+/*			   */
+/* m a i n   p r o g r a m */
+/*			   */
+/*=========================*/
+
 pub fn main() {
     let mut args: Vec<*mut libc::c_char> = Vec::new();
     for arg in ::std::env::args() {
