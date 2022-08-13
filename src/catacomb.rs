@@ -13,10 +13,7 @@
 #![feature(register_tool)]
 #[allow(unused_imports)] // the import is actually used!
 use ::catacomb_lib::*;
-use catacomb_lib::{
-    extra_constants::{NUM_DEMOS, O_BINARY},
-    pcrlib_c::_setupgame,
-};
+use catacomb_lib::{extra_constants::*, pcrlib_c::_setupgame};
 use libc::O_RDONLY;
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
@@ -711,11 +708,9 @@ pub static mut frameon: word = 0;
 #[no_mangle]
 pub static mut grmem: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
 #[no_mangle]
-pub static mut clvar: classtype = nothing;
-#[no_mangle]
 pub static mut VGAPAL: libc::c_int = 0;
 #[no_mangle]
-pub static mut exitdemo: boolean = 0;
+pub static mut exitdemo: bool = false;
 #[no_mangle]
 pub static mut resetgame: boolean = 0;
 #[no_mangle]
@@ -1435,7 +1430,7 @@ pub unsafe extern "C" fn dofkeys() {
                         ::std::mem::size_of::<activeobj>() as libc::c_ulong,
                     );
                     close(handle);
-                    exitdemo = true as boolean;
+                    exitdemo = true;
                     if indemo as libc::c_uint != notdemo as libc::c_int as libc::c_uint {
                         playdone = true as boolean;
                     }
@@ -1481,7 +1476,7 @@ pub unsafe extern "C" fn dotitlepage() {
             || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
         {
             level = 0;
-            exitdemo = true as boolean;
+            exitdemo = true;
             break;
         } else {
             indemo = demoplay;
@@ -1489,7 +1484,7 @@ pub unsafe extern "C" fn dotitlepage() {
                 dofkeys();
                 UpdateScreen();
             }
-            if exitdemo != 0 {
+            if exitdemo {
                 break;
             }
             i += 1;
@@ -1532,9 +1527,9 @@ pub unsafe extern "C" fn doendpage() {
 #[no_mangle]
 pub unsafe extern "C" fn dodemo() {
     let mut i: libc::c_int = 0;
-    while exitdemo == 0 {
+    while !exitdemo {
         dotitlepage();
-        if exitdemo != 0 {
+        if exitdemo {
             break;
         }
         i = rnd(NUM_DEMOS - 1) + 1;
@@ -1542,7 +1537,7 @@ pub unsafe extern "C" fn dodemo() {
         level = 0;
         playsetup();
         playloop();
-        if exitdemo != 0 {
+        if exitdemo {
             break;
         }
         level = 0;
@@ -1559,13 +1554,13 @@ pub unsafe extern "C" fn dodemo() {
                 || ctrl.button2 as libc::c_int != 0
                 || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
             {
-                exitdemo = true as boolean;
+                exitdemo = true;
                 break;
             } else {
                 if bioskey(1) != 0 {
                     dofkeys();
                 }
-                if exitdemo != 0 {
+                if exitdemo {
                     break;
                 }
                 i += 1;
@@ -1682,8 +1677,6 @@ pub fn main() {
     }
 
     unsafe {
-        let mut i: libc::c_int = 0;
-
         if args.len() > 1 && strcasecmp(args[1], b"/VER\0" as *const u8 as *const libc::c_char) == 0
         {
             print!(
@@ -1707,84 +1700,58 @@ pub fn main() {
 
         priority.fill(99);
 
-        priority[128] = 0;
-        i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
-        while i <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20 {
-            priority[i as usize] = 0; /*deadthing*/
-            i += 1;
+        priority[blankfloor] = 0;
+        for i in objdef[teleporter as usize].firstchar..=objdef[teleporter as usize].firstchar + 20
+        {
+            priority[i as usize] = 0;
         }
-        clvar = dead2;
-        while clvar as libc::c_uint <= dead5 as libc::c_int as libc::c_uint {
-            i = objdef[clvar as usize].firstchar as libc::c_int;
-            while i
-                <= objdef[clvar as usize].firstchar as libc::c_int
-                    + objdef[clvar as usize].size as libc::c_int
-                        * objdef[clvar as usize].size as libc::c_int
+        for clvar in dead2..=dead5 {
+            for i in objdef[clvar as usize].firstchar
+                ..=(objdef[clvar as usize].firstchar
+                    + objdef[clvar as usize].size as u16 * objdef[clvar as usize].size as u16)
             {
-                priority[i as usize] = 0;
-                i += 1;
+                priority[i as usize] = 0; /*deadthing*/
             }
-            clvar += 1;
         }
-        i = 152;
-        while i <= 161 {
-            priority[i as usize] = 2; /*shots*/
-            i += 1;
+        for i in 152..=161 {
+            priority[i] = 2; /*shots*/
         }
-        i = objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int;
-        while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31 {
+        for i in objdef[bigshot as usize].firstchar..=(objdef[bigshot as usize].firstchar + 31) {
             priority[i as usize] = 2; /*bigshot*/
-            i += 1;
         }
-        i = 0;
-        while i <= 256 - 1 {
-            if priority[i as usize] as libc::c_int == 99 {
-                priority[i as usize] = 3; /*most 1*1 tiles are walls, etc*/
+        for i in 0..=(tile2s - 1) {
+            if priority[i] == 99 {
+                priority[i] = 3; /*most 1*1 tiles are walls, etc*/
             }
-            i += 1;
         }
         priority[167] = 1; // chest
-        i = 256;
-        while i <= 2047 {
-            if priority[i as usize] as libc::c_int == 99 {
-                priority[i as usize] = 4; /*most bigger tiles are monsters*/
+        for i in tile2s..=maxpics {
+            if priority[i] as libc::c_int == 99 {
+                priority[i] = 4; /*most bigger tiles are monsters*/
             }
-            i += 1;
         }
-        i = objdef[player as libc::c_int as usize].firstchar as libc::c_int;
-        while i <= objdef[player as libc::c_int as usize].firstchar as libc::c_int + 63 {
+        for i in objdef[player as usize].firstchar..=(objdef[player as usize].firstchar + 63) {
             priority[i as usize] = 5; /*player*/
-            i += 1;
         }
 
         side = 0;
 
-        let mut x: libc::c_int = 0;
-        let mut y: libc::c_int = 0;
-        x = 0;
-        while x <= 85 {
-            y = 0;
-            while y <= 11 - 1 {
-                view[x as usize][y as usize] = 129;
-                view[x as usize][(85 - y) as usize] = 129;
-                background[x as usize][y as usize] = 129;
-                background[x as usize][(85 - y) as usize] = 129;
-                y += 1;
+        for x in 0..=85 {
+            for y in 0..=(topoff - 1) {
+                view[x][y] = solidwall;
+                view[x][(85 - y)] = solidwall;
+                background[x][y] = solidwall;
+                background[x][(85 - y)] = solidwall;
             }
-            view[86][x as usize] = 129;
-            x += 1;
+            view[86][x] = solidwall;
         }
-        y = 11;
-        while y <= 74 {
-            x = 0;
-            while x <= 11 - 1 {
-                view[x as usize][y as usize] = 129;
-                view[(85 - x) as usize][y as usize] = 129;
-                background[x as usize][y as usize] = 129;
-                background[(85 - x) as usize][y as usize] = 129;
-                x += 1;
+        for y in 11..=74 {
+            for x in 0..=(leftoff - 1) {
+                view[x][y] = solidwall;
+                view[(85 - x)][y] = solidwall;
+                background[x][y] = solidwall;
+                background[(85 - x)][y] = solidwall;
             }
-            y += 1;
         }
 
         //   puts ("CATACOMB II is executing");
@@ -1814,7 +1781,7 @@ pub fn main() {
         screencentery = 11;
         screencenterx = 11;
 
-        exitdemo = false as boolean;
+        exitdemo = false;
         level = 0;
 
         // go until quit () is called
@@ -1824,9 +1791,9 @@ pub fn main() {
             indemo = notdemo;
             gamestate = ingame;
             playloop();
-            if indemo as u64 == 0 {
-                exitdemo = false as boolean;
-                if level as libc::c_int > 30 {
+            if indemo == 0 {
+                exitdemo = false;
+                if level > 30 {
                     doendpage(); // finished all levels
                 }
                 gameover();
