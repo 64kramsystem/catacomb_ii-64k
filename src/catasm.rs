@@ -136,119 +136,21 @@ pub type C2RustUnnamed_0 = libc::c_uint;
 pub const screenpitch: C2RustUnnamed_0 = 320;
 #[inline]
 unsafe extern "C" fn EGA(mut chan: *const byte, mut ofs: byte) -> byte {
-    return ((*chan.offset(3) as libc::c_int >> ofs as libc::c_int
-        & 1)
-        << 3
-        | (*chan.offset(2) as libc::c_int >> ofs as libc::c_int
-            & 1)
-            << 2
-        | (*chan.offset(1) as libc::c_int >> ofs as libc::c_int
-            & 1)
-            << 1
-        | *chan.offset(0) as libc::c_int >> ofs as libc::c_int
-            & 1) as byte;
+    return ((*chan.offset(3) as libc::c_int >> ofs as libc::c_int & 1) << 3
+        | (*chan.offset(2) as libc::c_int >> ofs as libc::c_int & 1) << 2
+        | (*chan.offset(1) as libc::c_int >> ofs as libc::c_int & 1) << 1
+        | *chan.offset(0) as libc::c_int >> ofs as libc::c_int & 1) as byte;
 }
 #[no_mangle]
-pub static mut squares: [byte; 9] = [
-    0,
-    1,
-    4,
-    9,
-    16,
-    25,
-    36,
-    49,
-    64,
-];
+pub static mut squares: [byte; 9] = [0, 1, 4, 9, 16, 25, 36, 49, 64];
 #[no_mangle]
 pub static mut table86: [word; 87] = [
-    0,
-    86,
-    172,
-    258,
-    344,
-    430,
-    516,
-    602,
-    688,
-    774,
-    860,
-    946,
-    1032,
-    1118,
-    1204,
-    1290,
-    1376,
-    1462,
-    1548,
-    1634,
-    1720,
-    1806,
-    1892,
-    1978,
-    2064,
-    2150,
-    2236,
-    2322,
-    2408,
-    2494,
-    2580,
-    2666,
-    2752,
-    2838,
-    2924,
-    3010,
-    3096,
-    3182,
-    3268,
-    3354,
-    3440,
-    3526,
-    3612,
-    3698,
-    3784,
-    3870,
-    3956,
-    4042,
-    4128,
-    4214,
-    4300,
-    4386,
-    4472,
-    4558,
-    4644,
-    4730,
-    4816,
-    4902,
-    4988,
-    5074,
-    5160,
-    5246,
-    5332,
-    5418,
-    5504,
-    5590,
-    5676,
-    5762,
-    5848,
-    5934,
-    6020,
-    6106,
-    6192,
-    6278,
-    6364,
-    6450,
-    6536,
-    6622,
-    6708,
-    6794,
-    6880,
-    6966,
-    7052,
-    7138,
-    7224,
-    7310,
-    7396,
+    0, 86, 172, 258, 344, 430, 516, 602, 688, 774, 860, 946, 1032, 1118, 1204, 1290, 1376, 1462,
+    1548, 1634, 1720, 1806, 1892, 1978, 2064, 2150, 2236, 2322, 2408, 2494, 2580, 2666, 2752, 2838,
+    2924, 3010, 3096, 3182, 3268, 3354, 3440, 3526, 3612, 3698, 3784, 3870, 3956, 4042, 4128, 4214,
+    4300, 4386, 4472, 4558, 4644, 4730, 4816, 4902, 4988, 5074, 5160, 5246, 5332, 5418, 5504, 5590,
+    5676, 5762, 5848, 5934, 6020, 6106, 6192, 6278, 6364, 6450, 6536, 6622, 6708, 6794, 6880, 6966,
+    7052, 7138, 7224, 7310, 7396,
 ];
 #[no_mangle]
 pub unsafe extern "C" fn drawobj() {
@@ -380,34 +282,26 @@ unsafe extern "C" fn drawcgachartile(mut dest: *mut byte, mut tile: libc::c_int)
     while r < 8 {
         let fresh4 = dest;
         dest = dest.offset(1);
-        *fresh4 = (*src.offset(0) as libc::c_int >> 6
-            & 3) as byte;
+        *fresh4 = (*src.offset(0) as libc::c_int >> 6 & 3) as byte;
         let fresh5 = dest;
         dest = dest.offset(1);
-        *fresh5 = (*src.offset(0) as libc::c_int >> 4
-            & 3) as byte;
+        *fresh5 = (*src.offset(0) as libc::c_int >> 4 & 3) as byte;
         let fresh6 = dest;
         dest = dest.offset(1);
-        *fresh6 = (*src.offset(0) as libc::c_int >> 2
-            & 3) as byte;
+        *fresh6 = (*src.offset(0) as libc::c_int >> 2 & 3) as byte;
         let fresh7 = dest;
         dest = dest.offset(1);
-        *fresh7 = (*src.offset(0) as libc::c_int >> 0
-            & 3) as byte;
+        *fresh7 = (*src.offset(0) as libc::c_int >> 0 & 3) as byte;
         let fresh8 = dest;
         dest = dest.offset(1);
-        *fresh8 = (*src.offset(1) as libc::c_int >> 6
-            & 3) as byte;
+        *fresh8 = (*src.offset(1) as libc::c_int >> 6 & 3) as byte;
         let fresh9 = dest;
         dest = dest.offset(1);
-        *fresh9 = (*src.offset(1) as libc::c_int >> 4
-            & 3) as byte;
+        *fresh9 = (*src.offset(1) as libc::c_int >> 4 & 3) as byte;
         let fresh10 = dest;
         dest = dest.offset(1);
-        *fresh10 = (*src.offset(1) as libc::c_int >> 2
-            & 3) as byte;
-        *dest = (*src.offset(1) as libc::c_int >> 0
-            & 3) as byte;
+        *fresh10 = (*src.offset(1) as libc::c_int >> 2 & 3) as byte;
+        *dest = (*src.offset(1) as libc::c_int >> 0 & 3) as byte;
         dest = dest.offset((screenpitch as libc::c_int - 7) as isize);
         r = r.wrapping_add(1);
         src = src.offset(2);
@@ -437,10 +331,7 @@ pub unsafe extern "C" fn cgarefresh() {
         }
         ofs = ofs.wrapping_add((86 - 24) as libc::c_uint);
         endofrow = endofrow.wrapping_add(86);
-        vbuf = vbuf.offset(
-            (screenpitch as libc::c_int * 8 - 24 * 8)
-                as isize,
-        );
+        vbuf = vbuf.offset((screenpitch as libc::c_int * 8 - 24 * 8) as isize);
     }
     UpdateScreen();
 }
@@ -506,10 +397,7 @@ pub unsafe extern "C" fn egarefresh() {
         }
         ofs = ofs.wrapping_add((86 - 24) as libc::c_uint);
         endofrow = endofrow.wrapping_add(86);
-        vbuf = vbuf.offset(
-            (screenpitch as libc::c_int * 8 - 24 * 8)
-                as isize,
-        );
+        vbuf = vbuf.offset((screenpitch as libc::c_int * 8 - 24 * 8) as isize);
     }
     UpdateScreen();
 }

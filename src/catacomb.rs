@@ -504,456 +504,60 @@ unsafe extern "C" fn itoa(
 #[no_mangle]
 pub static mut altmeters: [[libc::c_char; 14]; 14] = [
     [
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        23,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        23, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        23,
-        25,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        23, 25, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        23,
-        24,
-        25,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        23, 24, 25, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        23,
-        24,
-        24,
-        25,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        23, 24, 24, 25, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        23,
-        24,
-        24,
-        24,
-        25,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        23, 24, 24, 24, 25, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
-    [
-        23,
-        24,
-        24,
-        24,
-        24,
-        25,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        25,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        25,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        25,
-        127,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        25,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        25,
-        127,
-        127,
-        0,
-    ],
-    [
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        25,
-        127,
-        0,
-    ],
-    [
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        25,
-        0,
-    ],
+    [23, 24, 24, 24, 24, 25, 127, 127, 127, 127, 127, 127, 127, 0],
+    [23, 24, 24, 24, 24, 24, 25, 127, 127, 127, 127, 127, 127, 0],
+    [23, 24, 24, 24, 24, 24, 24, 25, 127, 127, 127, 127, 127, 0],
+    [23, 24, 24, 24, 24, 24, 24, 24, 25, 127, 127, 127, 127, 0],
+    [23, 24, 24, 24, 24, 24, 24, 24, 24, 25, 127, 127, 127, 0],
+    [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 127, 127, 0],
+    [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 127, 0],
+    [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 0],
 ];
 #[no_mangle]
 pub static mut meters: [[libc::c_char; 14]; 14] = [
     [
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        26,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        26, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        26,
-        28,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        26, 28, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        26,
-        27,
-        28,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        26, 27, 28, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        26,
-        27,
-        27,
-        28,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        26, 27, 27, 28, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
     [
-        26,
-        27,
-        27,
-        27,
-        28,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
+        26, 27, 27, 27, 28, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
-    [
-        26,
-        27,
-        27,
-        27,
-        27,
-        28,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        26,
-        27,
-        27,
-        27,
-        27,
-        27,
-        28,
-        127,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        26,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        28,
-        127,
-        127,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        26,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        28,
-        127,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        26,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        28,
-        127,
-        127,
-        127,
-        0,
-    ],
-    [
-        26,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        28,
-        127,
-        127,
-        0,
-    ],
-    [
-        26,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        28,
-        127,
-        0,
-    ],
-    [
-        26,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        28,
-        0,
-    ],
+    [26, 27, 27, 27, 27, 28, 127, 127, 127, 127, 127, 127, 127, 0],
+    [26, 27, 27, 27, 27, 27, 28, 127, 127, 127, 127, 127, 127, 0],
+    [26, 27, 27, 27, 27, 27, 27, 28, 127, 127, 127, 127, 127, 0],
+    [26, 27, 27, 27, 27, 27, 27, 27, 28, 127, 127, 127, 127, 0],
+    [26, 27, 27, 27, 27, 27, 27, 27, 27, 28, 127, 127, 127, 0],
+    [26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 127, 127, 0],
+    [26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 127, 0],
+    [26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 0],
 ];
 #[no_mangle]
 pub static mut opposite: [dirtype; 9] = [
@@ -1135,22 +739,7 @@ pub static mut GODMODE: boolean = false as boolean;
 #[no_mangle]
 pub static mut demowin: [[libc::c_char; 16]; 5] = [
     [
-        14,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        15,
-        16,
+        14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 16,
     ],
     [
         17,
@@ -1207,22 +796,7 @@ pub static mut demowin: [[libc::c_char; 16]; 5] = [
         18,
     ],
     [
-        19,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        21,
+        19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21,
     ],
 ];
 #[no_mangle]
@@ -1410,41 +984,11 @@ pub unsafe extern "C" fn help() {
         }
         y += 1;
     }
-    charpic(
-        4,
-        14,
-        player,
-        east,
-        2,
-    );
-    charpic(
-        19,
-        15,
-        shot,
-        east,
-        1,
-    );
-    charpic(
-        17,
-        14,
-        shot,
-        east,
-        0,
-    );
-    charpic(
-        15,
-        15,
-        shot,
-        east,
-        1,
-    );
-    charpic(
-        8,
-        14,
-        bigshot,
-        east,
-        0,
-    );
+    charpic(4, 14, player, east, 2);
+    charpic(19, 15, shot, east, 1);
+    charpic(17, 14, shot, east, 0);
+    charpic(15, 15, shot, east, 1);
+    charpic(8, 14, bigshot, east, 0);
     if wantmore() == 0 {
         return;
     }
@@ -1471,13 +1015,7 @@ pub unsafe extern "C" fn help() {
         }
         y += 1;
     }
-    charpic(
-        6,
-        13,
-        player,
-        south,
-        2,
-    );
+    charpic(6, 13, player, south, 2);
     sx = 6;
     sy = 15;
     print(b"\x1D\x1D\x1E\x1E\x1F\x1F\0" as *const u8 as *const libc::c_char);
@@ -1561,11 +1099,7 @@ pub unsafe extern "C" fn loadlevel() {
         b".CA2\0" as *const u8 as *const libc::c_char,
     );
     LoadFile(filename.as_mut_ptr(), rle.as_mut_ptr());
-    RLEExpand(
-        &mut *rle.as_mut_ptr().offset(4),
-        sm.as_mut_ptr(),
-        4096,
-    );
+    RLEExpand(&mut *rle.as_mut_ptr().offset(4), sm.as_mut_ptr(), 4096);
     numobj = 0;
     o[0].x = 13;
     o[0].y = 13;
@@ -1581,11 +1115,9 @@ pub unsafe extern "C" fn loadlevel() {
         while xx < 64 {
             btile = sm[(yy * 64 + xx) as usize] as byte;
             if (btile as libc::c_int) < 230 {
-                background[(yy + 11) as usize][(xx + 11) as usize] =
-                    btile as libc::c_int;
+                background[(yy + 11) as usize][(xx + 11) as usize] = btile as libc::c_int;
             } else {
-                background[(yy + 11) as usize][(xx + 11) as usize] =
-                    128;
+                background[(yy + 11) as usize][(xx + 11) as usize] = 128;
                 if tokens[(btile as libc::c_int - 230) as usize] as libc::c_uint
                     == player as libc::c_int as libc::c_uint
                 {
@@ -1650,12 +1182,7 @@ pub unsafe extern "C" fn drawside() {
         drawchar(39, sy, 0);
         sy += 1;
     }
-    drawwindow(
-        24,
-        0,
-        38,
-        23,
-    );
+    drawwindow(24, 0, 38, 23);
     print(
         b"  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n\0" as *const u8 as *const libc::c_char,
     );
@@ -1667,11 +1194,7 @@ pub unsafe extern "C" fn drawside() {
     sx = 33;
     sy = 1;
     printint(level as libc::c_int);
-    drawpic(
-        25 * 8,
-        17 * 8,
-        13,
-    );
+    drawpic(25 * 8, 17 * 8, 13);
     i = 1;
     while i <= items[1] as libc::c_int && i < 11 {
         drawchar(26 + i, 7, 31);
@@ -1697,13 +1220,7 @@ pub unsafe extern "C" fn drawside() {
 pub unsafe extern "C" fn playsetup() {
     let mut i: libc::c_int = 0;
     shotpower = 0;
-    bar(
-        0,
-        0,
-        23,
-        23,
-        0,
-    );
+    bar(0, 0, 23, 23, 0);
     if level as libc::c_int == 0 {
         i = 1;
         while i < 6 {
@@ -1860,8 +1377,7 @@ pub unsafe extern "C" fn dofkeys() {
                             );
                             write(
                                 handle,
-                                &mut *saveo.as_mut_ptr().offset(0)
-                                    as *mut activeobj
+                                &mut *saveo.as_mut_ptr().offset(0) as *mut activeobj
                                     as *const libc::c_void,
                                 ::std::mem::size_of::<activeobj>() as libc::c_ulong,
                             );
@@ -1915,8 +1431,7 @@ pub unsafe extern "C" fn dofkeys() {
                     );
                     read(
                         handle,
-                        &mut *o.as_mut_ptr().offset(0) as *mut activeobj
-                            as *mut libc::c_void,
+                        &mut *o.as_mut_ptr().offset(0) as *mut activeobj as *mut libc::c_void,
                         ::std::mem::size_of::<activeobj>() as libc::c_ulong,
                     );
                     close(handle);
@@ -1994,12 +1509,7 @@ pub unsafe extern "C" fn doendpage() {
     WaitEndSound();
     PlaySound(3);
     WaitEndSound();
-    drawwindow(
-        0,
-        0,
-        17,
-        9,
-    );
+    drawwindow(0, 0, 17, 9);
     print(b"Congratulation! \n\0" as *const u8 as *const libc::c_char);
     print(b"One as skilled  \n\0" as *const u8 as *const libc::c_char);
     print(b"as yourself     \n\0" as *const u8 as *const libc::c_char);
@@ -2009,12 +1519,7 @@ pub unsafe extern "C" fn doendpage() {
     print(b"of the palace! \0" as *const u8 as *const libc::c_char);
     clearkeys();
     get();
-    drawwindow(
-        0,
-        0,
-        17,
-        9,
-    );
+    drawwindow(0, 0, 17, 9);
     print(b"Let us know what\n\0" as *const u8 as *const libc::c_char);
     print(b"you enjoyed     \n\0" as *const u8 as *const libc::c_char);
     print(b"about this game,\n\0" as *const u8 as *const libc::c_char);
@@ -2174,9 +1679,7 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
     );
     priority[128] = 0;
     i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
-    while i
-        <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20
-    {
+    while i <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20 {
         priority[i as usize] = 0;
         i += 1;
     }
@@ -2199,8 +1702,7 @@ unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
         i += 1;
     }
     i = objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int;
-    while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31
-    {
+    while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31 {
         priority[i as usize] = 2;
         i += 1;
     }

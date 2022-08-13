@@ -644,19 +644,9 @@ unsafe extern "C" fn itoa(
     return str;
 }
 #[no_mangle]
-pub static mut rowy: [libc::c_int; 4] = [
-    4,
-    9,
-    14,
-    19,
-];
+pub static mut rowy: [libc::c_int; 4] = [4, 9, 14, 19];
 #[no_mangle]
-pub static mut collumnx: [libc::c_int; 4] = [
-    14,
-    20,
-    26,
-    32,
-];
+pub static mut collumnx: [libc::c_int; 4] = [14, 20, 26, 32];
 #[no_mangle]
 pub static mut spotok: [[libc::c_int; 5]; 4] = [[0; 5]; 4];
 #[no_mangle]
@@ -958,11 +948,7 @@ pub unsafe extern "C" fn printscan(mut sc: libc::c_int) {
     } else if sc >= 0x3b as libc::c_int && sc <= 0x44 as libc::c_int {
         let mut str: [libc::c_char; 3] = [0; 3];
         print(b"F\0" as *const u8 as *const libc::c_char);
-        itoa(
-            sc - 0x3a as libc::c_int,
-            str.as_mut_ptr(),
-            10,
-        );
+        itoa(sc - 0x3a as libc::c_int, str.as_mut_ptr(), 10);
         print(str.as_mut_ptr());
     } else if sc == 0x57 as libc::c_int {
         print(b"F11\0" as *const u8 as *const libc::c_char);
@@ -1111,83 +1097,35 @@ pub unsafe extern "C" fn drawpanel() {
     sy = rowy[0] + 2;
     sx = 2;
     print(b"VIDEO:\0" as *const u8 as *const libc::c_char);
-    drawpic(
-        collumnx[0] * 8,
-        rowy[0] * 8,
-        0,
-    );
+    drawpic(collumnx[0] * 8, rowy[0] * 8, 0);
     if _egaok != 0 {
-        drawpic(
-            collumnx[1] * 8,
-            rowy[0] * 8,
-            1,
-        );
+        drawpic(collumnx[1] * 8, rowy[0] * 8, 1);
     } else {
-        drawpic(
-            collumnx[1] * 8,
-            rowy[0] * 8,
-            3,
-        );
+        drawpic(collumnx[1] * 8, rowy[0] * 8, 3);
     }
     sy = rowy[1] + 2;
     sx = 2;
     print(b"SOUND:\0" as *const u8 as *const libc::c_char);
-    drawpic(
-        collumnx[0] * 8,
-        rowy[1] * 8,
-        5,
-    );
-    drawpic(
-        collumnx[1] * 8,
-        rowy[1] * 8,
-        6,
-    );
+    drawpic(collumnx[0] * 8, rowy[1] * 8, 5);
+    drawpic(collumnx[1] * 8, rowy[1] * 8, 6);
     sy = rowy[2] + 2;
     sx = 2;
     print(b"CONTROL:\0" as *const u8 as *const libc::c_char);
-    drawpic(
-        collumnx[0] * 8,
-        rowy[2] * 8,
-        7,
-    );
+    drawpic(collumnx[0] * 8, rowy[2] * 8, 7);
     if mouseok != 0 {
-        drawpic(
-            collumnx[1] * 8,
-            rowy[2] * 8,
-            10,
-        );
+        drawpic(collumnx[1] * 8, rowy[2] * 8, 10);
     } else {
-        drawpic(
-            collumnx[1] * 8,
-            rowy[2] * 8,
-            12,
-        );
+        drawpic(collumnx[1] * 8, rowy[2] * 8, 12);
     }
     if joy1ok != 0 {
-        drawpic(
-            collumnx[2] * 8,
-            rowy[2] * 8,
-            8,
-        );
+        drawpic(collumnx[2] * 8, rowy[2] * 8, 8);
     } else {
-        drawpic(
-            collumnx[2] * 8,
-            rowy[2] * 8,
-            11,
-        );
+        drawpic(collumnx[2] * 8, rowy[2] * 8, 11);
     }
     if joy2ok != 0 {
-        drawpic(
-            collumnx[3] * 8,
-            rowy[2] * 8,
-            9,
-        );
+        drawpic(collumnx[3] * 8, rowy[2] * 8, 9);
     } else {
-        drawpic(
-            collumnx[3] * 8,
-            rowy[2] * 8,
-            11,
-        );
+        drawpic(collumnx[3] * 8, rowy[2] * 8, 11);
     }
     drawchar(
         collumnx[(newgrmode as libc::c_int - 1) as usize] + 1,
@@ -1200,8 +1138,7 @@ pub unsafe extern "C" fn drawpanel() {
         15,
     );
     drawchar(
-        collumnx[newplayermode[1] as libc::c_int as usize]
-            + 1,
+        collumnx[newplayermode[1] as libc::c_int as usize] + 1,
         rowy[2] + 3,
         15,
     );
@@ -1231,12 +1168,7 @@ pub unsafe extern "C" fn controlpanel() {
     oldcentery = screencentery;
     screencenterx = 19;
     screencentery = 11;
-    drawwindow(
-        0,
-        0,
-        39,
-        24,
-    );
+    drawwindow(0, 0, 39, 24);
     drawpanel();
     row = 0;
     collumn = grmode as libc::c_int - 1;
@@ -1286,22 +1218,14 @@ pub unsafe extern "C" fn controlpanel() {
                 0 => {
                     if !(newgrmode as libc::c_int == collumn + 1) {
                         drawchar(
-                            collumnx[(newgrmode as libc::c_int - 1) as usize]
-                                + 1,
+                            collumnx[(newgrmode as libc::c_int - 1) as usize] + 1,
                             rowy[row as usize] + 3,
                             32,
                         );
-                        newgrmode = (collumn as grtype as libc::c_uint)
-                            .wrapping_add(1)
-                            as grtype;
+                        newgrmode = (collumn as grtype as libc::c_uint).wrapping_add(1) as grtype;
                         grmode = newgrmode;
                         loadgrfiles();
-                        drawwindow(
-                            0,
-                            0,
-                            39,
-                            24,
-                        );
+                        drawwindow(0, 0, 39, 24);
                         drawpanel();
                     }
                 }
@@ -1315,15 +1239,12 @@ pub unsafe extern "C" fn controlpanel() {
                 }
                 2 => {
                     drawchar(
-                        collumnx[newplayermode[1] as libc::c_int as usize]
-                            + 1,
+                        collumnx[newplayermode[1] as libc::c_int as usize] + 1,
                         rowy[row as usize] + 3,
                         32,
                     );
                     newplayermode[1] = collumn as inputtype;
-                    if newplayermode[1] as libc::c_uint
-                        == keyboard as libc::c_int as libc::c_uint
-                    {
+                    if newplayermode[1] as libc::c_uint == keyboard as libc::c_int as libc::c_uint {
                         calibratekeys();
                     } else if newplayermode[1] as libc::c_uint
                         == mouse as libc::c_int as libc::c_uint
@@ -1342,11 +1263,7 @@ pub unsafe extern "C" fn controlpanel() {
                 }
                 _ => {}
             }
-            drawchar(
-                collumnx[collumn as usize] + 1,
-                rowy[row as usize] + 3,
-                15,
-            );
+            drawchar(collumnx[collumn as usize] + 1, rowy[row as usize] + 3, 15);
         }
         if !(chf != SDLK_ESCAPE as libc::c_int) {
             break;
@@ -1435,14 +1352,10 @@ pub unsafe extern "C" fn installgrfile(
         (picfile as *mut byte).offset(flatptr((*picfile).picptr) as isize) as *mut libc::c_void;
     spriteptr =
         (picfile as *mut byte).offset(flatptr((*picfile).spriteptr) as isize) as *mut libc::c_void;
-    egaplaneofs[0] = (flatptr((*picfile).plane[0]))
-        .wrapping_sub(flatptr((*picfile).charptr));
-    egaplaneofs[1] = (flatptr((*picfile).plane[1]))
-        .wrapping_sub(flatptr((*picfile).charptr));
-    egaplaneofs[2] = (flatptr((*picfile).plane[2]))
-        .wrapping_sub(flatptr((*picfile).charptr));
-    egaplaneofs[3] = (flatptr((*picfile).plane[3]))
-        .wrapping_sub(flatptr((*picfile).charptr));
+    egaplaneofs[0] = (flatptr((*picfile).plane[0])).wrapping_sub(flatptr((*picfile).charptr));
+    egaplaneofs[1] = (flatptr((*picfile).plane[1])).wrapping_sub(flatptr((*picfile).charptr));
+    egaplaneofs[2] = (flatptr((*picfile).plane[2])).wrapping_sub(flatptr((*picfile).charptr));
+    egaplaneofs[3] = (flatptr((*picfile).plane[3])).wrapping_sub(flatptr((*picfile).charptr));
     picinfile =
         (picfile as *mut byte).offset(flatptr((*picfile).pictableptr) as isize) as *mut ptype;
     spriteinfile =

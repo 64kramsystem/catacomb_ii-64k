@@ -570,23 +570,16 @@ pub unsafe extern "C" fn levelcleared() {
     let mut warp: [libc::c_char; 3] = [0; 3];
     let mut value: libc::c_int = 0;
     leveldone = true as boolean;
-    warp[0] = (background
-        [(altobj.y as libc::c_int + 2) as usize][altobj.x as usize]
-        as libc::c_char as libc::c_int
+    warp[0] = (background[(altobj.y as libc::c_int + 2) as usize][altobj.x as usize] as libc::c_char
+        as libc::c_int
         - 161) as libc::c_char;
-    if (warp[0] as libc::c_int) < '0' as i32
-        || warp[0] as libc::c_int > '9' as i32
-    {
+    if (warp[0] as libc::c_int) < '0' as i32 || warp[0] as libc::c_int > '9' as i32 {
         warp[0] = '0' as i32 as libc::c_char;
     }
-    warp[1] = (background
-        [(altobj.y as libc::c_int + 2) as usize]
-        [(altobj.x as libc::c_int + 1) as usize]
-        as libc::c_char as libc::c_int
+    warp[1] = (background[(altobj.y as libc::c_int + 2) as usize]
+        [(altobj.x as libc::c_int + 1) as usize] as libc::c_char as libc::c_int
         - 161) as libc::c_char;
-    if (warp[1] as libc::c_int) < '0' as i32
-        || warp[1] as libc::c_int > '9' as i32
-    {
+    if (warp[1] as libc::c_int) < '0' as i32 || warp[1] as libc::c_int > '9' as i32 {
         warp[2] = ' ' as i32 as libc::c_char;
     }
     value = atoi(warp.as_mut_ptr());
@@ -862,8 +855,8 @@ pub unsafe extern "C" fn tagobject() {
             printscore();
             PlaySound(9);
         }
-        o[altnum as usize].class = (dead1 as libc::c_int - 1
-            + altobj.size as libc::c_int) as classtype as word;
+        o[altnum as usize].class =
+            (dead1 as libc::c_int - 1 + altobj.size as libc::c_int) as classtype as word;
         o[altnum as usize].delay = 2;
         o[altnum as usize].stage = 0;
     } else {
@@ -955,14 +948,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
     if chkspot == 128 {
         return true as boolean;
     }
-    if chkspot >= 256
-        && chkspot
-            <= 256
-                + 67 * 4
-                + 35 * 9
-                + 19 * 16
-                + 19 * 25
-    {
+    if chkspot >= 256 && chkspot <= 256 + 67 * 4 + 35 * 9 + 19 * 16 + 19 * 25 {
         return intomonster();
     }
     if chkspot >= 129 && chkspot <= 135 {
@@ -1569,22 +1555,10 @@ pub unsafe extern "C" fn killnear(mut chkx_0: libc::c_int, mut chky_0: libc::c_i
 pub unsafe extern "C" fn explodethink() {
     obj.stage = (obj.stage).wrapping_add(1);
     if obj.stage as libc::c_int == 1 {
-        killnear(
-            obj.x as libc::c_int - 1,
-            obj.y as libc::c_int,
-        );
-        killnear(
-            obj.x as libc::c_int,
-            obj.y as libc::c_int - 1,
-        );
-        killnear(
-            obj.x as libc::c_int + 1,
-            obj.y as libc::c_int,
-        );
-        killnear(
-            obj.x as libc::c_int,
-            obj.y as libc::c_int + 1,
-        );
+        killnear(obj.x as libc::c_int - 1, obj.y as libc::c_int);
+        killnear(obj.x as libc::c_int, obj.y as libc::c_int - 1);
+        killnear(obj.x as libc::c_int + 1, obj.y as libc::c_int);
+        killnear(obj.x as libc::c_int, obj.y as libc::c_int + 1);
     }
     obj.delay = 2;
     if obj.stage as libc::c_int == obj.stages as libc::c_int {
