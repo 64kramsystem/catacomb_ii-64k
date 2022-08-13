@@ -1,4 +1,7 @@
 use ::libc;
+
+use crate::catacomb::repaintscreen;
+
 extern "C" {
     fn free(_: *mut libc::c_void);
     fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> libc::c_int;
@@ -11,7 +14,6 @@ extern "C" {
     static mut _vgaok: boolean;
     static mut _egaok: boolean;
     fn print(str: *const libc::c_char);
-    fn repaintscreen();
     static mut screencentery: libc::c_int;
     static mut screencenterx: libc::c_int;
     fn drawpic(x: libc::c_int, y: libc::c_int, picnum: libc::c_int);
@@ -1148,8 +1150,8 @@ pub unsafe extern "C" fn drawpanel() {
     print(b"   Make decisions with the ENTER key  \n\r\0" as *const u8 as *const libc::c_char);
     print(b"       ESC to return to your game     \n\r\0" as *const u8 as *const libc::c_char);
 }
-#[no_mangle]
-pub unsafe extern "C" fn controlpanel() {
+
+pub unsafe fn controlpanel(items: &mut [sword]) {
     let mut chf: libc::c_int = 0;
     let mut oldcenterx: libc::c_int = 0;
     let mut oldcentery: libc::c_int = 0;
@@ -1276,7 +1278,7 @@ pub unsafe extern "C" fn controlpanel() {
     screencenterx = oldcenterx;
     screencentery = oldcentery;
     soundmode = newsoundmode;
-    repaintscreen();
+    repaintscreen(items);
     ContinueSound();
 }
 #[no_mangle]

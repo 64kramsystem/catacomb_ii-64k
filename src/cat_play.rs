@@ -1,6 +1,7 @@
 use ::libc;
 
 use crate::{
+    catacomb::{dofkeys, loadlevel},
     catasm::{doall, drawobj},
     demo_enum::demoenum,
     indemo,
@@ -20,7 +21,6 @@ extern "C" {
     static mut gamexit: exittype;
     static mut altobj: objtype;
     static mut altnum: libc::c_int;
-    static mut items: [sword; 6];
     static mut view: [[libc::c_int; 86]; 87];
     static mut chkspot: libc::c_int;
     static mut chkx: libc::c_int;
@@ -32,8 +32,6 @@ extern "C" {
     static mut o: [activeobj; 201];
     static mut objecton: libc::c_int;
     fn restore();
-    fn dofkeys();
-    fn loadlevel();
     static mut leveldone: boolean;
     static mut frameon: word;
     static mut boltsleft: libc::c_int;
@@ -593,8 +591,8 @@ pub unsafe extern "C" fn levelcleared() {
         gamexit = victorious;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn givekey() {
+
+unsafe fn givekey(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     i = items[1] as libc::c_int + 1;
     items[1] = i as sword;
@@ -602,8 +600,8 @@ pub unsafe extern "C" fn givekey() {
         drawchar(26 + i, 7, 31);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn givepotion() {
+
+pub unsafe fn givepotion(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     i = items[2] as libc::c_int + 1;
     items[2] = i as sword;
@@ -611,8 +609,8 @@ pub unsafe extern "C" fn givepotion() {
         drawchar(26 + i, 8, 29);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn givebolt() {
+
+pub unsafe fn givebolt(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     i = items[3] as libc::c_int + 1;
     items[3] = i as sword;
@@ -620,8 +618,8 @@ pub unsafe extern "C" fn givebolt() {
         drawchar(26 + i, 9, 30);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn givenuke() {
+
+pub unsafe fn givenuke(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     i = items[5] as libc::c_int + 1;
     items[5] = i as sword;
@@ -629,8 +627,8 @@ pub unsafe extern "C" fn givenuke() {
         drawchar(26 + i, 10, 30);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn takekey() -> boolean {
+
+unsafe fn takekey(items: &mut [sword]) -> boolean {
     let mut i: libc::c_int = 0;
     if items[1] as libc::c_int > 0 {
         i = items[1] as libc::c_int - 1;
@@ -645,8 +643,8 @@ pub unsafe extern "C" fn takekey() -> boolean {
         return false as boolean;
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn takepotion() {
+
+unsafe fn takepotion(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     if items[2] as libc::c_int > 0 {
         i = items[2] as libc::c_int - 1;
@@ -662,8 +660,8 @@ pub unsafe extern "C" fn takepotion() {
         PlaySound(14);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn castbolt() {
+
+unsafe fn castbolt(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     if items[3] as libc::c_int > 0 {
         i = items[3] as libc::c_int - 1;
@@ -677,8 +675,8 @@ pub unsafe extern "C" fn castbolt() {
         PlaySound(14);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn castnuke() {
+
+unsafe fn castnuke(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     let mut x: libc::c_int = 0;
     let mut n: libc::c_int = 0;
@@ -788,12 +786,12 @@ pub unsafe extern "C" fn playbigshoot() {
     o[new as usize].y = obj.y;
     o[new as usize].class = bigshot as libc::c_int as word;
 }
-#[no_mangle]
-pub unsafe extern "C" fn givescroll() {
+
+unsafe fn givescroll(items: &mut [sword]) {
     if rndt() < 128 {
-        givebolt();
+        givebolt(items);
     } else {
-        givenuke();
+        givenuke(items);
     };
 }
 #[no_mangle]
@@ -942,8 +940,8 @@ pub unsafe extern "C" fn intomonster() -> boolean {
     }
     return false as boolean;
 }
-#[no_mangle]
-pub unsafe extern "C" fn walkthrough() -> boolean {
+
+unsafe fn walkthrough(items: &mut [sword]) -> boolean {
     let mut new: libc::c_int = 0;
     if chkspot == 128 {
         return true as boolean;
@@ -995,7 +993,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
     }
     if chkspot == 162 {
         if obj.class as libc::c_int == player as libc::c_int {
-            givepotion();
+            givepotion(items);
             view[chky as usize][chkx as usize] = 128;
             background[chky as usize][chkx as usize] = 128;
             PlaySound(2);
@@ -1004,7 +1002,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
     }
     if chkspot == 163 {
         if obj.class as libc::c_int == player as libc::c_int {
-            givescroll();
+            givescroll(items);
             view[chky as usize][chkx as usize] = 128;
             background[chky as usize][chkx as usize] = 128;
             PlaySound(2);
@@ -1013,7 +1011,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
     }
     if chkspot == 164 {
         if obj.class as libc::c_int == player as libc::c_int {
-            givekey();
+            givekey(items);
             view[chky as usize][chkx as usize] = 128;
             background[chky as usize][chkx as usize] = 128;
             PlaySound(2);
@@ -1022,7 +1020,7 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
     }
     if chkspot == 165 || chkspot == 166 {
         if obj.class as libc::c_int == player as libc::c_int {
-            if takekey() != 0 {
+            if takekey(items) != 0 {
                 opendoor();
                 return true as boolean;
             }
@@ -1044,8 +1042,8 @@ pub unsafe extern "C" fn walkthrough() -> boolean {
     }
     return false as boolean;
 }
-#[no_mangle]
-pub unsafe extern "C" fn walk() -> boolean {
+
+unsafe fn walk(items: &mut [sword]) -> boolean {
     let mut i: libc::c_int = 0;
     let mut newx: libc::c_int = 0;
     let mut newy: libc::c_int = 0;
@@ -1091,7 +1089,7 @@ pub unsafe extern "C" fn walk() -> boolean {
     while i <= obj.size as libc::c_int {
         chkspot = view[chky as usize][chkx as usize];
         if chkspot != 128 {
-            try_0 = walkthrough();
+            try_0 = walkthrough(items);
             if leveldone != 0 {
                 return true as boolean;
             }
@@ -1111,8 +1109,8 @@ pub unsafe extern "C" fn walk() -> boolean {
     obj.stage = (obj.stage as libc::c_int ^ 1) as byte;
     return true as boolean;
 }
-#[no_mangle]
-pub unsafe extern "C" fn playercmdthink() {
+
+unsafe fn playercmdthink(items: &mut [sword]) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
         dir: north,
@@ -1125,9 +1123,9 @@ pub unsafe extern "C" fn playercmdthink() {
         && c.button2 as libc::c_int != 0
         && keydown[SDL_SCANCODE_Q as libc::c_int as usize] as libc::c_int != 0
     {
-        givepotion();
-        givescroll();
-        givekey();
+        givepotion(items);
+        givescroll(items);
+        givekey(items);
     }
     if (c.dir as libc::c_uint) < nodir as libc::c_int as libc::c_uint
         && frameon as libc::c_int % 2 != 0
@@ -1140,22 +1138,22 @@ pub unsafe extern "C" fn playercmdthink() {
                 match c.dir as libc::c_uint {
                     4 => {
                         obj.dir = east as libc::c_int as word;
-                        walk();
+                        walk(items);
                         c.dir = north;
                     }
                     5 => {
                         obj.dir = south as libc::c_int as word;
-                        walk();
+                        walk(items);
                         c.dir = east;
                     }
                     6 => {
                         obj.dir = west as libc::c_int as word;
-                        walk();
+                        walk(items);
                         c.dir = south;
                     }
                     7 => {
                         obj.dir = north as libc::c_int as word;
-                        walk();
+                        walk(items);
                         c.dir = west;
                     }
                     _ => {}
@@ -1164,22 +1162,22 @@ pub unsafe extern "C" fn playercmdthink() {
                 match c.dir as libc::c_uint {
                     4 => {
                         obj.dir = north as libc::c_int as word;
-                        walk();
+                        walk(items);
                         c.dir = east;
                     }
                     5 => {
                         obj.dir = east as libc::c_int as word;
-                        walk();
+                        walk(items);
                         c.dir = south;
                     }
                     6 => {
                         obj.dir = south as libc::c_int as word;
-                        walk();
+                        walk(items);
                         c.dir = west;
                     }
                     7 => {
                         obj.dir = west as libc::c_int as word;
-                        walk();
+                        walk(items);
                         c.dir = north;
                     }
                     _ => {}
@@ -1187,7 +1185,7 @@ pub unsafe extern "C" fn playercmdthink() {
             }
         }
         obj.dir = c.dir as word;
-        if walk() == 0 {
+        if walk(items) == 0 {
             PlaySound(1);
         }
         if c.button2 != 0 {
@@ -1238,22 +1236,22 @@ pub unsafe extern "C" fn playercmdthink() {
             || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
         {
             if (obj.hp as libc::c_int) < 13 {
-                takepotion();
+                takepotion(items);
                 keydown[SDL_SCANCODE_Q as libc::c_int as usize] = false as boolean;
                 keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] = false as boolean;
             }
         } else if keydown[SDL_SCANCODE_B as libc::c_int as usize] != 0 {
-            castbolt();
+            castbolt(items);
             keydown[SDL_SCANCODE_B as libc::c_int as usize] = false as boolean;
         } else if keydown[SDL_SCANCODE_N as libc::c_int as usize] as libc::c_int != 0
             || keydown[SDL_SCANCODE_RETURN as libc::c_int as usize] as libc::c_int != 0
         {
-            castnuke();
+            castnuke(items);
             keydown[SDL_SCANCODE_N as libc::c_int as usize] = false as boolean;
             keydown[SDL_SCANCODE_RETURN as libc::c_int as usize] = false as boolean;
         }
     }
-    dofkeys();
+    dofkeys(items);
     if resetgame != 0 {
         resetgame = false as boolean;
         playdone = true as boolean;
@@ -1318,8 +1316,8 @@ pub unsafe extern "C" fn playercmdthink() {
         _ => {}
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn chasethink(mut diagonal: boolean) {
+
+unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword]) {
     let mut deltax: libc::c_int = 0;
     let mut deltay: libc::c_int = 0;
     let mut d: [dirtype; 3] = [north; 3];
@@ -1359,32 +1357,32 @@ pub unsafe extern "C" fn chasethink(mut diagonal: boolean) {
     if diagonal != 0 {
         if d[1] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[1] as word;
-            if walk() as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
         if d[2] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[2] as word;
-            if walk() as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
     } else {
         if d[2] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[2] as word;
-            if walk() as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
         if d[1] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[1] as word;
-            if walk() as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
     }
     obj.dir = olddir as word;
-    if walk() as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+    if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
         return;
     }
     if rndt() > 128 {
@@ -1392,7 +1390,7 @@ pub unsafe extern "C" fn chasethink(mut diagonal: boolean) {
         while tdir <= west as libc::c_int {
             if tdir != turnaround {
                 obj.dir = tdir as word;
-                if walk() as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+                if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                     return;
                 }
             }
@@ -1403,7 +1401,7 @@ pub unsafe extern "C" fn chasethink(mut diagonal: boolean) {
         while tdir >= north as libc::c_int {
             if tdir != turnaround {
                 obj.dir = tdir as word;
-                if walk() as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+                if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                     return;
                 }
             }
@@ -1411,10 +1409,10 @@ pub unsafe extern "C" fn chasethink(mut diagonal: boolean) {
         }
     }
     obj.dir = turnaround as word;
-    walk();
+    walk(items);
 }
-#[no_mangle]
-pub unsafe extern "C" fn gargthink() {
+
+unsafe fn gargthink(items: &mut [sword]) {
     let mut n: libc::c_int = 0;
     if rndt() > 220 {
         obj.stage = 2;
@@ -1447,11 +1445,11 @@ pub unsafe extern "C" fn gargthink() {
         }
         return;
     } else {
-        chasethink(false as boolean);
+        chasethink(false as boolean, items);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn dragonthink() {
+
+unsafe fn dragonthink(items: &mut [sword]) {
     let mut n: libc::c_int = 0;
     if rndt() > 220 {
         obj.stage = 2;
@@ -1484,7 +1482,7 @@ pub unsafe extern "C" fn dragonthink() {
         }
         return;
     } else {
-        chasethink(false as boolean);
+        chasethink(false as boolean, items);
     };
 }
 #[no_mangle]
@@ -1501,13 +1499,13 @@ pub unsafe extern "C" fn gunthink(mut dir: libc::c_int) {
     o[n as usize].x = obj.x;
     o[n as usize].y = obj.y;
 }
-#[no_mangle]
-pub unsafe extern "C" fn shooterthink() {
+
+unsafe fn shooterthink(items: &mut [sword]) {
     if (obj.x as libc::c_int) < originx - 1
         || (obj.y as libc::c_int) < originy - 1
         || obj.x as libc::c_int > originx + 22
         || obj.y as libc::c_int > originy + 22
-        || walk() == 0
+        || walk(items) == 0
         || obj.stage as libc::c_int == 2
     {
         obj.class = nothing as libc::c_int as word;
@@ -1565,29 +1563,29 @@ pub unsafe extern "C" fn explodethink() {
         obj.class = nothing as libc::c_int as word;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn think() {
+
+unsafe fn think(items: &mut [sword]) {
     if obj.delay as libc::c_int > 0 {
         obj.delay = (obj.delay).wrapping_sub(1);
     } else if rndt() < obj.speed as libc::c_int {
         match obj.think as libc::c_int {
             0 => {
-                playercmdthink();
+                playercmdthink(items);
             }
             3 => {
-                chasethink(false as boolean);
+                chasethink(false as boolean, items);
             }
             4 => {
-                chasethink(true as boolean);
+                chasethink(true as boolean, items);
             }
             1 => {
-                gargthink();
+                gargthink(items);
             }
             2 => {
-                dragonthink();
+                dragonthink(items);
             }
             5 => {
-                shooterthink();
+                shooterthink(items);
             }
             6 => {
                 idlethink();
@@ -1609,7 +1607,7 @@ pub unsafe extern "C" fn think() {
     }
 }
 
-pub unsafe fn doactive(priority: &[byte]) {
+pub unsafe fn doactive(priority: &[byte], items: &mut [sword]) {
     if obj.class as libc::c_int != dead1 as libc::c_int
         && ((obj.x as libc::c_int) < originx - 10
             || obj.x as libc::c_int > originx + 34
@@ -1618,7 +1616,7 @@ pub unsafe fn doactive(priority: &[byte]) {
     {
         o[objecton as usize].active = false as boolean;
     } else {
-        think();
+        think(items);
         eraseobj();
         if playdone != 0 {
             return;
@@ -1646,7 +1644,7 @@ pub unsafe extern "C" fn doinactive() {
     }
 }
 
-pub unsafe fn playloop(priority: &[byte]) {
+pub unsafe fn playloop(priority: &[byte], items: &mut [sword]) {
     screencenterx = 11;
     loop {
         if indemo == demoenum::notdemo {
@@ -1658,7 +1656,7 @@ pub unsafe fn playloop(priority: &[byte]) {
             WaitEndSound();
         }
         clearold();
-        loadlevel();
+        loadlevel(items);
         leveldone = false as boolean;
         if keydown[SDL_SCANCODE_F7 as libc::c_int as usize] as libc::c_int != 0
             && keydown[SDL_SCANCODE_D as libc::c_int as usize] as libc::c_int != 0
@@ -1685,7 +1683,7 @@ pub unsafe fn playloop(priority: &[byte]) {
         shotpower = 0;
         initrndt(false as boolean);
         printshotpower();
-        doall(priority);
+        doall(priority, items);
         if indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1);
