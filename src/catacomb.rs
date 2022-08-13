@@ -11,6 +11,7 @@
 )]
 #![register_tool(c2rust)]
 #![feature(register_tool)]
+#[allow(unused_imports)] // the import is actually used!
 use ::catacomb_lib::*;
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
