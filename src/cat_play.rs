@@ -1,6 +1,10 @@
 use ::libc;
 
-use crate::{demo_enum::demoenum, indemo};
+use crate::{
+    catasm::{doall, drawobj},
+    demo_enum::demoenum,
+    indemo,
+};
 extern "C" {
     fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
     fn abs(_: libc::c_int) -> libc::c_int;
@@ -24,7 +28,6 @@ extern "C" {
     static mut background: [[libc::c_int; 86]; 87];
     static mut numobj: libc::c_int;
     fn eraseobj();
-    fn drawobj();
     static mut obj: objtype;
     static mut o: [activeobj; 201];
     static mut objecton: libc::c_int;
@@ -37,7 +40,6 @@ extern "C" {
     static mut altmeters: [[libc::c_char; 14]; 14];
     static mut meters: [[libc::c_char; 14]; 14];
     static mut shotpower: libc::c_int;
-    fn doall();
     fn clearold();
     static mut playdone: boolean;
     fn refresh();
@@ -1606,8 +1608,8 @@ pub unsafe extern "C" fn think() {
         }
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn doactive() {
+
+pub unsafe fn doactive(priority: &[byte]) {
     if obj.class as libc::c_int != dead1 as libc::c_int
         && ((obj.x as libc::c_int) < originx - 10
             || obj.x as libc::c_int > originx + 34
@@ -1622,7 +1624,7 @@ pub unsafe extern "C" fn doactive() {
             return;
         }
         if obj.class as libc::c_int > nothing as libc::c_int {
-            drawobj();
+            drawobj(priority);
         }
         memcpy(
             &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj as *mut libc::c_void,
@@ -1643,8 +1645,8 @@ pub unsafe extern "C" fn doinactive() {
         o[objecton as usize] = obj.into();
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn playloop() {
+
+pub unsafe fn playloop(priority: &[byte]) {
     screencenterx = 11;
     loop {
         if indemo == demoenum::notdemo {
@@ -1683,7 +1685,7 @@ pub unsafe extern "C" fn playloop() {
         shotpower = 0;
         initrndt(false as boolean);
         printshotpower();
-        doall();
+        doall(priority);
         if indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1);

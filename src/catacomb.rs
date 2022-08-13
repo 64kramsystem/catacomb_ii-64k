@@ -13,7 +13,9 @@
 #![feature(register_tool)]
 #[allow(unused_imports)] // the import is actually used!
 use ::catacomb_lib::*;
-use catacomb_lib::{demo_enum::demoenum, extra_constants::*, pcrlib_c::_setupgame};
+use catacomb_lib::{
+    cat_play::playloop, demo_enum::demoenum, extra_constants::*, pcrlib_c::_setupgame,
+};
 use libc::O_RDONLY;
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
@@ -34,7 +36,6 @@ extern "C" {
     fn givebolt();
     fn givepotion();
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-    fn playloop();
     fn initobjects();
     fn RLEExpand(source: *mut libc::c_char, dest: *mut libc::c_char, origlen: libc::c_long);
     fn bioskey(_: libc::c_int) -> libc::c_int;
@@ -571,8 +572,7 @@ pub static mut view: [[libc::c_int; 86]; 87] = [[0; 86]; 87];
 pub static mut originx: libc::c_int = 0;
 #[no_mangle]
 pub static mut originy: libc::c_int = 0;
-#[no_mangle]
-pub static mut priority: [byte; 2048] = [0; 2048];
+
 #[no_mangle]
 pub static mut items: [sword; 6] = [0; 6];
 #[no_mangle]
@@ -1516,8 +1516,8 @@ pub unsafe extern "C" fn doendpage() {
     print(b"playing!\0" as *const u8 as *const libc::c_char);
     get();
 }
-#[no_mangle]
-pub unsafe extern "C" fn dodemo() {
+
+pub unsafe fn dodemo(priority: &[byte]) {
     let mut i: libc::c_int = 0;
     while !exitdemo {
         dotitlepage();
@@ -1528,7 +1528,7 @@ pub unsafe extern "C" fn dodemo() {
         LoadDemo(i);
         level = 0;
         playsetup();
-        playloop();
+        playloop(priority);
         if exitdemo {
             break;
         }
@@ -1656,6 +1656,13 @@ pub unsafe extern "C" fn US_CheckParm(
 /*=========================*/
 
 pub fn main() {
+    /***************************************************************************/
+    // Ex-globals
+
+    let mut priority: [byte; 2048] = [0; 2048];
+
+    /***************************************************************************/
+
     let mut args: Vec<*mut libc::c_char> = Vec::new();
 
     for arg in ::std::env::args() {
@@ -1776,11 +1783,11 @@ pub fn main() {
 
         // go until quit () is called
         loop {
-            dodemo();
+            dodemo(&priority);
             playsetup();
             indemo = demoenum::notdemo;
             gamestate = statetype::ingame;
-            playloop();
+            playloop(&priority);
             if indemo == demoenum::notdemo {
                 exitdemo = false;
                 if level > 30 {
