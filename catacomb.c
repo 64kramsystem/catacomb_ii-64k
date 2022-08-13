@@ -223,13 +223,13 @@ void loadgrfiles ()
     free (picsexact);
   if (grmode==CGAgr)
   {
-    picsexact = pics = (char *)bloadin("CGACHARS.CA2");
-    installgrfile ("CGAPICS.CA2",0,0);
+    picsexact = pics = (char *)bloadin((char*)"CGACHARS.CA2");
+    installgrfile ((char*)"CGAPICS.CA2",0,0);
   }
   else
   {
-    picsexact = pics = (char *)bloadin("EGACHARS.CA2");
-    installgrfile ("EGAPICS.CA2",0,0);
+    picsexact = pics = (char *)bloadin((char*)"EGACHARS.CA2");
+    installgrfile ((char*)"EGAPICS.CA2",0,0);
   }
 }
 
@@ -813,7 +813,7 @@ void dofkeys (void)
       ch=toupper(get());
       if (ch=='Y')
 
-	_quit ("");
+	_quit ((char*)"");
       break;
 
     default:
