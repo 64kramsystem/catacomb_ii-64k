@@ -1705,11 +1705,7 @@ pub fn main() {
 
         initobjects();
 
-        memset(
-            &mut priority as *mut [byte; 2048] as *mut libc::c_void,
-            99,
-            ::std::mem::size_of::<[byte; 2048]>() as libc::c_ulong,
-        );
+        priority.fill(99);
 
         priority[128] = 0;
         i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
