@@ -1686,9 +1686,19 @@ pub fn main() {
 
         if args.len() > 1 && strcasecmp(args[1], b"/VER\0" as *const u8 as *const libc::c_char) == 0
         {
-            printf(
-                b"CatacombSDL\nVersion 1.03\n\nUsage: catacomb [windowed <width> <height>] [screen <num>]\n\nPorted by Braden \"Blzut3\" Obrzut and Rene \"Havoc\" Nicolaus\nIncludes PC Speaker emulator by K1n9_Duk3\nBased on The Catacomb source code:\nCopyright 1990-1993 Softdisk Publishing\nCopyright 1993-2014 Flat Rock Software\n\0"
-                    as *const u8 as *const libc::c_char,
+            print!(
+                "\
+                    CatacombSDL\n\
+                    Version 1.03\n
+\
+                    Usage: catacomb [windowed <width> <height>] [screen <num>]\n
+\
+                    Ported by Braden \"Blzut3\" Obrzut and Rene \"Havoc\" Nicolaus\n\
+                    Includes PC Speaker emulator by K1n9_Duk3\n\
+                    Based on The Catacomb source code:\n\
+                    Copyright 1990-1993 Softdisk Publishing\n\
+                    Copyright 1993-2014 Flat Rock Software\n\
+                "
             );
             exit(0);
         }
