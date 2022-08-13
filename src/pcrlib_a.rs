@@ -1,4 +1,6 @@
 use ::libc;
+
+use crate::extra_constants::PC_BASE_TIMER;
 extern "C" {
     pub type SDL_mutex;
     pub type SDL_semaphore;
@@ -183,8 +185,11 @@ static mut pcLengthLeft: libc::c_uint = 0;
 static mut pcSound: *mut word = 0 as *const word as *mut word;
 #[inline]
 unsafe extern "C" fn _SDL_turnOnPCSpeaker(mut pcSample: word) {
-    pcPhaseLength = (pcSample as libc::c_int * AudioSpec.freq
-        / (2 as libc::c_int * 1193181 as libc::c_int)) as libc::c_uint;
+    // The transpiler break the correctness here; in the source project, `AudioSpec.freq` is a long
+    // int (__syscall_slong_t), but it's translated as c_int, which doesn't accommodate the multiplication
+    // result range (u32).
+    //
+    pcPhaseLength = pcSample as libc::c_uint * AudioSpec.freq as libc::c_uint / (2 * PC_BASE_TIMER);
     pcActive = true_0 as libc::c_int as boolean;
 }
 #[inline]
