@@ -1,4 +1,9 @@
 use ::libc;
+
+use crate::{
+    extra_constants::{SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
+    extra_macros::SDL_BUTTON,
+};
 extern "C" {
     pub type _IO_wide_data;
     pub type _IO_codecvt;
@@ -1270,6 +1275,7 @@ pub unsafe extern "C" fn ControlKBD() -> ControlStruct {
     action.button2 = keydown[keyB2 as usize];
     return action;
 }
+
 #[no_mangle]
 pub unsafe extern "C" fn ControlMouse() -> ControlStruct {
     let mut newx: libc::c_int = 0;
@@ -1282,10 +1288,8 @@ pub unsafe extern "C" fn ControlMouse() -> ControlStruct {
         button2: 0,
     };
     let mut buttons: libc::c_int = SDL_GetRelativeMouseState(&mut newx, &mut newy) as libc::c_int;
-    action.button1 =
-        (buttons & (1 as libc::c_int) << 1 as libc::c_int - 1 as libc::c_int) as boolean;
-    action.button2 =
-        (buttons & (1 as libc::c_int) << 3 as libc::c_int - 1 as libc::c_int) as boolean;
+    action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) as boolean;
+    action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) as boolean;
     if mouseEvent as libc::c_int == false_0 as libc::c_int {
         action.dir = nodir;
         return action;

@@ -16,6 +16,8 @@ extern crate libc;
 pub mod cat_play;
 pub mod catasm;
 pub mod cpanel;
+pub mod extra_constants;
+mod extra_macros;
 pub mod objects;
 pub mod pcrlib_a;
 pub mod pcrlib_c;
