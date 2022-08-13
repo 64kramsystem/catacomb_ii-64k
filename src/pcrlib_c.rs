@@ -40,8 +40,6 @@ extern "C" {
     fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
     fn US_CheckParm(_: *mut libc::c_char, _: *mut *mut libc::c_char) -> libc::c_int;
-    static mut _argc: libc::c_int;
-    static mut _argv: *mut *mut libc::c_char;
     fn loadgrfiles();
     fn drawchartile(x: libc::c_int, y: libc::c_int, tile: libc::c_int);
     fn WaitVBL();
@@ -2634,8 +2632,8 @@ static mut VideoParmStrings: [*const libc::c_char; 3] = [
     b"screen\0" as *const u8 as *const libc::c_char,
     0 as *const libc::c_char,
 ];
-#[no_mangle]
-pub unsafe extern "C" fn _setupgame() {
+
+pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
     if SDL_Init(
         0x20 as libc::c_uint | 0x1 as libc::c_uint | 0x200 as libc::c_uint | 0x2000 as libc::c_uint,
     ) < 0 as libc::c_int
@@ -2654,32 +2652,31 @@ pub unsafe extern "C" fn _setupgame() {
         ),
         0 as *mut libc::c_void,
     );
-    let mut i: libc::c_int = 0;
     let mut windowed: boolean = false_0 as libc::c_int as boolean;
     let mut winWidth: libc::c_uint = 640 as libc::c_int as libc::c_uint;
     let mut winHeight: libc::c_uint = 480 as libc::c_int as libc::c_uint;
     let mut displayindex: libc::c_int = 0 as libc::c_int;
-    i = 1 as libc::c_int;
-    while i < _argc {
+    let mut i = 1;
+    while i < args.len() {
         match US_CheckParm(
-            *_argv.offset(i as isize),
+            args[i],
             VideoParmStrings.as_mut_ptr() as *mut *mut libc::c_char,
         ) {
             0 => {
                 windowed = true_0 as libc::c_int as boolean;
                 i += 1;
-                if i < _argc {
-                    winWidth = atoi(*_argv.offset(i as isize)) as libc::c_uint;
+                if i < args.len() {
+                    winWidth = atoi(args[i]) as libc::c_uint;
                 }
                 i += 1;
-                if i < _argc {
-                    winHeight = atoi(*_argv.offset(i as isize)) as libc::c_uint;
+                if i < args.len() {
+                    winHeight = atoi(args[i]) as libc::c_uint;
                 }
             }
             1 => {
                 i += 1;
-                if i < _argc {
-                    displayindex = atoi(*_argv.offset(i as isize));
+                if i < args.len() {
+                    displayindex = atoi(args[i]);
                 }
             }
             _ => {}

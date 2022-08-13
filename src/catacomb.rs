@@ -13,7 +13,10 @@
 #![feature(register_tool)]
 #[allow(unused_imports)] // the import is actually used!
 use ::catacomb_lib::*;
-use catacomb_lib::extra_constants::{NUM_DEMOS, O_BINARY};
+use catacomb_lib::{
+    extra_constants::{NUM_DEMOS, O_BINARY},
+    pcrlib_c::_setupgame,
+};
 use libc::O_RDONLY;
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
@@ -39,7 +42,6 @@ extern "C" {
     fn RLEExpand(source: *mut libc::c_char, dest: *mut libc::c_char, origlen: libc::c_long);
     fn bioskey(_: libc::c_int) -> libc::c_int;
     fn _quit(_: *mut libc::c_char);
-    fn _setupgame();
     fn _checkhighscore();
     fn _showhighscores();
     static mut _extension: *const libc::c_char;
@@ -2156,21 +2158,11 @@ pub unsafe extern "C" fn US_CheckParm(
     }
     return -(1 as libc::c_int);
 }
-#[no_mangle]
-pub static mut _argc: libc::c_int = 0;
-#[no_mangle]
-pub static mut _argv: *mut *mut libc::c_char =
-    0 as *const *mut libc::c_char as *mut *mut libc::c_char;
-unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> libc::c_int {
+
+unsafe fn main_0(args: Vec<*mut libc::c_char>) -> libc::c_int {
     let mut i: libc::c_int = 0;
-    _argc = argc;
-    _argv = argv;
-    if _argc > 1 as libc::c_int
-        && strcasecmp(
-            *_argv.offset(1 as libc::c_int as isize),
-            b"/VER\0" as *const u8 as *const libc::c_char,
-        ) == 0 as libc::c_int
-    {
+
+    if args.len() > 1 && strcasecmp(args[1], b"/VER\0" as *const u8 as *const libc::c_char) == 0 {
         printf(
             b"CatacombSDL\nVersion 1.03\n\nUsage: catacomb [windowed <width> <height>] [screen <num>]\n\nPorted by Braden \"Blzut3\" Obrzut and Rene \"Havoc\" Nicolaus\nIncludes PC Speaker emulator by K1n9_Duk3\nBased on The Catacomb source code:\nCopyright 1990-1993 Softdisk Publishing\nCopyright 1993-2014 Flat Rock Software\n\0"
                 as *const u8 as *const libc::c_char,
@@ -2266,7 +2258,7 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> lib
     _numlevels = 30 as libc::c_int;
     _maxplayers = 1 as libc::c_int;
     _extension = b"CA2\0" as *const u8 as *const libc::c_char;
-    _setupgame();
+    _setupgame(args);
     expwin(33 as libc::c_int, 13 as libc::c_int);
     print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const libc::c_char);
     print(b"          The Catacomb\n\n\0" as *const u8 as *const libc::c_char);
@@ -2306,11 +2298,5 @@ pub fn main() {
                 .into_raw(),
         );
     }
-    args.push(::std::ptr::null_mut());
-    unsafe {
-        ::std::process::exit(main_0(
-            (args.len() - 1) as libc::c_int,
-            args.as_mut_ptr() as *mut *mut libc::c_char,
-        ) as i32)
-    }
+    unsafe { ::std::process::exit(main_0(args) as i32) }
 }
