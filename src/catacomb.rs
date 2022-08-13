@@ -155,10 +155,13 @@ pub const skeleton: classtype = 3;
 pub const goblin: classtype = 2;
 pub const player: classtype = 1;
 pub const nothing: classtype = 0;
-pub type statetype = libc::c_uint;
-pub const inscores: statetype = 2;
-pub const intitle: statetype = 1;
-pub const ingame: statetype = 0;
+
+pub enum statetype {
+    inscores, // 2
+    intitle,  // 1
+    ingame,   // 0
+}
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct activeobj {
@@ -714,7 +717,7 @@ pub static mut exitdemo: bool = false;
 #[no_mangle]
 pub static mut resetgame: boolean = 0;
 #[no_mangle]
-pub static mut gamestate: statetype = ingame;
+pub static mut gamestate: statetype = statetype::ingame;
 #[no_mangle]
 pub static mut ctrl: ControlStruct = ControlStruct {
     dir: north,
@@ -1245,11 +1248,11 @@ pub unsafe extern "C" fn playsetup() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn repaintscreen() {
-    match gamestate as libc::c_uint {
-        1 => {
+    match gamestate {
+        statetype::intitle => {
             drawpic(0, 0, 14);
         }
-        0 => {
+        statetype::ingame => {
             restore();
             drawside();
             printscore();
@@ -1257,7 +1260,7 @@ pub unsafe extern "C" fn repaintscreen() {
             sy = 1;
             printint(level as libc::c_int);
         }
-        2 => {
+        statetype::inscores => {
             restore();
             drawside();
             printscore();
@@ -1265,13 +1268,6 @@ pub unsafe extern "C" fn repaintscreen() {
             sy = 1;
             printint(level as libc::c_int);
             indemo = demoplay;
-        }
-        _ => {
-            sy = 10;
-            sx = sy;
-            print(b"Bad gamestate!\0" as *const u8 as *const libc::c_char);
-            clearkeys();
-            get();
         }
     };
 }
@@ -1465,7 +1461,7 @@ pub unsafe extern "C" fn dotitlepage() {
     let mut i: libc::c_int = 0;
     drawpic(0, 0, 14);
     UpdateScreen();
-    gamestate = intitle;
+    gamestate = statetype::intitle;
     i = 0;
     while i < 300 {
         WaitVBL();
@@ -1490,7 +1486,7 @@ pub unsafe extern "C" fn dotitlepage() {
             i += 1;
         }
     }
-    gamestate = ingame;
+    gamestate = statetype::ingame;
 }
 #[no_mangle]
 pub unsafe extern "C" fn doendpage() {
@@ -1541,7 +1537,7 @@ pub unsafe extern "C" fn dodemo() {
             break;
         }
         level = 0;
-        gamestate = inscores;
+        gamestate = statetype::inscores;
         indemo = demoplay;
         _showhighscores();
         UpdateScreen();
@@ -1580,7 +1576,7 @@ pub unsafe extern "C" fn gameover() {
         WaitVBL();
         i += 1;
     }
-    gamestate = inscores;
+    gamestate = statetype::inscores;
     _checkhighscore();
     level = 0;
     i = 0;
@@ -1789,7 +1785,7 @@ pub fn main() {
             dodemo();
             playsetup();
             indemo = notdemo;
-            gamestate = ingame;
+            gamestate = statetype::ingame;
             playloop();
             if indemo == 0 {
                 exitdemo = false;
