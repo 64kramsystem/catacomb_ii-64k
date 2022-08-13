@@ -1,3 +1,5 @@
+#![allow(clippy::all)]
+#![deny(clippy::correctness)]
 #![allow(dead_code)]
 #![allow(mutable_transmutes)]
 #![allow(non_camel_case_types)]
@@ -10,11 +12,12 @@
 #![feature(register_tool)]
 #![register_tool(c2rust)]
 
-
 extern crate libc;
 pub mod cat_play;
 pub mod catasm;
 pub mod cpanel;
+pub mod extra_constants;
+mod extra_macros;
 pub mod objects;
 pub mod pcrlib_a;
 pub mod pcrlib_c;
