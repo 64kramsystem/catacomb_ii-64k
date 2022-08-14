@@ -1,6 +1,6 @@
 use crate::{
     active_obj::activeobj, exit_type::exittype, obj_def_type::objdeftype, obj_type::objtype,
-    vec2::Vec2,
+    state_type::statetype, vec2::Vec2,
 };
 
 /// Includes most of the former globals.
@@ -48,8 +48,8 @@ pub struct GlobalState {
      */
     pub exitdemo: bool,
     pub resetgame: bool,
-    //     statetype gamestate;
-    //
+    pub gamestate: statetype,
+
     //     ControlStruct ctrl;
     //
     //     char *pics, *picsexact;
@@ -91,6 +91,7 @@ impl GlobalState {
         frameon: u16,
         exitdemo: bool,
         resetgame: bool,
+        gamestate: statetype,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -122,6 +123,7 @@ impl GlobalState {
             frameon,
             exitdemo,
             resetgame,
+            gamestate,
             side,
             boltsleft,
             view,

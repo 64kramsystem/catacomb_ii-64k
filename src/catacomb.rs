@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut gamestate: statetype = statetype::ingame;
-#[no_mangle]
 pub static mut ctrl: ControlStruct = ControlStruct {
     dir: north,
     button1: 0,
@@ -640,7 +638,7 @@ unsafe fn playsetup(gs: &mut GlobalState) {
 }
 
 pub unsafe fn repaintscreen(gs: &mut GlobalState) {
-    match gamestate {
+    match gs.gamestate {
         statetype::intitle => {
             drawpic(0, 0, 14, gs);
         }
@@ -844,7 +842,7 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14, gs);
     UpdateScreen(gs);
-    gamestate = statetype::intitle;
+    gs.gamestate = statetype::intitle;
     i = 0;
     while i < 300 {
         WaitVBL();
@@ -869,7 +867,7 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
             i += 1;
         }
     }
-    gamestate = statetype::ingame;
+    gs.gamestate = statetype::ingame;
 }
 
 unsafe fn doendpage(gs: &mut GlobalState) {
@@ -920,7 +918,7 @@ unsafe fn dodemo(gs: &mut GlobalState) {
             break;
         }
         level = 0;
-        gamestate = statetype::inscores;
+        gs.gamestate = statetype::inscores;
         indemo = demoenum::demoplay;
         _showhighscores(gs);
         UpdateScreen(gs);
@@ -959,7 +957,7 @@ unsafe fn gameover(gs: &mut GlobalState) {
         WaitVBL();
         i += 1;
     }
-    gamestate = statetype::inscores;
+    gs.gamestate = statetype::inscores;
     _checkhighscore(gs);
     level = 0;
     i = 0;
@@ -1102,6 +1100,7 @@ pub fn original_main() {
         0,
         false,
         false,
+        statetype::ingame,
         0,
         0,
         [[0; 86]; 87],
@@ -1243,7 +1242,7 @@ pub fn original_main() {
             dodemo(&mut gs);
             playsetup(&mut gs);
             indemo = demoenum::notdemo;
-            gamestate = statetype::ingame;
+            gs.gamestate = statetype::ingame;
             playloop(&mut gs);
             if indemo == demoenum::notdemo {
                 gs.exitdemo = false;
