@@ -40,7 +40,7 @@ pub struct GlobalState {
     pub chky: i32,    // ^^
     pub chkspot: i32, // ^^
 
-    //     word frameon;
+    pub frameon: u16,
     //     char *grmem;
     //     classtype clvar;
     //
@@ -87,6 +87,7 @@ impl GlobalState {
         chkx: i32,
         chky: i32,
         chkspot: i32,
+        frameon: u16,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -115,6 +116,7 @@ impl GlobalState {
             chkx,
             chky,
             chkspot,
+            frameon,
             side,
             boltsleft,
             view,

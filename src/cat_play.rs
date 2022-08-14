@@ -29,7 +29,6 @@ extern "C" {
     static mut resetgame: boolean;
     static mut ctrl: ControlStruct;
     static mut exitdemo: boolean;
-    static mut frameon: u16;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
     static mut highscores: [scores; 5];
@@ -732,12 +731,12 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         givescroll(gs);
         givekey(gs);
     }
-    if (c.dir as u32) < nodir as i32 as u32 && frameon as i32 % 2 != 0 {
+    if (c.dir as u32) < nodir as i32 as u32 && gs.frameon as i32 % 2 != 0 {
         if c.button2 != 0 {
             olddir = gs.obj.dir.try_into().unwrap();
         }
         if c.dir as u32 > west as i32 as u32 {
-            if frameon as i32 / 2 % 2 != 0 {
+            if gs.frameon as i32 / 2 % 2 != 0 {
                 match c.dir as u32 {
                     4 => {
                         gs.obj.dir = east as i32 as u16;
@@ -814,14 +813,14 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
     gs.origin.x = gs.obj.x as i32 - 11;
     gs.origin.y = gs.obj.y as i32 - 11;
     if gs.boltsleft > 0 {
-        if frameon as i32 % 3 == 0 {
+        if gs.frameon as i32 % 3 == 0 {
             playbigshoot(gs);
             gs.boltsleft -= 1;
         }
     } else if c.button1 != 0 {
         if gs.shotpower == 0 {
             gs.shotpower = 1;
-        } else if gs.shotpower < 13 && frameon as i32 % 2 != 0 {
+        } else if gs.shotpower < 13 && gs.frameon as i32 % 2 != 0 {
             gs.shotpower += 1;
         }
         printshotpower(gs);
@@ -1285,7 +1284,7 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
             clearkeys();
         }
         gs.playdone = false;
-        frameon = 0;
+        gs.frameon = 0;
         gs.boltsleft = 0;
         gs.shotpower = 0;
         initrndt(false as boolean);

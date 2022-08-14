@@ -19,7 +19,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    static mut frameon: u16;
     static mut pics: *mut i8;
     static mut grmode: grtype;
 }
@@ -147,7 +146,7 @@ pub unsafe fn doall(gs: &mut GlobalState) {
             }
         }
         refresh(gs);
-        frameon = frameon.wrapping_add(1);
+        gs.frameon = gs.frameon.wrapping_add(1);
         if gs.leveldone {
             return;
         }
