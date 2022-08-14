@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut saveitems: [i16; 6] = [0; 6];
-#[no_mangle]
 pub static mut shotpower: i32 = 0;
 #[no_mangle]
 pub static mut boltsleft: i32 = 0;
@@ -847,7 +845,7 @@ pub unsafe fn loadlevel(global_state: &mut GlobalState) {
     restore(global_state);
     i = 0;
     while i < 6 {
-        saveitems[i as usize] = global_state.items[i as usize];
+        global_state.saveitems[i as usize] = global_state.items[i as usize];
         i += 1;
     }
     savescore = score;
@@ -1052,7 +1050,7 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
                             }
                             write(
                                 handle,
-                                &mut saveitems as *mut [i16; 6] as *const libc::c_void,
+                                &mut global_state.saveitems as *mut [i16; 6] as *const libc::c_void,
                                 ::std::mem::size_of::<[i16; 6]>() as u64,
                             );
                             write(
@@ -1361,6 +1359,7 @@ unsafe fn gameover(global_state: &mut GlobalState) {
 pub fn original_main() {
     let mut global_state = GlobalState::new(
         [0; 2048],
+        [0; 6],
         [0; 6],
         [objdeftype {
             think: 0,

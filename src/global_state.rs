@@ -10,8 +10,8 @@ pub struct GlobalState {
     pub origin: Vec2,                /*current world location of ul corn*/
     pub priority: [u8; 2048],        /*tile draw overlap priorities*/
 
-    //     sword items[6], saveitems[6];
     pub items: [i16; 6],
+    pub saveitems: [i16; 6],
     //     int shotpower; /*0-13 characters in power meter*/
     pub side: i32, /*which side shots come from*/
     //     int boltsleft; /*number of shots left in a bolt*/
@@ -63,6 +63,7 @@ impl GlobalState {
     pub fn new(
         priority: [u8; 2048],
         items: [i16; 6],
+        saveitems: [i16; 6],
         objdef: [objdeftype; 23],
         side: i32,
         view: [[i32; 86]; 87],
@@ -76,6 +77,7 @@ impl GlobalState {
         Self {
             priority,
             items,
+            saveitems,
             objdef,
             side,
             view,
