@@ -88,8 +88,6 @@ pub static mut pics: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut picsexact: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
-pub static mut savescore: i32 = 0;
-#[no_mangle]
 pub static mut GODMODE: boolean = false as boolean;
 
 const demowin: [[i8; 16]; 5] = [
@@ -542,7 +540,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
         gs.saveitems[i as usize] = gs.items[i as usize];
         i += 1;
     }
-    savescore = score;
+    gs.savescore = score;
     gs.saveo[0] = gs.o[0];
 }
 
@@ -734,7 +732,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                             );
                             write(
                                 handle,
-                                &mut savescore as *mut i32 as *const libc::c_void,
+                                &mut gs.savescore as *mut i32 as *const libc::c_void,
                                 ::std::mem::size_of::<i32>() as u64,
                             );
                             write(
@@ -1098,6 +1096,7 @@ pub fn original_main() {
             button1: 0,
             button2: 0,
         },
+        0,
         0,
         0,
         [[0; 86]; 87],

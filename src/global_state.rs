@@ -57,9 +57,8 @@ pub struct GlobalState {
     /* Rust port: unused
     EGADATASTART: u32,
      */
-    //
-    //     sdword savescore;
-    //
+    pub savescore: i32,
+
     //     // NOLAN ADDED
     //     boolean GODMODE = false;
 
@@ -95,6 +94,7 @@ impl GlobalState {
         resetgame: bool,
         gamestate: statetype,
         ctrl: ControlStruct,
+        savescore: i32,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -128,6 +128,7 @@ impl GlobalState {
             resetgame,
             gamestate,
             ctrl,
+            savescore,
             side,
             boltsleft,
             view,
