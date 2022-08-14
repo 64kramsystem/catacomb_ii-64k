@@ -13,6 +13,7 @@ use crate::{
     extra_types::boolean,
     gr_type::grtype::{self, *},
     indemo,
+    scores::scores,
     sdl_scan_codes::*,
 };
 extern "C" {
@@ -747,13 +748,6 @@ pub union C2RustUnnamed_5 {
     pub joy: *mut SDL_Joystick,
 }
 
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct scores {
-    pub score: i32,
-    pub level: i16,
-    pub initials: [i8; 4],
-}
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct ctlpaneltype {

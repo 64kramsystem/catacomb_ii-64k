@@ -36,6 +36,7 @@ mod objects;
 mod pcrlib_a;
 mod pcrlib_c;
 mod rleasm;
+mod scores;
 mod sdl_scan_codes;
 mod state_type;
 mod tag_type;

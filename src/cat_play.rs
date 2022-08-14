@@ -17,6 +17,7 @@ use crate::{
     obj_def_type::objdeftype,
     obj_type::objtype,
     pcrlib_c::centerwindow,
+    scores::scores,
     sdl_scan_codes::*,
     tag_type::tagtype::*,
 };
@@ -69,14 +70,6 @@ extern "C" {
     fn WaitEndSound();
     fn PlaySound(sound: i32);
     static mut ch: i8;
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct scores {
-    pub score: i32,
-    pub level: i16,
-    pub initials: [i8; 4],
 }
 
 #[no_mangle]
