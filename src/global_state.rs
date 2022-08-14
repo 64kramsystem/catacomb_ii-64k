@@ -30,8 +30,8 @@ pub struct GlobalState {
     pub objdef: [objdeftype; 23],
 
     pub playdone: bool,
-    //     boolean playdone, leveldone;
-    //
+    pub leveldone: bool,
+
     //     boolean tempb;
     //     char *tempp;
     //
@@ -80,6 +80,7 @@ impl GlobalState {
         objecton: i32,
         objdef: [objdeftype; 23],
         playdone: bool,
+        leveldone: bool,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -104,6 +105,7 @@ impl GlobalState {
             numobj,
             objdef,
             playdone,
+            leveldone,
             side,
             boltsleft,
             view,

@@ -32,7 +32,6 @@ extern "C" {
     static mut chkspot: i32;
     static mut chkx: i32;
     static mut chky: i32;
-    static mut leveldone: boolean;
     static mut frameon: u16;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
@@ -180,7 +179,7 @@ pub unsafe fn printbody(gs: &mut GlobalState) {
 unsafe fn levelcleared(gs: &mut GlobalState) {
     let mut warp: [i8; 3] = [0; 3];
     let mut value: i32 = 0;
-    leveldone = true as boolean;
+    gs.leveldone = true;
     warp[0] = (gs.background[(gs.altobj.y as i32 + 2) as usize][gs.altobj.x as usize] as i8 as i32
         - 161) as i8;
     if (warp[0] as i32) < '0' as i32 || warp[0] as i32 > '9' as i32 {
@@ -699,7 +698,7 @@ unsafe fn walk(gs: &mut GlobalState) -> boolean {
         chkspot = gs.view[chky as usize][chkx as usize];
         if chkspot != 128 {
             try_0 = walkthrough(gs);
-            if leveldone != 0 {
+            if gs.leveldone {
                 return true as boolean;
             }
             if gs.obj.stage as i32 == 2 {
@@ -884,7 +883,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
                     level = 30;
                 }
                 restore(gs);
-                leveldone = true as boolean;
+                gs.leveldone = true;
             }
             if keydown[SDL_SCANCODE_C as usize] as i32 != 0
                 && keydown[SDL_SCANCODE_T as usize] as i32 != 0
@@ -917,7 +916,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
             {
                 indemo = demoenum::demoplay;
                 exitdemo = true as boolean;
-                leveldone = true as boolean;
+                gs.leveldone = true;
                 level = 0;
                 return;
             }
@@ -1268,7 +1267,7 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
         }
         clearold(&mut gs.oldtiles);
         loadlevel(gs);
-        leveldone = false as boolean;
+        gs.leveldone = false;
         if keydown[SDL_SCANCODE_F7 as usize] as i32 != 0
             && keydown[SDL_SCANCODE_D as usize] as i32 != 0
         {

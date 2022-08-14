@@ -5,7 +5,6 @@ use crate::{
     cat_play::{doactive, doinactive},
     catacomb::refresh,
     class_type::classtype::*,
-    extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype,
     obj_def_type::objdeftype,
@@ -21,7 +20,6 @@ extern "C" {
         __function: *const i8,
     ) -> !;
     static mut frameon: u16;
-    static mut leveldone: boolean;
     static mut pics: *mut i8;
     static mut grmode: grtype;
 }
@@ -140,7 +138,7 @@ pub unsafe fn doall(gs: &mut GlobalState) {
                     doinactive(gs);
                 }
             }
-            if leveldone as i32 != 0 || gs.playdone {
+            if gs.leveldone || gs.playdone {
                 return;
             }
             gs.objecton -= 1;
@@ -150,7 +148,7 @@ pub unsafe fn doall(gs: &mut GlobalState) {
         }
         refresh(gs);
         frameon = frameon.wrapping_add(1);
-        if leveldone != 0 {
+        if gs.leveldone {
             return;
         }
         if gs.playdone {
