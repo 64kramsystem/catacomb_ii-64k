@@ -84,10 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut grmem: *mut i8 = 0 as *const i8 as *mut i8;
-#[no_mangle]
-pub static mut VGAPAL: i32 = 0;
-#[no_mangle]
 pub static mut exitdemo: bool = false;
 #[no_mangle]
 pub static mut resetgame: boolean = 0;

@@ -32,7 +32,7 @@ pub struct GlobalState {
     pub playdone: bool,
     pub leveldone: bool,
 
-    /* Rust port: these are actually unused!
+    /* Rust port: unused
      pub tempb: bool,
      pub tempp: *mut i8,
     */
@@ -41,11 +41,11 @@ pub struct GlobalState {
     pub chkspot: i32, // ^^
 
     pub frameon: u16,
-    //     char *grmem;
-    //     classtype clvar;
-    //
-    //     int VGAPAL; // just to make pcrlib happy
-    //
+
+    /* Rust port: unused
+    pub grmem: *mut i8,
+    pub VGAPAL: i32,  // just to make pcrlib happy
+     */
     //     boolean exitdemo, resetgame;
     //     statetype gamestate;
     //
