@@ -17,7 +17,6 @@ extern "C" {
     static mut resetgame: boolean;
     static mut ctrl: ControlStruct;
     static mut exitdemo: boolean;
-    static mut side: libc::c_int;
     static mut opposite: [dirtype; 9];
     static mut originx: libc::c_int;
     static mut originy: libc::c_int;
@@ -436,35 +435,35 @@ unsafe fn castnuke(items: &mut [sword]) {
     obj.stage = 2;
     obj.delay = 4;
 }
-#[no_mangle]
-pub unsafe extern "C" fn playshoot() {
+
+unsafe fn playshoot(side: &mut i32) {
     let mut new: libc::c_int = 0;
     obj.stage = 2;
     obj.delay = 4;
     PlaySound(5);
     new = newobject();
     o[new as usize].class = shot as libc::c_int as word;
-    side ^= 1;
+    *side = *side ^ 1;
     o[new as usize].delay = 0;
     o[new as usize].stage = 0;
     o[new as usize].active = true as boolean;
     o[new as usize].dir = obj.dir;
     match o[new as usize].dir as libc::c_int {
         0 => {
-            o[new as usize].x = (obj.x as libc::c_int + side) as byte;
+            o[new as usize].x = (obj.x as libc::c_int + *side) as byte;
             o[new as usize].y = obj.y;
         }
         1 => {
             o[new as usize].x = (obj.x as libc::c_int + 1) as byte;
-            o[new as usize].y = (obj.y as libc::c_int + side) as byte;
+            o[new as usize].y = (obj.y as libc::c_int + *side) as byte;
         }
         2 => {
-            o[new as usize].x = (obj.x as libc::c_int + side) as byte;
+            o[new as usize].x = (obj.x as libc::c_int + *side) as byte;
             o[new as usize].y = (obj.y as libc::c_int + 1) as byte;
         }
         3 => {
             o[new as usize].x = obj.x;
-            o[new as usize].y = (obj.y as libc::c_int + side) as byte;
+            o[new as usize].y = (obj.y as libc::c_int + *side) as byte;
         }
         _ => {}
     };
@@ -809,7 +808,7 @@ unsafe fn walk(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean {
     return true as boolean;
 }
 
-unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype]) {
+unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &mut i32) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
         dir: north,
@@ -925,7 +924,7 @@ unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype]) {
         if shotpower == 13 {
             playbigshoot();
         } else {
-            playshoot();
+            playshoot(side);
         }
         shotpower = 0;
         printshotpower();
@@ -1111,7 +1110,7 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword], objdef: &mut [o
     walk(items, objdef);
 }
 
-unsafe fn gargthink(items: &mut [sword], objdef: &mut [objdeftype]) {
+unsafe fn gargthink(items: &mut [sword], objdef: &mut [objdeftype], side: &i32) {
     let mut n: libc::c_int = 0;
     if rndt() > 220 {
         obj.stage = 2;
@@ -1125,20 +1124,20 @@ unsafe fn gargthink(items: &mut [sword], objdef: &mut [objdeftype]) {
         o[n as usize].dir = obj.dir;
         match obj.dir as libc::c_int {
             0 => {
-                o[n as usize].x = (obj.x as libc::c_int + 1 + side) as byte;
+                o[n as usize].x = (obj.x as libc::c_int + 1 + *side) as byte;
                 o[n as usize].y = obj.y;
             }
             1 => {
                 o[n as usize].x = (obj.x as libc::c_int + 3) as byte;
-                o[n as usize].y = (obj.y as libc::c_int + 1 + side) as byte;
+                o[n as usize].y = (obj.y as libc::c_int + 1 + *side) as byte;
             }
             2 => {
-                o[n as usize].x = (obj.x as libc::c_int + 1 + side) as byte;
+                o[n as usize].x = (obj.x as libc::c_int + 1 + *side) as byte;
                 o[n as usize].y = (obj.y as libc::c_int + 3) as byte;
             }
             3 => {
                 o[n as usize].x = obj.x;
-                o[n as usize].y = (obj.y as libc::c_int + 1 + side) as byte;
+                o[n as usize].y = (obj.y as libc::c_int + 1 + *side) as byte;
             }
             _ => {}
         }
@@ -1148,7 +1147,7 @@ unsafe fn gargthink(items: &mut [sword], objdef: &mut [objdeftype]) {
     };
 }
 
-unsafe fn dragonthink(items: &mut [sword], objdef: &mut [objdeftype]) {
+unsafe fn dragonthink(items: &mut [sword], objdef: &mut [objdeftype], side: &i32) {
     let mut n: libc::c_int = 0;
     if rndt() > 220 {
         obj.stage = 2;
@@ -1162,20 +1161,20 @@ unsafe fn dragonthink(items: &mut [sword], objdef: &mut [objdeftype]) {
         o[n as usize].dir = obj.dir;
         match o[n as usize].dir as libc::c_int {
             0 => {
-                o[n as usize].x = (obj.x as libc::c_int + 1 + side) as byte;
+                o[n as usize].x = (obj.x as libc::c_int + 1 + *side) as byte;
                 o[n as usize].y = obj.y;
             }
             1 => {
                 o[n as usize].x = (obj.x as libc::c_int + 3) as byte;
-                o[n as usize].y = (obj.y as libc::c_int + 1 + side) as byte;
+                o[n as usize].y = (obj.y as libc::c_int + 1 + *side) as byte;
             }
             2 => {
-                o[n as usize].x = (obj.x as libc::c_int + 1 + side) as byte;
+                o[n as usize].x = (obj.x as libc::c_int + 1 + *side) as byte;
                 o[n as usize].y = (obj.y as libc::c_int + 3) as byte;
             }
             3 => {
                 o[n as usize].x = obj.x;
-                o[n as usize].y = (obj.y as libc::c_int + 1 + side) as byte;
+                o[n as usize].y = (obj.y as libc::c_int + 1 + *side) as byte;
             }
             _ => {}
         }
@@ -1263,13 +1262,13 @@ pub unsafe extern "C" fn explodethink() {
     }
 }
 
-unsafe fn think(items: &mut [sword], objdef: &mut [objdeftype]) {
+unsafe fn think(items: &mut [sword], objdef: &mut [objdeftype], side: &mut i32) {
     if obj.delay as libc::c_int > 0 {
         obj.delay = (obj.delay).wrapping_sub(1);
     } else if rndt() < obj.speed as libc::c_int {
         match obj.think as libc::c_int {
             0 => {
-                playercmdthink(items, objdef);
+                playercmdthink(items, objdef, side);
             }
             3 => {
                 chasethink(false as boolean, items, objdef);
@@ -1278,10 +1277,10 @@ unsafe fn think(items: &mut [sword], objdef: &mut [objdeftype]) {
                 chasethink(true as boolean, items, objdef);
             }
             1 => {
-                gargthink(items, objdef);
+                gargthink(items, objdef, side);
             }
             2 => {
-                dragonthink(items, objdef);
+                dragonthink(items, objdef, side);
             }
             5 => {
                 shooterthink(items, objdef);
@@ -1306,7 +1305,12 @@ unsafe fn think(items: &mut [sword], objdef: &mut [objdeftype]) {
     }
 }
 
-pub unsafe fn doactive(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftype]) {
+pub unsafe fn doactive(
+    priority: &[byte],
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    side: &mut i32,
+) {
     if obj.class as libc::c_int != dead1 as libc::c_int
         && ((obj.x as libc::c_int) < originx - 10
             || obj.x as libc::c_int > originx + 34
@@ -1315,7 +1319,7 @@ pub unsafe fn doactive(priority: &[byte], items: &mut [sword], objdef: &mut [obj
     {
         o[objecton as usize].active = false as boolean;
     } else {
-        think(items, objdef);
+        think(items, objdef, side);
         eraseobj();
         if playdone != 0 {
             return;
@@ -1343,7 +1347,12 @@ pub unsafe extern "C" fn doinactive() {
     }
 }
 
-pub unsafe fn playloop(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftype]) {
+pub unsafe fn playloop(
+    priority: &[byte],
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    side: &mut i32,
+) {
     screencenterx = 11;
     loop {
         if indemo == demoenum::notdemo {
@@ -1382,7 +1391,7 @@ pub unsafe fn playloop(priority: &[byte], items: &mut [sword], objdef: &mut [obj
         shotpower = 0;
         initrndt(false as boolean);
         printshotpower();
-        doall(priority, items, objdef);
+        doall(priority, items, objdef, side);
         if indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1);

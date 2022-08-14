@@ -283,8 +283,6 @@ pub static mut saveitems: [sword; 6] = [0; 6];
 #[no_mangle]
 pub static mut shotpower: libc::c_int = 0;
 #[no_mangle]
-pub static mut side: libc::c_int = 0;
-#[no_mangle]
 pub static mut boltsleft: libc::c_int = 0;
 #[no_mangle]
 pub static mut o: [activeobj; 201] = [activeobj {
@@ -1206,7 +1204,12 @@ pub unsafe extern "C" fn doendpage() {
     get();
 }
 
-unsafe fn dodemo(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftype]) {
+unsafe fn dodemo(
+    priority: &[byte],
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    side: &mut i32,
+) {
     let mut i: libc::c_int = 0;
     while !exitdemo {
         dotitlepage(items, objdef);
@@ -1217,7 +1220,7 @@ unsafe fn dodemo(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftyp
         LoadDemo(i);
         level = 0;
         playsetup(items);
-        playloop(priority, items, objdef);
+        playloop(priority, items, objdef, side);
         if exitdemo {
             break;
         }
@@ -1313,6 +1316,7 @@ pub fn original_main() {
         points: 0,
         filler: [0; 2],
     }; 23];
+    let mut side = 0;
 
     /***************************************************************************/
 
@@ -1422,11 +1426,11 @@ pub fn original_main() {
 
         // go until quit () is called
         loop {
-            dodemo(&priority, &mut items, &mut objdef);
+            dodemo(&priority, &mut items, &mut objdef, &mut side);
             playsetup(&mut items);
             indemo = demoenum::notdemo;
             gamestate = statetype::ingame;
-            playloop(&priority, &mut items, &mut objdef);
+            playloop(&priority, &mut items, &mut objdef, &mut side);
             if indemo == demoenum::notdemo {
                 exitdemo = false;
                 if level > numlevels {

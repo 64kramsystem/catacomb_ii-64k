@@ -184,7 +184,12 @@ pub unsafe extern "C" fn eraseobj() {
     }
 }
 
-pub unsafe fn doall(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftype]) {
+pub unsafe fn doall(
+    priority: &[byte],
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    side: &mut i32,
+) {
     assert!(numobj > 0);
 
     loop {
@@ -204,7 +209,7 @@ pub unsafe fn doall(priority: &[byte], items: &mut [sword], objdef: &mut [objdef
                     ::std::mem::size_of::<objdeftype>() as libc::c_ulong,
                 );
                 if obj.active != 0 {
-                    doactive(priority, items, objdef);
+                    doactive(priority, items, objdef, side);
                 } else {
                     doinactive();
                 }
