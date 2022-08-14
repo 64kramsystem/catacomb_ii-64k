@@ -3,7 +3,7 @@ use crate::{
     think_type::thinktype::*,
 };
 
-pub unsafe fn initobjects(objdef: &mut [objdeftype]) {
+pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[player as usize].think = playercmd as u8;
     objdef[player as usize].contact = benign as u8;
     objdef[player as usize].solid = true as u8;
