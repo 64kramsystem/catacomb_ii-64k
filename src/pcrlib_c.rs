@@ -2318,10 +2318,10 @@ pub unsafe fn _setupgame() {
         ),
         0 as *mut libc::c_void,
     );
-    let mut windowed: boolean = false as boolean;
-    let mut winWidth: libc::c_uint = 640;
-    let mut winHeight: libc::c_uint = 480;
-    let mut displayindex: libc::c_int = 0;
+    let mut windowed = false;
+    let mut winWidth = 640;
+    let mut winHeight = 480;
+    let mut displayindex = 0;
 
     // It's possible to iterate `Args`, although it doesn't get much cleaner.
     let args = std::env::args().into_iter().collect::<Vec<_>>();
@@ -2340,7 +2340,7 @@ pub unsafe fn _setupgame() {
                     panic!("Incorrect number of windowed mode parameters");
                 }
 
-                windowed = true as boolean;
+                windowed = true;
             }
             VIDEO_PARAM_FULLSCREEN => {
                 if args.len() == 3 {
@@ -2371,7 +2371,7 @@ pub unsafe fn _setupgame() {
         );
         std::process::exit(1);
     }
-    if windowed != 0 {
+    if windowed {
         bounds.x = (0x1fff0000 as libc::c_uint | 0) as libc::c_int;
         bounds.y = (0x1fff0000 as libc::c_uint | 0) as libc::c_int;
         mode.w = winWidth as libc::c_int;
