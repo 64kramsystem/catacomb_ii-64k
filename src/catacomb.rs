@@ -1283,57 +1283,6 @@ unsafe fn gameover(items: &mut [sword], objdef: &[objdeftype]) {
         i += 1;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn US_CheckParm(
-    mut parm: *mut libc::c_char,
-    mut strings: *mut *mut libc::c_char,
-) -> libc::c_int {
-    let mut cp: libc::c_char = 0;
-    let mut cs: libc::c_char = 0;
-    let mut p: *mut libc::c_char = 0 as *mut libc::c_char;
-    let mut s: *mut libc::c_char = 0 as *mut libc::c_char;
-    let mut i: libc::c_int = 0;
-    while *(*__ctype_b_loc()).offset(*parm as libc::c_int as isize) as libc::c_int
-        & _ISalpha as libc::c_int as libc::c_ushort as libc::c_int
-        == 0
-    {
-        parm = parm.offset(1);
-    }
-    i = 0;
-    while !(*strings).is_null() && **strings as libc::c_int != 0 {
-        let fresh1 = strings;
-        strings = strings.offset(1);
-        s = *fresh1;
-        p = parm;
-        cp = 0;
-        cs = cp;
-        while cs as libc::c_int == cp as libc::c_int {
-            let fresh2 = s;
-            s = s.offset(1);
-            cs = *fresh2;
-            if cs == 0 {
-                return i;
-            }
-            let fresh3 = p;
-            p = p.offset(1);
-            cp = *fresh3;
-            if *(*__ctype_b_loc()).offset(cs as libc::c_int as isize) as libc::c_int
-                & _ISupper as libc::c_int as libc::c_ushort as libc::c_int
-                != 0
-            {
-                cs = tolower(cs as libc::c_int) as libc::c_char;
-            }
-            if *(*__ctype_b_loc()).offset(cp as libc::c_int as isize) as libc::c_int
-                & _ISupper as libc::c_int as libc::c_ushort as libc::c_int
-                != 0
-            {
-                cp = tolower(cp as libc::c_int) as libc::c_char;
-            }
-        }
-        i += 1;
-    }
-    return -(1);
-}
 
 /***************************************************************************/
 /***************************************************************************/
@@ -1367,19 +1316,10 @@ pub fn original_main() {
 
     /***************************************************************************/
 
-    let mut args: Vec<*mut libc::c_char> = Vec::new();
-
-    for arg in ::std::env::args() {
-        args.push(
-            (::std::ffi::CString::new(arg))
-                .expect("Failed to convert argument into CString.")
-                .into_raw(),
-        );
-    }
-
     unsafe {
-        if args.len() > 1 && strcasecmp(args[1], b"/VER\0" as *const u8 as *const libc::c_char) == 0
-        {
+        let ver_arg_position = std::env::args().position(|arg| arg == "/VER");
+
+        if let Some(1) = ver_arg_position {
             print!(
                 "\
                     CatacombSDL\n\
@@ -1460,7 +1400,7 @@ pub fn original_main() {
 
         _extension = b"CA2\0" as *const u8 as *const libc::c_char;
 
-        _setupgame(args);
+        _setupgame();
 
         expwin(33, 13);
         print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const libc::c_char);

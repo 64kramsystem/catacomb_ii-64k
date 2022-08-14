@@ -41,7 +41,6 @@ extern "C" {
     fn strcat(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-    fn US_CheckParm(_: *mut libc::c_char, _: *mut *mut libc::c_char) -> libc::c_int;
     fn loadgrfiles();
     fn drawchartile(x: libc::c_int, y: libc::c_int, tile: libc::c_int);
     fn WaitVBL();
@@ -2296,13 +2295,11 @@ pub unsafe extern "C" fn _checkhighscore() {
 }
 #[no_mangle]
 pub static mut screenseg: [byte; 64000] = [0; 64000];
-static mut VideoParmStrings: [*const libc::c_char; 3] = [
-    b"windowed\0" as *const u8 as *const libc::c_char,
-    b"screen\0" as *const u8 as *const libc::c_char,
-    0 as *const libc::c_char,
-];
 
-pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
+const VIDEO_PARAM_WINDOWED: &str = "windowed";
+const VIDEO_PARAM_FULLSCREEN: &str = "screen";
+
+pub unsafe fn _setupgame() {
     if SDL_Init(
         0x20 as libc::c_uint | 0x1 as libc::c_uint | 0x200 as libc::c_uint | 0x2000 as libc::c_uint,
     ) < 0
@@ -2325,33 +2322,39 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
     let mut winWidth: libc::c_uint = 640;
     let mut winHeight: libc::c_uint = 480;
     let mut displayindex: libc::c_int = 0;
-    let mut i = 1;
-    while i < args.len() {
-        match US_CheckParm(
-            args[i],
-            VideoParmStrings.as_mut_ptr() as *mut *mut libc::c_char,
-        ) {
-            0 => {
+
+    // It's possible to iterate `Args`, although it doesn't get much cleaner.
+    let args = std::env::args().into_iter().collect::<Vec<_>>();
+
+    if let Some(screen_mode) = args.get(1) {
+        match screen_mode.as_str() {
+            VIDEO_PARAM_WINDOWED => {
+                if args.len() == 4 {
+                    winWidth = args[2]
+                        .parse()
+                        .expect(&format!("Invalid width parameter: {}", args[2]));
+                    winHeight = args[3]
+                        .parse()
+                        .expect(&format!("Invalid height parameter: {}", args[3]));
+                } else {
+                    panic!("Incorrect number of windowed mode parameters");
+                }
+
                 windowed = true as boolean;
-                i += 1;
-                if i < args.len() {
-                    winWidth = atoi(args[i]) as libc::c_uint;
-                }
-                i += 1;
-                if i < args.len() {
-                    winHeight = atoi(args[i]) as libc::c_uint;
+            }
+            VIDEO_PARAM_FULLSCREEN => {
+                if args.len() == 3 {
+                    displayindex = args[2]
+                        .parse()
+                        .expect(&format!("Invalid screen parameter: {}", args[2]));
+                } else {
+                    panic!("Incorrect number of screen mode parameters");
                 }
             }
-            1 => {
-                i += 1;
-                if i < args.len() {
-                    displayindex = atoi(args[i]);
-                }
-            }
-            _ => {}
+            _ => panic!("Unexpected screen mode parameter"),
         }
-        i += 1;
     }
+
     let mut bounds: SDL_Rect = SDL_Rect {
         x: 0,
         y: 0,
