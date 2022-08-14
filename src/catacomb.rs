@@ -34,7 +34,6 @@ extern "C" {
     fn _quit(_: *mut libc::c_char);
     fn _checkhighscore();
     fn _showhighscores();
-    static mut _extension: *const libc::c_char;
     static mut score: sdword;
     fn printhighscore();
     fn printbody();
@@ -1400,8 +1399,6 @@ pub fn original_main() {
         //   puts ("CATACOMB II is executing");
 
         //  _dontplay = 1;	// no sounds for debugging and profiling
-
-        _extension = b"CA2\0" as *const u8 as *const libc::c_char;
 
         _setupgame();
 

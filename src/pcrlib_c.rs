@@ -3,7 +3,7 @@ use libc::O_RDONLY;
 
 use crate::{
     demo_enum::demoenum,
-    extra_constants::{O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
+    extra_constants::{_extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
     indemo,
     sdl_scan_codes::*,
@@ -1833,8 +1833,13 @@ pub static mut highscores: [scores; 5] = [scores {
 pub static mut score: sdword = 0;
 #[no_mangle]
 pub static mut level: sword = 0;
-#[no_mangle]
-pub static mut _extension: *const libc::c_char = b"PCR\0" as *const u8 as *const libc::c_char;
+
+// There seems to be a (harmless) wrong definition in the original project:
+//
+//     char *_extension = "PCR";
+//
+// which is overwritten with "CA2" in `CATACOMB.C`.
+
 #[no_mangle]
 pub static mut _cgaok: boolean = true as boolean;
 #[no_mangle]
