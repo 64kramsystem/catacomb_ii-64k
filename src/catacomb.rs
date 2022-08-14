@@ -485,7 +485,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
                 } else {
                     gs.numobj += 1;
                     gs.o[gs.numobj as usize].active = false as boolean;
-                    gs.o[gs.numobj as usize].class = tokens[(btile as i32 - 230) as usize] as u16;
+                    gs.o[gs.numobj as usize].class = tokens[(btile as i32 - 230) as usize];
                     gs.o[gs.numobj as usize].x = (xx + 11) as u8;
                     gs.o[gs.numobj as usize].y = (yy + 11) as u8;
                     gs.o[gs.numobj as usize].stage = 0;
@@ -594,7 +594,7 @@ unsafe fn playsetup(gs: &mut GlobalState) {
         score = 0;
         level = 1;
         gs.o[0].active = true as boolean;
-        gs.o[0].class = player as i32 as u16;
+        gs.o[0].class = player;
         gs.o[0].hp = 13;
         gs.o[0].dir = west as i32 as u16;
         gs.o[0].stage = 0;
@@ -973,7 +973,7 @@ pub fn original_main() {
         0,
         [activeobj {
             active: 0,
-            class: 0,
+            class: nothing,
             x: 0,
             y: 0,
             stage: 0,
@@ -987,7 +987,7 @@ pub fn original_main() {
         }; 201],
         [activeobj {
             active: 0,
-            class: 0,
+            class: nothing,
             x: 0,
             y: 0,
             stage: 0,
@@ -1001,7 +1001,7 @@ pub fn original_main() {
         }; 1],
         objtype {
             active: 0,
-            class: 0,
+            class: nothing,
             x: 0,
             y: 0,
             stage: 0,
@@ -1027,7 +1027,7 @@ pub fn original_main() {
         },
         objtype {
             active: 0,
-            class: 0,
+            class: nothing,
             x: 0,
             y: 0,
             stage: 0,

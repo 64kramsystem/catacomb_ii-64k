@@ -279,7 +279,7 @@ unsafe fn castnuke(gs: &mut GlobalState) {
     let mut n: i32 = 0;
     let mut base: activeobj = activeobj {
         active: 0,
-        class: 0,
+        class: nothing,
         x: 0,
         y: 0,
         stage: 0,
@@ -308,7 +308,7 @@ unsafe fn castnuke(gs: &mut GlobalState) {
     base.oldx = base.x;
     base.oldy = base.y;
     base.oldtile = -(1) as i16;
-    base.class = bigshot as i32 as u16;
+    base.class = bigshot;
     x = -(1);
     while x <= 1 {
         n = newobject(gs);
@@ -340,7 +340,7 @@ unsafe fn playshoot(gs: &mut GlobalState) {
     gs.obj.delay = 4;
     PlaySound(5);
     new = newobject(gs);
-    gs.o[new as usize].class = shot as i32 as u16;
+    gs.o[new as usize].class = shot;
     gs.side ^= 1;
     gs.o[new as usize].delay = 0;
     gs.o[new as usize].stage = 0;
@@ -381,7 +381,7 @@ unsafe fn playbigshoot(gs: &mut GlobalState) {
     gs.o[new as usize].dir = gs.obj.dir;
     gs.o[new as usize].x = gs.obj.x;
     gs.o[new as usize].y = gs.obj.y;
-    gs.o[new as usize].class = bigshot as i32 as u16;
+    gs.o[new as usize].class = bigshot;
 }
 
 unsafe fn givescroll(gs: &mut GlobalState) {
@@ -450,7 +450,9 @@ unsafe fn tagobject(gs: &mut GlobalState) {
             printscore(gs);
             PlaySound(9);
         }
-        gs.o[gs.altnum as usize].class = (dead1 as i32 - 1 + gs.altobj.size as i32) as u16;
+        gs.o[gs.altnum as usize].class = (dead1 as u16 - 1 + gs.altobj.size as u16)
+            .try_into()
+            .unwrap();
         gs.o[gs.altnum as usize].delay = 2;
         gs.o[gs.altnum as usize].stage = 0;
     } else {
@@ -556,7 +558,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
             gs.o[new as usize].y = gs.chky as u8;
             gs.o[new as usize].stage = 0;
             gs.o[new as usize].delay = 2;
-            gs.o[new as usize].class = wallhit as i32 as u16;
+            gs.o[new as usize].class = wallhit;
             PlaySound(6);
         }
         return false as boolean;
@@ -575,7 +577,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
             gs.o[new as usize].y = gs.chky as u8;
             gs.o[new as usize].stage = 0;
             gs.o[new as usize].delay = 2;
-            gs.o[new as usize].class = dead1 as i32 as u16;
+            gs.o[new as usize].class = dead1;
             if gs.obj.contact as i32 == pshot as i32 {
                 return false as boolean;
             } else {
@@ -1014,7 +1016,7 @@ unsafe fn gargthink(gs: &mut GlobalState) {
         gs.obj.delay = 6;
         PlaySound(5);
         n = newobject(gs);
-        gs.o[n as usize].class = rock as i32 as u16;
+        gs.o[n as usize].class = rock;
         gs.o[n as usize].delay = 0;
         gs.o[n as usize].stage = 0;
         gs.o[n as usize].active = true as boolean;
@@ -1051,7 +1053,7 @@ unsafe fn dragonthink(gs: &mut GlobalState) {
         gs.obj.delay = 6;
         PlaySound(5);
         n = newobject(gs);
-        gs.o[n as usize].class = bigshot as i32 as u16;
+        gs.o[n as usize].class = bigshot;
         gs.o[n as usize].delay = 0;
         gs.o[n as usize].stage = 0;
         gs.o[n as usize].active = true as boolean;
@@ -1086,7 +1088,7 @@ unsafe fn gunthink(mut dir: i32, gs: &mut GlobalState) {
     PlaySound(5);
     gs.obj.stage = 0;
     n = newobject(gs);
-    gs.o[n as usize].class = bigshot as i32 as u16;
+    gs.o[n as usize].class = bigshot;
     gs.o[n as usize].delay = 0;
     gs.o[n as usize].stage = 0;
     gs.o[n as usize].active = true as boolean;
@@ -1103,7 +1105,7 @@ unsafe fn shooterthink(gs: &mut GlobalState) {
         || walk(gs) == 0
         || gs.obj.stage as i32 == 2
     {
-        gs.obj.class = nothing as i32 as u16;
+        gs.obj.class = nothing;
     }
 }
 
@@ -1119,7 +1121,7 @@ unsafe fn fadethink(gs: &mut GlobalState) {
     gs.obj.stage = (gs.obj.stage).wrapping_add(1);
     gs.obj.delay = 2;
     if gs.obj.stage as i32 == gs.obj.stages as i32 {
-        gs.obj.class = nothing as i32 as u16;
+        gs.obj.class = nothing;
     }
 }
 
@@ -1142,7 +1144,7 @@ unsafe fn killnear(mut chkx_0: i32, mut chky_0: i32, gs: &mut GlobalState) {
     gs.o[new as usize].y = chky_0 as u8;
     gs.o[new as usize].stage = 0;
     gs.o[new as usize].delay = 2;
-    gs.o[new as usize].class = dead1 as i32 as u16;
+    gs.o[new as usize].class = dead1;
 }
 
 unsafe fn explodethink(gs: &mut GlobalState) {
@@ -1155,7 +1157,7 @@ unsafe fn explodethink(gs: &mut GlobalState) {
     }
     gs.obj.delay = 2;
     if gs.obj.stage as i32 == gs.obj.stages as i32 {
-        gs.obj.class = nothing as i32 as u16;
+        gs.obj.class = nothing;
     }
 }
 

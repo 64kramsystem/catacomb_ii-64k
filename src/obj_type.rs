@@ -1,10 +1,10 @@
-use crate::{active_obj::activeobj, extra_types::boolean};
+use crate::{active_obj::activeobj, class_type::classtype, extra_types::boolean};
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct objtype {
     pub active: boolean,
-    pub class: u16,
+    pub class: classtype,
     pub x: u8,
     pub y: u8,
     pub stage: u8,

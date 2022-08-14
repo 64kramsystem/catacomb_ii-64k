@@ -1,6 +1,11 @@
+use std::convert::TryFrom;
+
+use num::FromPrimitive;
+use num_derive::FromPrimitive;
+
 /// In the original, this is an enum, (automatically) narrowed down to u16 on assignment.
 #[repr(u16)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, FromPrimitive)]
 pub enum classtype {
     lastclass = 23,
     guns = 22,
@@ -26,4 +31,12 @@ pub enum classtype {
     goblin = 2,
     player = 1,
     nothing = 0,
+}
+
+impl TryFrom<u16> for classtype {
+    type Error = ();
+
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        FromPrimitive::from_u16(value).ok_or(())
+    }
 }
