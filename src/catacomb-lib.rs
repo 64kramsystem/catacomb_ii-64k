@@ -26,5 +26,6 @@ pub mod objects;
 pub mod pcrlib_a;
 pub mod pcrlib_c;
 pub mod rleasm;
+pub mod sdl_scan_codes;
 
 pub static mut indemo: demoenum = demoenum::notdemo;

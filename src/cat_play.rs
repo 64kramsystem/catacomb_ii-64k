@@ -5,6 +5,7 @@ use crate::{
     catasm::{doall, drawobj},
     demo_enum::demoenum,
     indemo,
+    sdl_scan_codes::*,
 };
 extern "C" {
     fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
@@ -236,251 +237,6 @@ impl objtype {
     }
 }
 
-pub type C2RustUnnamed_2 = libc::c_uint;
-pub const SDL_NUM_SCANCODES: C2RustUnnamed_2 = 512;
-pub const SDL_SCANCODE_AUDIOFASTFORWARD: C2RustUnnamed_2 = 286;
-pub const SDL_SCANCODE_AUDIOREWIND: C2RustUnnamed_2 = 285;
-pub const SDL_SCANCODE_APP2: C2RustUnnamed_2 = 284;
-pub const SDL_SCANCODE_APP1: C2RustUnnamed_2 = 283;
-pub const SDL_SCANCODE_SLEEP: C2RustUnnamed_2 = 282;
-pub const SDL_SCANCODE_EJECT: C2RustUnnamed_2 = 281;
-pub const SDL_SCANCODE_KBDILLUMUP: C2RustUnnamed_2 = 280;
-pub const SDL_SCANCODE_KBDILLUMDOWN: C2RustUnnamed_2 = 279;
-pub const SDL_SCANCODE_KBDILLUMTOGGLE: C2RustUnnamed_2 = 278;
-pub const SDL_SCANCODE_DISPLAYSWITCH: C2RustUnnamed_2 = 277;
-pub const SDL_SCANCODE_BRIGHTNESSUP: C2RustUnnamed_2 = 276;
-pub const SDL_SCANCODE_BRIGHTNESSDOWN: C2RustUnnamed_2 = 275;
-pub const SDL_SCANCODE_AC_BOOKMARKS: C2RustUnnamed_2 = 274;
-pub const SDL_SCANCODE_AC_REFRESH: C2RustUnnamed_2 = 273;
-pub const SDL_SCANCODE_AC_STOP: C2RustUnnamed_2 = 272;
-pub const SDL_SCANCODE_AC_FORWARD: C2RustUnnamed_2 = 271;
-pub const SDL_SCANCODE_AC_BACK: C2RustUnnamed_2 = 270;
-pub const SDL_SCANCODE_AC_HOME: C2RustUnnamed_2 = 269;
-pub const SDL_SCANCODE_AC_SEARCH: C2RustUnnamed_2 = 268;
-pub const SDL_SCANCODE_COMPUTER: C2RustUnnamed_2 = 267;
-pub const SDL_SCANCODE_CALCULATOR: C2RustUnnamed_2 = 266;
-pub const SDL_SCANCODE_MAIL: C2RustUnnamed_2 = 265;
-pub const SDL_SCANCODE_WWW: C2RustUnnamed_2 = 264;
-pub const SDL_SCANCODE_MEDIASELECT: C2RustUnnamed_2 = 263;
-pub const SDL_SCANCODE_AUDIOMUTE: C2RustUnnamed_2 = 262;
-pub const SDL_SCANCODE_AUDIOPLAY: C2RustUnnamed_2 = 261;
-pub const SDL_SCANCODE_AUDIOSTOP: C2RustUnnamed_2 = 260;
-pub const SDL_SCANCODE_AUDIOPREV: C2RustUnnamed_2 = 259;
-pub const SDL_SCANCODE_AUDIONEXT: C2RustUnnamed_2 = 258;
-pub const SDL_SCANCODE_MODE: C2RustUnnamed_2 = 257;
-pub const SDL_SCANCODE_RGUI: C2RustUnnamed_2 = 231;
-pub const SDL_SCANCODE_RALT: C2RustUnnamed_2 = 230;
-pub const SDL_SCANCODE_RSHIFT: C2RustUnnamed_2 = 229;
-pub const SDL_SCANCODE_RCTRL: C2RustUnnamed_2 = 228;
-pub const SDL_SCANCODE_LGUI: C2RustUnnamed_2 = 227;
-pub const SDL_SCANCODE_LALT: C2RustUnnamed_2 = 226;
-pub const SDL_SCANCODE_LSHIFT: C2RustUnnamed_2 = 225;
-pub const SDL_SCANCODE_LCTRL: C2RustUnnamed_2 = 224;
-pub const SDL_SCANCODE_KP_HEXADECIMAL: C2RustUnnamed_2 = 221;
-pub const SDL_SCANCODE_KP_DECIMAL: C2RustUnnamed_2 = 220;
-pub const SDL_SCANCODE_KP_OCTAL: C2RustUnnamed_2 = 219;
-pub const SDL_SCANCODE_KP_BINARY: C2RustUnnamed_2 = 218;
-pub const SDL_SCANCODE_KP_CLEARENTRY: C2RustUnnamed_2 = 217;
-pub const SDL_SCANCODE_KP_CLEAR: C2RustUnnamed_2 = 216;
-pub const SDL_SCANCODE_KP_PLUSMINUS: C2RustUnnamed_2 = 215;
-pub const SDL_SCANCODE_KP_MEMDIVIDE: C2RustUnnamed_2 = 214;
-pub const SDL_SCANCODE_KP_MEMMULTIPLY: C2RustUnnamed_2 = 213;
-pub const SDL_SCANCODE_KP_MEMSUBTRACT: C2RustUnnamed_2 = 212;
-pub const SDL_SCANCODE_KP_MEMADD: C2RustUnnamed_2 = 211;
-pub const SDL_SCANCODE_KP_MEMCLEAR: C2RustUnnamed_2 = 210;
-pub const SDL_SCANCODE_KP_MEMRECALL: C2RustUnnamed_2 = 209;
-pub const SDL_SCANCODE_KP_MEMSTORE: C2RustUnnamed_2 = 208;
-pub const SDL_SCANCODE_KP_EXCLAM: C2RustUnnamed_2 = 207;
-pub const SDL_SCANCODE_KP_AT: C2RustUnnamed_2 = 206;
-pub const SDL_SCANCODE_KP_SPACE: C2RustUnnamed_2 = 205;
-pub const SDL_SCANCODE_KP_HASH: C2RustUnnamed_2 = 204;
-pub const SDL_SCANCODE_KP_COLON: C2RustUnnamed_2 = 203;
-pub const SDL_SCANCODE_KP_DBLVERTICALBAR: C2RustUnnamed_2 = 202;
-pub const SDL_SCANCODE_KP_VERTICALBAR: C2RustUnnamed_2 = 201;
-pub const SDL_SCANCODE_KP_DBLAMPERSAND: C2RustUnnamed_2 = 200;
-pub const SDL_SCANCODE_KP_AMPERSAND: C2RustUnnamed_2 = 199;
-pub const SDL_SCANCODE_KP_GREATER: C2RustUnnamed_2 = 198;
-pub const SDL_SCANCODE_KP_LESS: C2RustUnnamed_2 = 197;
-pub const SDL_SCANCODE_KP_PERCENT: C2RustUnnamed_2 = 196;
-pub const SDL_SCANCODE_KP_POWER: C2RustUnnamed_2 = 195;
-pub const SDL_SCANCODE_KP_XOR: C2RustUnnamed_2 = 194;
-pub const SDL_SCANCODE_KP_F: C2RustUnnamed_2 = 193;
-pub const SDL_SCANCODE_KP_E: C2RustUnnamed_2 = 192;
-pub const SDL_SCANCODE_KP_D: C2RustUnnamed_2 = 191;
-pub const SDL_SCANCODE_KP_C: C2RustUnnamed_2 = 190;
-pub const SDL_SCANCODE_KP_B: C2RustUnnamed_2 = 189;
-pub const SDL_SCANCODE_KP_A: C2RustUnnamed_2 = 188;
-pub const SDL_SCANCODE_KP_BACKSPACE: C2RustUnnamed_2 = 187;
-pub const SDL_SCANCODE_KP_TAB: C2RustUnnamed_2 = 186;
-pub const SDL_SCANCODE_KP_RIGHTBRACE: C2RustUnnamed_2 = 185;
-pub const SDL_SCANCODE_KP_LEFTBRACE: C2RustUnnamed_2 = 184;
-pub const SDL_SCANCODE_KP_RIGHTPAREN: C2RustUnnamed_2 = 183;
-pub const SDL_SCANCODE_KP_LEFTPAREN: C2RustUnnamed_2 = 182;
-pub const SDL_SCANCODE_CURRENCYSUBUNIT: C2RustUnnamed_2 = 181;
-pub const SDL_SCANCODE_CURRENCYUNIT: C2RustUnnamed_2 = 180;
-pub const SDL_SCANCODE_DECIMALSEPARATOR: C2RustUnnamed_2 = 179;
-pub const SDL_SCANCODE_THOUSANDSSEPARATOR: C2RustUnnamed_2 = 178;
-pub const SDL_SCANCODE_KP_000: C2RustUnnamed_2 = 177;
-pub const SDL_SCANCODE_KP_00: C2RustUnnamed_2 = 176;
-pub const SDL_SCANCODE_EXSEL: C2RustUnnamed_2 = 164;
-pub const SDL_SCANCODE_CRSEL: C2RustUnnamed_2 = 163;
-pub const SDL_SCANCODE_CLEARAGAIN: C2RustUnnamed_2 = 162;
-pub const SDL_SCANCODE_OPER: C2RustUnnamed_2 = 161;
-pub const SDL_SCANCODE_OUT: C2RustUnnamed_2 = 160;
-pub const SDL_SCANCODE_SEPARATOR: C2RustUnnamed_2 = 159;
-pub const SDL_SCANCODE_RETURN2: C2RustUnnamed_2 = 158;
-pub const SDL_SCANCODE_PRIOR: C2RustUnnamed_2 = 157;
-pub const SDL_SCANCODE_CLEAR: C2RustUnnamed_2 = 156;
-pub const SDL_SCANCODE_CANCEL: C2RustUnnamed_2 = 155;
-pub const SDL_SCANCODE_SYSREQ: C2RustUnnamed_2 = 154;
-pub const SDL_SCANCODE_ALTERASE: C2RustUnnamed_2 = 153;
-pub const SDL_SCANCODE_LANG9: C2RustUnnamed_2 = 152;
-pub const SDL_SCANCODE_LANG8: C2RustUnnamed_2 = 151;
-pub const SDL_SCANCODE_LANG7: C2RustUnnamed_2 = 150;
-pub const SDL_SCANCODE_LANG6: C2RustUnnamed_2 = 149;
-pub const SDL_SCANCODE_LANG5: C2RustUnnamed_2 = 148;
-pub const SDL_SCANCODE_LANG4: C2RustUnnamed_2 = 147;
-pub const SDL_SCANCODE_LANG3: C2RustUnnamed_2 = 146;
-pub const SDL_SCANCODE_LANG2: C2RustUnnamed_2 = 145;
-pub const SDL_SCANCODE_LANG1: C2RustUnnamed_2 = 144;
-pub const SDL_SCANCODE_INTERNATIONAL9: C2RustUnnamed_2 = 143;
-pub const SDL_SCANCODE_INTERNATIONAL8: C2RustUnnamed_2 = 142;
-pub const SDL_SCANCODE_INTERNATIONAL7: C2RustUnnamed_2 = 141;
-pub const SDL_SCANCODE_INTERNATIONAL6: C2RustUnnamed_2 = 140;
-pub const SDL_SCANCODE_INTERNATIONAL5: C2RustUnnamed_2 = 139;
-pub const SDL_SCANCODE_INTERNATIONAL4: C2RustUnnamed_2 = 138;
-pub const SDL_SCANCODE_INTERNATIONAL3: C2RustUnnamed_2 = 137;
-pub const SDL_SCANCODE_INTERNATIONAL2: C2RustUnnamed_2 = 136;
-pub const SDL_SCANCODE_INTERNATIONAL1: C2RustUnnamed_2 = 135;
-pub const SDL_SCANCODE_KP_EQUALSAS400: C2RustUnnamed_2 = 134;
-pub const SDL_SCANCODE_KP_COMMA: C2RustUnnamed_2 = 133;
-pub const SDL_SCANCODE_VOLUMEDOWN: C2RustUnnamed_2 = 129;
-pub const SDL_SCANCODE_VOLUMEUP: C2RustUnnamed_2 = 128;
-pub const SDL_SCANCODE_MUTE: C2RustUnnamed_2 = 127;
-pub const SDL_SCANCODE_FIND: C2RustUnnamed_2 = 126;
-pub const SDL_SCANCODE_PASTE: C2RustUnnamed_2 = 125;
-pub const SDL_SCANCODE_COPY: C2RustUnnamed_2 = 124;
-pub const SDL_SCANCODE_CUT: C2RustUnnamed_2 = 123;
-pub const SDL_SCANCODE_UNDO: C2RustUnnamed_2 = 122;
-pub const SDL_SCANCODE_AGAIN: C2RustUnnamed_2 = 121;
-pub const SDL_SCANCODE_STOP: C2RustUnnamed_2 = 120;
-pub const SDL_SCANCODE_SELECT: C2RustUnnamed_2 = 119;
-pub const SDL_SCANCODE_MENU: C2RustUnnamed_2 = 118;
-pub const SDL_SCANCODE_HELP: C2RustUnnamed_2 = 117;
-pub const SDL_SCANCODE_EXECUTE: C2RustUnnamed_2 = 116;
-pub const SDL_SCANCODE_F24: C2RustUnnamed_2 = 115;
-pub const SDL_SCANCODE_F23: C2RustUnnamed_2 = 114;
-pub const SDL_SCANCODE_F22: C2RustUnnamed_2 = 113;
-pub const SDL_SCANCODE_F21: C2RustUnnamed_2 = 112;
-pub const SDL_SCANCODE_F20: C2RustUnnamed_2 = 111;
-pub const SDL_SCANCODE_F19: C2RustUnnamed_2 = 110;
-pub const SDL_SCANCODE_F18: C2RustUnnamed_2 = 109;
-pub const SDL_SCANCODE_F17: C2RustUnnamed_2 = 108;
-pub const SDL_SCANCODE_F16: C2RustUnnamed_2 = 107;
-pub const SDL_SCANCODE_F15: C2RustUnnamed_2 = 106;
-pub const SDL_SCANCODE_F14: C2RustUnnamed_2 = 105;
-pub const SDL_SCANCODE_F13: C2RustUnnamed_2 = 104;
-pub const SDL_SCANCODE_KP_EQUALS: C2RustUnnamed_2 = 103;
-pub const SDL_SCANCODE_POWER: C2RustUnnamed_2 = 102;
-pub const SDL_SCANCODE_APPLICATION: C2RustUnnamed_2 = 101;
-pub const SDL_SCANCODE_NONUSBACKSLASH: C2RustUnnamed_2 = 100;
-pub const SDL_SCANCODE_KP_PERIOD: C2RustUnnamed_2 = 99;
-pub const SDL_SCANCODE_KP_0: C2RustUnnamed_2 = 98;
-pub const SDL_SCANCODE_KP_9: C2RustUnnamed_2 = 97;
-pub const SDL_SCANCODE_KP_8: C2RustUnnamed_2 = 96;
-pub const SDL_SCANCODE_KP_7: C2RustUnnamed_2 = 95;
-pub const SDL_SCANCODE_KP_6: C2RustUnnamed_2 = 94;
-pub const SDL_SCANCODE_KP_5: C2RustUnnamed_2 = 93;
-pub const SDL_SCANCODE_KP_4: C2RustUnnamed_2 = 92;
-pub const SDL_SCANCODE_KP_3: C2RustUnnamed_2 = 91;
-pub const SDL_SCANCODE_KP_2: C2RustUnnamed_2 = 90;
-pub const SDL_SCANCODE_KP_1: C2RustUnnamed_2 = 89;
-pub const SDL_SCANCODE_KP_ENTER: C2RustUnnamed_2 = 88;
-pub const SDL_SCANCODE_KP_PLUS: C2RustUnnamed_2 = 87;
-pub const SDL_SCANCODE_KP_MINUS: C2RustUnnamed_2 = 86;
-pub const SDL_SCANCODE_KP_MULTIPLY: C2RustUnnamed_2 = 85;
-pub const SDL_SCANCODE_KP_DIVIDE: C2RustUnnamed_2 = 84;
-pub const SDL_SCANCODE_NUMLOCKCLEAR: C2RustUnnamed_2 = 83;
-pub const SDL_SCANCODE_UP: C2RustUnnamed_2 = 82;
-pub const SDL_SCANCODE_DOWN: C2RustUnnamed_2 = 81;
-pub const SDL_SCANCODE_LEFT: C2RustUnnamed_2 = 80;
-pub const SDL_SCANCODE_RIGHT: C2RustUnnamed_2 = 79;
-pub const SDL_SCANCODE_PAGEDOWN: C2RustUnnamed_2 = 78;
-pub const SDL_SCANCODE_END: C2RustUnnamed_2 = 77;
-pub const SDL_SCANCODE_DELETE: C2RustUnnamed_2 = 76;
-pub const SDL_SCANCODE_PAGEUP: C2RustUnnamed_2 = 75;
-pub const SDL_SCANCODE_HOME: C2RustUnnamed_2 = 74;
-pub const SDL_SCANCODE_INSERT: C2RustUnnamed_2 = 73;
-pub const SDL_SCANCODE_PAUSE: C2RustUnnamed_2 = 72;
-pub const SDL_SCANCODE_SCROLLLOCK: C2RustUnnamed_2 = 71;
-pub const SDL_SCANCODE_PRINTSCREEN: C2RustUnnamed_2 = 70;
-pub const SDL_SCANCODE_F12: C2RustUnnamed_2 = 69;
-pub const SDL_SCANCODE_F11: C2RustUnnamed_2 = 68;
-pub const SDL_SCANCODE_F10: C2RustUnnamed_2 = 67;
-pub const SDL_SCANCODE_F9: C2RustUnnamed_2 = 66;
-pub const SDL_SCANCODE_F8: C2RustUnnamed_2 = 65;
-pub const SDL_SCANCODE_F7: C2RustUnnamed_2 = 64;
-pub const SDL_SCANCODE_F6: C2RustUnnamed_2 = 63;
-pub const SDL_SCANCODE_F5: C2RustUnnamed_2 = 62;
-pub const SDL_SCANCODE_F4: C2RustUnnamed_2 = 61;
-pub const SDL_SCANCODE_F3: C2RustUnnamed_2 = 60;
-pub const SDL_SCANCODE_F2: C2RustUnnamed_2 = 59;
-pub const SDL_SCANCODE_F1: C2RustUnnamed_2 = 58;
-pub const SDL_SCANCODE_CAPSLOCK: C2RustUnnamed_2 = 57;
-pub const SDL_SCANCODE_SLASH: C2RustUnnamed_2 = 56;
-pub const SDL_SCANCODE_PERIOD: C2RustUnnamed_2 = 55;
-pub const SDL_SCANCODE_COMMA: C2RustUnnamed_2 = 54;
-pub const SDL_SCANCODE_GRAVE: C2RustUnnamed_2 = 53;
-pub const SDL_SCANCODE_APOSTROPHE: C2RustUnnamed_2 = 52;
-pub const SDL_SCANCODE_SEMICOLON: C2RustUnnamed_2 = 51;
-pub const SDL_SCANCODE_NONUSHASH: C2RustUnnamed_2 = 50;
-pub const SDL_SCANCODE_BACKSLASH: C2RustUnnamed_2 = 49;
-pub const SDL_SCANCODE_RIGHTBRACKET: C2RustUnnamed_2 = 48;
-pub const SDL_SCANCODE_LEFTBRACKET: C2RustUnnamed_2 = 47;
-pub const SDL_SCANCODE_EQUALS: C2RustUnnamed_2 = 46;
-pub const SDL_SCANCODE_MINUS: C2RustUnnamed_2 = 45;
-pub const SDL_SCANCODE_SPACE: C2RustUnnamed_2 = 44;
-pub const SDL_SCANCODE_TAB: C2RustUnnamed_2 = 43;
-pub const SDL_SCANCODE_BACKSPACE: C2RustUnnamed_2 = 42;
-pub const SDL_SCANCODE_ESCAPE: C2RustUnnamed_2 = 41;
-pub const SDL_SCANCODE_RETURN: C2RustUnnamed_2 = 40;
-pub const SDL_SCANCODE_0: C2RustUnnamed_2 = 39;
-pub const SDL_SCANCODE_9: C2RustUnnamed_2 = 38;
-pub const SDL_SCANCODE_8: C2RustUnnamed_2 = 37;
-pub const SDL_SCANCODE_7: C2RustUnnamed_2 = 36;
-pub const SDL_SCANCODE_6: C2RustUnnamed_2 = 35;
-pub const SDL_SCANCODE_5: C2RustUnnamed_2 = 34;
-pub const SDL_SCANCODE_4: C2RustUnnamed_2 = 33;
-pub const SDL_SCANCODE_3: C2RustUnnamed_2 = 32;
-pub const SDL_SCANCODE_2: C2RustUnnamed_2 = 31;
-pub const SDL_SCANCODE_1: C2RustUnnamed_2 = 30;
-pub const SDL_SCANCODE_Z: C2RustUnnamed_2 = 29;
-pub const SDL_SCANCODE_Y: C2RustUnnamed_2 = 28;
-pub const SDL_SCANCODE_X: C2RustUnnamed_2 = 27;
-pub const SDL_SCANCODE_W: C2RustUnnamed_2 = 26;
-pub const SDL_SCANCODE_V: C2RustUnnamed_2 = 25;
-pub const SDL_SCANCODE_U: C2RustUnnamed_2 = 24;
-pub const SDL_SCANCODE_T: C2RustUnnamed_2 = 23;
-pub const SDL_SCANCODE_S: C2RustUnnamed_2 = 22;
-pub const SDL_SCANCODE_R: C2RustUnnamed_2 = 21;
-pub const SDL_SCANCODE_Q: C2RustUnnamed_2 = 20;
-pub const SDL_SCANCODE_P: C2RustUnnamed_2 = 19;
-pub const SDL_SCANCODE_O: C2RustUnnamed_2 = 18;
-pub const SDL_SCANCODE_N: C2RustUnnamed_2 = 17;
-pub const SDL_SCANCODE_M: C2RustUnnamed_2 = 16;
-pub const SDL_SCANCODE_L: C2RustUnnamed_2 = 15;
-pub const SDL_SCANCODE_K: C2RustUnnamed_2 = 14;
-pub const SDL_SCANCODE_J: C2RustUnnamed_2 = 13;
-pub const SDL_SCANCODE_I: C2RustUnnamed_2 = 12;
-pub const SDL_SCANCODE_H: C2RustUnnamed_2 = 11;
-pub const SDL_SCANCODE_G: C2RustUnnamed_2 = 10;
-pub const SDL_SCANCODE_F: C2RustUnnamed_2 = 9;
-pub const SDL_SCANCODE_E: C2RustUnnamed_2 = 8;
-pub const SDL_SCANCODE_D: C2RustUnnamed_2 = 7;
-pub const SDL_SCANCODE_C: C2RustUnnamed_2 = 6;
-pub const SDL_SCANCODE_B: C2RustUnnamed_2 = 5;
-pub const SDL_SCANCODE_A: C2RustUnnamed_2 = 4;
-pub const SDL_SCANCODE_UNKNOWN: C2RustUnnamed_2 = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct ControlStruct {
@@ -1121,7 +877,7 @@ unsafe fn playercmdthink(items: &mut [sword]) {
     obj.stage = (obj.stage as libc::c_int & 1) as byte;
     if c.button1 as libc::c_int != 0
         && c.button2 as libc::c_int != 0
-        && keydown[SDL_SCANCODE_Q as libc::c_int as usize] as libc::c_int != 0
+        && keydown[SDL_SCANCODE_Q as usize] as libc::c_int != 0
     {
         givepotion(items);
         givescroll(items);
@@ -1232,23 +988,23 @@ unsafe fn playercmdthink(items: &mut [sword]) {
         printshotpower();
     }
     if indemo == demoenum::notdemo {
-        if keydown[SDL_SCANCODE_P as libc::c_int as usize] as libc::c_int != 0
-            || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
+        if keydown[SDL_SCANCODE_P as usize] as libc::c_int != 0
+            || keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
         {
             if (obj.hp as libc::c_int) < 13 {
                 takepotion(items);
-                keydown[SDL_SCANCODE_Q as libc::c_int as usize] = false as boolean;
-                keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] = false as boolean;
+                keydown[SDL_SCANCODE_Q as usize] = false as boolean;
+                keydown[SDL_SCANCODE_SPACE as usize] = false as boolean;
             }
-        } else if keydown[SDL_SCANCODE_B as libc::c_int as usize] != 0 {
+        } else if keydown[SDL_SCANCODE_B as usize] != 0 {
             castbolt(items);
-            keydown[SDL_SCANCODE_B as libc::c_int as usize] = false as boolean;
-        } else if keydown[SDL_SCANCODE_N as libc::c_int as usize] as libc::c_int != 0
-            || keydown[SDL_SCANCODE_RETURN as libc::c_int as usize] as libc::c_int != 0
+            keydown[SDL_SCANCODE_B as usize] = false as boolean;
+        } else if keydown[SDL_SCANCODE_N as usize] as libc::c_int != 0
+            || keydown[SDL_SCANCODE_RETURN as usize] as libc::c_int != 0
         {
             castnuke(items);
-            keydown[SDL_SCANCODE_N as libc::c_int as usize] = false as boolean;
-            keydown[SDL_SCANCODE_RETURN as libc::c_int as usize] = false as boolean;
+            keydown[SDL_SCANCODE_N as usize] = false as boolean;
+            keydown[SDL_SCANCODE_RETURN as usize] = false as boolean;
         }
     }
     dofkeys(items);
@@ -1259,9 +1015,9 @@ unsafe fn playercmdthink(items: &mut [sword]) {
     }
     match indemo {
         demoenum::notdemo => {
-            if keydown[SDL_SCANCODE_C as libc::c_int as usize] as libc::c_int != 0
-                && keydown[SDL_SCANCODE_T as libc::c_int as usize] as libc::c_int != 0
-                && keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
+            if keydown[SDL_SCANCODE_C as usize] as libc::c_int != 0
+                && keydown[SDL_SCANCODE_T as usize] as libc::c_int != 0
+                && keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
             {
                 centerwindow(16, 2);
                 print(b"warp to which\nlevel (1-99)?\0" as *const u8 as *const libc::c_char);
@@ -1276,9 +1032,9 @@ unsafe fn playercmdthink(items: &mut [sword]) {
                 restore();
                 leveldone = true as boolean;
             }
-            if keydown[SDL_SCANCODE_C as libc::c_int as usize] as libc::c_int != 0
-                && keydown[SDL_SCANCODE_T as libc::c_int as usize] as libc::c_int != 0
-                && keydown[SDL_SCANCODE_TAB as libc::c_int as usize] as libc::c_int != 0
+            if keydown[SDL_SCANCODE_C as usize] as libc::c_int != 0
+                && keydown[SDL_SCANCODE_T as usize] as libc::c_int != 0
+                && keydown[SDL_SCANCODE_TAB as usize] as libc::c_int != 0
             {
                 if GODMODE != 0 {
                     centerwindow(13, 1);
@@ -1303,7 +1059,7 @@ unsafe fn playercmdthink(items: &mut [sword]) {
             ctrl = ControlPlayer(1);
             if ctrl.button1 as libc::c_int != 0
                 || ctrl.button2 as libc::c_int != 0
-                || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
+                || keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
             {
                 indemo = demoenum::demoplay;
                 exitdemo = true as boolean;
@@ -1658,8 +1414,8 @@ pub unsafe fn playloop(priority: &[byte], items: &mut [sword]) {
         clearold();
         loadlevel(items);
         leveldone = false as boolean;
-        if keydown[SDL_SCANCODE_F7 as libc::c_int as usize] as libc::c_int != 0
-            && keydown[SDL_SCANCODE_D as libc::c_int as usize] as libc::c_int != 0
+        if keydown[SDL_SCANCODE_F7 as usize] as libc::c_int != 0
+            && keydown[SDL_SCANCODE_D as usize] as libc::c_int != 0
         {
             clearold();
             refresh();
