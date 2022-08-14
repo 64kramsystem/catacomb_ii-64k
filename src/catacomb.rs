@@ -42,7 +42,6 @@ extern "C" {
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn free(_: *mut libc::c_void);
-    fn printf(_: *const i8, _: ...) -> i32;
     fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
     fn __ctype_b_loc() -> *mut *const libc::c_ushort;
     fn tolower(_: i32) -> i32;

@@ -13,7 +13,6 @@ extern "C" {
     fn time(__timer: *mut time_t) -> time_t;
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    fn printf(_: *const i8, _: ...) -> i32;
 }
 type __time_t = i64;
 type time_t = __time_t;
@@ -245,10 +244,7 @@ pub unsafe fn StartupSound() {
         AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut AudioSpec, 0);
         AudioDev == 0
     } {
-        printf(
-            b"Audio initialization failed: %s\n\0" as *const u8 as *const i8,
-            safe_SDL_GetError(),
-        );
+        println!("Audio initialization failed: {:?}", safe_SDL_GetError());
         soundmode = off;
         _dontplay = 1;
         return;
