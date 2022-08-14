@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut numobj: i32 = 0;
-#[no_mangle]
 pub static mut objecton: i32 = 0;
 #[no_mangle]
 pub static mut playdone: boolean = 0;
@@ -515,7 +513,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
     strcat(filename.as_mut_ptr(), b".CA2\0" as *const u8 as *const i8);
     LoadFile(filename.as_mut_ptr(), rle.as_mut_ptr());
     RLEExpand(&mut *rle.as_mut_ptr().offset(4), sm.as_mut_ptr(), 4096);
-    numobj = 0;
+    gs.numobj = 0;
     gs.o[0].x = 13;
     gs.o[0].y = 13;
     gs.o[0].stage = 0;
@@ -537,21 +535,21 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
                     gs.o[0].x = (xx + 11) as u8;
                     gs.o[0].y = (yy + 11) as u8;
                 } else {
-                    numobj += 1;
-                    gs.o[numobj as usize].active = false as boolean;
-                    gs.o[numobj as usize].class = tokens[(btile as i32 - 230) as usize] as u16;
-                    gs.o[numobj as usize].x = (xx + 11) as u8;
-                    gs.o[numobj as usize].y = (yy + 11) as u8;
-                    gs.o[numobj as usize].stage = 0;
-                    gs.o[numobj as usize].delay = 0;
+                    gs.numobj += 1;
+                    gs.o[gs.numobj as usize].active = false as boolean;
+                    gs.o[gs.numobj as usize].class = tokens[(btile as i32 - 230) as usize] as u16;
+                    gs.o[gs.numobj as usize].x = (xx + 11) as u8;
+                    gs.o[gs.numobj as usize].y = (yy + 11) as u8;
+                    gs.o[gs.numobj as usize].stage = 0;
+                    gs.o[gs.numobj as usize].delay = 0;
                     // Ugly defensive typecast.
-                    gs.o[numobj as usize].dir =
+                    gs.o[gs.numobj as usize].dir =
                         TryInto::<dirtype>::try_into(rndt() / 64).unwrap() as u16;
-                    gs.o[numobj as usize].hp =
-                        gs.objdef[gs.o[numobj as usize].class as usize].hitpoints as i8;
-                    gs.o[numobj as usize].oldx = gs.o[numobj as usize].x;
-                    gs.o[numobj as usize].oldy = gs.o[numobj as usize].y;
-                    gs.o[numobj as usize].oldtile = -(1) as i16;
+                    gs.o[gs.numobj as usize].hp =
+                        gs.objdef[gs.o[gs.numobj as usize].class as usize].hitpoints as i8;
+                    gs.o[gs.numobj as usize].oldx = gs.o[gs.numobj as usize].x;
+                    gs.o[gs.numobj as usize].oldy = gs.o[gs.numobj as usize].y;
+                    gs.o[gs.numobj as usize].oldtile = -(1) as i16;
                 }
             }
             xx += 1;
@@ -1105,6 +1103,7 @@ pub fn original_main() {
             points: 0,
             filler2: [0; 2],
         },
+        0,
         0,
         [objdeftype {
             think: 0,

@@ -20,7 +20,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    static mut numobj: i32;
     static mut objecton: i32;
     static mut frameon: u16;
     static mut leveldone: boolean;
@@ -119,10 +118,10 @@ pub unsafe fn eraseobj(gs: &mut GlobalState) {
 }
 
 pub unsafe fn doall(gs: &mut GlobalState) {
-    assert!(numobj > 0);
+    assert!(gs.numobj > 0);
 
     loop {
-        objecton = numobj;
+        objecton = gs.numobj;
         loop {
             memcpy(
                 &mut gs.obj as *mut objtype as *mut libc::c_void,

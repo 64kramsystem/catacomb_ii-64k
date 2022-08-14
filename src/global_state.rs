@@ -24,6 +24,7 @@ pub struct GlobalState {
     pub obj: objtype,          /*total info about objecton and alt*/
     pub altobj: objtype,       // ^^
     pub altnum: i32,           /*o[#] of altobj*/
+    pub numobj: i32,
     //     int numobj, objecton;              /*number of objects in o now*/
 
     //
@@ -75,6 +76,7 @@ impl GlobalState {
         obj: objtype,
         altobj: objtype,
         altnum: i32,
+        numobj: i32,
         objdef: [objdeftype; 23],
         side: i32,
         boltsleft: i32,
@@ -96,6 +98,7 @@ impl GlobalState {
             obj,
             altobj,
             altnum,
+            numobj,
             objdef,
             side,
             boltsleft,

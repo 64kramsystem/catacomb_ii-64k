@@ -32,7 +32,6 @@ extern "C" {
     static mut chkspot: i32;
     static mut chkx: i32;
     static mut chky: i32;
-    static mut numobj: i32;
     static mut objecton: i32;
     static mut leveldone: boolean;
     static mut frameon: u16;
@@ -123,7 +122,7 @@ unsafe fn newobject(gs: &mut GlobalState) -> i32 {
     let mut i: i32 = 0;
     i = 1;
     loop {
-        if !(i <= numobj) {
+        if !(i <= gs.numobj) {
             current_block = 10680521327981672866;
             break;
         }
@@ -135,10 +134,10 @@ unsafe fn newobject(gs: &mut GlobalState) -> i32 {
     }
     match current_block {
         10680521327981672866 => {
-            if numobj < 200 {
-                numobj += 1;
+            if gs.numobj < 200 {
+                gs.numobj += 1;
             }
-            i = numobj;
+            i = gs.numobj;
         }
         _ => {}
     }
@@ -521,7 +520,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
         if gotit == 0 {
             gs.altnum += 1;
         }
-        if gotit as i32 != 0 || gs.altnum > numobj {
+        if gotit as i32 != 0 || gs.altnum > gs.numobj {
             break;
         }
     }
