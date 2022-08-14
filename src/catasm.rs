@@ -1,6 +1,6 @@
 use ::libc;
 
-use crate::cat_play::doactive;
+use crate::{cat_play::doactive, class_type::classtype::*};
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
     fn __assert_fail(
@@ -42,31 +42,7 @@ pub type byte = uint8_t;
 pub type sbyte = int8_t;
 pub type word = uint16_t;
 pub type sword = int16_t;
-pub type C2RustUnnamed = libc::c_uint;
-pub const lastclass: C2RustUnnamed = 23;
-pub const guns: C2RustUnnamed = 22;
-pub const gune: C2RustUnnamed = 21;
-pub const secretgate: C2RustUnnamed = 20;
-pub const torch: C2RustUnnamed = 19;
-pub const teleporter: C2RustUnnamed = 18;
-pub const dead6: C2RustUnnamed = 17;
-pub const dead5: C2RustUnnamed = 16;
-pub const dead4: C2RustUnnamed = 15;
-pub const dead3: C2RustUnnamed = 14;
-pub const dead2: C2RustUnnamed = 13;
-pub const dead1: C2RustUnnamed = 12;
-pub const rock: C2RustUnnamed = 11;
-pub const bigshot: C2RustUnnamed = 10;
-pub const shot: C2RustUnnamed = 9;
-pub const wallhit: C2RustUnnamed = 8;
-pub const turbogre: C2RustUnnamed = 7;
-pub const dragon: C2RustUnnamed = 6;
-pub const gargoyle: C2RustUnnamed = 5;
-pub const ogre: C2RustUnnamed = 4;
-pub const skeleton: C2RustUnnamed = 3;
-pub const goblin: C2RustUnnamed = 2;
-pub const player: C2RustUnnamed = 1;
-pub const nothing: C2RustUnnamed = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct activeobj {

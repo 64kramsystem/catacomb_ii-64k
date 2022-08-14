@@ -18,6 +18,7 @@ extern crate libc;
 mod cat_play;
 pub mod catacomb;
 mod catasm;
+mod class_type;
 mod cpanel;
 mod demo_enum;
 mod extra_constants;

@@ -2,6 +2,7 @@ use libc::O_RDONLY;
 
 use crate::{
     cat_play::{givebolt, givenuke, givepotion, playloop},
+    class_type::classtype::{self, *},
     cpanel::controlpanel,
     demo_enum::demoenum,
     extra_constants::{
@@ -118,31 +119,6 @@ pub const west: dirtype = 3;
 pub const south: dirtype = 2;
 pub const east: dirtype = 1;
 pub const north: dirtype = 0;
-pub type classtype = libc::c_uint;
-pub const lastclass: classtype = 23;
-pub const guns: classtype = 22;
-pub const gune: classtype = 21;
-pub const secretgate: classtype = 20;
-pub const torch: classtype = 19;
-pub const teleporter: classtype = 18;
-pub const dead6: classtype = 17;
-pub const dead5: classtype = 16;
-pub const dead4: classtype = 15;
-pub const dead3: classtype = 14;
-pub const dead2: classtype = 13;
-pub const dead1: classtype = 12;
-pub const rock: classtype = 11;
-pub const bigshot: classtype = 10;
-pub const shot: classtype = 9;
-pub const wallhit: classtype = 8;
-pub const turbogre: classtype = 7;
-pub const dragon: classtype = 6;
-pub const gargoyle: classtype = 5;
-pub const ogre: classtype = 4;
-pub const skeleton: classtype = 3;
-pub const goblin: classtype = 2;
-pub const player: classtype = 1;
-pub const nothing: classtype = 0;
 
 pub enum statetype {
     inscores, // 2
@@ -1445,10 +1421,9 @@ pub fn original_main() {
         {
             priority[i as usize] = 0;
         }
-        for clvar in dead2..=dead5 {
-            for i in objdef[clvar as usize].firstchar
-                ..=(objdef[clvar as usize].firstchar
-                    + objdef[clvar as usize].size as u16 * objdef[clvar as usize].size as u16)
+        for clvar in (dead2 as usize)..=(dead5 as usize) {
+            for i in objdef[clvar].firstchar
+                ..=(objdef[clvar].firstchar + objdef[clvar].size as u16 * objdef[clvar].size as u16)
             {
                 priority[i as usize] = 0; /*deadthing*/
             }

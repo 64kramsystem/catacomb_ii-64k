@@ -3,6 +3,7 @@ use ::libc;
 use crate::{
     catacomb::{dofkeys, loadlevel},
     catasm::{doall, drawobj},
+    class_type::classtype::*,
     demo_enum::demoenum,
     indemo,
     sdl_scan_codes::*,
@@ -97,31 +98,7 @@ pub const west: dirtype = 3;
 pub const south: dirtype = 2;
 pub const east: dirtype = 1;
 pub const north: dirtype = 0;
-pub type classtype = libc::c_uint;
-pub const lastclass: classtype = 23;
-pub const guns: classtype = 22;
-pub const gune: classtype = 21;
-pub const secretgate: classtype = 20;
-pub const torch: classtype = 19;
-pub const teleporter: classtype = 18;
-pub const dead6: classtype = 17;
-pub const dead5: classtype = 16;
-pub const dead4: classtype = 15;
-pub const dead3: classtype = 14;
-pub const dead2: classtype = 13;
-pub const dead1: classtype = 12;
-pub const rock: classtype = 11;
-pub const bigshot: classtype = 10;
-pub const shot: classtype = 9;
-pub const wallhit: classtype = 8;
-pub const turbogre: classtype = 7;
-pub const dragon: classtype = 6;
-pub const gargoyle: classtype = 5;
-pub const ogre: classtype = 4;
-pub const skeleton: classtype = 3;
-pub const goblin: classtype = 2;
-pub const player: classtype = 1;
-pub const nothing: classtype = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct activeobj {
@@ -592,8 +569,7 @@ pub unsafe extern "C" fn tagobject() {
             printscore();
             PlaySound(9);
         }
-        o[altnum as usize].class =
-            (dead1 as libc::c_int - 1 + altobj.size as libc::c_int) as classtype as word;
+        o[altnum as usize].class = (dead1 as libc::c_int - 1 + altobj.size as libc::c_int) as word;
         o[altnum as usize].delay = 2;
         o[altnum as usize].stage = 0;
     } else {
