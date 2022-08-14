@@ -1,12 +1,14 @@
-pub type C2RustUnnamed_0 = libc::c_uint;
-pub const gunthinks: C2RustUnnamed_0 = 10;
-pub const gunthinke: C2RustUnnamed_0 = 9;
-pub const explode: C2RustUnnamed_0 = 8;
-pub const fade: C2RustUnnamed_0 = 7;
-pub const idle: C2RustUnnamed_0 = 6;
-pub const straight: C2RustUnnamed_0 = 5;
-pub const ramdiag: C2RustUnnamed_0 = 4;
-pub const ramstraight: C2RustUnnamed_0 = 3;
-pub const dragoncmd: C2RustUnnamed_0 = 2;
-pub const gargcmd: C2RustUnnamed_0 = 1;
-pub const playercmd: C2RustUnnamed_0 = 0;
+#[repr(u32)]
+pub enum thinktype {
+    gunthinks = 10,
+    gunthinke = 9,
+    explode = 8,
+    fade = 7,
+    idle = 6,
+    straight = 5,
+    ramdiag = 4,
+    ramstraight = 3,
+    dragoncmd = 2,
+    gargcmd = 1,
+    playercmd = 0,
+}

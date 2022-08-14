@@ -1,6 +1,6 @@
 use ::libc;
 
-use crate::think_type::*;
+use crate::think_type::thinktype::*;
 
 extern "C" {
     static mut objdef: [objdeftype; 23];
