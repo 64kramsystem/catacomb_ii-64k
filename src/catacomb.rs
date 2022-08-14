@@ -84,12 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut ctrl: ControlStruct = ControlStruct {
-    dir: north,
-    button1: 0,
-    button2: 0,
-};
-#[no_mangle]
 pub static mut pics: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut picsexact: *mut i8 = 0 as *const i8 as *mut i8;
@@ -847,9 +841,9 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
     while i < 300 {
         WaitVBL();
         indemo = demoenum::notdemo;
-        ctrl = ControlPlayer(1);
-        if ctrl.button1 as i32 != 0
-            || ctrl.button2 as i32 != 0
+        gs.ctrl = ControlPlayer(1);
+        if gs.ctrl.button1 as i32 != 0
+            || gs.ctrl.button2 as i32 != 0
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             level = 0;
@@ -926,9 +920,9 @@ unsafe fn dodemo(gs: &mut GlobalState) {
         while i < 500 {
             WaitVBL();
             indemo = demoenum::notdemo;
-            ctrl = ControlPlayer(1);
-            if ctrl.button1 as i32 != 0
-                || ctrl.button2 as i32 != 0
+            gs.ctrl = ControlPlayer(1);
+            if gs.ctrl.button1 as i32 != 0
+                || gs.ctrl.button2 as i32 != 0
                 || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 gs.exitdemo = true;
@@ -963,9 +957,9 @@ unsafe fn gameover(gs: &mut GlobalState) {
     i = 0;
     while i < 500 {
         WaitVBL();
-        ctrl = ControlPlayer(1);
-        if ctrl.button1 as i32 != 0
-            || ctrl.button2 as i32 != 0
+        gs.ctrl = ControlPlayer(1);
+        if gs.ctrl.button1 as i32 != 0
+            || gs.ctrl.button2 as i32 != 0
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             break;
@@ -1101,6 +1095,11 @@ pub fn original_main() {
         false,
         false,
         statetype::ingame,
+        ControlStruct {
+            dir: north,
+            button1: 0,
+            button2: 0,
+        },
         0,
         0,
         [[0; 86]; 87],

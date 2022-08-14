@@ -1,6 +1,6 @@
 use crate::{
-    active_obj::activeobj, exit_type::exittype, obj_def_type::objdeftype, obj_type::objtype,
-    state_type::statetype, vec2::Vec2,
+    active_obj::activeobj, control_struct::ControlStruct, exit_type::exittype,
+    obj_def_type::objdeftype, obj_type::objtype, state_type::statetype, vec2::Vec2,
 };
 
 /// Includes most of the former globals.
@@ -50,8 +50,8 @@ pub struct GlobalState {
     pub resetgame: bool,
     pub gamestate: statetype,
 
-    //     ControlStruct ctrl;
-    //
+    pub ctrl: ControlStruct,
+
     //     char *pics, *picsexact;
     //
     //     unsigned EGADATASTART;
@@ -92,6 +92,7 @@ impl GlobalState {
         exitdemo: bool,
         resetgame: bool,
         gamestate: statetype,
+        ctrl: ControlStruct,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -124,6 +125,7 @@ impl GlobalState {
             exitdemo,
             resetgame,
             gamestate,
+            ctrl,
             side,
             boltsleft,
             view,

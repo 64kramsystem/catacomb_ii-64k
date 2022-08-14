@@ -26,7 +26,6 @@ extern "C" {
     fn atoi(__nptr: *const i8) -> i32;
     fn abs(_: i32) -> i32;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    static mut ctrl: ControlStruct;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
     static mut highscores: [scores; 5];
@@ -903,9 +902,9 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         }
         demoenum::demoplay => {
             indemo = demoenum::notdemo;
-            ctrl = ControlPlayer(1);
-            if ctrl.button1 as i32 != 0
-                || ctrl.button2 as i32 != 0
+            gs.ctrl = ControlPlayer(1);
+            if gs.ctrl.button1 as i32 != 0
+                || gs.ctrl.button2 as i32 != 0
                 || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 indemo = demoenum::demoplay;
