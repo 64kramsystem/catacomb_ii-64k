@@ -53,8 +53,10 @@ pub struct GlobalState {
     pub ctrl: ControlStruct,
 
     //     char *pics, *picsexact;
-    //
-    //     unsigned EGADATASTART;
+
+    /* Rust port: unused
+    EGADATASTART: u32,
+     */
     //
     //     sdword savescore;
     //

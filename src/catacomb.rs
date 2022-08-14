@@ -88,8 +88,6 @@ pub static mut pics: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut picsexact: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
-pub static mut EGADATASTART: u32 = 0;
-#[no_mangle]
 pub static mut savescore: i32 = 0;
 #[no_mangle]
 pub static mut GODMODE: boolean = false as boolean;
