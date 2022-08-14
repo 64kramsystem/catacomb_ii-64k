@@ -32,9 +32,10 @@ pub struct GlobalState {
     pub playdone: bool,
     pub leveldone: bool,
 
-    //     boolean tempb;
-    //     char *tempp;
-    //
+    // Rust port: these are actually unused!
+    // pub tempb: bool,
+    // pub tempp: *mut i8,
+
     //     int chkx, chky, chkspot; /*spot being checked by walk*/
     //
     //     word frameon;

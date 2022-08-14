@@ -84,10 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut tempb: boolean = 0;
-#[no_mangle]
-pub static mut tempp: *mut i8 = 0 as *const i8 as *mut i8;
-#[no_mangle]
 pub static mut chkx: i32 = 0;
 #[no_mangle]
 pub static mut chky: i32 = 0;
