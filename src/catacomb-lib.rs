@@ -35,6 +35,7 @@ mod pcrlib_a;
 mod pcrlib_c;
 mod rleasm;
 mod sdl_scan_codes;
+mod state_type;
 mod tag_type;
 mod think_type;
 

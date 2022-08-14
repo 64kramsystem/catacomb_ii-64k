@@ -22,6 +22,7 @@ use crate::{
     objects::initobjects,
     pcrlib_c::{_checkhighscore, _setupgame, _showhighscores, centerwindow, drawwindow, expwin},
     sdl_scan_codes::*,
+    state_type::statetype,
 };
 extern "C" {
     fn close(__fd: i32) -> i32;
@@ -74,12 +75,6 @@ extern "C" {
     fn PlaySound(sound: i32);
     static mut str: [i8; 80];
     static mut ch: i8;
-}
-
-pub enum statetype {
-    inscores, // 2
-    intitle,  // 1
-    ingame,   // 0
 }
 
 #[derive(Copy, Clone)]
