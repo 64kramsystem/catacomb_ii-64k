@@ -47,7 +47,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    fn SDL_GetError() -> *const i8;
     fn strlen(_: *const i8) -> u64;
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
@@ -2070,7 +2069,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         fprintf(
             stderr,
             b"Failed to initialize SDL: %s\n\0" as *const u8 as *const i8,
-            SDL_GetError(),
+            safe_SDL_GetError(),
         );
         std::process::exit(1);
     }
@@ -2128,7 +2127,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         fprintf(
             stderr,
             b"Could not get display mode: %s\n\0" as *const u8 as *const i8,
-            SDL_GetError(),
+            safe_SDL_GetError(),
         );
         std::process::exit(1);
     }
@@ -2157,7 +2156,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         fprintf(
             stderr,
             b"Failed to create SDL window: %s\n\0" as *const u8 as *const i8,
-            SDL_GetError(),
+            safe_SDL_GetError(),
         );
         std::process::exit(1);
     }
@@ -2172,7 +2171,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         fprintf(
             stderr,
             b"Could not create video buffer: %s\n\0" as *const u8 as *const i8,
-            SDL_GetError(),
+            safe_SDL_GetError(),
         );
         std::process::exit(1);
     }

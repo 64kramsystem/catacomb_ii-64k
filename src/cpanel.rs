@@ -16,13 +16,13 @@ use crate::{
         spriteptr, sx, sy, tileptr, CheckMouseMode, ControlJoystick, JoyXhigh, JoyXlow, JoyYhigh,
         JoyYlow,
     },
+    safe_sdl::safe_SDL_NumJoysticks,
     sdl_scan_codes::*,
 };
 
 extern "C" {
     fn free(_: *mut libc::c_void);
     fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
-    fn SDL_NumJoysticks() -> i32;
 }
 
 pub type C2RustUnnamed = u32;
@@ -802,7 +802,7 @@ pub unsafe fn getconfig() {
     spotok[1][2] = 0;
     spotok[1][3] = 0;
     spotok[1][4] = 0;
-    let mut numjoy: i32 = SDL_NumJoysticks();
+    let mut numjoy: i32 = safe_SDL_NumJoysticks();
     joy1ok = (numjoy > 0) as i32;
     joy2ok = (numjoy > 1) as i32;
     mouseok = 1;
