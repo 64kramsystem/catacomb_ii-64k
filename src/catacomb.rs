@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut resetgame: boolean = 0;
-#[no_mangle]
 pub static mut gamestate: statetype = statetype::ingame;
 #[no_mangle]
 pub static mut ctrl: ControlStruct = ControlStruct {
@@ -691,7 +689,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8, gs);
             ch = toupper(get(gs)) as i8;
             if ch as i32 == 'Y' as i32 {
-                resetgame = true as boolean;
+                gs.resetgame = true;
             }
         }
         61 => {
@@ -1102,6 +1100,7 @@ pub fn original_main() {
         0,
         0,
         0,
+        false,
         false,
         0,
         0,

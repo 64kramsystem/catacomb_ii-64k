@@ -26,7 +26,6 @@ extern "C" {
     fn atoi(__nptr: *const i8) -> i32;
     fn abs(_: i32) -> i32;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    static mut resetgame: boolean;
     static mut ctrl: ControlStruct;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
@@ -853,8 +852,8 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         }
     }
     dofkeys(gs);
-    if resetgame != 0 {
-        resetgame = false as boolean;
+    if gs.resetgame {
+        gs.resetgame = false;
         gs.playdone = true;
         return;
     }

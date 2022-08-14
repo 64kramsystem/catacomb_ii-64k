@@ -47,7 +47,7 @@ pub struct GlobalState {
     pub VGAPAL: i32,  // just to make pcrlib happy
      */
     pub exitdemo: bool,
-    //     boolean resetgame;
+    pub resetgame: bool,
     //     statetype gamestate;
     //
     //     ControlStruct ctrl;
@@ -90,6 +90,7 @@ impl GlobalState {
         chkspot: i32,
         frameon: u16,
         exitdemo: bool,
+        resetgame: bool,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -120,6 +121,7 @@ impl GlobalState {
             chkspot,
             frameon,
             exitdemo,
+            resetgame,
             side,
             boltsleft,
             view,
