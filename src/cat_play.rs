@@ -1,7 +1,7 @@
 use ::libc;
 
 use crate::{
-    catacomb::{dofkeys, loadlevel, refresh, restore},
+    catacomb::{altmeters, dofkeys, loadlevel, meters, opposite, refresh, restore},
     catasm::{doall, drawobj, eraseobj},
     class_type::classtype::*,
     demo_enum::demoenum,
@@ -18,7 +18,6 @@ extern "C" {
     static mut resetgame: boolean;
     static mut ctrl: ControlStruct;
     static mut exitdemo: boolean;
-    static mut opposite: [dirtype; 9];
     static mut originx: i32;
     static mut originy: i32;
     static mut gamexit: exittype;
@@ -35,8 +34,6 @@ extern "C" {
     static mut leveldone: boolean;
     static mut frameon: u16;
     static mut boltsleft: i32;
-    static mut altmeters: [[i8; 14]; 14];
-    static mut meters: [[i8; 14]; 14];
     static mut shotpower: i32;
     fn clearold();
     static mut playdone: boolean;
@@ -227,9 +224,9 @@ pub unsafe extern "C" fn printshotpower() {
     sx = 25;
     sy = 13;
     if shotpower == 13 {
-        print((altmeters[13]).as_mut_ptr());
+        print(altmeters[13].as_ptr());
     } else {
-        print((meters[shotpower as usize]).as_mut_ptr());
+        print(meters[shotpower as usize].as_ptr());
     };
 }
 #[no_mangle]
@@ -237,9 +234,9 @@ pub unsafe extern "C" fn printbody() {
     sx = 25;
     sy = 16;
     if o[0].hp as i32 > 6 {
-        print((meters[o[0].hp as usize]).as_mut_ptr());
+        print(meters[o[0].hp as usize].as_ptr());
     } else {
-        print((altmeters[o[0].hp as usize]).as_mut_ptr());
+        print(altmeters[o[0].hp as usize].as_ptr());
     };
 }
 #[no_mangle]

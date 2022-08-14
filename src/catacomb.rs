@@ -171,8 +171,8 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
     }
     return str_0;
 }
-#[no_mangle]
-pub static mut altmeters: [[i8; 14]; 14] = [
+
+pub const altmeters: [[i8; 14]; 14] = [
     [
         127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
@@ -200,8 +200,8 @@ pub static mut altmeters: [[i8; 14]; 14] = [
     [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 127, 0],
     [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 0],
 ];
-#[no_mangle]
-pub static mut meters: [[i8; 14]; 14] = [
+
+pub const meters: [[i8; 14]; 14] = [
     [
         127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
@@ -229,8 +229,8 @@ pub static mut meters: [[i8; 14]; 14] = [
     [26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 127, 0],
     [26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 0],
 ];
-#[no_mangle]
-pub static mut opposite: [dirtype; 9] = [
+
+pub const opposite: [dirtype; 9] = [
     south, west, north, east, southwest, northwest, northeast, southeast, nodir,
 ];
 #[no_mangle]
@@ -382,8 +382,8 @@ pub static mut EGADATASTART: u32 = 0;
 pub static mut savescore: i32 = 0;
 #[no_mangle]
 pub static mut GODMODE: boolean = false as boolean;
-#[no_mangle]
-pub static mut demowin: [[i8; 16]; 5] = [
+
+const demowin: [[i8; 16]; 5] = [
     [
         14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 16,
     ],
