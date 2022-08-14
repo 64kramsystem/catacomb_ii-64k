@@ -1,21 +1,20 @@
 use ::libc;
 
-use crate::{catacomb::repaintscreen, sdl_scan_codes::*};
+use crate::{
+    catacomb::repaintscreen,
+    pcrlib_c::{drawwindow, erasewindow, expwin},
+    sdl_scan_codes::*,
+};
 
 extern "C" {
     fn free(_: *mut libc::c_void);
     fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> i32;
     fn loadgrfiles();
-    fn drawwindow(xl: i32, yl: i32, xh: i32, yh: i32);
     fn bioskey(_: i32) -> i32;
     fn get() -> i32;
-    fn expwin(width: i32, height: i32);
-    fn erasewindow();
     static mut _vgaok: boolean;
     static mut _egaok: boolean;
     fn print(str: *const libc::c_char);
-    static mut screencentery: i32;
-    static mut screencenterx: i32;
     fn drawpic(x: i32, y: i32, picnum: i32);
     fn drawchar(x: i32, y: i32, charnum: i32);
     static mut egaplaneofs: [u32; 4];
@@ -417,8 +416,8 @@ pub static mut joy1ok: i32 = 0;
 pub static mut joy2ok: i32 = 0;
 #[no_mangle]
 pub static mut mouseok: i32 = 0;
-#[no_mangle]
-pub unsafe extern "C" fn calibratejoy(mut joynum: i32) {
+
+unsafe fn calibratejoy(mut joynum: i32, screencenterx: &i32, screencentery: &i32) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
     let mut dx: i32 = 0;
@@ -432,7 +431,7 @@ pub unsafe extern "C" fn calibratejoy(mut joynum: i32) {
         button1: 0,
         button2: 0,
     };
-    expwin(24, 9);
+    expwin(24, 9, screencenterx, screencentery);
     print(b" Joystick Configuration\n\r\0" as *const u8 as *const libc::c_char);
     print(b" ----------------------\n\r\0" as *const u8 as *const libc::c_char);
     print(b"Hold the joystick in the\n\r\0" as *const u8 as *const libc::c_char);
@@ -523,10 +522,10 @@ pub unsafe extern "C" fn calibratejoy(mut joynum: i32) {
     clearkeys();
     erasewindow();
 }
-#[no_mangle]
-pub unsafe extern "C" fn calibratemouse() {
+
+unsafe fn calibratemouse(screencenterx: &i32, screencentery: &i32) {
     let mut ch: libc::c_char = 0;
-    expwin(24, 5);
+    expwin(24, 5, screencenterx, screencentery);
     print(b"  Mouse Configuration   \n\r\0" as *const u8 as *const libc::c_char);
     print(b"  -------------------   \n\r\0" as *const u8 as *const libc::c_char);
     print(b"Choose the sensitivity  \n\r\0" as *const u8 as *const libc::c_char);
@@ -730,15 +729,15 @@ pub unsafe extern "C" fn printscan(mut sc: i32) {
         drawchar(fresh0, sy, chartable[sc as usize] as i32);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn calibratekeys() {
+
+unsafe fn calibratekeys(screencenterx: &i32, screencentery: &i32) {
     let mut ch: libc::c_char = 0;
     let mut hx: i32 = 0;
     let mut hy: i32 = 0;
     let mut i: i32 = 0;
     let mut select: i32 = 0;
     let mut new: i32 = 0;
-    expwin(22, 15);
+    expwin(22, 15, screencenterx, screencentery);
     print(b"Keyboard Configuration\n\r\0" as *const u8 as *const libc::c_char);
     print(b"----------------------\0" as *const u8 as *const libc::c_char);
     print(b"\n\r0 north    :\0" as *const u8 as *const libc::c_char);
@@ -891,7 +890,12 @@ pub unsafe extern "C" fn drawpanel() {
     print(b"       ESC to return to your game     \n\r\0" as *const u8 as *const libc::c_char);
 }
 
-pub unsafe fn controlpanel(items: &mut [i16], view: &mut [[i32; 86]]) {
+pub unsafe fn controlpanel(
+    items: &mut [i16],
+    view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
+) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
     let mut oldcentery: i32 = 0;
@@ -906,10 +910,10 @@ pub unsafe fn controlpanel(items: &mut [i16], view: &mut [[i32; 86]]) {
     newplayermode[1] = oldplayermode[1];
     oldplayermode[2] = playermode[2];
     newplayermode[2] = oldplayermode[2];
-    oldcenterx = screencenterx;
-    oldcentery = screencentery;
-    screencenterx = 19;
-    screencentery = 11;
+    oldcenterx = *screencenterx;
+    oldcentery = *screencentery;
+    *screencenterx = 19;
+    *screencentery = 11;
     drawwindow(0, 0, 39, 24);
     drawpanel();
     row = 0;
@@ -987,13 +991,13 @@ pub unsafe fn controlpanel(items: &mut [i16], view: &mut [[i32; 86]]) {
                     );
                     newplayermode[1] = collumn as inputtype;
                     if newplayermode[1] as u32 == keyboard as i32 as u32 {
-                        calibratekeys();
+                        calibratekeys(screencenterx, screencentery);
                     } else if newplayermode[1] as u32 == mouse as i32 as u32 {
-                        calibratemouse();
+                        calibratemouse(screencenterx, screencentery);
                     } else if newplayermode[1] as u32 == joystick1 as i32 as u32 {
-                        calibratejoy(1);
+                        calibratejoy(1, screencenterx, screencentery);
                     } else if newplayermode[1] as u32 == joystick2 as i32 as u32 {
-                        calibratejoy(2);
+                        calibratejoy(2, screencenterx, screencentery);
                     }
                     drawpanel();
                 }
@@ -1009,8 +1013,8 @@ pub unsafe fn controlpanel(items: &mut [i16], view: &mut [[i32; 86]]) {
     playermode[2] = newplayermode[2];
     CheckMouseMode();
     grmode = newgrmode;
-    screencenterx = oldcenterx;
-    screencentery = oldcentery;
+    *screencenterx = oldcenterx;
+    *screencentery = oldcentery;
     soundmode = newsoundmode;
     repaintscreen(items, view);
     ContinueSound();

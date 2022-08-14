@@ -7,6 +7,7 @@ use crate::{
     demo_enum::demoenum,
     indemo,
     obj_def_type::objdeftype,
+    pcrlib_c::centerwindow,
     sdl_scan_codes::*,
     tag_type::tagtype::*,
 };
@@ -44,13 +45,11 @@ extern "C" {
     static mut highscores: [scores; 5];
     static mut level: i16;
     static mut score: i32;
-    fn centerwindow(width: i32, height: i32);
     fn printlong(val: i64);
     fn printint(val: i32);
     fn print(str: *const libc::c_char);
     fn _inputint() -> u32;
     fn get() -> i32;
-    static mut screencenterx: i32;
     fn drawchar(x: i32, y: i32, charnum: i32);
     fn WaitVBL();
     fn UpdateScreen();
@@ -248,14 +247,13 @@ pub unsafe extern "C" fn levelcleared() {
     let mut warp: [libc::c_char; 3] = [0; 3];
     let mut value: i32 = 0;
     leveldone = true as boolean;
-    warp[0] = (background[(altobj.y as i32 + 2) as usize][altobj.x as usize] as libc::c_char
-        as i32
+    warp[0] = (background[(altobj.y as i32 + 2) as usize][altobj.x as usize] as libc::c_char as i32
         - 161) as libc::c_char;
     if (warp[0] as i32) < '0' as i32 || warp[0] as i32 > '9' as i32 {
         warp[0] = '0' as i32 as libc::c_char;
     }
-    warp[1] = (background[(altobj.y as i32 + 2) as usize]
-        [(altobj.x as i32 + 1) as usize] as libc::c_char as i32
+    warp[1] = (background[(altobj.y as i32 + 2) as usize][(altobj.x as i32 + 1) as usize]
+        as libc::c_char as i32
         - 161) as libc::c_char;
     if (warp[1] as i32) < '0' as i32 || warp[1] as i32 > '9' as i32 {
         warp[2] = ' ' as i32 as libc::c_char;
@@ -649,9 +647,7 @@ unsafe fn walkthrough(
         return false as boolean;
     }
     if chkspot >= 136 && chkspot <= 145 {
-        if obj.contact as i32 == pshot as i32
-            || obj.contact as i32 == nukeshot as i32
-        {
+        if obj.contact as i32 == pshot as i32 || obj.contact as i32 == nukeshot as i32 {
             PlaySound(6);
             if chkspot < 143 {
                 background[chky as usize][chkx as usize] = 128;
@@ -726,11 +722,7 @@ unsafe fn walkthrough(
     return false as boolean;
 }
 
-unsafe fn walk(
-    items: &mut [i16],
-    objdef: &mut [objdeftype],
-    view: &mut [[i32; 86]],
-) -> boolean {
+unsafe fn walk(items: &mut [i16], objdef: &mut [objdeftype], view: &mut [[i32; 86]]) -> boolean {
     let mut i: i32 = 0;
     let mut newx: i32 = 0;
     let mut newy: i32 = 0;
@@ -802,6 +794,8 @@ unsafe fn playercmdthink(
     objdef: &mut [objdeftype],
     side: &mut i32,
     view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
 ) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
@@ -819,9 +813,7 @@ unsafe fn playercmdthink(
         givescroll(items);
         givekey(items);
     }
-    if (c.dir as u32) < nodir as i32 as u32
-        && frameon as i32 % 2 != 0
-    {
+    if (c.dir as u32) < nodir as i32 as u32 && frameon as i32 % 2 != 0 {
         if c.button2 != 0 {
             olddir = obj.dir as dirtype;
         }
@@ -943,7 +935,7 @@ unsafe fn playercmdthink(
             keydown[SDL_SCANCODE_RETURN as usize] = false as boolean;
         }
     }
-    dofkeys(items, objdef, view);
+    dofkeys(items, objdef, view, screencenterx, screencentery);
     if resetgame != 0 {
         resetgame = false as boolean;
         playdone = true as boolean;
@@ -955,7 +947,7 @@ unsafe fn playercmdthink(
                 && keydown[SDL_SCANCODE_T as usize] as i32 != 0
                 && keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
-                centerwindow(16, 2);
+                centerwindow(16, 2, screencenterx, screencentery);
                 print(b"warp to which\nlevel (1-99)?\0" as *const u8 as *const libc::c_char);
                 clearkeys();
                 level = _inputint() as i16;
@@ -973,11 +965,11 @@ unsafe fn playercmdthink(
                 && keydown[SDL_SCANCODE_TAB as usize] as i32 != 0
             {
                 if GODMODE != 0 {
-                    centerwindow(13, 1);
+                    centerwindow(13, 1, screencenterx, screencentery);
                     print(b"God Mode Off\0" as *const u8 as *const libc::c_char);
                     GODMODE = false as boolean;
                 } else {
-                    centerwindow(12, 1);
+                    centerwindow(12, 1, screencenterx, screencentery);
                     print(b"God Mode On\0" as *const u8 as *const libc::c_char);
                     GODMODE = true as boolean;
                 }
@@ -1207,11 +1199,7 @@ pub unsafe extern "C" fn gunthink(mut dir: i32) {
     o[n as usize].y = obj.y;
 }
 
-unsafe fn shooterthink(
-    items: &mut [i16],
-    objdef: &mut [objdeftype],
-    view: &mut [[i32; 86]],
-) {
+unsafe fn shooterthink(items: &mut [i16], objdef: &mut [objdeftype], view: &mut [[i32; 86]]) {
     if (obj.x as i32) < originx - 1
         || (obj.y as i32) < originy - 1
         || obj.x as i32 > originx + 22
@@ -1280,13 +1268,15 @@ unsafe fn think(
     objdef: &mut [objdeftype],
     side: &mut i32,
     view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
 ) {
     if obj.delay as i32 > 0 {
         obj.delay = (obj.delay).wrapping_sub(1);
     } else if rndt() < obj.speed as i32 {
         match obj.think as i32 {
             0 => {
-                playercmdthink(items, objdef, side, view);
+                playercmdthink(items, objdef, side, view, screencenterx, screencentery);
             }
             3 => {
                 chasethink(false as boolean, items, objdef, view);
@@ -1329,6 +1319,8 @@ pub unsafe fn doactive(
     objdef: &mut [objdeftype],
     side: &mut i32,
     view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
 ) {
     if obj.class as i32 != dead1 as i32
         && ((obj.x as i32) < originx - 10
@@ -1338,7 +1330,7 @@ pub unsafe fn doactive(
     {
         o[objecton as usize].active = false as boolean;
     } else {
-        think(items, objdef, side, view);
+        think(items, objdef, side, view, screencenterx, screencentery);
         eraseobj(view);
         if playdone != 0 {
             return;
@@ -1372,11 +1364,13 @@ pub unsafe fn playloop(
     objdef: &mut [objdeftype],
     side: &mut i32,
     view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
 ) {
-    screencenterx = 11;
+    *screencenterx = 11;
     loop {
         if indemo == demoenum::notdemo {
-            centerwindow(11, 2);
+            centerwindow(11, 2, screencenterx, screencentery);
             print(b" Entering\nlevel \0" as *const u8 as *const libc::c_char);
             printint(level as i32);
             print(b"...\0" as *const u8 as *const libc::c_char);
@@ -1393,7 +1387,7 @@ pub unsafe fn playloop(
             refresh(view);
             refresh(view);
             clearkeys();
-            centerwindow(12, 1);
+            centerwindow(12, 1, screencenterx, screencentery);
             print(b"RECORD DEMO\0" as *const u8 as *const libc::c_char);
             loop {
                 ch = get() as libc::c_char;
@@ -1411,10 +1405,18 @@ pub unsafe fn playloop(
         shotpower = 0;
         initrndt(false as boolean);
         printshotpower();
-        doall(priority, items, objdef, side, view);
+        doall(
+            priority,
+            items,
+            objdef,
+            side,
+            view,
+            screencenterx,
+            screencentery,
+        );
         if indemo == demoenum::recording {
             clearkeys();
-            centerwindow(15, 1);
+            centerwindow(15, 1, screencenterx, screencentery);
             print(b"SAVE AS DEMO#:\0" as *const u8 as *const libc::c_char);
             loop {
                 ch = get() as libc::c_char;

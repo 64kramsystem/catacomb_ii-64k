@@ -104,14 +104,12 @@ pub static mut table86: [u16; 87] = [
 pub unsafe fn drawobj(priority: &[u8], view: &mut [[i32; 86]]) {
     let mut tilenum: i32 = obj.firstchar as i32
         + squares[obj.size as usize] as i32
-            * ((obj.dir as i32 & obj.dirmask as i32) * obj.stages as i32
-                + obj.stage as i32);
+            * ((obj.dir as i32 & obj.dirmask as i32) * obj.stages as i32 + obj.stage as i32);
     obj.oldtile = tilenum as i16;
     obj.oldy = obj.y;
     obj.oldx = obj.x;
     let objpri: u8 = priority[tilenum as usize];
-    let mut ofs: u32 =
-        (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
+    let mut ofs: u32 = (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
     let mut x: u32 = 0;
     let mut y: u32 = 0;
     y = obj.size as u32;
@@ -128,8 +126,7 @@ pub unsafe fn drawobj(priority: &[u8], view: &mut [[i32; 86]]) {
             if !(fresh1 > 0) {
                 break;
             }
-            if priority[*(view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize]
-                as i32
+            if priority[*(view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize] as i32
                 <= objpri as i32
             {
                 *(view.as_mut_ptr() as *mut i32).offset(ofs as isize) = tilenum;
@@ -143,8 +140,7 @@ pub unsafe fn drawobj(priority: &[u8], view: &mut [[i32; 86]]) {
 
 pub unsafe fn eraseobj(view: &mut [[i32; 86]]) {
     let mut tilenum: i32 = obj.oldtile as i32;
-    let mut ofs: u32 =
-        (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
+    let mut ofs: u32 = (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
     let mut x: u32 = 0;
     let mut y: u32 = 0;
     y = obj.size as u32;
@@ -178,6 +174,8 @@ pub unsafe fn doall(
     objdef: &mut [objdeftype],
     side: &mut i32,
     view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
 ) {
     assert!(numobj > 0);
 
@@ -198,7 +196,15 @@ pub unsafe fn doall(
                     ::std::mem::size_of::<objdeftype>() as u64,
                 );
                 if obj.active != 0 {
-                    doactive(priority, items, objdef, side, view);
+                    doactive(
+                        priority,
+                        items,
+                        objdef,
+                        side,
+                        view,
+                        screencenterx,
+                        screencentery,
+                    );
                 } else {
                     doinactive();
                 }
@@ -348,11 +354,7 @@ pub unsafe fn egarefresh(view: &mut [[i32; 86]]) {
     UpdateScreen();
 }
 #[no_mangle]
-pub unsafe extern "C" fn drawchartile(
-    mut x: i32,
-    mut y: i32,
-    mut tile: i32,
-) {
+pub unsafe extern "C" fn drawchartile(mut x: i32, mut y: i32, mut tile: i32) {
     match grmode as u32 {
         1 => {
             drawcgachartile(

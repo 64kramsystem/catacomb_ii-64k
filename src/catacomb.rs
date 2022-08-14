@@ -2,7 +2,7 @@ use libc::O_RDONLY;
 
 use crate::{
     cat_play::{givebolt, givenuke, givepotion, playloop},
-    catasm::{cgarefresh, egarefresh},
+    catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
     cpanel::controlpanel,
     demo_enum::demoenum,
@@ -12,7 +12,7 @@ use crate::{
     indemo,
     obj_def_type::objdeftype,
     objects::initobjects,
-    pcrlib_c::_setupgame,
+    pcrlib_c::{_checkhighscore, _setupgame, _showhighscores, centerwindow, drawwindow, expwin},
     sdl_scan_codes::*,
 };
 extern "C" {
@@ -33,25 +33,17 @@ extern "C" {
     fn RLEExpand(source: *mut libc::c_char, dest: *mut libc::c_char, origlen: i64);
     fn bioskey(_: i32) -> i32;
     fn _quit(_: *mut libc::c_char);
-    fn _checkhighscore();
-    fn _showhighscores();
     static mut score: i32;
     fn printhighscore();
     fn printbody();
     fn printshotpower();
     fn printscore();
     static mut level: i16;
-    fn expwin(width: i32, height: i32);
-    fn centerwindow(width: i32, height: i32);
     fn bar(xl: i32, yl: i32, xh: i32, yh: i32, ch_0: i32);
-    fn drawwindow(xl: i32, yl: i32, xh: i32, yh: i32);
     fn printint(val: i32);
     fn printchartile(str_0: *const libc::c_char);
     fn print(str_0: *const libc::c_char);
     fn get() -> i32;
-    static mut screencentery: i32;
-    static mut screencenterx: i32;
-    fn drawchartile(x: i32, y: i32, tile: i32);
     fn drawpic(x: i32, y: i32, picnum: i32);
     fn drawchar(x: i32, y: i32, charnum: i32);
     fn installgrfile(filename: *mut libc::c_char, inmem: *mut libc::c_void);
@@ -590,11 +582,11 @@ unsafe fn charpic(
         yy += 1;
     }
 }
-#[no_mangle]
-unsafe fn help(objdef: &[objdeftype]) {
+
+unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
-    centerwindow(20, 20);
+    centerwindow(20, 20, screencenterx, screencentery);
     print(b"  C A T A C O M B   \n\0" as *const u8 as *const libc::c_char);
     print(b"   - - - - - - -    \n\0" as *const u8 as *const libc::c_char);
     print(b" by John Carmack    \n\0" as *const u8 as *const libc::c_char);
@@ -613,7 +605,7 @@ unsafe fn help(objdef: &[objdeftype]) {
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20);
+    centerwindow(20, 20, screencenterx, screencentery);
     print(b"\nKeyboard controls:  \n\n\0" as *const u8 as *const libc::c_char);
     print(b"move    : arrows    \n\0" as *const u8 as *const libc::c_char);
     print(b"button1 : ctrl      \n\0" as *const u8 as *const libc::c_char);
@@ -624,7 +616,7 @@ unsafe fn help(objdef: &[objdeftype]) {
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20);
+    centerwindow(20, 20, screencenterx, screencentery);
     print(b"Button 1 / ctrl key:\n\0" as *const u8 as *const libc::c_char);
     print(b"Builds shot power.  \n\0" as *const u8 as *const libc::c_char);
     print(b"If the shot power   \n\0" as *const u8 as *const libc::c_char);
@@ -651,7 +643,7 @@ unsafe fn help(objdef: &[objdeftype]) {
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20);
+    centerwindow(20, 20, screencenterx, screencentery);
     print(b"Button 2 / alt key:\n\0" as *const u8 as *const libc::c_char);
     print(b"Allows you to move  \n\0" as *const u8 as *const libc::c_char);
     print(b"without changing the\n\0" as *const u8 as *const libc::c_char);
@@ -681,7 +673,7 @@ unsafe fn help(objdef: &[objdeftype]) {
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20);
+    centerwindow(20, 20, screencenterx, screencentery);
     print(b"\"P\" or \"space\" will \n\0" as *const u8 as *const libc::c_char);
     print(b"take a healing      \n\0" as *const u8 as *const libc::c_char);
     print(b"potion if you have  \n\0" as *const u8 as *const libc::c_char);
@@ -701,7 +693,7 @@ unsafe fn help(objdef: &[objdeftype]) {
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20);
+    centerwindow(20, 20, screencenterx, screencentery);
     print(b"\"N\" or \"enter\" will \n\0" as *const u8 as *const libc::c_char);
     print(b"cast a nuke spell.  \n\0" as *const u8 as *const libc::c_char);
     print(b"This usually wipes  \n\0" as *const u8 as *const libc::c_char);
@@ -720,9 +712,9 @@ unsafe fn help(objdef: &[objdeftype]) {
     printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const libc::c_char);
     wantmore();
 }
-#[no_mangle]
-pub unsafe extern "C" fn reset() {
-    centerwindow(18, 1);
+
+unsafe fn reset(screencenterx: &i32, screencentery: &i32) {
+    centerwindow(18, 1, screencenterx, screencentery);
     print(b"reset game (y/n)?\0" as *const u8 as *const libc::c_char);
     ch = get() as libc::c_char;
     if ch as i32 == 'y' as i32 {
@@ -777,16 +769,13 @@ pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i
                 background[(yy + 11) as usize][(xx + 11) as usize] = btile as i32;
             } else {
                 background[(yy + 11) as usize][(xx + 11) as usize] = 128;
-                if tokens[(btile as i32 - 230) as usize] as u32
-                    == player as i32 as u32
-                {
+                if tokens[(btile as i32 - 230) as usize] as u32 == player as i32 as u32 {
                     o[0].x = (xx + 11) as u8;
                     o[0].y = (yy + 11) as u8;
                 } else {
                     numobj += 1;
                     o[numobj as usize].active = false as boolean;
-                    o[numobj as usize].class =
-                        tokens[(btile as i32 - 230) as usize] as u16;
+                    o[numobj as usize].class = tokens[(btile as i32 - 230) as usize] as u16;
                     o[numobj as usize].x = (xx + 11) as u8;
                     o[numobj as usize].y = (yy + 11) as u8;
                     o[numobj as usize].stage = 0;
@@ -933,7 +922,13 @@ pub unsafe fn repaintscreen(items: &mut [i16], view: &mut [[i32; 86]]) {
     };
 }
 
-pub unsafe fn dofkeys(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 86]]) {
+pub unsafe fn dofkeys(
+    items: &mut [i16],
+    objdef: &[objdeftype],
+    view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
+) {
     let mut handle: i32 = 0;
     let mut key: i32 = bioskey(1);
     if key == SDL_SCANCODE_ESCAPE as i32 {
@@ -946,15 +941,15 @@ pub unsafe fn dofkeys(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32
     match key {
         58 => {
             clearkeys();
-            help(objdef);
+            help(objdef, screencenterx, screencentery);
         }
         59 => {
             clearkeys();
-            controlpanel(items, view);
+            controlpanel(items, view, screencenterx, screencentery);
         }
         60 => {
             clearkeys();
-            expwin(18, 1);
+            expwin(18, 1, screencenterx, screencentery);
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
             if ch as i32 == 'Y' as i32 {
@@ -963,7 +958,7 @@ pub unsafe fn dofkeys(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32
         }
         61 => {
             clearkeys();
-            expwin(22, 4);
+            expwin(22, 4, screencenterx, screencentery);
             if indemo != demoenum::notdemo {
                 print(b"Can't save game here!\0" as *const u8 as *const libc::c_char);
                 get();
@@ -1003,10 +998,7 @@ pub unsafe fn dofkeys(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32
                         _ => {
                             handle = open(
                                 str.as_mut_ptr(),
-                                0o1 as i32
-                                    | 0
-                                    | 0o100 as i32
-                                    | 0o1000 as i32,
+                                0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
                                 0o400 as i32 | 0o200 as i32,
                             );
                             if handle == -(1) {
@@ -1045,7 +1037,7 @@ pub unsafe fn dofkeys(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32
         }
         62 => {
             clearkeys();
-            expwin(22, 4);
+            expwin(22, 4, screencenterx, screencentery);
             print(b"Load game #(1-9):\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
             drawchar(sx, sy, ch as i32);
@@ -1098,13 +1090,13 @@ pub unsafe fn dofkeys(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32
         }
         66 => {
             clearkeys();
-            expwin(7, 1);
+            expwin(7, 1, screencenterx, screencentery);
             print(b"PAUSED\0" as *const u8 as *const libc::c_char);
             get();
         }
         67 => {
             clearkeys();
-            expwin(12, 1);
+            expwin(12, 1, screencenterx, screencentery);
             print(b"QUIT (Y/N)?\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
             if ch as i32 == 'Y' as i32 {
@@ -1118,7 +1110,13 @@ pub unsafe fn dofkeys(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32
     repaintscreen(items, view);
 }
 
-unsafe fn dotitlepage(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 86]]) {
+unsafe fn dotitlepage(
+    items: &mut [i16],
+    objdef: &[objdeftype],
+    view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
+) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14);
     UpdateScreen();
@@ -1138,7 +1136,7 @@ unsafe fn dotitlepage(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32
         } else {
             indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
-                dofkeys(items, objdef, view);
+                dofkeys(items, objdef, view, screencenterx, screencentery);
                 UpdateScreen();
             }
             if exitdemo {
@@ -1188,10 +1186,12 @@ unsafe fn dodemo(
     objdef: &mut [objdeftype],
     side: &mut i32,
     view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
 ) {
     let mut i: i32 = 0;
     while !exitdemo {
-        dotitlepage(items, objdef, view);
+        dotitlepage(items, objdef, view, screencenterx, screencentery);
         if exitdemo {
             break;
         }
@@ -1199,14 +1199,22 @@ unsafe fn dodemo(
         LoadDemo(i);
         level = 0;
         playsetup(items);
-        playloop(priority, items, objdef, side, view);
+        playloop(
+            priority,
+            items,
+            objdef,
+            side,
+            view,
+            screencenterx,
+            screencentery,
+        );
         if exitdemo {
             break;
         }
         level = 0;
         gamestate = statetype::inscores;
         indemo = demoenum::demoplay;
-        _showhighscores();
+        _showhighscores(screencenterx, screencentery);
         UpdateScreen();
         i = 0;
         while i < 500 {
@@ -1221,7 +1229,7 @@ unsafe fn dodemo(
                 break;
             } else {
                 if bioskey(1) != 0 {
-                    dofkeys(items, objdef, view);
+                    dofkeys(items, objdef, view, screencenterx, screencentery);
                 }
                 if exitdemo {
                     break;
@@ -1232,9 +1240,15 @@ unsafe fn dodemo(
     }
 }
 
-unsafe fn gameover(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 86]]) {
+unsafe fn gameover(
+    items: &mut [i16],
+    objdef: &[objdeftype],
+    view: &mut [[i32; 86]],
+    screencenterx: &mut i32,
+    screencentery: &mut i32,
+) {
     let mut i: i32 = 0;
-    expwin(11, 4);
+    expwin(11, 4, screencenterx, screencentery);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const libc::c_char);
     UpdateScreen();
     WaitEndSound();
@@ -1244,7 +1258,7 @@ unsafe fn gameover(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 8
         i += 1;
     }
     gamestate = statetype::inscores;
-    _checkhighscore();
+    _checkhighscore(screencenterx, screencentery);
     level = 0;
     i = 0;
     while i < 500 {
@@ -1257,7 +1271,7 @@ unsafe fn gameover(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 8
             break;
         }
         if bioskey(1) != 0 {
-            dofkeys(items, objdef, view);
+            dofkeys(items, objdef, view, screencenterx, screencentery);
         }
         if exitdemo as i32 != 0 || indemo == demoenum::demoplay {
             break;
@@ -1297,6 +1311,8 @@ pub fn original_main() {
     }; 23];
     let mut side = 0;
     let mut view: [[i32; 86]; 87] = [[0; 86]; 87];
+    let mut screencentery: i32 = 11;
+    let mut screencenterx: i32 = 19;
 
     /***************************************************************************/
 
@@ -1383,7 +1399,7 @@ pub fn original_main() {
 
         _setupgame();
 
-        expwin(33, 13);
+        expwin(33, 13, &screencenterx, &screencentery);
         print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const libc::c_char);
         print(b"          The Catacomb\n\n\0" as *const u8 as *const libc::c_char);
         print(b"        By John Carmack\n\n\0" as *const u8 as *const libc::c_char);
@@ -1404,17 +1420,39 @@ pub fn original_main() {
 
         // go until quit () is called
         loop {
-            dodemo(&priority, &mut items, &mut objdef, &mut side, &mut view);
+            dodemo(
+                &priority,
+                &mut items,
+                &mut objdef,
+                &mut side,
+                &mut view,
+                &mut screencenterx,
+                &mut screencentery,
+            );
             playsetup(&mut items);
             indemo = demoenum::notdemo;
             gamestate = statetype::ingame;
-            playloop(&priority, &mut items, &mut objdef, &mut side, &mut view);
+            playloop(
+                &priority,
+                &mut items,
+                &mut objdef,
+                &mut side,
+                &mut view,
+                &mut screencenterx,
+                &mut screencentery,
+            );
             if indemo == demoenum::notdemo {
                 exitdemo = false;
                 if level > numlevels {
                     doendpage(); // finished all levels
                 }
-                gameover(&mut items, &objdef, &mut view);
+                gameover(
+                    &mut items,
+                    &objdef,
+                    &mut view,
+                    &mut screencenterx,
+                    &mut screencentery,
+                );
             }
         }
     }

@@ -2,6 +2,7 @@ use ::libc;
 use libc::O_RDONLY;
 
 use crate::{
+    catasm::drawchartile,
     demo_enum::demoenum,
     extra_constants::{_extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
@@ -42,7 +43,6 @@ extern "C" {
     fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn loadgrfiles();
-    fn drawchartile(x: i32, y: i32, tile: i32);
     fn WaitVBL();
     fn open(__file: *const libc::c_char, __oflag: i32, _: ...) -> i32;
     fn drawchar(x: i32, y: i32, charnum: i32);
@@ -78,11 +78,7 @@ extern "C" {
         w: i32,
         h: i32,
     ) -> *mut SDL_Texture;
-    fn SDL_CreateRenderer(
-        window_0: *mut SDL_Window,
-        index: i32,
-        flags: u32,
-    ) -> *mut SDL_Renderer;
+    fn SDL_CreateRenderer(window_0: *mut SDL_Window, index: i32, flags: u32) -> *mut SDL_Renderer;
     fn SDL_AddEventWatch(filter: SDL_EventFilter, userdata: *mut libc::c_void);
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
@@ -1391,10 +1387,7 @@ pub static mut win_yl: i32 = 0;
 pub static mut win_xh: i32 = 0;
 #[no_mangle]
 pub static mut win_yh: i32 = 0;
-#[no_mangle]
-pub static mut screencenterx: i32 = 19;
-#[no_mangle]
-pub static mut screencentery: i32 = 11;
+
 #[no_mangle]
 pub unsafe extern "C" fn drawwindow(mut xl: i32, mut yl: i32, mut xh: i32, mut yh: i32) {
     let mut x: i32 = 0;
@@ -1450,44 +1443,49 @@ pub unsafe extern "C" fn bar(mut xl: i32, mut yl: i32, mut xh: i32, mut yh: i32,
 pub unsafe extern "C" fn erasewindow() {
     bar(win_xl, win_yl, win_xh, win_yh, ' ' as i32);
 }
-#[no_mangle]
-pub unsafe extern "C" fn centerwindow(mut width: i32, mut height: i32) {
+
+pub unsafe fn centerwindow(
+    mut width: i32,
+    mut height: i32,
+    screencenterx: &i32,
+    screencentery: &i32,
+) {
     let mut xl: i32 = screencenterx - width / 2;
     let mut yl: i32 = screencentery - height / 2;
     drawwindow(xl, yl, xl + width + 1, yl + height + 1);
 }
-#[no_mangle]
-pub unsafe extern "C" fn expwin(mut width: i32, mut height: i32) {
+
+pub unsafe fn expwin(mut width: i32, mut height: i32, screencenterx: &i32, screencentery: &i32) {
     if width > 2 {
         if height > 2 {
-            expwin(width - 2, height - 2);
+            expwin(width - 2, height - 2, screencenterx, screencentery);
         } else {
-            expwinh(width - 2, height);
+            expwinh(width - 2, height, screencenterx, screencentery);
         }
     } else if height > 2 {
-        expwinv(width, height - 2);
+        expwinv(width, height - 2, screencenterx, screencentery);
     }
     UpdateScreen();
     WaitVBL();
-    centerwindow(width, height);
+    centerwindow(width, height, screencenterx, screencentery);
 }
-#[no_mangle]
-pub unsafe extern "C" fn expwinh(mut width: i32, mut height: i32) {
+
+unsafe fn expwinh(mut width: i32, mut height: i32, screencenterx: &i32, screencentery: &i32) {
     if width > 2 {
-        expwinh(width - 2, height);
+        expwinh(width - 2, height, screencenterx, screencentery);
     }
     UpdateScreen();
     WaitVBL();
-    centerwindow(width, height);
+    centerwindow(width, height, screencenterx, screencentery);
 }
-#[no_mangle]
-pub unsafe extern "C" fn expwinv(mut width: i32, mut height: i32) {
+
+unsafe fn expwinv(mut width: i32, mut height: i32, screencenterx: &i32, screencentery: &i32) {
     if height > 2 {
-        expwinv(width, height - 2);
+        expwinv(width, height - 2, screencenterx, screencentery);
     }
     UpdateScreen();
     WaitVBL();
-    centerwindow(width, height);
+    centerwindow(width, height, screencenterx, screencentery);
 }
 #[no_mangle]
 pub unsafe extern "C" fn bioskey(mut cmd: i32) -> i32 {
@@ -1671,8 +1669,8 @@ pub unsafe extern "C" fn _printbin(mut value: u32) {
         loop_0 += 1;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn _printc(mut string: *mut libc::c_char) {
+
+unsafe fn _printc(mut string: *mut libc::c_char, screencenterx: &i32) {
     sx = 1 + screencenterx - (strlen(string)).wrapping_div(2) as i32;
     print(string);
 }
@@ -2134,12 +2132,12 @@ pub unsafe extern "C" fn _savehighscores() {
         ::std::mem::size_of::<[scores; 5]>() as u64 as i64,
     );
 }
-#[no_mangle]
-pub unsafe extern "C" fn _showhighscores() {
+
+pub unsafe fn _showhighscores(screencenterx: &i32, screencentery: &i32) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
     let mut st2: [libc::c_char; 10] = [0; 10];
-    centerwindow(17, 17);
+    centerwindow(17, 17, screencenterx, screencentery);
     print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const libc::c_char);
     print(b" #  SCORE LV  BY\n\0" as *const u8 as *const libc::c_char);
     print(b" - ------ -- ---\n\0" as *const u8 as *const libc::c_char);
@@ -2183,10 +2181,10 @@ pub unsafe extern "C" fn _showhighscores() {
     );
     ltoa(score, st2.as_mut_ptr(), 10);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
-    _printc(str.as_mut_ptr());
+    _printc(str.as_mut_ptr(), screencenterx);
 }
-#[no_mangle]
-pub unsafe extern "C" fn _checkhighscore() {
+
+pub unsafe fn _checkhighscore(screencenterx: &i32, screencentery: &i32) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
     let mut k: i32 = 0;
@@ -2210,7 +2208,7 @@ pub unsafe extern "C" fn _checkhighscore() {
             i += 1;
         }
     }
-    _showhighscores();
+    _showhighscores(screencenterx, screencentery);
     UpdateScreen();
     if i < 5 {
         PlaySound(16);
