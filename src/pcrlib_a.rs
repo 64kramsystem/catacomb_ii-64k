@@ -16,14 +16,14 @@ extern "C" {
     static mut pictable: [pictype; 64];
     static mut grmode: grtype;
 }
-pub type __time_t = i64;
-pub type time_t = __time_t;
-pub type SDL_bool = u32;
-pub const SDL_TRUE: SDL_bool = 1;
-pub const SDL_FALSE: SDL_bool = 0;
+type __time_t = i64;
+type time_t = __time_t;
+type SDL_bool = u32;
+const SDL_TRUE: SDL_bool = 1;
+const SDL_FALSE: SDL_bool = 0;
 pub type SDL_sem = SDL_semaphore;
-pub type SDL_AudioFormat = u16;
-pub type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
+type SDL_AudioFormat = u16;
+type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SDL_AudioSpec {
@@ -41,13 +41,13 @@ pub type SDL_AudioDeviceID = u32;
 pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
 pub type SDL_TimerID = i32;
 
-pub type soundtype = u32;
-pub const sdlib: soundtype = 2;
-pub const spkr: soundtype = 1;
-pub const off: soundtype = 0;
+type soundtype = u32;
+const sdlib: soundtype = 2;
+const spkr: soundtype = 1;
+const off: soundtype = 0;
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
-pub struct spksndtype {
+struct spksndtype {
     pub start: u16,
     pub priority: u8,
     pub samplerate: u8,
@@ -55,7 +55,7 @@ pub struct spksndtype {
 }
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
-pub struct SPKRtable {
+struct SPKRtable {
     pub id: [i8; 4],
     pub filelength: u16,
     pub filler: [u16; 5],
@@ -64,7 +64,7 @@ pub struct SPKRtable {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct C2RustUnnamed_0 {
+struct C2RustUnnamed_0 {
     pub SndPriority: u8,
     pub pcSamplesPerTick: u32,
     pub pcLengthLeft: u32,
@@ -73,16 +73,16 @@ pub struct C2RustUnnamed_0 {
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
-pub struct pictype {
+struct pictype {
     pub width: i16,
     pub height: i16,
     pub shapeptr: u32,
     pub name: [i8; 8],
 }
-pub type C2RustUnnamed_1 = u32;
-pub const screenpitch: C2RustUnnamed_1 = 320;
-pub type C2RustUnnamed_2 = u32;
-pub const VBL_TIME: C2RustUnnamed_2 = 14;
+type C2RustUnnamed_1 = u32;
+const screenpitch: C2RustUnnamed_1 = 320;
+type C2RustUnnamed_2 = u32;
+const VBL_TIME: C2RustUnnamed_2 = 14;
 
 #[inline]
 unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
@@ -93,14 +93,14 @@ unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
 }
 
 #[no_mangle]
-pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
+static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
 #[no_mangle]
-pub static mut soundmode: soundtype = spkr;
+static mut soundmode: soundtype = spkr;
 static mut SndPriority: u8 = 0;
 #[no_mangle]
-pub static mut xormask: i32 = 0;
+static mut xormask: i32 = 0;
 #[no_mangle]
-pub static mut _dontplay: i32 = 0;
+static mut _dontplay: i32 = 0;
 static mut AudioMutex: *mut SDL_mutex = 0 as *const SDL_mutex as *mut SDL_mutex;
 static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {
     freq: 0,
@@ -296,7 +296,7 @@ pub unsafe fn PlaySound(mut sound: i32) {
     }
 }
 
-pub unsafe fn StopSound() {
+unsafe fn StopSound() {
     if _dontplay != 0 {
         return;
     }
@@ -362,6 +362,7 @@ static mut rndtable: [u8; 256] = [
     231, 232, 76, 31, 221, 84, 37, 216, 165, 212, 106, 197, 242, 98, 43, 39, 175, 254, 145, 190,
     84, 118, 222, 187, 136, 120, 163, 236, 249,
 ];
+
 static mut indexi: u16 = 0;
 static mut indexj: u16 = 0;
 static mut LastRnd: u16 = 0;
@@ -434,9 +435,9 @@ pub unsafe fn rndt() -> i32 {
     return rndtable[rndindex as usize] as i32;
 }
 #[no_mangle]
-pub static mut vblsem: *mut SDL_sem = 0 as *const SDL_sem as *mut SDL_sem;
+static mut vblsem: *mut SDL_sem = 0 as *const SDL_sem as *mut SDL_sem;
 #[no_mangle]
-pub static mut vbltimer: SDL_TimerID = 0;
+static mut vbltimer: SDL_TimerID = 0;
 
 unsafe extern "C" fn VBLCallback(mut _interval: u32, mut _param: *mut libc::c_void) -> u32 {
     safe_SDL_SemPost(vblsem);
