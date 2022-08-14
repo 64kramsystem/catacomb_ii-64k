@@ -2,42 +2,14 @@ use ::libc;
 
 use crate::{
     extra_constants::PC_BASE_TIMER, extra_types::boolean, global_state::GlobalState,
-    gr_type::grtype, pcrlib_c::UpdateScreen,
+    gr_type::grtype, pcrlib_c::UpdateScreen, safe_sdl::*,
 };
 extern "C" {
-    pub type SDL_mutex;
-    pub type SDL_semaphore;
     fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
     fn time(__timer: *mut time_t) -> time_t;
-    fn SDL_memset(dst: *mut libc::c_void, c: i32, len: u64) -> *mut libc::c_void;
-    fn SDL_GetError() -> *const i8;
-    fn SDL_CreateMutex() -> *mut SDL_mutex;
-    fn SDL_LockMutex(mutex: *mut SDL_mutex) -> i32;
-    fn SDL_UnlockMutex(mutex: *mut SDL_mutex) -> i32;
-    fn SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_sem;
-    fn SDL_DestroySemaphore(sem: *mut SDL_sem);
-    fn SDL_SemWait(sem: *mut SDL_sem) -> i32;
-    fn SDL_SemPost(sem: *mut SDL_sem) -> i32;
-    fn SDL_SemValue(sem: *mut SDL_sem) -> u32;
-    fn SDL_OpenAudioDevice(
-        device: *const i8,
-        iscapture: i32,
-        desired: *const SDL_AudioSpec,
-        obtained: *mut SDL_AudioSpec,
-        allowed_changes: i32,
-    ) -> SDL_AudioDeviceID;
-    fn SDL_PauseAudioDevice(dev: SDL_AudioDeviceID, pause_on: i32);
-    fn SDL_CloseAudio();
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
     fn printf(_: *const i8, _: ...) -> i32;
-    fn SDL_InitSubSystem(flags: u32) -> i32;
-    fn SDL_RemoveTimer(id: SDL_TimerID) -> SDL_bool;
-    fn SDL_AddTimer(
-        interval: u32,
-        callback: SDL_TimerCallback,
-        param: *mut libc::c_void,
-    ) -> SDL_TimerID;
     static mut egaplaneofs: [u32; 4];
     static mut picptr: *mut libc::c_void;
     static mut charptr: *mut libc::c_void;
@@ -183,7 +155,7 @@ unsafe extern "C" fn _SDL_PCService() {
     }
 }
 unsafe extern "C" fn _SDL_PCPlaySound(mut sound: i32) {
-    SDL_LockMutex(AudioMutex);
+    safe_SDL_LockMutex(AudioMutex);
     pcPhaseTick = 0;
     pcLastSample = 0;
     pcLengthLeft = ((*SoundData).sounds[sound as usize].start as i32
@@ -196,13 +168,13 @@ unsafe extern "C" fn _SDL_PCPlaySound(mut sound: i32) {
     pcSamplesPerTick = (AudioSpec.freq
         / (1193181 * (*SoundData).sounds[(sound - 1) as usize].samplerate as i32 >> 16))
         as u32;
-    SDL_UnlockMutex(AudioMutex);
+    safe_SDL_UnlockMutex(AudioMutex);
 }
 unsafe extern "C" fn _SDL_PCStopSound() {
-    SDL_LockMutex(AudioMutex);
+    safe_SDL_LockMutex(AudioMutex);
     pcSound = 0 as *mut u16;
     _SDL_turnOffPCSpeaker();
-    SDL_UnlockMutex(AudioMutex);
+    safe_SDL_UnlockMutex(AudioMutex);
 }
 unsafe extern "C" fn _SDL_ShutPC() {
     _SDL_PCStopSound();
@@ -218,7 +190,7 @@ unsafe extern "C" fn UpdateSPKR(
     }
     let mut sampleslen: i32 = len >> 1;
     let mut stream16: *mut i16 = stream as *mut libc::c_void as *mut i16;
-    SDL_LockMutex(AudioMutex);
+    safe_SDL_LockMutex(AudioMutex);
     loop {
         if pcNumReadySamples != 0 {
             if pcActive != 0 {
@@ -254,7 +226,7 @@ unsafe extern "C" fn UpdateSPKR(
             break;
         }
     }
-    SDL_UnlockMutex(AudioMutex);
+    safe_SDL_UnlockMutex(AudioMutex);
 }
 #[no_mangle]
 pub unsafe extern "C" fn StartupSound() {
@@ -269,7 +241,7 @@ pub unsafe extern "C" fn StartupSound() {
         callback: None,
         userdata: 0 as *const libc::c_void as *mut libc::c_void,
     };
-    SDL_memset(
+    safe_SDL_memset(
         &mut desired as *mut SDL_AudioSpec as *mut libc::c_void,
         0,
         ::std::mem::size_of::<SDL_AudioSpec>() as u64,
@@ -280,14 +252,14 @@ pub unsafe extern "C" fn StartupSound() {
     desired.samples = 4096 as u16;
     desired.callback =
         Some(UpdateSPKR as unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ());
-    AudioMutex = SDL_CreateMutex();
-    if AudioMutex.is_null() || SDL_InitSubSystem(0x10 as u32) < 0 || {
-        AudioDev = SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut AudioSpec, 0);
+    AudioMutex = safe_SDL_CreateMutex();
+    if AudioMutex.is_null() || safe_SDL_InitSubSystem(0x10 as u32) < 0 || {
+        AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut AudioSpec, 0);
         AudioDev == 0
     } {
         printf(
             b"Audio initialization failed: %s\n\0" as *const u8 as *const i8,
-            SDL_GetError(),
+            safe_SDL_GetError(),
         );
         soundmode = off;
         _dontplay = 1;
@@ -295,7 +267,7 @@ pub unsafe extern "C" fn StartupSound() {
     }
     pcSamplesPerTick = (AudioSpec.freq / 145) as u32;
     soundmode = spkr;
-    SDL_PauseAudioDevice(AudioDev, 0);
+    safe_SDL_PauseAudioDevice(AudioDev, 0);
 }
 #[no_mangle]
 pub unsafe extern "C" fn ShutdownSound() {
@@ -303,7 +275,7 @@ pub unsafe extern "C" fn ShutdownSound() {
         return;
     }
     _SDL_ShutPC();
-    SDL_CloseAudio();
+    safe_SDL_CloseAudio();
 }
 #[no_mangle]
 pub unsafe extern "C" fn PlaySound(mut sound: i32) {
@@ -332,7 +304,7 @@ pub unsafe extern "C" fn PauseSound() {
     if _dontplay != 0 {
         return;
     }
-    SDL_LockMutex(AudioMutex);
+    safe_SDL_LockMutex(AudioMutex);
     SavedSound.SndPriority = SndPriority;
     SavedSound.pcSamplesPerTick = pcSamplesPerTick;
     SavedSound.pcLengthLeft = pcLengthLeft;
@@ -341,7 +313,7 @@ pub unsafe extern "C" fn PauseSound() {
     pcLengthLeft = 0;
     pcSound = 0 as *mut u16;
     _SDL_turnOffPCSpeaker();
-    SDL_UnlockMutex(AudioMutex);
+    safe_SDL_UnlockMutex(AudioMutex);
 }
 #[no_mangle]
 pub unsafe extern "C" fn ContinueSound() {
@@ -457,17 +429,17 @@ pub static mut vblsem: *mut SDL_sem = 0 as *const SDL_sem as *mut SDL_sem;
 #[no_mangle]
 pub static mut vbltimer: SDL_TimerID = 0;
 unsafe extern "C" fn VBLCallback(mut _interval: u32, mut _param: *mut libc::c_void) -> u32 {
-    SDL_SemPost(vblsem);
+    safe_SDL_SemPost(vblsem);
     return VBL_TIME as i32 as u32;
 }
 unsafe extern "C" fn ShutdownEmulatedVBL() {
-    SDL_RemoveTimer(vbltimer);
-    SDL_DestroySemaphore(vblsem);
+    safe_SDL_RemoveTimer(vbltimer);
+    safe_SDL_DestroySemaphore(vblsem);
 }
 #[no_mangle]
 pub unsafe extern "C" fn SetupEmulatedVBL() {
-    vblsem = SDL_CreateSemaphore(0 as u32);
-    vbltimer = SDL_AddTimer(
+    vblsem = safe_SDL_CreateSemaphore(0 as u32);
+    vbltimer = safe_SDL_AddTimer(
         VBL_TIME as i32 as u32,
         Some(VBLCallback as unsafe extern "C" fn(u32, *mut libc::c_void) -> u32),
         0 as *mut libc::c_void,
@@ -477,8 +449,8 @@ pub unsafe extern "C" fn SetupEmulatedVBL() {
 #[no_mangle]
 pub unsafe extern "C" fn WaitVBL() {
     loop {
-        SDL_SemWait(vblsem);
-        if !(SDL_SemValue(vblsem) != 0) {
+        safe_SDL_SemWait(vblsem);
+        if !(safe_SDL_SemValue(vblsem) != 0) {
             break;
         }
     }

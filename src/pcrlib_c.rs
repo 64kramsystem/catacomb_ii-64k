@@ -15,6 +15,7 @@ use crate::{
     gr_type::grtype::{self, *},
     indemo,
     pcrlib_a::drawchar,
+    safe_sdl::*,
     scores::scores,
     sdl_scan_codes::*,
 };
@@ -22,12 +23,7 @@ extern "C" {
     pub type _IO_wide_data;
     pub type _IO_codecvt;
     pub type _IO_marker;
-    pub type SDL_Window;
-    pub type _SDL_Joystick;
-    pub type _SDL_GameController;
-    pub type SDL_SysWMmsg;
-    pub type SDL_Renderer;
-    pub type SDL_Texture;
+    fn SDL_Quit();
     fn close(__fd: i32) -> i32;
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
@@ -61,68 +57,6 @@ extern "C" {
     fn StartupSound();
     static mut SoundData: *mut SPKRtable;
     static mut soundmode: soundtype;
-    fn SDL_Quit();
-    fn SDL_Init(flags: u32) -> i32;
-    fn SDL_Delay(ms: u32);
-    fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
-    fn SDL_RenderPresent(renderer_0: *mut SDL_Renderer);
-    fn SDL_RenderCopy(
-        renderer_0: *mut SDL_Renderer,
-        texture: *mut SDL_Texture,
-        srcrect: *const SDL_Rect,
-        dstrect: *const SDL_Rect,
-    ) -> i32;
-    fn SDL_RenderClear(renderer_0: *mut SDL_Renderer) -> i32;
-    fn SDL_UpdateTexture(
-        texture: *mut SDL_Texture,
-        rect: *const SDL_Rect,
-        pixels: *const libc::c_void,
-        pitch: i32,
-    ) -> i32;
-    fn SDL_CreateTexture(
-        renderer_0: *mut SDL_Renderer,
-        format: u32,
-        access: i32,
-        w: i32,
-        h: i32,
-    ) -> *mut SDL_Texture;
-    fn SDL_CreateRenderer(window_0: *mut SDL_Window, index: i32, flags: u32) -> *mut SDL_Renderer;
-    fn SDL_AddEventWatch(filter: SDL_EventFilter, userdata: *mut libc::c_void);
-    fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
-    fn SDL_PumpEvents();
-    fn SDL_GetDisplayBounds(displayIndex: i32, rect: *mut SDL_Rect) -> i32;
-    fn SDL_GetCurrentDisplayMode(displayIndex: i32, mode_0: *mut SDL_DisplayMode) -> i32;
-    fn SDL_CreateWindow(
-        title: *const i8,
-        x: i32,
-        y: i32,
-        w: i32,
-        h: i32,
-        flags: u32,
-    ) -> *mut SDL_Window;
-    fn SDL_DestroyWindow(window_0: *mut SDL_Window);
-    fn SDL_GetKeyFromScancode(scancode: SDL_Scancode) -> SDL_Keycode;
-    fn SDL_GetMouseFocus() -> *mut SDL_Window;
-    fn SDL_GetRelativeMouseState(x: *mut i32, y: *mut i32) -> u32;
-    fn SDL_SetRelativeMouseMode(enabled: SDL_bool) -> i32;
-    fn SDL_NumJoysticks() -> i32;
-    fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;
-    fn SDL_JoystickUpdate();
-    fn SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: i32) -> i16;
-    fn SDL_JoystickGetButton(joystick_0: *mut SDL_Joystick, button: i32) -> u8;
-    fn SDL_JoystickClose(joystick_0: *mut SDL_Joystick);
-    fn SDL_IsGameController(joystick_index: i32) -> SDL_bool;
-    fn SDL_GameControllerOpen(joystick_index: i32) -> *mut SDL_GameController;
-    fn SDL_GameControllerGetAxis(
-        gamecontroller: *mut SDL_GameController,
-        axis: SDL_GameControllerAxis,
-    ) -> i16;
-    fn SDL_GameControllerGetButton(
-        gamecontroller: *mut SDL_GameController,
-        button: SDL_GameControllerButton,
-    ) -> u8;
-    fn SDL_GameControllerClose(gamecontroller: *mut SDL_GameController);
-    fn SetupEmulatedVBL();
 }
 pub type __dev_t = u64;
 pub type __uid_t = u32;
@@ -854,7 +788,7 @@ pub unsafe extern "C" fn SetupKBD() {
 pub unsafe extern "C" fn ProcessEvents() {
     mouseEvent = false as boolean;
     let mut event: SDL_Event = SDL_Event { type_0: 0 };
-    while SDL_PollEvent(&mut event) != 0 {
+    while safe_SDL_PollEvent(&mut event) != 0 {
         if event.type_0 == SDL_KEYDOWN as i32 as u32 {
             keydown[event.key.keysym.scancode as usize] = true as boolean;
             lastkey = event.key.keysym.scancode;
@@ -879,9 +813,9 @@ unsafe extern "C" fn WatchUIEvents(
                 CheckMouseMode();
             }
             12 => {
-                while SDL_GetMouseFocus() != window {
-                    SDL_PumpEvents();
-                    SDL_Delay(10);
+                while safe_SDL_GetMouseFocus() != window {
+                    safe_SDL_PumpEvents();
+                    safe_SDL_Delay(10);
                 }
                 hasFocus = true as boolean;
                 CheckMouseMode();
@@ -974,7 +908,7 @@ pub unsafe extern "C" fn ControlMouse() -> ControlStruct {
         button1: 0,
         button2: 0,
     };
-    let mut buttons: i32 = SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32;
+    let mut buttons: i32 = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32;
     action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) as boolean;
     action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) as boolean;
     if mouseEvent as i32 == false as i32 {
@@ -1029,9 +963,9 @@ unsafe extern "C" fn ShutdownJoysticks() {
     while j < 3 {
         if !(joystick[j as usize].device < 0) {
             if joystick[j as usize].isgamecontroller != 0 {
-                SDL_GameControllerClose(joystick[j as usize].c2rust_unnamed.controller);
+                safe_SDL_GameControllerClose(joystick[j as usize].c2rust_unnamed.controller);
             } else {
-                SDL_JoystickClose(joystick[j as usize].c2rust_unnamed.joy);
+                safe_SDL_JoystickClose(joystick[j as usize].c2rust_unnamed.joy);
             }
             joystick[j as usize].device = -(1);
         }
@@ -1046,15 +980,15 @@ pub unsafe extern "C" fn ProbeJoysticks() {
     }
     j = 1;
     while j < 3 {
-        if j - 1 >= SDL_NumJoysticks() {
+        if j - 1 >= safe_SDL_NumJoysticks() {
             joystick[j as usize].device = -(1);
         } else {
             joystick[j as usize].device = j - 1;
-            joystick[j as usize].isgamecontroller = SDL_IsGameController(j - 1) as boolean;
-            if SDL_IsGameController(j - 1) as u64 != 0 {
-                joystick[j as usize].c2rust_unnamed.controller = SDL_GameControllerOpen(j - 1);
+            joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) as boolean;
+            if safe_SDL_IsGameController(j - 1) as u64 != 0 {
+                joystick[j as usize].c2rust_unnamed.controller = safe_SDL_GameControllerOpen(j - 1);
             } else {
-                joystick[j as usize].c2rust_unnamed.joy = SDL_JoystickOpen(j - 1);
+                joystick[j as usize].c2rust_unnamed.joy = safe_SDL_JoystickOpen(j - 1);
             }
         }
         j += 1;
@@ -1066,19 +1000,19 @@ pub unsafe extern "C" fn ReadJoystick(mut joynum: i32, mut xcount: *mut i32, mut
     let mut a2: i32 = 0;
     *xcount = 0;
     *ycount = 0;
-    SDL_JoystickUpdate();
+    safe_SDL_JoystickUpdate();
     if joystick[joynum as usize].isgamecontroller != 0 {
-        a1 = SDL_GameControllerGetAxis(
+        a1 = safe_SDL_GameControllerGetAxis(
             joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_AXIS_LEFTX,
         ) as i32;
-        a2 = SDL_GameControllerGetAxis(
+        a2 = safe_SDL_GameControllerGetAxis(
             joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_AXIS_LEFTY,
         ) as i32;
     } else {
-        a1 = SDL_JoystickGetAxis(joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32;
-        a2 = SDL_JoystickGetAxis(joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32;
+        a1 = safe_SDL_JoystickGetAxis(joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32;
+        a2 = safe_SDL_JoystickGetAxis(joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32;
     }
     *xcount = a1;
     *ycount = a2;
@@ -1096,23 +1030,23 @@ pub unsafe extern "C" fn ControlJoystick(mut joynum: i32) -> ControlStruct {
     };
     ReadJoystick(joynum, &mut joyx, &mut joyy);
     if joystick[joynum as usize].isgamecontroller != 0 {
-        action.button1 = (SDL_GameControllerGetButton(
+        action.button1 = (safe_SDL_GameControllerGetButton(
             joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_BUTTON_A,
         ) as i32
             != 0) as i32 as boolean;
-        action.button2 = (SDL_GameControllerGetButton(
+        action.button2 = (safe_SDL_GameControllerGetButton(
             joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_BUTTON_B,
         ) as i32
             != 0) as i32 as boolean;
     } else {
-        action.button1 = (SDL_JoystickGetButton(joystick[joynum as usize].c2rust_unnamed.joy, 0)
-            as i32
-            != 0) as i32 as boolean;
-        action.button2 = (SDL_JoystickGetButton(joystick[joynum as usize].c2rust_unnamed.joy, 1)
-            as i32
-            != 0) as i32 as boolean;
+        action.button1 =
+            (safe_SDL_JoystickGetButton(joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32
+                != 0) as i32 as boolean;
+        action.button2 =
+            (safe_SDL_JoystickGetButton(joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32
+                != 0) as i32 as boolean;
     }
     if joyx == 0 && joyy == 0 {
         action.dir = nodir;
@@ -1458,7 +1392,7 @@ pub unsafe extern "C" fn bioskey(mut cmd: i32) -> i32 {
         return oldkey;
     }
     let mut event: SDL_Event = SDL_Event { type_0: 0 };
-    while SDL_PollEvent(&mut event) != 0 {
+    while safe_SDL_PollEvent(&mut event) != 0 {
         if event.type_0 == SDL_KEYDOWN as i32 as u32 {
             if cmd == 1 {
                 lastkey = event.key.keysym.scancode;
@@ -1469,8 +1403,8 @@ pub unsafe extern "C" fn bioskey(mut cmd: i32) -> i32 {
     }
     return lastkey as i32;
 }
-#[no_mangle]
-pub unsafe extern "C" fn UpdateScreen(gs: &mut GlobalState) {
+
+pub unsafe fn UpdateScreen(gs: &mut GlobalState) {
     static mut EGAPalette: [u32; 16] = [
         0, 0xaa, 0xaa00, 0xaaaa, 0xaa0000, 0xaa00aa, 0xaa5500, 0xaaaaaa, 0x555555, 0x5555ff,
         0x55ff55, 0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff,
@@ -1491,15 +1425,15 @@ pub unsafe extern "C" fn UpdateScreen(gs: &mut GlobalState) {
     } else {
         panic!("VGA Palette conversion not implemented.");
     }
-    SDL_UpdateTexture(
+    safe_SDL_UpdateTexture(
         sdltexture,
         0 as *const SDL_Rect,
         conv.as_mut_ptr() as *const libc::c_void,
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, sdltexture, 0 as *const SDL_Rect, &mut updateRect);
-    SDL_RenderPresent(renderer);
+    safe_SDL_RenderClear(renderer);
+    safe_SDL_RenderCopy(renderer, sdltexture, 0 as *const SDL_Rect, &mut updateRect);
+    safe_SDL_RenderPresent(renderer);
 }
 #[no_mangle]
 pub unsafe extern "C" fn get(gs: &mut GlobalState) -> i32 {
@@ -1528,7 +1462,7 @@ pub unsafe extern "C" fn get(gs: &mut GlobalState) -> i32 {
     }
     drawchar(sx, sy, ' ' as i32, gs);
     UpdateScreen(gs);
-    return SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
+    return safe_SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
 }
 
 pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState) {
@@ -1896,7 +1830,7 @@ pub unsafe extern "C" fn ScancodeToDOS(mut sc: SDL_Scancode) -> i32 {
 }
 #[no_mangle]
 pub unsafe extern "C" fn CheckMouseMode() {
-    SDL_SetRelativeMouseMode(
+    safe_SDL_SetRelativeMouseMode(
         (hasFocus as i32 != 0
             && (playermode[1] as u32 == mouse as i32 as u32
                 || playermode[2] as u32 == mouse as i32 as u32)) as i32 as SDL_bool,
@@ -2182,7 +2116,7 @@ const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
 pub unsafe fn _setupgame(gs: &mut GlobalState) {
-    if SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
+    if safe_SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
         fprintf(
             stderr,
             b"Failed to initialize SDL: %s\n\0" as *const u8 as *const i8,
@@ -2191,7 +2125,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         std::process::exit(1);
     }
     atexit(Some(SDL_Quit as unsafe extern "C" fn() -> ()));
-    SDL_AddEventWatch(
+    safe_SDL_AddEventWatch(
         Some(WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32),
         0 as *mut libc::c_void,
     );
@@ -2238,8 +2172,8 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         w: 0,
         h: 0,
     };
-    if SDL_GetCurrentDisplayMode(displayindex, &mut mode) < -(1)
-        || SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
+    if safe_SDL_GetCurrentDisplayMode(displayindex, &mut mode) < -(1)
+        || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
     {
         fprintf(
             stderr,
@@ -2254,7 +2188,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         mode.w = winWidth as i32;
         mode.h = winHeight as i32;
     }
-    window = SDL_CreateWindow(
+    window = safe_SDL_CreateWindow(
         b"The Catacomb\0" as *const u8 as *const i8,
         bounds.x,
         bounds.y,
@@ -2267,7 +2201,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         }) as u32,
     );
     if window.is_null() || {
-        renderer = SDL_CreateRenderer(window, -(1), 0);
+        renderer = safe_SDL_CreateRenderer(window, -(1), 0);
         renderer.is_null()
     } {
         fprintf(
@@ -2277,7 +2211,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         );
         std::process::exit(1);
     }
-    sdltexture = SDL_CreateTexture(
+    sdltexture = safe_SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING as i32,
@@ -2346,8 +2280,8 @@ pub unsafe extern "C" fn _quit(mut error: *mut i8) {
     }
     ShutdownSound();
     ShutdownJoysticks();
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    safe_SDL_DestroyRenderer(renderer);
+    safe_SDL_DestroyWindow(window);
     renderer = 0 as *mut SDL_Renderer;
     window = 0 as *mut SDL_Window;
     std::process::exit(0);
