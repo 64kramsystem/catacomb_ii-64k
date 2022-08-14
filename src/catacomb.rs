@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use libc::O_RDONLY;
 
 use crate::{
@@ -6,6 +8,7 @@ use crate::{
     class_type::classtype::{self, *},
     cpanel::controlpanel,
     demo_enum::demoenum,
+    dir_type::dirtype::{self, *},
     extra_constants::{
         blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
@@ -81,16 +84,6 @@ pub const _ISalpha: C2RustUnnamed = 1024;
 pub const _ISlower: C2RustUnnamed = 512;
 pub const _ISupper: C2RustUnnamed = 256;
 pub type boolean = u16;
-pub type dirtype = u32;
-pub const nodir: dirtype = 8;
-pub const northwest: dirtype = 7;
-pub const southwest: dirtype = 6;
-pub const southeast: dirtype = 5;
-pub const northeast: dirtype = 4;
-pub const west: dirtype = 3;
-pub const south: dirtype = 2;
-pub const east: dirtype = 1;
-pub const north: dirtype = 0;
 
 pub enum statetype {
     inscores, // 2
@@ -768,7 +761,9 @@ pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i
                     o[numobj as usize].y = (yy + 11) as u8;
                     o[numobj as usize].stage = 0;
                     o[numobj as usize].delay = 0;
-                    o[numobj as usize].dir = (rndt() / 64) as dirtype as u16;
+                    // Ugly defensive typecast.
+                    o[numobj as usize].dir =
+                        TryInto::<dirtype>::try_into(rndt() / 64).unwrap() as u16;
                     o[numobj as usize].hp =
                         objdef[o[numobj as usize].class as usize].hitpoints as i8;
                     o[numobj as usize].oldx = o[numobj as usize].x;

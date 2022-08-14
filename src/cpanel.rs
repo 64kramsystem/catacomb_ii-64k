@@ -2,6 +2,7 @@ use ::libc;
 
 use crate::{
     catacomb::repaintscreen,
+    dir_type::dirtype::{self, *},
     pcrlib_c::{drawwindow, erasewindow, expwin},
     sdl_scan_codes::*,
 };
@@ -301,16 +302,6 @@ pub struct farptr {
     pub ofs: u16,
     pub seg: u16,
 }
-pub type dirtype = u32;
-pub const nodir: dirtype = 8;
-pub const northwest: dirtype = 7;
-pub const southwest: dirtype = 6;
-pub const southeast: dirtype = 5;
-pub const northeast: dirtype = 4;
-pub const west: dirtype = 3;
-pub const south: dirtype = 2;
-pub const east: dirtype = 1;
-pub const north: dirtype = 0;
 pub type soundtype = u32;
 pub const sdlib: soundtype = 2;
 pub const spkr: soundtype = 1;

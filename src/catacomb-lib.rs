@@ -21,6 +21,7 @@ mod catasm;
 mod class_type;
 mod cpanel;
 mod demo_enum;
+mod dir_type;
 mod extra_constants;
 mod extra_macros;
 mod obj_def_type;

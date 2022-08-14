@@ -1,9 +1,12 @@
+use std::convert::TryInto;
+
 use ::libc;
 use libc::O_RDONLY;
 
 use crate::{
     catasm::drawchartile,
     demo_enum::demoenum,
+    dir_type::dirtype::{self, *},
     extra_constants::{_extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
     indemo,
@@ -189,16 +192,7 @@ pub struct _IO_FILE {
 pub type _IO_lock_t = ();
 pub type FILE = _IO_FILE;
 pub type boolean = u16;
-pub type dirtype = u32;
-pub const nodir: dirtype = 8;
-pub const northwest: dirtype = 7;
-pub const southwest: dirtype = 6;
-pub const southeast: dirtype = 5;
-pub const northeast: dirtype = 4;
-pub const west: dirtype = 3;
-pub const south: dirtype = 2;
-pub const east: dirtype = 1;
-pub const north: dirtype = 0;
+
 pub type SDL_bool = u32;
 pub const SDL_TRUE: SDL_bool = 1;
 pub const SDL_FALSE: SDL_bool = 0;
@@ -1216,7 +1210,7 @@ pub unsafe extern "C" fn ControlPlayer(mut player: i32) -> ControlStruct {
         val = *fresh1 as i32;
         ret.button1 = (val & 1) as boolean;
         ret.button2 = ((val & 2) >> 1) as boolean;
-        ret.dir = ((val & 4 + 8 + 16 + 32) >> 2) as dirtype;
+        ret.dir = ((val & 4 + 8 + 16 + 32) >> 2).try_into().unwrap();
     }
     return ret;
 }
