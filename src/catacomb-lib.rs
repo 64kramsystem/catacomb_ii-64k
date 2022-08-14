@@ -24,6 +24,7 @@ mod demo_enum;
 mod dir_type;
 mod extra_constants;
 mod extra_macros;
+mod extra_types;
 mod gr_type;
 mod obj_def_type;
 mod objects;

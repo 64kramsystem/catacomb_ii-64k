@@ -8,6 +8,7 @@ use crate::{
     class_type::classtype::*,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
+    extra_types::boolean,
     indemo,
     obj_def_type::objdeftype,
     pcrlib_c::centerwindow,
@@ -66,7 +67,6 @@ extern "C" {
     fn PlaySound(sound: i32);
     static mut ch: i8;
 }
-pub type boolean = u16;
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]

@@ -5,6 +5,7 @@ use ::libc;
 use crate::{
     catacomb::repaintscreen,
     dir_type::dirtype::{self, *},
+    extra_types::boolean,
     gr_type::grtype::{self, *},
     pcrlib_c::{drawwindow, erasewindow, expwin},
     sdl_scan_codes::*,
@@ -298,7 +299,7 @@ pub const SDLK_BACKSPACE: C2RustUnnamed = 8;
 pub const SDLK_ESCAPE: C2RustUnnamed = 27;
 pub const SDLK_RETURN: C2RustUnnamed = 13;
 pub const SDLK_UNKNOWN: C2RustUnnamed = 0;
-pub type boolean = u16;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct farptr {

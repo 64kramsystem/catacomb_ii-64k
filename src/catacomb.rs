@@ -12,6 +12,7 @@ use crate::{
     extra_constants::{
         blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
+    extra_types::boolean,
     gr_type::grtype::{self, *},
     indemo,
     obj_def_type::objdeftype,
@@ -71,8 +72,6 @@ extern "C" {
     static mut str: [i8; 80];
     static mut ch: i8;
 }
-
-pub type boolean = u16;
 
 pub enum statetype {
     inscores, // 2

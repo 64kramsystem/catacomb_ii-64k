@@ -9,6 +9,7 @@ use crate::{
     dir_type::dirtype::{self, *},
     extra_constants::{_extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
+    extra_types::boolean,
     gr_type::grtype::{self, *},
     indemo,
     sdl_scan_codes::*,
@@ -192,7 +193,6 @@ pub struct _IO_FILE {
 }
 pub type _IO_lock_t = ();
 pub type FILE = _IO_FILE;
-pub type boolean = u16;
 
 pub type SDL_bool = u32;
 pub const SDL_TRUE: SDL_bool = 1;

@@ -1,6 +1,6 @@
 use ::libc;
 
-use crate::{extra_constants::PC_BASE_TIMER, gr_type::grtype};
+use crate::{extra_constants::PC_BASE_TIMER, extra_types::boolean, gr_type::grtype};
 extern "C" {
     pub type SDL_mutex;
     pub type SDL_semaphore;
@@ -67,7 +67,7 @@ pub struct SDL_AudioSpec {
 pub type SDL_AudioDeviceID = u32;
 pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
 pub type SDL_TimerID = i32;
-pub type boolean = u16;
+
 pub type soundtype = u32;
 pub const sdlib: soundtype = 2;
 pub const spkr: soundtype = 1;

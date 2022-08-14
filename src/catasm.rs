@@ -1,8 +1,8 @@
 use ::libc;
 
 use crate::{
-    cat_play::doactive, catacomb::refresh, class_type::classtype::*, gr_type::grtype,
-    obj_def_type::objdeftype,
+    cat_play::doactive, catacomb::refresh, class_type::classtype::*, extra_types::boolean,
+    gr_type::grtype, obj_def_type::objdeftype,
 };
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
@@ -29,7 +29,6 @@ extern "C" {
     fn UpdateScreen();
     static mut screenseg: [u8; 64000];
 }
-pub type boolean = u16;
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
