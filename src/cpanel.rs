@@ -4,65 +4,57 @@ use crate::{catacomb::repaintscreen, sdl_scan_codes::*};
 
 extern "C" {
     fn free(_: *mut libc::c_void);
-    fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> libc::c_int;
+    fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> i32;
     fn loadgrfiles();
-    fn drawwindow(xl: libc::c_int, yl: libc::c_int, xh: libc::c_int, yh: libc::c_int);
-    fn bioskey(_: libc::c_int) -> libc::c_int;
-    fn get() -> libc::c_int;
-    fn expwin(width: libc::c_int, height: libc::c_int);
+    fn drawwindow(xl: i32, yl: i32, xh: i32, yh: i32);
+    fn bioskey(_: i32) -> i32;
+    fn get() -> i32;
+    fn expwin(width: i32, height: i32);
     fn erasewindow();
     static mut _vgaok: boolean;
     static mut _egaok: boolean;
     fn print(str: *const libc::c_char);
-    static mut screencentery: libc::c_int;
-    static mut screencenterx: libc::c_int;
-    fn drawpic(x: libc::c_int, y: libc::c_int, picnum: libc::c_int);
-    fn drawchar(x: libc::c_int, y: libc::c_int, charnum: libc::c_int);
-    static mut egaplaneofs: [dword; 4];
+    static mut screencentery: i32;
+    static mut screencenterx: i32;
+    fn drawpic(x: i32, y: i32, picnum: i32);
+    fn drawchar(x: i32, y: i32, charnum: i32);
+    static mut egaplaneofs: [u32; 4];
     static mut spriteptr: *mut libc::c_void;
     static mut picptr: *mut libc::c_void;
     static mut tileptr: *mut libc::c_void;
     static mut charptr: *mut libc::c_void;
     fn WaitVBL();
     fn UpdateScreen();
-    static mut xormask: libc::c_int;
-    static mut leftedge: libc::c_int;
-    static mut sy: libc::c_int;
-    static mut sx: libc::c_int;
+    static mut xormask: i32;
+    static mut leftedge: i32;
+    static mut sy: i32;
+    static mut sx: i32;
     static mut grmode: grtype;
     fn clearkeys();
     fn bloadin(filename: *mut libc::c_char) -> *mut libc::c_void;
-    fn ControlJoystick(joynum: libc::c_int) -> ControlStruct;
-    fn ReadJoystick(joynum: libc::c_int, xcount: *mut libc::c_int, ycount: *mut libc::c_int);
+    fn ControlJoystick(joynum: i32) -> ControlStruct;
+    fn ReadJoystick(joynum: i32, xcount: *mut i32, ycount: *mut i32);
     fn ProbeJoysticks();
     fn CheckMouseMode();
-    fn ScancodeToDOS(sc: SDL_Scancode) -> libc::c_int;
+    fn ScancodeToDOS(sc: SDL_Scancode) -> i32;
     fn ProcessEvents();
-    static mut keyB2: libc::c_int;
-    static mut keyB1: libc::c_int;
-    static mut key: [libc::c_int; 8];
-    static mut MouseSensitivity: libc::c_int;
-    static mut JoyYhigh: [libc::c_int; 3];
-    static mut JoyYlow: [libc::c_int; 3];
-    static mut JoyXhigh: [libc::c_int; 3];
-    static mut JoyXlow: [libc::c_int; 3];
+    static mut keyB2: i32;
+    static mut keyB1: i32;
+    static mut key: [i32; 8];
+    static mut MouseSensitivity: i32;
+    static mut JoyYhigh: [i32; 3];
+    static mut JoyYlow: [i32; 3];
+    static mut JoyXhigh: [i32; 3];
+    static mut JoyXlow: [i32; 3];
     static mut keydown: [boolean; 512];
     static mut playermode: [inputtype; 3];
     fn ContinueSound();
     fn PauseSound();
     static mut soundmode: soundtype;
-    fn SDL_NumJoysticks() -> libc::c_int;
+    fn SDL_NumJoysticks() -> i32;
 }
-pub type __uint8_t = libc::c_uchar;
-pub type __int16_t = libc::c_short;
-pub type __uint16_t = libc::c_ushort;
-pub type __uint32_t = libc::c_uint;
-pub type int16_t = __int16_t;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
-pub type uint32_t = __uint32_t;
 
-pub type C2RustUnnamed = libc::c_uint;
+pub type C2RustUnnamed = u32;
 pub const SDLK_AUDIOFASTFORWARD: C2RustUnnamed = 1073742110;
 pub const SDLK_AUDIOREWIND: C2RustUnnamed = 1073742109;
 pub const SDLK_APP2: C2RustUnnamed = 1073742108;
@@ -303,18 +295,14 @@ pub const SDLK_BACKSPACE: C2RustUnnamed = 8;
 pub const SDLK_ESCAPE: C2RustUnnamed = 27;
 pub const SDLK_RETURN: C2RustUnnamed = 13;
 pub const SDLK_UNKNOWN: C2RustUnnamed = 0;
-pub type boolean = uint16_t;
-pub type byte = uint8_t;
-pub type word = uint16_t;
-pub type sword = int16_t;
-pub type dword = uint32_t;
+pub type boolean = u16;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct farptr {
-    pub ofs: word,
-    pub seg: word,
+    pub ofs: u16,
+    pub seg: u16,
 }
-pub type dirtype = libc::c_uint;
+pub type dirtype = u32;
 pub const nodir: dirtype = 8;
 pub const northwest: dirtype = 7;
 pub const southwest: dirtype = 6;
@@ -324,7 +312,7 @@ pub const west: dirtype = 3;
 pub const south: dirtype = 2;
 pub const east: dirtype = 1;
 pub const north: dirtype = 0;
-pub type soundtype = libc::c_uint;
+pub type soundtype = u32;
 pub const sdlib: soundtype = 2;
 pub const spkr: soundtype = 1;
 pub const off: soundtype = 0;
@@ -335,13 +323,13 @@ pub struct ControlStruct {
     pub button1: boolean,
     pub button2: boolean,
 }
-pub type inputtype = libc::c_uint;
+pub type inputtype = u32;
 pub const demo: inputtype = 4;
 pub const joystick2: inputtype = 3;
 pub const joystick1: inputtype = 2;
 pub const mouse: inputtype = 1;
 pub const keyboard: inputtype = 0;
-pub type grtype = libc::c_uint;
+pub type grtype = u32;
 pub const VGAgr: grtype = 3;
 pub const EGAgr: grtype = 2;
 pub const CGAgr: grtype = 1;
@@ -349,22 +337,22 @@ pub const text: grtype = 0;
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct spritetype {
-    pub width: sword,
-    pub height: sword,
-    pub shapeptr: dword,
-    pub maskptr: dword,
-    pub xl: sword,
-    pub yl: sword,
-    pub xh: sword,
-    pub yh: sword,
+    pub width: i16,
+    pub height: i16,
+    pub shapeptr: u32,
+    pub maskptr: u32,
+    pub xl: i16,
+    pub yl: i16,
+    pub xh: i16,
+    pub yh: i16,
     pub name: [libc::c_char; 12],
 }
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct pictype {
-    pub width: sword,
-    pub height: sword,
-    pub shapeptr: dword,
+    pub width: i16,
+    pub height: i16,
+    pub shapeptr: u32,
     pub name: [libc::c_char; 8],
 }
 pub type stype = [spritetype; 10];
@@ -379,20 +367,20 @@ pub struct picfiletype {
     pub pictableptr: farptr,
     pub spritetableptr: farptr,
     pub plane: [farptr; 4],
-    pub numchars: sword,
-    pub numtiles: sword,
-    pub numpics: sword,
-    pub numsprites: sword,
+    pub numchars: i16,
+    pub numtiles: i16,
+    pub numpics: i16,
+    pub numsprites: i16,
 }
 #[inline]
-unsafe extern "C" fn flatptr(mut ptr: farptr) -> dword {
-    return (((ptr.seg as libc::c_int) << 4) + ptr.ofs as libc::c_int) as dword;
+unsafe extern "C" fn flatptr(mut ptr: farptr) -> u32 {
+    return (((ptr.seg as i32) << 4) + ptr.ofs as i32) as u32;
 }
 #[inline]
 unsafe extern "C" fn itoa(
-    mut value: libc::c_int,
+    mut value: i32,
     mut str: *mut libc::c_char,
-    mut base: libc::c_int,
+    mut base: i32,
 ) -> *mut libc::c_char {
     if base == 16 {
         sprintf(str, b"%X\0" as *const u8 as *const libc::c_char, value);
@@ -402,15 +390,15 @@ unsafe extern "C" fn itoa(
     return str;
 }
 #[no_mangle]
-pub static mut rowy: [libc::c_int; 4] = [4, 9, 14, 19];
+pub static mut rowy: [i32; 4] = [4, 9, 14, 19];
 #[no_mangle]
-pub static mut collumnx: [libc::c_int; 4] = [14, 20, 26, 32];
+pub static mut collumnx: [i32; 4] = [14, 20, 26, 32];
 #[no_mangle]
-pub static mut spotok: [[libc::c_int; 5]; 4] = [[0; 5]; 4];
+pub static mut spotok: [[i32; 5]; 4] = [[0; 5]; 4];
 #[no_mangle]
-pub static mut row: libc::c_int = 0;
+pub static mut row: i32 = 0;
 #[no_mangle]
-pub static mut collumn: libc::c_int = 0;
+pub static mut collumn: i32 = 0;
 #[no_mangle]
 pub static mut oldgrmode: grtype = text;
 #[no_mangle]
@@ -424,21 +412,21 @@ pub static mut oldplayermode: [inputtype; 3] = [keyboard; 3];
 #[no_mangle]
 pub static mut newplayermode: [inputtype; 3] = [keyboard; 3];
 #[no_mangle]
-pub static mut joy1ok: libc::c_int = 0;
+pub static mut joy1ok: i32 = 0;
 #[no_mangle]
-pub static mut joy2ok: libc::c_int = 0;
+pub static mut joy2ok: i32 = 0;
 #[no_mangle]
-pub static mut mouseok: libc::c_int = 0;
+pub static mut mouseok: i32 = 0;
 #[no_mangle]
-pub unsafe extern "C" fn calibratejoy(mut joynum: libc::c_int) {
+pub unsafe extern "C" fn calibratejoy(mut joynum: i32) {
     let mut current_block: u64;
-    let mut stage: libc::c_int = 0;
-    let mut dx: libc::c_int = 0;
-    let mut dy: libc::c_int = 0;
-    let mut xl: libc::c_int = 0;
-    let mut yl: libc::c_int = 0;
-    let mut xh: libc::c_int = 0;
-    let mut yh: libc::c_int = 0;
+    let mut stage: i32 = 0;
+    let mut dx: i32 = 0;
+    let mut dy: i32 = 0;
+    let mut xl: i32 = 0;
+    let mut yl: i32 = 0;
+    let mut xh: i32 = 0;
+    let mut yh: i32 = 0;
     let mut ctr: ControlStruct = ControlStruct {
         dir: north,
         button1: 0,
@@ -468,7 +456,7 @@ pub unsafe extern "C" fn calibratejoy(mut joynum: libc::c_int) {
             current_block = 15976468122069307450;
             break;
         }
-        if !(ctr.button1 as libc::c_int != 1) {
+        if !(ctr.button1 as i32 != 1) {
             current_block = 8457315219000651999;
             break;
         }
@@ -505,7 +493,7 @@ pub unsafe extern "C" fn calibratejoy(mut joynum: libc::c_int) {
                     current_block = 15976468122069307450;
                     break;
                 }
-                if !(ctr.button1 as libc::c_int != 1) {
+                if !(ctr.button1 as i32 != 1) {
                     current_block = 15597372965620363352;
                     break;
                 }
@@ -546,18 +534,18 @@ pub unsafe extern "C" fn calibratemouse() {
     print(b"slow, 9 being fast:\0" as *const u8 as *const libc::c_char);
     loop {
         ch = (get() % 256) as libc::c_char;
-        if ch as libc::c_int == 27 {
+        if ch as i32 == 27 {
             ch = '5' as i32 as libc::c_char;
         }
-        if !((ch as libc::c_int) < '1' as i32 || ch as libc::c_int > '9' as i32) {
+        if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
             break;
         }
     }
-    MouseSensitivity = 15 - (ch as libc::c_int - '0' as i32);
+    MouseSensitivity = 15 - (ch as i32 - '0' as i32);
     erasewindow();
 }
 #[no_mangle]
-pub unsafe extern "C" fn printscan(mut sc: libc::c_int) {
+pub unsafe extern "C" fn printscan(mut sc: i32) {
     static mut chartable: [libc::c_char; 128] = [
         '?' as i32 as libc::c_char,
         '?' as i32 as libc::c_char,
@@ -691,65 +679,65 @@ pub unsafe extern "C" fn printscan(mut sc: libc::c_int) {
     sc = ScancodeToDOS(sc as SDL_Scancode);
     if sc == 1 {
         print(b"ESC\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0xe as libc::c_int {
+    } else if sc == 0xe as i32 {
         print(b"BKSP\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0xf as libc::c_int {
+    } else if sc == 0xf as i32 {
         print(b"TAB\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x1d as libc::c_int {
+    } else if sc == 0x1d as i32 {
         print(b"CTRL\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x2a as libc::c_int {
+    } else if sc == 0x2a as i32 {
         print(b"LSHIFT\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x39 as libc::c_int {
+    } else if sc == 0x39 as i32 {
         print(b"SPACE\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x3a as libc::c_int {
+    } else if sc == 0x3a as i32 {
         print(b"CAPSLK\0" as *const u8 as *const libc::c_char);
-    } else if sc >= 0x3b as libc::c_int && sc <= 0x44 as libc::c_int {
+    } else if sc >= 0x3b as i32 && sc <= 0x44 as i32 {
         let mut str: [libc::c_char; 3] = [0; 3];
         print(b"F\0" as *const u8 as *const libc::c_char);
-        itoa(sc - 0x3a as libc::c_int, str.as_mut_ptr(), 10);
+        itoa(sc - 0x3a as i32, str.as_mut_ptr(), 10);
         print(str.as_mut_ptr());
-    } else if sc == 0x57 as libc::c_int {
+    } else if sc == 0x57 as i32 {
         print(b"F11\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x59 as libc::c_int {
+    } else if sc == 0x59 as i32 {
         print(b"F12\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x46 as libc::c_int {
+    } else if sc == 0x46 as i32 {
         print(b"SCRLLK\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x1c as libc::c_int {
+    } else if sc == 0x1c as i32 {
         print(b"ENTER\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x36 as libc::c_int {
+    } else if sc == 0x36 as i32 {
         print(b"RSHIFT\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x37 as libc::c_int {
+    } else if sc == 0x37 as i32 {
         print(b"PRTSC\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x38 as libc::c_int {
+    } else if sc == 0x38 as i32 {
         print(b"ALT\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x47 as libc::c_int {
+    } else if sc == 0x47 as i32 {
         print(b"HOME\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x49 as libc::c_int {
+    } else if sc == 0x49 as i32 {
         print(b"PGUP\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x4f as libc::c_int {
+    } else if sc == 0x4f as i32 {
         print(b"END\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x51 as libc::c_int {
+    } else if sc == 0x51 as i32 {
         print(b"PGDN\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x52 as libc::c_int {
+    } else if sc == 0x52 as i32 {
         print(b"INS\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x53 as libc::c_int {
+    } else if sc == 0x53 as i32 {
         print(b"DEL\0" as *const u8 as *const libc::c_char);
-    } else if sc == 0x45 as libc::c_int {
+    } else if sc == 0x45 as i32 {
         print(b"NUMLK\0" as *const u8 as *const libc::c_char);
     } else {
         let fresh0 = sx;
         sx = sx + 1;
-        drawchar(fresh0, sy, chartable[sc as usize] as libc::c_int);
+        drawchar(fresh0, sy, chartable[sc as usize] as i32);
     };
 }
 #[no_mangle]
 pub unsafe extern "C" fn calibratekeys() {
     let mut ch: libc::c_char = 0;
-    let mut hx: libc::c_int = 0;
-    let mut hy: libc::c_int = 0;
-    let mut i: libc::c_int = 0;
-    let mut select: libc::c_int = 0;
-    let mut new: libc::c_int = 0;
+    let mut hx: i32 = 0;
+    let mut hy: i32 = 0;
+    let mut i: i32 = 0;
+    let mut select: i32 = 0;
+    let mut new: i32 = 0;
     expwin(22, 15);
     print(b"Keyboard Configuration\n\r\0" as *const u8 as *const libc::c_char);
     print(b"----------------------\0" as *const u8 as *const libc::c_char);
@@ -783,10 +771,10 @@ pub unsafe extern "C" fn calibratekeys() {
         sx = hx;
         sy = hy;
         ch = (get() % 256) as libc::c_char;
-        if !((ch as libc::c_int) < '0' as i32 || ch as libc::c_int > '9' as i32) {
-            select = ch as libc::c_int - '0' as i32;
-            drawchar(sx, sy, ch as libc::c_int);
-            select = ch as libc::c_int - '0' as i32;
+        if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
+            select = ch as i32 - '0' as i32;
+            drawchar(sx, sy, ch as i32);
+            select = ch as i32 - '0' as i32;
             print(b"\n\rPress the new key:\0" as *const u8 as *const libc::c_char);
             clearkeys();
             UpdateScreen();
@@ -816,7 +804,7 @@ pub unsafe extern "C" fn calibratekeys() {
             ch = '0' as i32 as libc::c_char;
             clearkeys();
         }
-        if !(ch as libc::c_int >= '0' as i32 && ch as libc::c_int <= '9' as i32) {
+        if !(ch as i32 >= '0' as i32 && ch as i32 <= '9' as i32) {
             break;
         }
     }
@@ -825,8 +813,8 @@ pub unsafe extern "C" fn calibratekeys() {
 #[no_mangle]
 pub unsafe extern "C" fn getconfig() {
     spotok[0][0] = 1;
-    spotok[0][1] = _egaok as libc::c_int;
-    spotok[0][2] = _vgaok as libc::c_int;
+    spotok[0][1] = _egaok as i32;
+    spotok[0][2] = _vgaok as i32;
     spotok[0][3] = 0;
     spotok[0][4] = 0;
     spotok[1][0] = 1;
@@ -834,9 +822,9 @@ pub unsafe extern "C" fn getconfig() {
     spotok[1][2] = 0;
     spotok[1][3] = 0;
     spotok[1][4] = 0;
-    let mut numjoy: libc::c_int = SDL_NumJoysticks();
-    joy1ok = (numjoy > 0) as libc::c_int;
-    joy2ok = (numjoy > 1) as libc::c_int;
+    let mut numjoy: i32 = SDL_NumJoysticks();
+    joy1ok = (numjoy > 0) as i32;
+    joy2ok = (numjoy > 1) as i32;
     mouseok = 1;
     spotok[2][0] = 1;
     spotok[2][1] = mouseok;
@@ -886,17 +874,13 @@ pub unsafe extern "C" fn drawpanel() {
         drawpic(collumnx[3] * 8, rowy[2] * 8, 11);
     }
     drawchar(
-        collumnx[(newgrmode as libc::c_int - 1) as usize] + 1,
+        collumnx[(newgrmode as i32 - 1) as usize] + 1,
         rowy[0] + 3,
         15,
     );
+    drawchar(collumnx[newsoundmode as i32 as usize] + 1, rowy[1] + 3, 15);
     drawchar(
-        collumnx[newsoundmode as libc::c_int as usize] + 1,
-        rowy[1] + 3,
-        15,
-    );
-    drawchar(
-        collumnx[newplayermode[1] as libc::c_int as usize] + 1,
+        collumnx[newplayermode[1] as i32 as usize] + 1,
         rowy[2] + 3,
         15,
     );
@@ -907,10 +891,10 @@ pub unsafe extern "C" fn drawpanel() {
     print(b"       ESC to return to your game     \n\r\0" as *const u8 as *const libc::c_char);
 }
 
-pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) {
-    let mut chf: libc::c_int = 0;
-    let mut oldcenterx: libc::c_int = 0;
-    let mut oldcentery: libc::c_int = 0;
+pub unsafe fn controlpanel(items: &mut [i16], view: &mut [[i32; 86]]) {
+    let mut chf: i32 = 0;
+    let mut oldcenterx: i32 = 0;
+    let mut oldcentery: i32 = 0;
     clearkeys();
     PauseSound();
     ProbeJoysticks();
@@ -929,18 +913,18 @@ pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) 
     drawwindow(0, 0, 39, 24);
     drawpanel();
     row = 0;
-    collumn = grmode as libc::c_int - 1;
+    collumn = grmode as i32 - 1;
     loop {
         sx = collumnx[collumn as usize] + 2;
         sy = rowy[row as usize] + 3;
         chf = get();
-        if chf == SDLK_UP as libc::c_int {
+        if chf == SDLK_UP as i32 {
             row -= 1;
             if row < 0 {
                 row = 2;
             }
         }
-        if chf == SDLK_DOWN as libc::c_int {
+        if chf == SDLK_DOWN as i32 {
             row += 1;
             if row > 2 {
                 row = 0;
@@ -949,7 +933,7 @@ pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) 
         while spotok[row as usize][collumn as usize] == 0 {
             collumn -= 1;
         }
-        if chf == SDLK_LEFT as libc::c_int {
+        if chf == SDLK_LEFT as i32 {
             if collumn == 0 {
                 collumn = 4;
             }
@@ -960,7 +944,7 @@ pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) 
                 }
             }
         }
-        if chf == SDLK_RIGHT as libc::c_int {
+        if chf == SDLK_RIGHT as i32 {
             loop {
                 collumn += 1;
                 if !(spotok[row as usize][collumn as usize] == 0 || collumn > 3) {
@@ -971,16 +955,16 @@ pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) 
                 }
             }
         }
-        if chf == SDLK_RETURN as libc::c_int {
+        if chf == SDLK_RETURN as i32 {
             match row {
                 0 => {
-                    if !(newgrmode as libc::c_int == collumn + 1) {
+                    if !(newgrmode as i32 == collumn + 1) {
                         drawchar(
-                            collumnx[(newgrmode as libc::c_int - 1) as usize] + 1,
+                            collumnx[(newgrmode as i32 - 1) as usize] + 1,
                             rowy[row as usize] + 3,
                             32,
                         );
-                        newgrmode = (collumn as grtype as libc::c_uint).wrapping_add(1) as grtype;
+                        newgrmode = (collumn as grtype as u32).wrapping_add(1) as grtype;
                         grmode = newgrmode;
                         loadgrfiles();
                         drawwindow(0, 0, 39, 24);
@@ -989,7 +973,7 @@ pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) 
                 }
                 1 => {
                     drawchar(
-                        collumnx[newsoundmode as libc::c_int as usize] + 1,
+                        collumnx[newsoundmode as i32 as usize] + 1,
                         rowy[row as usize] + 3,
                         32,
                     );
@@ -997,24 +981,18 @@ pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) 
                 }
                 2 => {
                     drawchar(
-                        collumnx[newplayermode[1] as libc::c_int as usize] + 1,
+                        collumnx[newplayermode[1] as i32 as usize] + 1,
                         rowy[row as usize] + 3,
                         32,
                     );
                     newplayermode[1] = collumn as inputtype;
-                    if newplayermode[1] as libc::c_uint == keyboard as libc::c_int as libc::c_uint {
+                    if newplayermode[1] as u32 == keyboard as i32 as u32 {
                         calibratekeys();
-                    } else if newplayermode[1] as libc::c_uint
-                        == mouse as libc::c_int as libc::c_uint
-                    {
+                    } else if newplayermode[1] as u32 == mouse as i32 as u32 {
                         calibratemouse();
-                    } else if newplayermode[1] as libc::c_uint
-                        == joystick1 as libc::c_int as libc::c_uint
-                    {
+                    } else if newplayermode[1] as u32 == joystick1 as i32 as u32 {
                         calibratejoy(1);
-                    } else if newplayermode[1] as libc::c_uint
-                        == joystick2 as libc::c_int as libc::c_uint
-                    {
+                    } else if newplayermode[1] as u32 == joystick2 as i32 as u32 {
                         calibratejoy(2);
                     }
                     drawpanel();
@@ -1023,7 +1001,7 @@ pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) 
             }
             drawchar(collumnx[collumn as usize] + 1, rowy[row as usize] + 3, 15);
         }
-        if !(chf != SDLK_ESCAPE as libc::c_int) {
+        if !(chf != SDLK_ESCAPE as i32) {
             break;
         }
     }
@@ -1038,7 +1016,7 @@ pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) 
     ContinueSound();
 }
 #[no_mangle]
-pub static mut egaplane: [libc::c_uint; 4] = [0; 4];
+pub static mut egaplane: [u32; 4] = [0; 4];
 #[no_mangle]
 pub static mut image: spritetype = spritetype {
     width: 0,
@@ -1073,51 +1051,49 @@ pub static mut pictable: [pictype; 64] = [pictype {
 #[no_mangle]
 pub static mut lastgrpic: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
 #[no_mangle]
-pub static mut numchars: libc::c_int = 0;
+pub static mut numchars: i32 = 0;
 #[no_mangle]
-pub static mut numtiles: libc::c_int = 0;
+pub static mut numtiles: i32 = 0;
 #[no_mangle]
-pub static mut numpics: libc::c_int = 0;
+pub static mut numpics: i32 = 0;
 #[no_mangle]
-pub static mut numsprites: libc::c_int = 0;
+pub static mut numsprites: i32 = 0;
 #[no_mangle]
 pub unsafe extern "C" fn installgrfile(
     mut filename: *mut libc::c_char,
     mut inmem: *mut libc::c_void,
 ) {
-    let mut i: libc::c_int = 0;
+    let mut i: i32 = 0;
     let mut picfile: *mut picfiletype = 0 as *mut picfiletype;
     let mut spriteinfile: *mut stype = 0 as *mut stype;
     let mut picinfile: *mut ptype = 0 as *mut ptype;
     if *filename.offset(0) == 0 {
         picfile = inmem as *mut picfiletype;
     } else {
-        if lastgrpic as libc::c_long != 0 {
+        if lastgrpic as i64 != 0 {
             free(lastgrpic);
         }
         picfile = bloadin(filename) as *mut picfiletype;
         lastgrpic = picfile as *mut libc::c_void;
     }
-    numchars = (*picfile).numchars as libc::c_int;
-    numtiles = (*picfile).numtiles as libc::c_int;
-    numpics = (*picfile).numpics as libc::c_int;
-    numsprites = (*picfile).numsprites as libc::c_int;
+    numchars = (*picfile).numchars as i32;
+    numtiles = (*picfile).numtiles as i32;
+    numpics = (*picfile).numpics as i32;
+    numsprites = (*picfile).numsprites as i32;
     charptr =
-        (picfile as *mut byte).offset(flatptr((*picfile).charptr) as isize) as *mut libc::c_void;
+        (picfile as *mut u8).offset(flatptr((*picfile).charptr) as isize) as *mut libc::c_void;
     tileptr =
-        (picfile as *mut byte).offset(flatptr((*picfile).tileptr) as isize) as *mut libc::c_void;
-    picptr =
-        (picfile as *mut byte).offset(flatptr((*picfile).picptr) as isize) as *mut libc::c_void;
+        (picfile as *mut u8).offset(flatptr((*picfile).tileptr) as isize) as *mut libc::c_void;
+    picptr = (picfile as *mut u8).offset(flatptr((*picfile).picptr) as isize) as *mut libc::c_void;
     spriteptr =
-        (picfile as *mut byte).offset(flatptr((*picfile).spriteptr) as isize) as *mut libc::c_void;
+        (picfile as *mut u8).offset(flatptr((*picfile).spriteptr) as isize) as *mut libc::c_void;
     egaplaneofs[0] = (flatptr((*picfile).plane[0])).wrapping_sub(flatptr((*picfile).charptr));
     egaplaneofs[1] = (flatptr((*picfile).plane[1])).wrapping_sub(flatptr((*picfile).charptr));
     egaplaneofs[2] = (flatptr((*picfile).plane[2])).wrapping_sub(flatptr((*picfile).charptr));
     egaplaneofs[3] = (flatptr((*picfile).plane[3])).wrapping_sub(flatptr((*picfile).charptr));
-    picinfile =
-        (picfile as *mut byte).offset(flatptr((*picfile).pictableptr) as isize) as *mut ptype;
+    picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr) as isize) as *mut ptype;
     spriteinfile =
-        (picfile as *mut byte).offset(flatptr((*picfile).spritetableptr) as isize) as *mut stype;
+        (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr) as isize) as *mut stype;
     i = 0;
     while i < 64 {
         pictable[i as usize] = (*picinfile)[i as usize];

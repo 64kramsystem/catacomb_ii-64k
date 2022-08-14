@@ -16,77 +16,66 @@ use crate::{
     sdl_scan_codes::*,
 };
 extern "C" {
-    fn close(__fd: libc::c_int) -> libc::c_int;
-    fn read(__fd: libc::c_int, __buf: *mut libc::c_void, __nbytes: size_t) -> ssize_t;
-    fn write(__fd: libc::c_int, __buf: *const libc::c_void, __n: size_t) -> ssize_t;
+    fn close(__fd: i32) -> i32;
+    fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
+    fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn free(_: *mut libc::c_void);
-    fn printf(_: *const libc::c_char, _: ...) -> libc::c_int;
-    fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> libc::c_int;
+    fn printf(_: *const libc::c_char, _: ...) -> i32;
+    fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> i32;
     fn __ctype_b_loc() -> *mut *const libc::c_ushort;
-    fn tolower(_: libc::c_int) -> libc::c_int;
-    fn toupper(_: libc::c_int) -> libc::c_int;
-    fn strcasecmp(_: *const libc::c_char, _: *const libc::c_char) -> libc::c_int;
+    fn tolower(_: i32) -> i32;
+    fn toupper(_: i32) -> i32;
+    fn strcasecmp(_: *const libc::c_char, _: *const libc::c_char) -> i32;
     fn strcat(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
-    fn open(__file: *const libc::c_char, __oflag: libc::c_int, _: ...) -> libc::c_int;
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-    fn RLEExpand(source: *mut libc::c_char, dest: *mut libc::c_char, origlen: libc::c_long);
-    fn bioskey(_: libc::c_int) -> libc::c_int;
+    fn open(__file: *const libc::c_char, __oflag: i32, _: ...) -> i32;
+    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
+    fn RLEExpand(source: *mut libc::c_char, dest: *mut libc::c_char, origlen: i64);
+    fn bioskey(_: i32) -> i32;
     fn _quit(_: *mut libc::c_char);
     fn _checkhighscore();
     fn _showhighscores();
-    static mut score: sdword;
+    static mut score: i32;
     fn printhighscore();
     fn printbody();
     fn printshotpower();
     fn printscore();
-    static mut level: sword;
-    fn expwin(width: libc::c_int, height: libc::c_int);
-    fn centerwindow(width: libc::c_int, height: libc::c_int);
-    fn bar(xl: libc::c_int, yl: libc::c_int, xh: libc::c_int, yh: libc::c_int, ch_0: libc::c_int);
-    fn drawwindow(xl: libc::c_int, yl: libc::c_int, xh: libc::c_int, yh: libc::c_int);
-    fn printint(val: libc::c_int);
+    static mut level: i16;
+    fn expwin(width: i32, height: i32);
+    fn centerwindow(width: i32, height: i32);
+    fn bar(xl: i32, yl: i32, xh: i32, yh: i32, ch_0: i32);
+    fn drawwindow(xl: i32, yl: i32, xh: i32, yh: i32);
+    fn printint(val: i32);
     fn printchartile(str_0: *const libc::c_char);
     fn print(str_0: *const libc::c_char);
-    fn get() -> libc::c_int;
-    static mut screencentery: libc::c_int;
-    static mut screencenterx: libc::c_int;
-    fn drawchartile(x: libc::c_int, y: libc::c_int, tile: libc::c_int);
-    fn drawpic(x: libc::c_int, y: libc::c_int, picnum: libc::c_int);
-    fn drawchar(x: libc::c_int, y: libc::c_int, charnum: libc::c_int);
+    fn get() -> i32;
+    static mut screencentery: i32;
+    static mut screencenterx: i32;
+    fn drawchartile(x: i32, y: i32, tile: i32);
+    fn drawpic(x: i32, y: i32, picnum: i32);
+    fn drawchar(x: i32, y: i32, charnum: i32);
     fn installgrfile(filename: *mut libc::c_char, inmem: *mut libc::c_void);
     fn WaitVBL();
     fn UpdateScreen();
-    static mut leftedge: libc::c_int;
-    static mut sy: libc::c_int;
-    static mut sx: libc::c_int;
+    static mut leftedge: i32;
+    static mut sy: i32;
+    static mut sx: i32;
     static mut grmode: grtype;
-    fn _Verify(filename: *mut libc::c_char) -> libc::c_long;
+    fn _Verify(filename: *mut libc::c_char) -> i64;
     fn clearkeys();
-    fn rnd(_: word) -> libc::c_int;
-    fn rndt() -> libc::c_int;
+    fn rnd(_: u16) -> i32;
+    fn rndt() -> i32;
     fn bloadin(filename: *mut libc::c_char) -> *mut libc::c_void;
-    fn LoadFile(filename: *mut libc::c_char, buffer: *mut libc::c_char) -> libc::c_ulong;
-    fn LoadDemo(demonum: libc::c_int);
-    fn ControlPlayer(player_0: libc::c_int) -> ControlStruct;
+    fn LoadFile(filename: *mut libc::c_char, buffer: *mut libc::c_char) -> u64;
+    fn LoadDemo(demonum: i32);
+    fn ControlPlayer(player_0: i32) -> ControlStruct;
     static mut keydown: [boolean; 512];
     fn WaitEndSound();
-    fn PlaySound(sound: libc::c_int);
+    fn PlaySound(sound: i32);
     static mut str: [libc::c_char; 80];
     static mut ch: libc::c_char;
 }
-pub type __int8_t = libc::c_schar;
-pub type __uint8_t = libc::c_uchar;
-pub type __int16_t = libc::c_short;
-pub type __uint16_t = libc::c_ushort;
-pub type __int32_t = libc::c_int;
-pub type __ssize_t = libc::c_long;
-pub type ssize_t = __ssize_t;
-pub type size_t = libc::c_ulong;
-pub type int8_t = __int8_t;
-pub type int16_t = __int16_t;
-pub type int32_t = __int32_t;
-pub type C2RustUnnamed = libc::c_uint;
+pub type C2RustUnnamed = u32;
 pub const _ISalnum: C2RustUnnamed = 8;
 pub const _ISpunct: C2RustUnnamed = 4;
 pub const _IScntrl: C2RustUnnamed = 2;
@@ -99,15 +88,8 @@ pub const _ISdigit: C2RustUnnamed = 2048;
 pub const _ISalpha: C2RustUnnamed = 1024;
 pub const _ISlower: C2RustUnnamed = 512;
 pub const _ISupper: C2RustUnnamed = 256;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
-pub type boolean = uint16_t;
-pub type byte = uint8_t;
-pub type sbyte = int8_t;
-pub type word = uint16_t;
-pub type sword = int16_t;
-pub type sdword = int32_t;
-pub type dirtype = libc::c_uint;
+pub type boolean = u16;
+pub type dirtype = u32;
 pub const nodir: dirtype = 8;
 pub const northwest: dirtype = 7;
 pub const southwest: dirtype = 6;
@@ -128,46 +110,46 @@ pub enum statetype {
 #[repr(C, packed)]
 pub struct activeobj {
     pub active: boolean,
-    pub class: word,
-    pub x: byte,
-    pub y: byte,
-    pub stage: byte,
-    pub delay: byte,
-    pub dir: word,
-    pub hp: sbyte,
-    pub oldx: byte,
-    pub oldy: byte,
-    pub oldtile: sword,
-    pub filler: [byte; 1],
+    pub class: u16,
+    pub x: u8,
+    pub y: u8,
+    pub stage: u8,
+    pub delay: u8,
+    pub dir: u16,
+    pub hp: i8,
+    pub oldx: u8,
+    pub oldy: u8,
+    pub oldtile: i16,
+    pub filler: [u8; 1],
 }
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct objtype {
     pub active: boolean,
-    pub class: word,
-    pub x: byte,
-    pub y: byte,
-    pub stage: byte,
-    pub delay: byte,
-    pub dir: word,
-    pub hp: sbyte,
-    pub oldx: byte,
-    pub oldy: byte,
-    pub oldtile: sword,
-    pub filler: [byte; 1],
-    pub think: byte,
-    pub contact: byte,
-    pub solid: byte,
-    pub firstchar: word,
-    pub size: byte,
-    pub stages: byte,
-    pub dirmask: byte,
-    pub speed: word,
-    pub hitpoints: byte,
-    pub damage: byte,
-    pub points: word,
-    pub filler2: [byte; 2],
+    pub class: u16,
+    pub x: u8,
+    pub y: u8,
+    pub stage: u8,
+    pub delay: u8,
+    pub dir: u16,
+    pub hp: i8,
+    pub oldx: u8,
+    pub oldy: u8,
+    pub oldtile: i16,
+    pub filler: [u8; 1],
+    pub think: u8,
+    pub contact: u8,
+    pub solid: u8,
+    pub firstchar: u16,
+    pub size: u8,
+    pub stages: u8,
+    pub dirmask: u8,
+    pub speed: u16,
+    pub hitpoints: u8,
+    pub damage: u8,
+    pub points: u16,
+    pub filler2: [u8; 2],
 }
 
 #[derive(Copy, Clone)]
@@ -178,21 +160,21 @@ pub struct ControlStruct {
     pub button2: boolean,
 }
 
-pub type grtype = libc::c_uint;
+pub type grtype = u32;
 pub const VGAgr: grtype = 3;
 pub const EGAgr: grtype = 2;
 pub const CGAgr: grtype = 1;
 pub const text: grtype = 0;
-pub type exittype = libc::c_uint;
+pub type exittype = u32;
 pub const victorious: exittype = 3;
 pub const reseted: exittype = 2;
 pub const killed: exittype = 1;
 pub const quited: exittype = 0;
 #[inline]
 unsafe extern "C" fn itoa(
-    mut value: libc::c_int,
+    mut value: i32,
     mut str_0: *mut libc::c_char,
-    mut base: libc::c_int,
+    mut base: i32,
 ) -> *mut libc::c_char {
     if base == 16 {
         sprintf(str_0, b"%X\0" as *const u8 as *const libc::c_char, value);
@@ -266,20 +248,20 @@ pub static mut opposite: [dirtype; 9] = [
 #[no_mangle]
 pub static mut gamexit: exittype = quited;
 #[no_mangle]
-pub static mut oldtiles: [libc::c_int; 576] = [0; 576];
+pub static mut oldtiles: [i32; 576] = [0; 576];
 #[no_mangle]
-pub static mut background: [[libc::c_int; 86]; 87] = [[0; 86]; 87];
+pub static mut background: [[i32; 86]; 87] = [[0; 86]; 87];
 #[no_mangle]
-pub static mut originx: libc::c_int = 0;
+pub static mut originx: i32 = 0;
 #[no_mangle]
-pub static mut originy: libc::c_int = 0;
+pub static mut originy: i32 = 0;
 
 #[no_mangle]
-pub static mut saveitems: [sword; 6] = [0; 6];
+pub static mut saveitems: [i16; 6] = [0; 6];
 #[no_mangle]
-pub static mut shotpower: libc::c_int = 0;
+pub static mut shotpower: i32 = 0;
 #[no_mangle]
-pub static mut boltsleft: libc::c_int = 0;
+pub static mut boltsleft: i32 = 0;
 #[no_mangle]
 pub static mut o: [activeobj; 201] = [activeobj {
     active: 0,
@@ -365,11 +347,11 @@ pub static mut altobj: objtype = objtype {
     filler2: [0; 2],
 };
 #[no_mangle]
-pub static mut altnum: libc::c_int = 0;
+pub static mut altnum: i32 = 0;
 #[no_mangle]
-pub static mut numobj: libc::c_int = 0;
+pub static mut numobj: i32 = 0;
 #[no_mangle]
-pub static mut objecton: libc::c_int = 0;
+pub static mut objecton: i32 = 0;
 #[no_mangle]
 pub static mut playdone: boolean = 0;
 #[no_mangle]
@@ -379,17 +361,17 @@ pub static mut tempb: boolean = 0;
 #[no_mangle]
 pub static mut tempp: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
 #[no_mangle]
-pub static mut chkx: libc::c_int = 0;
+pub static mut chkx: i32 = 0;
 #[no_mangle]
-pub static mut chky: libc::c_int = 0;
+pub static mut chky: i32 = 0;
 #[no_mangle]
-pub static mut chkspot: libc::c_int = 0;
+pub static mut chkspot: i32 = 0;
 #[no_mangle]
-pub static mut frameon: word = 0;
+pub static mut frameon: u16 = 0;
 #[no_mangle]
 pub static mut grmem: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
 #[no_mangle]
-pub static mut VGAPAL: libc::c_int = 0;
+pub static mut VGAPAL: i32 = 0;
 #[no_mangle]
 pub static mut exitdemo: bool = false;
 #[no_mangle]
@@ -407,9 +389,9 @@ pub static mut pics: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::
 #[no_mangle]
 pub static mut picsexact: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
 #[no_mangle]
-pub static mut EGADATASTART: libc::c_uint = 0;
+pub static mut EGADATASTART: u32 = 0;
 #[no_mangle]
-pub static mut savescore: sdword = 0;
+pub static mut savescore: i32 = 0;
 #[no_mangle]
 pub static mut GODMODE: boolean = false as boolean;
 #[no_mangle]
@@ -476,12 +458,12 @@ pub static mut demowin: [[libc::c_char; 16]; 5] = [
     ],
 ];
 
-pub unsafe fn refresh(view: &mut [[libc::c_int; 86]]) {
-    let mut x: libc::c_int = 0;
-    let mut y: libc::c_int = 0;
-    let mut basex: libc::c_int = 0;
-    let mut basey: libc::c_int = 0;
-    let mut underwin: [[word; 16]; 5] = [[0; 16]; 5];
+pub unsafe fn refresh(view: &mut [[i32; 86]]) {
+    let mut x: i32 = 0;
+    let mut y: i32 = 0;
+    let mut basex: i32 = 0;
+    let mut basey: i32 = 0;
+    let mut underwin: [[u16; 16]; 5] = [[0; 16]; 5];
     basex = originx + 4;
     basey = originy + 17;
     if indemo != demoenum::notdemo {
@@ -490,16 +472,16 @@ pub unsafe fn refresh(view: &mut [[libc::c_int; 86]]) {
             x = 0;
             while x <= 15 {
                 underwin[y as usize][x as usize] =
-                    view[(y + basey) as usize][(x + basex) as usize] as word;
+                    view[(y + basey) as usize][(x + basex) as usize] as u16;
                 view[(y + basey) as usize][(x + basex) as usize] =
-                    demowin[y as usize][x as usize] as libc::c_int;
+                    demowin[y as usize][x as usize] as i32;
                 x += 1;
             }
             y += 1;
         }
     }
     WaitVBL();
-    if grmode as libc::c_uint == CGAgr as libc::c_int as libc::c_uint {
+    if grmode as u32 == CGAgr as i32 as u32 {
         cgarefresh(view);
     } else {
         egarefresh(view);
@@ -510,7 +492,7 @@ pub unsafe fn refresh(view: &mut [[libc::c_int; 86]]) {
             x = 0;
             while x <= 15 {
                 view[(y + basey) as usize][(x + basex) as usize] =
-                    underwin[y as usize][x as usize] as libc::c_int;
+                    underwin[y as usize][x as usize] as i32;
                 x += 1;
             }
             y += 1;
@@ -519,9 +501,9 @@ pub unsafe fn refresh(view: &mut [[libc::c_int; 86]]) {
     WaitVBL();
 }
 
-unsafe fn simplerefresh(view: &mut [[libc::c_int; 86]]) {
+unsafe fn simplerefresh(view: &mut [[i32; 86]]) {
     WaitVBL();
-    if grmode as libc::c_uint == CGAgr as libc::c_int as libc::c_uint {
+    if grmode as u32 == CGAgr as i32 as u32 {
         cgarefresh(view);
     } else {
         egarefresh(view);
@@ -532,7 +514,7 @@ pub unsafe extern "C" fn loadgrfiles() {
     if !picsexact.is_null() {
         free(picsexact as *mut libc::c_void);
     }
-    if grmode as libc::c_uint == CGAgr as libc::c_int as libc::c_uint {
+    if grmode as u32 == CGAgr as i32 as u32 {
         pics = bloadin(b"CGACHARS.CA2\0" as *const u8 as *const libc::c_char as *mut libc::c_char)
             as *mut libc::c_char;
         picsexact = pics;
@@ -553,13 +535,13 @@ pub unsafe extern "C" fn loadgrfiles() {
 #[no_mangle]
 pub unsafe extern "C" fn clearold() {
     memset(
-        &mut oldtiles as *mut [libc::c_int; 576] as *mut libc::c_void,
-        0xff as libc::c_int,
-        ::std::mem::size_of::<[libc::c_int; 576]>() as libc::c_ulong,
+        &mut oldtiles as *mut [i32; 576] as *mut libc::c_void,
+        0xff as i32,
+        ::std::mem::size_of::<[i32; 576]>() as u64,
     );
 }
 
-pub unsafe fn restore(view: &mut [[libc::c_int; 86]]) {
+pub unsafe fn restore(view: &mut [[i32; 86]]) {
     clearold();
     simplerefresh(view);
 }
@@ -571,31 +553,31 @@ pub unsafe extern "C" fn wantmore() -> boolean {
     sx = 12;
     sy = 21;
     ch = get() as libc::c_char;
-    if ch as libc::c_int == 27 {
+    if ch as i32 == 27 {
         return false as boolean;
     }
     return true as boolean;
 }
 unsafe fn charpic(
-    mut x: libc::c_int,
-    mut y: libc::c_int,
+    mut x: i32,
+    mut y: i32,
     mut c: classtype,
     mut dir: dirtype,
-    mut stage: libc::c_int,
+    mut stage: i32,
     objdef: &[objdeftype],
 ) {
-    let mut xx: libc::c_int = 0;
-    let mut yy: libc::c_int = 0;
-    let mut size: libc::c_int = 0;
-    let mut tilenum: libc::c_int = 0;
-    size = objdef[c as usize].size as libc::c_int;
-    tilenum = (objdef[c as usize].firstchar as libc::c_uint).wrapping_add(
-        ((size * size) as libc::c_uint).wrapping_mul(
-            (dir as libc::c_uint & objdef[c as usize].dirmask as libc::c_uint)
-                .wrapping_mul(objdef[c as usize].stages as libc::c_uint)
-                .wrapping_add(stage as libc::c_uint),
+    let mut xx: i32 = 0;
+    let mut yy: i32 = 0;
+    let mut size: i32 = 0;
+    let mut tilenum: i32 = 0;
+    size = objdef[c as usize].size as i32;
+    tilenum = (objdef[c as usize].firstchar as u32).wrapping_add(
+        ((size * size) as u32).wrapping_mul(
+            (dir as u32 & objdef[c as usize].dirmask as u32)
+                .wrapping_mul(objdef[c as usize].stages as u32)
+                .wrapping_add(stage as u32),
         ),
-    ) as libc::c_int;
+    ) as i32;
     yy = y;
     while yy <= y + size - 1 {
         xx = x;
@@ -610,8 +592,8 @@ unsafe fn charpic(
 }
 #[no_mangle]
 unsafe fn help(objdef: &[objdeftype]) {
-    let mut x: libc::c_int = 0;
-    let mut y: libc::c_int = 0;
+    let mut x: i32 = 0;
+    let mut y: i32 = 0;
     centerwindow(20, 20);
     print(b"  C A T A C O M B   \n\0" as *const u8 as *const libc::c_char);
     print(b"   - - - - - - -    \n\0" as *const u8 as *const libc::c_char);
@@ -743,18 +725,14 @@ pub unsafe extern "C" fn reset() {
     centerwindow(18, 1);
     print(b"reset game (y/n)?\0" as *const u8 as *const libc::c_char);
     ch = get() as libc::c_char;
-    if ch as libc::c_int == 'y' as i32 {
+    if ch as i32 == 'y' as i32 {
         gamexit = killed;
         playdone = true as boolean;
     }
 }
 
-pub unsafe fn loadlevel(
-    items: &mut [sword],
-    objdef: &[objdeftype],
-    view: &mut [[libc::c_int; 86]],
-) {
-    let mut i: libc::c_int = 0;
+pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 86]]) {
+    let mut i: i32 = 0;
     let mut tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
         secretgate, nothing, nothing, nothing, nothing, nothing, nothing, nothing, nothing,
@@ -762,18 +740,18 @@ pub unsafe fn loadlevel(
     ];
     let mut filename: [libc::c_char; 64] = [0; 64];
     let mut st: [libc::c_char; 64] = [0; 64];
-    let mut x: libc::c_int = 0;
-    let mut y: libc::c_int = 0;
-    let mut xx: libc::c_int = 0;
-    let mut yy: libc::c_int = 0;
-    let mut btile: byte = 0;
+    let mut x: i32 = 0;
+    let mut y: i32 = 0;
+    let mut xx: i32 = 0;
+    let mut yy: i32 = 0;
+    let mut btile: u8 = 0;
     let mut sm: [libc::c_char; 4096] = [0; 4096];
     let mut rle: [libc::c_char; 4096] = [0; 4096];
     strcpy(
         filename.as_mut_ptr(),
         b"LEVEL\0" as *const u8 as *const libc::c_char,
     );
-    itoa(level as libc::c_int, st.as_mut_ptr(), 10);
+    itoa(level as i32, st.as_mut_ptr(), 10);
     strcat(filename.as_mut_ptr(), st.as_mut_ptr());
     strcat(
         filename.as_mut_ptr(),
@@ -786,47 +764,47 @@ pub unsafe fn loadlevel(
     o[0].y = 13;
     o[0].stage = 0;
     o[0].delay = 0;
-    o[0].dir = east as libc::c_int as word;
+    o[0].dir = east as i32 as u16;
     o[0].oldx = 0;
     o[0].oldy = 0;
-    o[0].oldtile = -(1) as sword;
+    o[0].oldtile = -(1) as i16;
     yy = 0;
     while yy < 64 {
         xx = 0;
         while xx < 64 {
-            btile = sm[(yy * 64 + xx) as usize] as byte;
-            if (btile as libc::c_int) < 230 {
-                background[(yy + 11) as usize][(xx + 11) as usize] = btile as libc::c_int;
+            btile = sm[(yy * 64 + xx) as usize] as u8;
+            if (btile as i32) < 230 {
+                background[(yy + 11) as usize][(xx + 11) as usize] = btile as i32;
             } else {
                 background[(yy + 11) as usize][(xx + 11) as usize] = 128;
-                if tokens[(btile as libc::c_int - 230) as usize] as libc::c_uint
-                    == player as libc::c_int as libc::c_uint
+                if tokens[(btile as i32 - 230) as usize] as u32
+                    == player as i32 as u32
                 {
-                    o[0].x = (xx + 11) as byte;
-                    o[0].y = (yy + 11) as byte;
+                    o[0].x = (xx + 11) as u8;
+                    o[0].y = (yy + 11) as u8;
                 } else {
                     numobj += 1;
                     o[numobj as usize].active = false as boolean;
                     o[numobj as usize].class =
-                        tokens[(btile as libc::c_int - 230) as usize] as word;
-                    o[numobj as usize].x = (xx + 11) as byte;
-                    o[numobj as usize].y = (yy + 11) as byte;
+                        tokens[(btile as i32 - 230) as usize] as u16;
+                    o[numobj as usize].x = (xx + 11) as u8;
+                    o[numobj as usize].y = (yy + 11) as u8;
                     o[numobj as usize].stage = 0;
                     o[numobj as usize].delay = 0;
-                    o[numobj as usize].dir = (rndt() / 64) as dirtype as word;
+                    o[numobj as usize].dir = (rndt() / 64) as dirtype as u16;
                     o[numobj as usize].hp =
-                        objdef[o[numobj as usize].class as usize].hitpoints as sbyte;
+                        objdef[o[numobj as usize].class as usize].hitpoints as i8;
                     o[numobj as usize].oldx = o[numobj as usize].x;
                     o[numobj as usize].oldy = o[numobj as usize].y;
-                    o[numobj as usize].oldtile = -(1) as sword;
+                    o[numobj as usize].oldtile = -(1) as i16;
                 }
             }
             xx += 1;
         }
         yy += 1;
     }
-    originx = o[0].x as libc::c_int - 11;
-    originy = o[0].y as libc::c_int - 11;
+    originx = o[0].x as i32 - 11;
+    originy = o[0].y as i32 - 11;
     shotpower = 0;
     y = 11 - 1;
     while y < 65 + 11 {
@@ -839,7 +817,7 @@ pub unsafe fn loadlevel(
     }
     sx = 33;
     sy = 1;
-    printint(level as libc::c_int);
+    printint(level as i32);
     print(b" \0" as *const u8 as *const libc::c_char);
     restore(view);
     i = 0;
@@ -851,8 +829,8 @@ pub unsafe fn loadlevel(
     saveo[0] = o[0];
 }
 
-unsafe fn drawside(items: &mut [sword]) {
-    let mut i: libc::c_int = 0;
+unsafe fn drawside(items: &mut [i16]) {
+    let mut i: i32 = 0;
     sx = 0;
     while sx < 40 {
         drawchar(sx, 24, 0);
@@ -874,35 +852,35 @@ unsafe fn drawside(items: &mut [sword]) {
     printscore();
     sx = 33;
     sy = 1;
-    printint(level as libc::c_int);
+    printint(level as i32);
     drawpic(25 * 8, 17 * 8, 13);
     i = 1;
-    while i <= items[1] as libc::c_int && i < 11 {
+    while i <= items[1] as i32 && i < 11 {
         drawchar(26 + i, 7, 31);
         i += 1;
     }
     i = 1;
-    while i <= items[2] as libc::c_int && i < 11 {
+    while i <= items[2] as i32 && i < 11 {
         drawchar(26 + i, 8, 29);
         i += 1;
     }
     i = 1;
-    while i <= items[3] as libc::c_int && i < 11 {
+    while i <= items[3] as i32 && i < 11 {
         drawchar(26 + i, 9, 30);
         i += 1;
     }
     i = 1;
-    while i <= items[5] as libc::c_int && i < 11 {
+    while i <= items[5] as i32 && i < 11 {
         drawchar(26 + i, 10, 30);
         i += 1;
     }
 }
 
-unsafe fn playsetup(items: &mut [sword]) {
-    let mut i: libc::c_int = 0;
+unsafe fn playsetup(items: &mut [i16]) {
+    let mut i: i32 = 0;
     shotpower = 0;
     bar(0, 0, 23, 23, 0);
-    if level as libc::c_int == 0 {
+    if level as i32 == 0 {
         i = 1;
         while i < 6 {
             items[i as usize] = 0;
@@ -911,9 +889,9 @@ unsafe fn playsetup(items: &mut [sword]) {
         score = 0;
         level = 1;
         o[0].active = true as boolean;
-        o[0].class = player as libc::c_int as word;
+        o[0].class = player as i32 as u16;
         o[0].hp = 13;
-        o[0].dir = west as libc::c_int as word;
+        o[0].dir = west as i32 as u16;
         o[0].stage = 0;
         o[0].delay = 0;
         drawside(items);
@@ -930,7 +908,7 @@ unsafe fn playsetup(items: &mut [sword]) {
     };
 }
 
-pub unsafe fn repaintscreen(items: &mut [sword], view: &mut [[libc::c_int; 86]]) {
+pub unsafe fn repaintscreen(items: &mut [i16], view: &mut [[i32; 86]]) {
     match gamestate {
         statetype::intitle => {
             drawpic(0, 0, 14);
@@ -941,7 +919,7 @@ pub unsafe fn repaintscreen(items: &mut [sword], view: &mut [[libc::c_int; 86]])
             printscore();
             sx = 33;
             sy = 1;
-            printint(level as libc::c_int);
+            printint(level as i32);
         }
         statetype::inscores => {
             restore(view);
@@ -949,19 +927,19 @@ pub unsafe fn repaintscreen(items: &mut [sword], view: &mut [[libc::c_int; 86]])
             printscore();
             sx = 33;
             sy = 1;
-            printint(level as libc::c_int);
+            printint(level as i32);
             indemo = demoenum::demoplay;
         }
     };
 }
 
-pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[libc::c_int; 86]]) {
-    let mut handle: libc::c_int = 0;
-    let mut key: libc::c_int = bioskey(1);
-    if key == SDL_SCANCODE_ESCAPE as libc::c_int {
-        key = SDL_SCANCODE_F10 as libc::c_int;
+pub unsafe fn dofkeys(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 86]]) {
+    let mut handle: i32 = 0;
+    let mut key: i32 = bioskey(1);
+    if key == SDL_SCANCODE_ESCAPE as i32 {
+        key = SDL_SCANCODE_F10 as i32;
     }
-    if key < SDL_SCANCODE_F1 as libc::c_int || key > SDL_SCANCODE_F10 as libc::c_int {
+    if key < SDL_SCANCODE_F1 as i32 || key > SDL_SCANCODE_F10 as i32 {
         return;
     }
     let mut current_block_72: u64;
@@ -979,7 +957,7 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
             expwin(18, 1);
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
-            if ch as libc::c_int == 'Y' as i32 {
+            if ch as i32 == 'Y' as i32 {
                 resetgame = true as boolean;
             }
         }
@@ -992,8 +970,8 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
             } else {
                 print(b"Save as game #(1-9):\0" as *const u8 as *const libc::c_char);
                 ch = toupper(get()) as libc::c_char;
-                drawchar(sx, sy, ch as libc::c_int);
-                if !((ch as libc::c_int) < '1' as i32 || ch as libc::c_int > '9' as i32) {
+                drawchar(sx, sy, ch as i32);
+                if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                     strcpy(
                         str.as_mut_ptr(),
                         b"GAME0.CA2\0" as *const u8 as *const libc::c_char,
@@ -1005,7 +983,7 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
                                 as *const libc::c_char,
                         );
                         ch = get() as libc::c_char;
-                        if ch as libc::c_int != 'Y' as i32 && ch as libc::c_int != 'y' as i32 {
+                        if ch as i32 != 'Y' as i32 && ch as i32 != 'y' as i32 {
                             current_block_72 = 919954187481050311;
                         } else {
                             sx = leftedge;
@@ -1025,35 +1003,35 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
                         _ => {
                             handle = open(
                                 str.as_mut_ptr(),
-                                0o1 as libc::c_int
+                                0o1 as i32
                                     | 0
-                                    | 0o100 as libc::c_int
-                                    | 0o1000 as libc::c_int,
-                                0o400 as libc::c_int | 0o200 as libc::c_int,
+                                    | 0o100 as i32
+                                    | 0o1000 as i32,
+                                0o400 as i32 | 0o200 as i32,
                             );
                             if handle == -(1) {
                                 return;
                             }
                             write(
                                 handle,
-                                &mut saveitems as *mut [sword; 6] as *const libc::c_void,
-                                ::std::mem::size_of::<[sword; 6]>() as libc::c_ulong,
+                                &mut saveitems as *mut [i16; 6] as *const libc::c_void,
+                                ::std::mem::size_of::<[i16; 6]>() as u64,
                             );
                             write(
                                 handle,
-                                &mut savescore as *mut sdword as *const libc::c_void,
-                                ::std::mem::size_of::<sdword>() as libc::c_ulong,
+                                &mut savescore as *mut i32 as *const libc::c_void,
+                                ::std::mem::size_of::<i32>() as u64,
                             );
                             write(
                                 handle,
-                                &mut level as *mut sword as *const libc::c_void,
-                                ::std::mem::size_of::<sword>() as libc::c_ulong,
+                                &mut level as *mut i16 as *const libc::c_void,
+                                ::std::mem::size_of::<i16>() as u64,
                             );
                             write(
                                 handle,
                                 &mut *saveo.as_mut_ptr().offset(0) as *mut activeobj
                                     as *const libc::c_void,
-                                ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+                                ::std::mem::size_of::<activeobj>() as u64,
                             );
                             close(handle);
                             print(b"\nGame saved.  Hit F5\n\0" as *const u8 as *const libc::c_char);
@@ -1070,8 +1048,8 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
             expwin(22, 4);
             print(b"Load game #(1-9):\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
-            drawchar(sx, sy, ch as libc::c_int);
-            if !((ch as libc::c_int) < '1' as i32 || ch as libc::c_int > '9' as i32) {
+            drawchar(sx, sy, ch as i32);
+            if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                 strcpy(
                     str.as_mut_ptr(),
                     b"GAME0.CA2\0" as *const u8 as *const libc::c_char,
@@ -1082,7 +1060,7 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
                 handle = open(
                     str.as_mut_ptr(),
                     O_RDONLY | O_BINARY,
-                    0o200 as libc::c_int | 0o400 as libc::c_int,
+                    0o200 as i32 | 0o400 as i32,
                 );
                 if handle == -(1) {
                     print(b"\nGame not found.\0" as *const u8 as *const libc::c_char);
@@ -1091,22 +1069,22 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
                     read(
                         handle,
                         items as *mut _ as *mut libc::c_void,
-                        ::std::mem::size_of::<[sword; 6]>() as libc::c_ulong,
+                        ::std::mem::size_of::<[i16; 6]>() as u64,
                     );
                     read(
                         handle,
-                        &mut score as *mut sdword as *mut libc::c_void,
-                        ::std::mem::size_of::<sdword>() as libc::c_ulong,
+                        &mut score as *mut i32 as *mut libc::c_void,
+                        ::std::mem::size_of::<i32>() as u64,
                     );
                     read(
                         handle,
-                        &mut level as *mut sword as *mut libc::c_void,
-                        ::std::mem::size_of::<sword>() as libc::c_ulong,
+                        &mut level as *mut i16 as *mut libc::c_void,
+                        ::std::mem::size_of::<i16>() as u64,
                     );
                     read(
                         handle,
                         &mut *o.as_mut_ptr().offset(0) as *mut activeobj as *mut libc::c_void,
-                        ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+                        ::std::mem::size_of::<activeobj>() as u64,
                     );
                     close(handle);
                     exitdemo = true;
@@ -1129,7 +1107,7 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
             expwin(12, 1);
             print(b"QUIT (Y/N)?\0" as *const u8 as *const libc::c_char);
             ch = toupper(get()) as libc::c_char;
-            if ch as libc::c_int == 'Y' as i32 {
+            if ch as i32 == 'Y' as i32 {
                 _quit(b"\0" as *const u8 as *const libc::c_char as *mut libc::c_char);
             }
         }
@@ -1140,8 +1118,8 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
     repaintscreen(items, view);
 }
 
-unsafe fn dotitlepage(items: &mut [sword], objdef: &[objdeftype], view: &mut [[libc::c_int; 86]]) {
-    let mut i: libc::c_int = 0;
+unsafe fn dotitlepage(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 86]]) {
+    let mut i: i32 = 0;
     drawpic(0, 0, 14);
     UpdateScreen();
     gamestate = statetype::intitle;
@@ -1150,9 +1128,9 @@ unsafe fn dotitlepage(items: &mut [sword], objdef: &[objdeftype], view: &mut [[l
         WaitVBL();
         indemo = demoenum::notdemo;
         ctrl = ControlPlayer(1);
-        if ctrl.button1 as libc::c_int != 0
-            || ctrl.button2 as libc::c_int != 0
-            || keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
+        if ctrl.button1 as i32 != 0
+            || ctrl.button2 as i32 != 0
+            || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             level = 0;
             exitdemo = true;
@@ -1205,13 +1183,13 @@ pub unsafe extern "C" fn doendpage() {
 }
 
 unsafe fn dodemo(
-    priority: &[byte],
-    items: &mut [sword],
+    priority: &[u8],
+    items: &mut [i16],
     objdef: &mut [objdeftype],
     side: &mut i32,
-    view: &mut [[libc::c_int; 86]],
+    view: &mut [[i32; 86]],
 ) {
-    let mut i: libc::c_int = 0;
+    let mut i: i32 = 0;
     while !exitdemo {
         dotitlepage(items, objdef, view);
         if exitdemo {
@@ -1235,9 +1213,9 @@ unsafe fn dodemo(
             WaitVBL();
             indemo = demoenum::notdemo;
             ctrl = ControlPlayer(1);
-            if ctrl.button1 as libc::c_int != 0
-                || ctrl.button2 as libc::c_int != 0
-                || keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
+            if ctrl.button1 as i32 != 0
+                || ctrl.button2 as i32 != 0
+                || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 exitdemo = true;
                 break;
@@ -1254,8 +1232,8 @@ unsafe fn dodemo(
     }
 }
 
-unsafe fn gameover(items: &mut [sword], objdef: &[objdeftype], view: &mut [[libc::c_int; 86]]) {
-    let mut i: libc::c_int = 0;
+unsafe fn gameover(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 86]]) {
+    let mut i: i32 = 0;
     expwin(11, 4);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const libc::c_char);
     UpdateScreen();
@@ -1272,16 +1250,16 @@ unsafe fn gameover(items: &mut [sword], objdef: &[objdeftype], view: &mut [[libc
     while i < 500 {
         WaitVBL();
         ctrl = ControlPlayer(1);
-        if ctrl.button1 as libc::c_int != 0
-            || ctrl.button2 as libc::c_int != 0
-            || keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
+        if ctrl.button1 as i32 != 0
+            || ctrl.button2 as i32 != 0
+            || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             break;
         }
         if bioskey(1) != 0 {
             dofkeys(items, objdef, view);
         }
-        if exitdemo as libc::c_int != 0 || indemo == demoenum::demoplay {
+        if exitdemo as i32 != 0 || indemo == demoenum::demoplay {
             break;
         }
         i += 1;
@@ -1301,8 +1279,8 @@ pub fn original_main() {
     /***************************************************************************/
     // Ex-globals
 
-    let mut priority: [byte; 2048] = [0; 2048];
-    let mut items: [sword; 6] = [0; 6];
+    let mut priority: [u8; 2048] = [0; 2048];
+    let mut items: [i16; 6] = [0; 6];
     let mut objdef = [objdeftype {
         think: 0,
         contact: 0,
@@ -1318,7 +1296,7 @@ pub fn original_main() {
         filler: [0; 2],
     }; 23];
     let mut side = 0;
-    let mut view: [[libc::c_int; 86]; 87] = [[0; 86]; 87];
+    let mut view: [[i32; 86]; 87] = [[0; 86]; 87];
 
     /***************************************************************************/
 
@@ -1370,7 +1348,7 @@ pub fn original_main() {
     }
     priority[167] = 1; // chest
     for i in tile2s..=maxpics {
-        if priority[i] as libc::c_int == 99 {
+        if priority[i] as i32 == 99 {
             priority[i] = 4; /*most bigger tiles are monsters*/
         }
     }

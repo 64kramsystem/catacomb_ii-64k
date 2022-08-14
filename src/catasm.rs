@@ -4,107 +4,95 @@ use crate::{
     cat_play::doactive, catacomb::refresh, class_type::classtype::*, obj_def_type::objdeftype,
 };
 extern "C" {
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
+    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
     fn __assert_fail(
         __assertion: *const libc::c_char,
         __file: *const libc::c_char,
-        __line: libc::c_uint,
+        __line: u32,
         __function: *const libc::c_char,
     ) -> !;
-    static mut originy: libc::c_int;
-    static mut originx: libc::c_int;
-    static mut oldtiles: [libc::c_int; 576];
-    static mut numobj: libc::c_int;
+    static mut originy: i32;
+    static mut originx: i32;
+    static mut oldtiles: [i32; 576];
+    static mut numobj: i32;
     static mut o: [activeobj; 201];
-    static mut objecton: libc::c_int;
-    static mut frameon: word;
+    static mut objecton: i32;
+    static mut frameon: u16;
     static mut leveldone: boolean;
     static mut playdone: boolean;
-    static mut background: [[libc::c_int; 86]; 87];
+    static mut background: [[i32; 86]; 87];
     static mut obj: objtype;
     static mut pics: *mut libc::c_char;
     fn doinactive();
     static mut grmode: grtype;
     fn UpdateScreen();
-    static mut screenseg: [byte; 64000];
+    static mut screenseg: [u8; 64000];
 }
-pub type __int8_t = libc::c_schar;
-pub type __uint8_t = libc::c_uchar;
-pub type __int16_t = libc::c_short;
-pub type __uint16_t = libc::c_ushort;
-pub type int8_t = __int8_t;
-pub type int16_t = __int16_t;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
-pub type boolean = uint16_t;
-pub type byte = uint8_t;
-pub type sbyte = int8_t;
-pub type word = uint16_t;
-pub type sword = int16_t;
+pub type boolean = u16;
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct activeobj {
     pub active: boolean,
-    pub class: word,
-    pub x: byte,
-    pub y: byte,
-    pub stage: byte,
-    pub delay: byte,
-    pub dir: word,
-    pub hp: sbyte,
-    pub oldx: byte,
-    pub oldy: byte,
-    pub oldtile: sword,
-    pub filler: [byte; 1],
+    pub class: u16,
+    pub x: u8,
+    pub y: u8,
+    pub stage: u8,
+    pub delay: u8,
+    pub dir: u16,
+    pub hp: i8,
+    pub oldx: u8,
+    pub oldy: u8,
+    pub oldtile: i16,
+    pub filler: [u8; 1],
 }
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct objtype {
     pub active: boolean,
-    pub class: word,
-    pub x: byte,
-    pub y: byte,
-    pub stage: byte,
-    pub delay: byte,
-    pub dir: word,
-    pub hp: sbyte,
-    pub oldx: byte,
-    pub oldy: byte,
-    pub oldtile: sword,
-    pub filler: [byte; 1],
-    pub think: byte,
-    pub contact: byte,
-    pub solid: byte,
-    pub firstchar: word,
-    pub size: byte,
-    pub stages: byte,
-    pub dirmask: byte,
-    pub speed: word,
-    pub hitpoints: byte,
-    pub damage: byte,
-    pub points: word,
-    pub filler2: [byte; 2],
+    pub class: u16,
+    pub x: u8,
+    pub y: u8,
+    pub stage: u8,
+    pub delay: u8,
+    pub dir: u16,
+    pub hp: i8,
+    pub oldx: u8,
+    pub oldy: u8,
+    pub oldtile: i16,
+    pub filler: [u8; 1],
+    pub think: u8,
+    pub contact: u8,
+    pub solid: u8,
+    pub firstchar: u16,
+    pub size: u8,
+    pub stages: u8,
+    pub dirmask: u8,
+    pub speed: u16,
+    pub hitpoints: u8,
+    pub damage: u8,
+    pub points: u16,
+    pub filler2: [u8; 2],
 }
-pub type grtype = libc::c_uint;
+pub type grtype = u32;
 pub const VGAgr: grtype = 3;
 pub const EGAgr: grtype = 2;
 pub const CGAgr: grtype = 1;
 pub const text: grtype = 0;
-pub type C2RustUnnamed_0 = libc::c_uint;
+pub type C2RustUnnamed_0 = u32;
 pub const screenpitch: C2RustUnnamed_0 = 320;
 #[inline]
-unsafe extern "C" fn EGA(mut chan: *const byte, mut ofs: byte) -> byte {
-    return ((*chan.offset(3) as libc::c_int >> ofs as libc::c_int & 1) << 3
-        | (*chan.offset(2) as libc::c_int >> ofs as libc::c_int & 1) << 2
-        | (*chan.offset(1) as libc::c_int >> ofs as libc::c_int & 1) << 1
-        | *chan.offset(0) as libc::c_int >> ofs as libc::c_int & 1) as byte;
+unsafe extern "C" fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
+    return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
+        | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
+        | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
+        | *chan.offset(0) as i32 >> ofs as i32 & 1) as u8;
 }
 #[no_mangle]
-pub static mut squares: [byte; 9] = [0, 1, 4, 9, 16, 25, 36, 49, 64];
+pub static mut squares: [u8; 9] = [0, 1, 4, 9, 16, 25, 36, 49, 64];
 #[no_mangle]
-pub static mut table86: [word; 87] = [
+pub static mut table86: [u16; 87] = [
     0, 86, 172, 258, 344, 430, 516, 602, 688, 774, 860, 946, 1032, 1118, 1204, 1290, 1376, 1462,
     1548, 1634, 1720, 1806, 1892, 1978, 2064, 2150, 2236, 2322, 2408, 2494, 2580, 2666, 2752, 2838,
     2924, 3010, 3096, 3182, 3268, 3354, 3440, 3526, 3612, 3698, 3784, 3870, 3956, 4042, 4128, 4214,
@@ -113,83 +101,83 @@ pub static mut table86: [word; 87] = [
     7052, 7138, 7224, 7310, 7396,
 ];
 
-pub unsafe fn drawobj(priority: &[byte], view: &mut [[libc::c_int; 86]]) {
-    let mut tilenum: libc::c_int = obj.firstchar as libc::c_int
-        + squares[obj.size as usize] as libc::c_int
-            * ((obj.dir as libc::c_int & obj.dirmask as libc::c_int) * obj.stages as libc::c_int
-                + obj.stage as libc::c_int);
-    obj.oldtile = tilenum as sword;
+pub unsafe fn drawobj(priority: &[u8], view: &mut [[i32; 86]]) {
+    let mut tilenum: i32 = obj.firstchar as i32
+        + squares[obj.size as usize] as i32
+            * ((obj.dir as i32 & obj.dirmask as i32) * obj.stages as i32
+                + obj.stage as i32);
+    obj.oldtile = tilenum as i16;
     obj.oldy = obj.y;
     obj.oldx = obj.x;
-    let objpri: byte = priority[tilenum as usize];
-    let mut ofs: libc::c_uint =
-        (table86[obj.oldy as usize] as libc::c_int + obj.oldx as libc::c_int) as libc::c_uint;
-    let mut x: libc::c_uint = 0;
-    let mut y: libc::c_uint = 0;
-    y = obj.size as libc::c_uint;
+    let objpri: u8 = priority[tilenum as usize];
+    let mut ofs: u32 =
+        (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
+    let mut x: u32 = 0;
+    let mut y: u32 = 0;
+    y = obj.size as u32;
     loop {
         let fresh0 = y;
         y = y.wrapping_sub(1);
         if !(fresh0 > 0) {
             break;
         }
-        x = obj.size as libc::c_uint;
+        x = obj.size as u32;
         loop {
             let fresh1 = x;
             x = x.wrapping_sub(1);
             if !(fresh1 > 0) {
                 break;
             }
-            if priority[*(view.as_mut_ptr() as *mut libc::c_int).offset(ofs as isize) as usize]
-                as libc::c_int
-                <= objpri as libc::c_int
+            if priority[*(view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize]
+                as i32
+                <= objpri as i32
             {
-                *(view.as_mut_ptr() as *mut libc::c_int).offset(ofs as isize) = tilenum;
+                *(view.as_mut_ptr() as *mut i32).offset(ofs as isize) = tilenum;
             }
             tilenum += 1;
             ofs = ofs.wrapping_add(1);
         }
-        ofs = ofs.wrapping_add((86 - obj.size as libc::c_int) as libc::c_uint);
+        ofs = ofs.wrapping_add((86 - obj.size as i32) as u32);
     }
 }
 
-pub unsafe fn eraseobj(view: &mut [[libc::c_int; 86]]) {
-    let mut tilenum: libc::c_int = obj.oldtile as libc::c_int;
-    let mut ofs: libc::c_uint =
-        (table86[obj.oldy as usize] as libc::c_int + obj.oldx as libc::c_int) as libc::c_uint;
-    let mut x: libc::c_uint = 0;
-    let mut y: libc::c_uint = 0;
-    y = obj.size as libc::c_uint;
+pub unsafe fn eraseobj(view: &mut [[i32; 86]]) {
+    let mut tilenum: i32 = obj.oldtile as i32;
+    let mut ofs: u32 =
+        (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
+    let mut x: u32 = 0;
+    let mut y: u32 = 0;
+    y = obj.size as u32;
     loop {
         let fresh2 = y;
         y = y.wrapping_sub(1);
         if !(fresh2 > 0) {
             break;
         }
-        x = obj.size as libc::c_uint;
+        x = obj.size as u32;
         loop {
             let fresh3 = x;
             x = x.wrapping_sub(1);
             if !(fresh3 > 0) {
                 break;
             }
-            if *(view.as_mut_ptr() as *mut libc::c_int).offset(ofs as isize) == tilenum {
-                *(view.as_mut_ptr() as *mut libc::c_int).offset(ofs as isize) =
-                    *(background.as_mut_ptr() as *mut libc::c_int).offset(ofs as isize);
+            if *(view.as_mut_ptr() as *mut i32).offset(ofs as isize) == tilenum {
+                *(view.as_mut_ptr() as *mut i32).offset(ofs as isize) =
+                    *(background.as_mut_ptr() as *mut i32).offset(ofs as isize);
             }
             tilenum += 1;
             ofs = ofs.wrapping_add(1);
         }
-        ofs = ofs.wrapping_add((86 - obj.size as libc::c_int) as libc::c_uint);
+        ofs = ofs.wrapping_add((86 - obj.size as i32) as u32);
     }
 }
 
 pub unsafe fn doall(
-    priority: &[byte],
-    items: &mut [sword],
+    priority: &[u8],
+    items: &mut [i16],
     objdef: &mut [objdeftype],
     side: &mut i32,
-    view: &mut [[libc::c_int; 86]],
+    view: &mut [[i32; 86]],
 ) {
     assert!(numobj > 0);
 
@@ -200,14 +188,14 @@ pub unsafe fn doall(
                 &mut obj as *mut objtype as *mut libc::c_void,
                 &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
                     as *const libc::c_void,
-                ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+                ::std::mem::size_of::<activeobj>() as u64,
             );
-            if obj.class as libc::c_int != nothing as libc::c_int {
+            if obj.class as i32 != nothing as i32 {
                 memcpy(
-                    &mut obj.think as *mut byte as *mut libc::c_void,
+                    &mut obj.think as *mut u8 as *mut libc::c_void,
                     &mut *objdef.as_mut_ptr().offset(obj.class as isize) as *mut objdeftype
                         as *const libc::c_void,
-                    ::std::mem::size_of::<objdeftype>() as libc::c_ulong,
+                    ::std::mem::size_of::<objdeftype>() as u64,
                 );
                 if obj.active != 0 {
                     doactive(priority, items, objdef, side, view);
@@ -215,7 +203,7 @@ pub unsafe fn doall(
                     doinactive();
                 }
             }
-            if leveldone as libc::c_int != 0 || playdone as libc::c_int != 0 {
+            if leveldone as i32 != 0 || playdone as i32 != 0 {
                 return;
             }
             objecton -= 1;
@@ -233,47 +221,47 @@ pub unsafe fn doall(
         }
     }
 }
-unsafe extern "C" fn drawcgachartile(mut dest: *mut byte, mut tile: libc::c_int) {
-    let mut src: *mut byte = (pics as *mut byte).offset((tile << 4) as isize);
-    let mut r: libc::c_uint = 0;
+unsafe extern "C" fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
+    let mut src: *mut u8 = (pics as *mut u8).offset((tile << 4) as isize);
+    let mut r: u32 = 0;
     r = 0;
     while r < 8 {
         let fresh4 = dest;
         dest = dest.offset(1);
-        *fresh4 = (*src.offset(0) as libc::c_int >> 6 & 3) as byte;
+        *fresh4 = (*src.offset(0) as i32 >> 6 & 3) as u8;
         let fresh5 = dest;
         dest = dest.offset(1);
-        *fresh5 = (*src.offset(0) as libc::c_int >> 4 & 3) as byte;
+        *fresh5 = (*src.offset(0) as i32 >> 4 & 3) as u8;
         let fresh6 = dest;
         dest = dest.offset(1);
-        *fresh6 = (*src.offset(0) as libc::c_int >> 2 & 3) as byte;
+        *fresh6 = (*src.offset(0) as i32 >> 2 & 3) as u8;
         let fresh7 = dest;
         dest = dest.offset(1);
-        *fresh7 = (*src.offset(0) as libc::c_int >> 0 & 3) as byte;
+        *fresh7 = (*src.offset(0) as i32 >> 0 & 3) as u8;
         let fresh8 = dest;
         dest = dest.offset(1);
-        *fresh8 = (*src.offset(1) as libc::c_int >> 6 & 3) as byte;
+        *fresh8 = (*src.offset(1) as i32 >> 6 & 3) as u8;
         let fresh9 = dest;
         dest = dest.offset(1);
-        *fresh9 = (*src.offset(1) as libc::c_int >> 4 & 3) as byte;
+        *fresh9 = (*src.offset(1) as i32 >> 4 & 3) as u8;
         let fresh10 = dest;
         dest = dest.offset(1);
-        *fresh10 = (*src.offset(1) as libc::c_int >> 2 & 3) as byte;
-        *dest = (*src.offset(1) as libc::c_int >> 0 & 3) as byte;
-        dest = dest.offset((screenpitch as libc::c_int - 7) as isize);
+        *fresh10 = (*src.offset(1) as i32 >> 2 & 3) as u8;
+        *dest = (*src.offset(1) as i32 >> 0 & 3) as u8;
+        dest = dest.offset((screenpitch as i32 - 7) as isize);
         r = r.wrapping_add(1);
         src = src.offset(2);
     }
 }
 
-pub unsafe fn cgarefresh(view: &mut [[libc::c_int; 86]]) {
-    let mut ofs: libc::c_uint = (originy * 86 + originx) as libc::c_uint;
-    let mut tile: libc::c_int = 0;
-    let mut i: libc::c_uint = 0;
-    let mut endofrow: libc::c_uint = ofs.wrapping_add(24);
-    let mut vbuf: *mut byte = screenseg.as_mut_ptr();
+pub unsafe fn cgarefresh(view: &mut [[i32; 86]]) {
+    let mut ofs: u32 = (originy * 86 + originx) as u32;
+    let mut tile: i32 = 0;
+    let mut i: u32 = 0;
+    let mut endofrow: u32 = ofs.wrapping_add(24);
+    let mut vbuf: *mut u8 = screenseg.as_mut_ptr();
     loop {
-        tile = *(view.as_mut_ptr() as *mut libc::c_int).offset(ofs as isize);
+        tile = *(view.as_mut_ptr() as *mut i32).offset(ofs as isize);
         if tile != oldtiles[i as usize] {
             oldtiles[i as usize] = tile;
             drawcgachartile(vbuf, tile);
@@ -284,21 +272,21 @@ pub unsafe fn cgarefresh(view: &mut [[libc::c_int; 86]]) {
         if !(ofs == endofrow) {
             continue;
         }
-        if i == (24 * 24) as libc::c_uint {
+        if i == (24 * 24) as u32 {
             break;
         }
-        ofs = ofs.wrapping_add((86 - 24) as libc::c_uint);
+        ofs = ofs.wrapping_add((86 - 24) as u32);
         endofrow = endofrow.wrapping_add(86);
-        vbuf = vbuf.offset((screenpitch as libc::c_int * 8 - 24 * 8) as isize);
+        vbuf = vbuf.offset((screenpitch as i32 * 8 - 24 * 8) as isize);
     }
     UpdateScreen();
 }
-unsafe extern "C" fn drawegachartile(mut dest: *mut byte, mut tile: libc::c_int) {
-    let mut src: *mut byte = (pics as *mut byte).offset((tile << 5) as isize);
-    let mut r: libc::c_uint = 0;
+unsafe extern "C" fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
+    let mut src: *mut u8 = (pics as *mut u8).offset((tile << 5) as isize);
+    let mut r: u32 = 0;
     r = 0;
     while r < 8 {
-        let chan: [byte; 4] = [
+        let chan: [u8; 4] = [
             *src.offset(0),
             *src.offset(8),
             *src.offset(16),
@@ -326,20 +314,20 @@ unsafe extern "C" fn drawegachartile(mut dest: *mut byte, mut tile: libc::c_int)
         dest = dest.offset(1);
         *fresh17 = EGA(chan.as_ptr(), 1);
         *dest = EGA(chan.as_ptr(), 0);
-        dest = dest.offset((screenpitch as libc::c_int - 7) as isize);
+        dest = dest.offset((screenpitch as i32 - 7) as isize);
         r = r.wrapping_add(1);
         src = src.offset(1);
     }
 }
 
-pub unsafe fn egarefresh(view: &mut [[libc::c_int; 86]]) {
-    let mut ofs: libc::c_uint = (originy * 86 + originx) as libc::c_uint;
-    let mut tile: libc::c_int = 0;
-    let mut i: libc::c_uint = 0;
-    let mut endofrow: libc::c_uint = ofs.wrapping_add(24);
-    let mut vbuf: *mut byte = screenseg.as_mut_ptr();
+pub unsafe fn egarefresh(view: &mut [[i32; 86]]) {
+    let mut ofs: u32 = (originy * 86 + originx) as u32;
+    let mut tile: i32 = 0;
+    let mut i: u32 = 0;
+    let mut endofrow: u32 = ofs.wrapping_add(24);
+    let mut vbuf: *mut u8 = screenseg.as_mut_ptr();
     loop {
-        tile = *(view.as_mut_ptr() as *mut libc::c_int).offset(ofs as isize);
+        tile = *(view.as_mut_ptr() as *mut i32).offset(ofs as isize);
         if tile != oldtiles[i as usize] {
             oldtiles[i as usize] = tile;
             drawegachartile(vbuf, tile);
@@ -350,27 +338,27 @@ pub unsafe fn egarefresh(view: &mut [[libc::c_int; 86]]) {
         if !(ofs == endofrow) {
             continue;
         }
-        if i == (24 * 24) as libc::c_uint {
+        if i == (24 * 24) as u32 {
             break;
         }
-        ofs = ofs.wrapping_add((86 - 24) as libc::c_uint);
+        ofs = ofs.wrapping_add((86 - 24) as u32);
         endofrow = endofrow.wrapping_add(86);
-        vbuf = vbuf.offset((screenpitch as libc::c_int * 8 - 24 * 8) as isize);
+        vbuf = vbuf.offset((screenpitch as i32 * 8 - 24 * 8) as isize);
     }
     UpdateScreen();
 }
 #[no_mangle]
 pub unsafe extern "C" fn drawchartile(
-    mut x: libc::c_int,
-    mut y: libc::c_int,
-    mut tile: libc::c_int,
+    mut x: i32,
+    mut y: i32,
+    mut tile: i32,
 ) {
-    match grmode as libc::c_uint {
+    match grmode as u32 {
         1 => {
             drawcgachartile(
                 screenseg
                     .as_mut_ptr()
-                    .offset(((y << 3) * screenpitch as libc::c_int) as isize)
+                    .offset(((y << 3) * screenpitch as i32) as isize)
                     .offset((x << 3) as isize),
                 tile,
             );
@@ -379,7 +367,7 @@ pub unsafe extern "C" fn drawchartile(
             drawegachartile(
                 screenseg
                     .as_mut_ptr()
-                    .offset(((y << 3) * screenpitch as libc::c_int) as isize)
+                    .offset(((y << 3) * screenpitch as i32) as isize)
                     .offset((x << 3) as isize),
                 tile,
             );
