@@ -35,7 +35,6 @@ extern "C" {
     fn _showhighscores();
     static mut _extension: *const libc::c_char;
     static mut _maxplayers: libc::c_int;
-    static mut _numlevels: libc::c_int;
     static mut score: sdword;
     fn printhighscore();
     fn printbody();
@@ -1500,7 +1499,6 @@ pub fn original_main() {
 
         //  _dontplay = 1;	// no sounds for debugging and profiling
 
-        _numlevels = 30;
         _maxplayers = 1;
 
         _extension = b"CA2\0" as *const u8 as *const libc::c_char;

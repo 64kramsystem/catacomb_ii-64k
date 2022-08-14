@@ -1836,8 +1836,6 @@ pub static mut score: sdword = 0;
 #[no_mangle]
 pub static mut level: sword = 0;
 #[no_mangle]
-pub static mut _numlevels: libc::c_int = 0;
-#[no_mangle]
 pub static mut _maxplayers: libc::c_int = 0;
 #[no_mangle]
 pub static mut _extension: *const libc::c_char = b"PCR\0" as *const u8 as *const libc::c_char;
