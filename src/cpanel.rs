@@ -9,9 +9,9 @@ use crate::{
     extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    pcrlib_c::{drawwindow, erasewindow, expwin},
+    pcrlib_a::{drawchar, drawpic},
+    pcrlib_c::{drawwindow, erasewindow, expwin, get, print, UpdateScreen},
     sdl_scan_codes::*,
-    vec2::Vec2,
 };
 
 extern "C" {
@@ -19,19 +19,14 @@ extern "C" {
     fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
     fn loadgrfiles();
     fn bioskey(_: i32) -> i32;
-    fn get() -> i32;
     static mut _vgaok: boolean;
     static mut _egaok: boolean;
-    fn print(str: *const i8);
-    fn drawpic(x: i32, y: i32, picnum: i32);
-    fn drawchar(x: i32, y: i32, charnum: i32);
     static mut egaplaneofs: [u32; 4];
     static mut spriteptr: *mut libc::c_void;
     static mut picptr: *mut libc::c_void;
     static mut tileptr: *mut libc::c_void;
     static mut charptr: *mut libc::c_void;
     fn WaitVBL();
-    fn UpdateScreen();
     static mut xormask: i32;
     static mut leftedge: i32;
     static mut sy: i32;
@@ -401,7 +396,7 @@ pub static mut joy2ok: i32 = 0;
 #[no_mangle]
 pub static mut mouseok: i32 = 0;
 
-unsafe fn calibratejoy(mut joynum: i32, screencenter: &Vec2) {
+unsafe fn calibratejoy(mut joynum: i32, global_state: &mut GlobalState) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
     let mut dx: i32 = 0;
@@ -415,16 +410,28 @@ unsafe fn calibratejoy(mut joynum: i32, screencenter: &Vec2) {
         button1: 0,
         button2: 0,
     };
-    expwin(24, 9, screencenter);
-    print(b" Joystick Configuration\n\r\0" as *const u8 as *const i8);
-    print(b" ----------------------\n\r\0" as *const u8 as *const i8);
-    print(b"Hold the joystick in the\n\r\0" as *const u8 as *const i8);
-    print(b"upper left\n\r\0" as *const u8 as *const i8);
-    print(b"corner and hit fire:\0" as *const u8 as *const i8);
+    expwin(24, 9, global_state);
+    print(
+        b" Joystick Configuration\n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b" ----------------------\n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"Hold the joystick in the\n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(b"upper left\n\r\0" as *const u8 as *const i8, global_state);
+    print(
+        b"corner and hit fire:\0" as *const u8 as *const i8,
+        global_state,
+    );
     stage = 15;
     loop {
-        drawchar(sx, sy, stage);
-        UpdateScreen();
+        drawchar(sx, sy, stage, global_state);
+        UpdateScreen(global_state);
         WaitVBL();
         WaitVBL();
         WaitVBL();
@@ -446,22 +453,28 @@ unsafe fn calibratejoy(mut joynum: i32, screencenter: &Vec2) {
     }
     match current_block {
         8457315219000651999 => {
-            drawchar(sx, sy, ' ' as i32);
+            drawchar(sx, sy, ' ' as i32, global_state);
             loop {
                 ctr = ControlJoystick(joynum);
                 if !(ctr.button1 != 0) {
                     break;
                 }
             }
-            UpdateScreen();
+            UpdateScreen(global_state);
             WaitVBL();
             WaitVBL();
-            print(b"\n\n\rHold the joystick in the\n\r\0" as *const u8 as *const i8);
-            print(b"lower right\n\r\0" as *const u8 as *const i8);
-            print(b"corner and hit fire:\0" as *const u8 as *const i8);
+            print(
+                b"\n\n\rHold the joystick in the\n\r\0" as *const u8 as *const i8,
+                global_state,
+            );
+            print(b"lower right\n\r\0" as *const u8 as *const i8, global_state);
+            print(
+                b"corner and hit fire:\0" as *const u8 as *const i8,
+                global_state,
+            );
             loop {
-                drawchar(sx, sy, stage);
-                UpdateScreen();
+                drawchar(sx, sy, stage, global_state);
+                UpdateScreen(global_state);
                 WaitVBL();
                 WaitVBL();
                 WaitVBL();
@@ -484,14 +497,14 @@ unsafe fn calibratejoy(mut joynum: i32, screencenter: &Vec2) {
             match current_block {
                 15976468122069307450 => {}
                 _ => {
-                    drawchar(sx, sy, ' ' as i32);
+                    drawchar(sx, sy, ' ' as i32, global_state);
                     loop {
                         ctr = ControlJoystick(joynum);
                         if !(ctr.button1 != 0) {
                             break;
                         }
                     }
-                    UpdateScreen();
+                    UpdateScreen(global_state);
                     dx = (xh - xl) / 4;
                     dy = (yh - yl) / 4;
                     JoyXlow[joynum as usize] = xl + dx;
@@ -504,19 +517,34 @@ unsafe fn calibratejoy(mut joynum: i32, screencenter: &Vec2) {
         _ => {}
     }
     clearkeys();
-    erasewindow();
+    erasewindow(global_state);
 }
 
-unsafe fn calibratemouse(screencenter: &Vec2) {
+unsafe fn calibratemouse(global_state: &mut GlobalState) {
     let mut ch: i8 = 0;
-    expwin(24, 5, screencenter);
-    print(b"  Mouse Configuration   \n\r\0" as *const u8 as *const i8);
-    print(b"  -------------------   \n\r\0" as *const u8 as *const i8);
-    print(b"Choose the sensitivity  \n\r\0" as *const u8 as *const i8);
-    print(b"of the mouse, 1 being   \n\r\0" as *const u8 as *const i8);
-    print(b"slow, 9 being fast:\0" as *const u8 as *const i8);
+    expwin(24, 5, global_state);
+    print(
+        b"  Mouse Configuration   \n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"  -------------------   \n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"Choose the sensitivity  \n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"of the mouse, 1 being   \n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"slow, 9 being fast:\0" as *const u8 as *const i8,
+        global_state,
+    );
     loop {
-        ch = (get() % 256) as i8;
+        ch = (get(global_state) % 256) as i8;
         if ch as i32 == 27 {
             ch = '5' as i32 as i8;
         }
@@ -525,10 +553,10 @@ unsafe fn calibratemouse(screencenter: &Vec2) {
         }
     }
     MouseSensitivity = 15 - (ch as i32 - '0' as i32);
-    erasewindow();
+    erasewindow(global_state);
 }
-#[no_mangle]
-pub unsafe extern "C" fn printscan(mut sc: i32) {
+
+unsafe fn printscan(mut sc: i32, global_state: &mut GlobalState) {
     static mut chartable: [i8; 128] = [
         '?' as i32 as i8,
         '?' as i32 as i8,
@@ -661,106 +689,148 @@ pub unsafe extern "C" fn printscan(mut sc: i32) {
     ];
     sc = ScancodeToDOS(sc as SDL_Scancode);
     if sc == 1 {
-        print(b"ESC\0" as *const u8 as *const i8);
+        print(b"ESC\0" as *const u8 as *const i8, global_state);
     } else if sc == 0xe as i32 {
-        print(b"BKSP\0" as *const u8 as *const i8);
+        print(b"BKSP\0" as *const u8 as *const i8, global_state);
     } else if sc == 0xf as i32 {
-        print(b"TAB\0" as *const u8 as *const i8);
+        print(b"TAB\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x1d as i32 {
-        print(b"CTRL\0" as *const u8 as *const i8);
+        print(b"CTRL\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x2a as i32 {
-        print(b"LSHIFT\0" as *const u8 as *const i8);
+        print(b"LSHIFT\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x39 as i32 {
-        print(b"SPACE\0" as *const u8 as *const i8);
+        print(b"SPACE\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x3a as i32 {
-        print(b"CAPSLK\0" as *const u8 as *const i8);
+        print(b"CAPSLK\0" as *const u8 as *const i8, global_state);
     } else if sc >= 0x3b as i32 && sc <= 0x44 as i32 {
         let mut str: [i8; 3] = [0; 3];
-        print(b"F\0" as *const u8 as *const i8);
+        print(b"F\0" as *const u8 as *const i8, global_state);
         itoa(sc - 0x3a as i32, str.as_mut_ptr(), 10);
-        print(str.as_mut_ptr());
+        print(str.as_mut_ptr(), global_state);
     } else if sc == 0x57 as i32 {
-        print(b"F11\0" as *const u8 as *const i8);
+        print(b"F11\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x59 as i32 {
-        print(b"F12\0" as *const u8 as *const i8);
+        print(b"F12\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x46 as i32 {
-        print(b"SCRLLK\0" as *const u8 as *const i8);
+        print(b"SCRLLK\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x1c as i32 {
-        print(b"ENTER\0" as *const u8 as *const i8);
+        print(b"ENTER\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x36 as i32 {
-        print(b"RSHIFT\0" as *const u8 as *const i8);
+        print(b"RSHIFT\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x37 as i32 {
-        print(b"PRTSC\0" as *const u8 as *const i8);
+        print(b"PRTSC\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x38 as i32 {
-        print(b"ALT\0" as *const u8 as *const i8);
+        print(b"ALT\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x47 as i32 {
-        print(b"HOME\0" as *const u8 as *const i8);
+        print(b"HOME\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x49 as i32 {
-        print(b"PGUP\0" as *const u8 as *const i8);
+        print(b"PGUP\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x4f as i32 {
-        print(b"END\0" as *const u8 as *const i8);
+        print(b"END\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x51 as i32 {
-        print(b"PGDN\0" as *const u8 as *const i8);
+        print(b"PGDN\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x52 as i32 {
-        print(b"INS\0" as *const u8 as *const i8);
+        print(b"INS\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x53 as i32 {
-        print(b"DEL\0" as *const u8 as *const i8);
+        print(b"DEL\0" as *const u8 as *const i8, global_state);
     } else if sc == 0x45 as i32 {
-        print(b"NUMLK\0" as *const u8 as *const i8);
+        print(b"NUMLK\0" as *const u8 as *const i8, global_state);
     } else {
         let fresh0 = sx;
         sx = sx + 1;
-        drawchar(fresh0, sy, chartable[sc as usize] as i32);
+        drawchar(fresh0, sy, chartable[sc as usize] as i32, global_state);
     };
 }
 
-unsafe fn calibratekeys(screencenter: &Vec2) {
+unsafe fn calibratekeys(global_state: &mut GlobalState) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
     let mut hy: i32 = 0;
     let mut i: i32 = 0;
     let mut select: i32 = 0;
     let mut new: i32 = 0;
-    expwin(22, 15, screencenter);
-    print(b"Keyboard Configuration\n\r\0" as *const u8 as *const i8);
-    print(b"----------------------\0" as *const u8 as *const i8);
-    print(b"\n\r0 north    :\0" as *const u8 as *const i8);
-    print(b"\n\r1 east     :\0" as *const u8 as *const i8);
-    print(b"\n\r2 south    :\0" as *const u8 as *const i8);
-    print(b"\n\r3 west     :\0" as *const u8 as *const i8);
-    print(b"\n\r4 northeast:\0" as *const u8 as *const i8);
-    print(b"\n\r5 southeast:\0" as *const u8 as *const i8);
-    print(b"\n\r6 southwest:\0" as *const u8 as *const i8);
-    print(b"\n\r7 northwest:\0" as *const u8 as *const i8);
-    print(b"\n\r8 button1  :\0" as *const u8 as *const i8);
-    print(b"\n\r9 button2  :\0" as *const u8 as *const i8);
-    print(b"\n\n\rModify which action:\0" as *const u8 as *const i8);
+    expwin(22, 15, global_state);
+    print(
+        b"Keyboard Configuration\n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"----------------------\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r0 north    :\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r1 east     :\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r2 south    :\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r3 west     :\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r4 northeast:\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r5 southeast:\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r6 southwest:\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r7 northwest:\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r8 button1  :\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\r9 button2  :\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\n\n\rModify which action:\0" as *const u8 as *const i8,
+        global_state,
+    );
     hx = sx;
     hy = sy;
     i = 0;
     while i < 8 {
         sx = 22;
         sy = 7 + i;
-        printscan(key[i as usize]);
+        printscan(key[i as usize], global_state);
         i += 1;
     }
     sx = 22;
     sy = 15;
-    printscan(keyB1);
+    printscan(keyB1, global_state);
     sx = 22;
     sy = 16;
-    printscan(keyB2);
+    printscan(keyB2, global_state);
     loop {
         sx = hx;
         sy = hy;
-        ch = (get() % 256) as i8;
+        ch = (get(global_state) % 256) as i8;
         if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
             select = ch as i32 - '0' as i32;
-            drawchar(sx, sy, ch as i32);
+            drawchar(sx, sy, ch as i32, global_state);
             select = ch as i32 - '0' as i32;
-            print(b"\n\rPress the new key:\0" as *const u8 as *const i8);
+            print(
+                b"\n\rPress the new key:\0" as *const u8 as *const i8,
+                global_state,
+            );
             clearkeys();
-            UpdateScreen();
+            UpdateScreen(global_state);
             loop {
                 new = bioskey(1);
                 if !(new == 0) {
@@ -769,7 +839,10 @@ unsafe fn calibratekeys(screencenter: &Vec2) {
                 WaitVBL();
             }
             clearkeys();
-            print(b"\r                  \0" as *const u8 as *const i8);
+            print(
+                b"\r                  \0" as *const u8 as *const i8,
+                global_state,
+            );
             if select < 8 {
                 key[select as usize] = new;
             }
@@ -781,9 +854,9 @@ unsafe fn calibratekeys(screencenter: &Vec2) {
             }
             sy = select + 7;
             sx = 22;
-            print(b"        \0" as *const u8 as *const i8);
+            print(b"        \0" as *const u8 as *const i8, global_state);
             sx = 22;
-            printscan(new);
+            printscan(new, global_state);
             ch = '0' as i32 as i8;
             clearkeys();
         }
@@ -791,7 +864,7 @@ unsafe fn calibratekeys(screencenter: &Vec2) {
             break;
         }
     }
-    erasewindow();
+    erasewindow(global_state);
 }
 #[no_mangle]
 pub unsafe extern "C" fn getconfig() {
@@ -815,63 +888,82 @@ pub unsafe extern "C" fn getconfig() {
     spotok[2][3] = joy2ok;
     spotok[2][4] = 0;
 }
-#[no_mangle]
-pub unsafe extern "C" fn drawpanel() {
+
+unsafe fn drawpanel(global_state: &mut GlobalState) {
     leftedge = 1;
     xormask = 0;
     sx = 8;
     sy = 2;
-    print(b"       Control Panel      \n\r\0" as *const u8 as *const i8);
+    print(
+        b"       Control Panel      \n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
     getconfig();
     sy = rowy[0] + 2;
     sx = 2;
-    print(b"VIDEO:\0" as *const u8 as *const i8);
-    drawpic(collumnx[0] * 8, rowy[0] * 8, 0);
+    print(b"VIDEO:\0" as *const u8 as *const i8, global_state);
+    drawpic(collumnx[0] * 8, rowy[0] * 8, 0, global_state);
     if _egaok != 0 {
-        drawpic(collumnx[1] * 8, rowy[0] * 8, 1);
+        drawpic(collumnx[1] * 8, rowy[0] * 8, 1, global_state);
     } else {
-        drawpic(collumnx[1] * 8, rowy[0] * 8, 3);
+        drawpic(collumnx[1] * 8, rowy[0] * 8, 3, global_state);
     }
     sy = rowy[1] + 2;
     sx = 2;
-    print(b"SOUND:\0" as *const u8 as *const i8);
-    drawpic(collumnx[0] * 8, rowy[1] * 8, 5);
-    drawpic(collumnx[1] * 8, rowy[1] * 8, 6);
+    print(b"SOUND:\0" as *const u8 as *const i8, global_state);
+    drawpic(collumnx[0] * 8, rowy[1] * 8, 5, global_state);
+    drawpic(collumnx[1] * 8, rowy[1] * 8, 6, global_state);
     sy = rowy[2] + 2;
     sx = 2;
-    print(b"CONTROL:\0" as *const u8 as *const i8);
-    drawpic(collumnx[0] * 8, rowy[2] * 8, 7);
+    print(b"CONTROL:\0" as *const u8 as *const i8, global_state);
+    drawpic(collumnx[0] * 8, rowy[2] * 8, 7, global_state);
     if mouseok != 0 {
-        drawpic(collumnx[1] * 8, rowy[2] * 8, 10);
+        drawpic(collumnx[1] * 8, rowy[2] * 8, 10, global_state);
     } else {
-        drawpic(collumnx[1] * 8, rowy[2] * 8, 12);
+        drawpic(collumnx[1] * 8, rowy[2] * 8, 12, global_state);
     }
     if joy1ok != 0 {
-        drawpic(collumnx[2] * 8, rowy[2] * 8, 8);
+        drawpic(collumnx[2] * 8, rowy[2] * 8, 8, global_state);
     } else {
-        drawpic(collumnx[2] * 8, rowy[2] * 8, 11);
+        drawpic(collumnx[2] * 8, rowy[2] * 8, 11, global_state);
     }
     if joy2ok != 0 {
-        drawpic(collumnx[3] * 8, rowy[2] * 8, 9);
+        drawpic(collumnx[3] * 8, rowy[2] * 8, 9, global_state);
     } else {
-        drawpic(collumnx[3] * 8, rowy[2] * 8, 11);
+        drawpic(collumnx[3] * 8, rowy[2] * 8, 11, global_state);
     }
     drawchar(
         collumnx[(newgrmode as i32 - 1) as usize] + 1,
         rowy[0] + 3,
         15,
+        global_state,
     );
-    drawchar(collumnx[newsoundmode as i32 as usize] + 1, rowy[1] + 3, 15);
+    drawchar(
+        collumnx[newsoundmode as i32 as usize] + 1,
+        rowy[1] + 3,
+        15,
+        global_state,
+    );
     drawchar(
         collumnx[newplayermode[1] as i32 as usize] + 1,
         rowy[2] + 3,
         15,
+        global_state,
     );
     sy = 21;
     sx = 1;
-    print(b"  Move the cursor with the arrow keys \n\r\0" as *const u8 as *const i8);
-    print(b"   Make decisions with the ENTER key  \n\r\0" as *const u8 as *const i8);
-    print(b"       ESC to return to your game     \n\r\0" as *const u8 as *const i8);
+    print(
+        b"  Move the cursor with the arrow keys \n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"   Make decisions with the ENTER key  \n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"       ESC to return to your game     \n\r\0" as *const u8 as *const i8,
+        global_state,
+    );
 }
 
 pub unsafe fn controlpanel(global_state: &mut GlobalState) {
@@ -893,14 +985,14 @@ pub unsafe fn controlpanel(global_state: &mut GlobalState) {
     oldcentery = global_state.screencenter.y;
     global_state.screencenter.x = 19;
     global_state.screencenter.y = 11;
-    drawwindow(0, 0, 39, 24);
-    drawpanel();
+    drawwindow(0, 0, 39, 24, global_state);
+    drawpanel(global_state);
     row = 0;
     collumn = grmode as i32 - 1;
     loop {
         sx = collumnx[collumn as usize] + 2;
         sy = rowy[row as usize] + 3;
-        chf = get();
+        chf = get(global_state);
         if chf == SDLK_UP as i32 {
             row -= 1;
             if row < 0 {
@@ -946,12 +1038,13 @@ pub unsafe fn controlpanel(global_state: &mut GlobalState) {
                             collumnx[(newgrmode as i32 - 1) as usize] + 1,
                             rowy[row as usize] + 3,
                             32,
+                            global_state,
                         );
                         newgrmode = (collumn + 1).try_into().unwrap();
                         grmode = newgrmode;
                         loadgrfiles();
-                        drawwindow(0, 0, 39, 24);
-                        drawpanel();
+                        drawwindow(0, 0, 39, 24, global_state);
+                        drawpanel(global_state);
                     }
                 }
                 1 => {
@@ -959,6 +1052,7 @@ pub unsafe fn controlpanel(global_state: &mut GlobalState) {
                         collumnx[newsoundmode as i32 as usize] + 1,
                         rowy[row as usize] + 3,
                         32,
+                        global_state,
                     );
                     newsoundmode = collumn as soundtype;
                 }
@@ -967,22 +1061,28 @@ pub unsafe fn controlpanel(global_state: &mut GlobalState) {
                         collumnx[newplayermode[1] as i32 as usize] + 1,
                         rowy[row as usize] + 3,
                         32,
+                        global_state,
                     );
                     newplayermode[1] = collumn as inputtype;
                     if newplayermode[1] as u32 == keyboard as i32 as u32 {
-                        calibratekeys(&global_state.screencenter);
+                        calibratekeys(global_state);
                     } else if newplayermode[1] as u32 == mouse as i32 as u32 {
-                        calibratemouse(&global_state.screencenter);
+                        calibratemouse(global_state);
                     } else if newplayermode[1] as u32 == joystick1 as i32 as u32 {
-                        calibratejoy(1, &global_state.screencenter);
+                        calibratejoy(1, global_state);
                     } else if newplayermode[1] as u32 == joystick2 as i32 as u32 {
-                        calibratejoy(2, &global_state.screencenter);
+                        calibratejoy(2, global_state);
                     }
-                    drawpanel();
+                    drawpanel(global_state);
                 }
                 _ => {}
             }
-            drawchar(collumnx[collumn as usize] + 1, rowy[row as usize] + 3, 15);
+            drawchar(
+                collumnx[collumn as usize] + 1,
+                rowy[row as usize] + 3,
+                15,
+                global_state,
+            );
         }
         if !(chf != SDLK_ESCAPE as i32) {
             break;

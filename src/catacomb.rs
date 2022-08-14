@@ -4,7 +4,10 @@ use libc::O_RDONLY;
 
 use crate::{
     active_obj::activeobj,
-    cat_play::{givebolt, givenuke, givepotion, playloop},
+    cat_play::{
+        givebolt, givenuke, givepotion, playloop, printbody, printhighscore, printscore,
+        printshotpower,
+    },
     catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
     control_struct::ControlStruct,
@@ -22,7 +25,11 @@ use crate::{
     obj_def_type::objdeftype,
     obj_type::objtype,
     objects::initobjects,
-    pcrlib_c::{_checkhighscore, _setupgame, _showhighscores, centerwindow, drawwindow, expwin},
+    pcrlib_a::{drawchar, drawpic, WaitEndSound},
+    pcrlib_c::{
+        _checkhighscore, _setupgame, _showhighscores, bar, centerwindow, drawwindow, expwin, get,
+        print, printchartile, printint, UpdateScreen,
+    },
     sdl_scan_codes::*,
     state_type::statetype,
     vec2::Vec2,
@@ -45,21 +52,9 @@ extern "C" {
     fn bioskey(_: i32) -> i32;
     fn _quit(_: *mut i8);
     static mut score: i32;
-    fn printhighscore();
-    fn printbody();
-    fn printshotpower();
-    fn printscore();
     static mut level: i16;
-    fn bar(xl: i32, yl: i32, xh: i32, yh: i32, ch_0: i32);
-    fn printint(val: i32);
-    fn printchartile(str_0: *const i8);
-    fn print(str_0: *const i8);
-    fn get() -> i32;
-    fn drawpic(x: i32, y: i32, picnum: i32);
-    fn drawchar(x: i32, y: i32, charnum: i32);
     fn installgrfile(filename: *mut i8, inmem: *mut libc::c_void);
     fn WaitVBL();
-    fn UpdateScreen();
     static mut leftedge: i32;
     static mut sy: i32;
     static mut sx: i32;
@@ -73,7 +68,6 @@ extern "C" {
     fn LoadDemo(demonum: i32);
     fn ControlPlayer(player_0: i32) -> ControlStruct;
     static mut keydown: [boolean; 512];
-    fn WaitEndSound();
     fn PlaySound(sound: i32);
     static mut str: [i8; 80];
     static mut ch: i8;
@@ -379,14 +373,17 @@ pub unsafe fn restore(global_state: &mut GlobalState) {
     clearold(&mut global_state.oldtiles);
     simplerefresh(global_state);
 }
-#[no_mangle]
-pub unsafe extern "C" fn wantmore() -> boolean {
+
+unsafe fn wantmore(global_state: &mut GlobalState) -> boolean {
     sx = 2;
     sy = 20;
-    print(b"(space for more/esc)\0" as *const u8 as *const i8);
+    print(
+        b"(space for more/esc)\0" as *const u8 as *const i8,
+        global_state,
+    );
     sx = 12;
     sy = 21;
-    ch = get() as i8;
+    ch = get(global_state) as i8;
     if ch as i32 == 27 {
         return false as boolean;
     }
@@ -398,17 +395,17 @@ unsafe fn charpic(
     mut c: classtype,
     mut dir: dirtype,
     mut stage: i32,
-    objdef: &[objdeftype],
+    global_state: &mut GlobalState,
 ) {
     let mut xx: i32 = 0;
     let mut yy: i32 = 0;
     let mut size: i32 = 0;
     let mut tilenum: i32 = 0;
-    size = objdef[c as usize].size as i32;
-    tilenum = (objdef[c as usize].firstchar as u32).wrapping_add(
+    size = global_state.objdef[c as usize].size as i32;
+    tilenum = (global_state.objdef[c as usize].firstchar as u32).wrapping_add(
         ((size * size) as u32).wrapping_mul(
-            (dir as u32 & objdef[c as usize].dirmask as u32)
-                .wrapping_mul(objdef[c as usize].stages as u32)
+            (dir as u32 & global_state.objdef[c as usize].dirmask as u32)
+                .wrapping_mul(global_state.objdef[c as usize].stages as u32)
                 .wrapping_add(stage as u32),
         ),
     ) as i32;
@@ -418,147 +415,354 @@ unsafe fn charpic(
         while xx <= x + size - 1 {
             let fresh0 = tilenum;
             tilenum = tilenum + 1;
-            drawchartile(xx, yy, fresh0);
+            drawchartile(xx, yy, fresh0, global_state);
             xx += 1;
         }
         yy += 1;
     }
 }
 
-unsafe fn help(objdef: &[objdeftype], screencenter: &Vec2) {
+unsafe fn help(global_state: &mut GlobalState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
-    centerwindow(20, 20, screencenter);
-    print(b"  C A T A C O M B   \n\0" as *const u8 as *const i8);
-    print(b"   - - - - - - -    \n\0" as *const u8 as *const i8);
-    print(b" by John Carmack    \n\0" as *const u8 as *const i8);
-    print(b"                    \n\0" as *const u8 as *const i8);
-    print(b"\n\0" as *const u8 as *const i8);
-    print(b"f1 = help           \n\0" as *const u8 as *const i8);
-    print(b"f2 = control panel  \n\0" as *const u8 as *const i8);
-    print(b"f3 = game reset     \n\0" as *const u8 as *const i8);
-    print(b"f4 = save game      \n\0" as *const u8 as *const i8);
-    print(b"f5 = load saved game\n\0" as *const u8 as *const i8);
-    print(b"f9 = pause          \n\0" as *const u8 as *const i8);
-    print(b"f10 / ESC = quit    \n\0" as *const u8 as *const i8);
-    print(b"\n\0" as *const u8 as *const i8);
-    print(b"hit fire at the demo\n\0" as *const u8 as *const i8);
-    print(b"to begin playing.   \n\0" as *const u8 as *const i8);
-    if wantmore() == 0 {
+    centerwindow(20, 20, global_state);
+    print(
+        b"  C A T A C O M B   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"   - - - - - - -    \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b" by John Carmack    \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"                    \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(b"\n\0" as *const u8 as *const i8, global_state);
+    print(
+        b"f1 = help           \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"f2 = control panel  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"f3 = game reset     \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"f4 = save game      \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"f5 = load saved game\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"f9 = pause          \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"f10 / ESC = quit    \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(b"\n\0" as *const u8 as *const i8, global_state);
+    print(
+        b"hit fire at the demo\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"to begin playing.   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    if wantmore(global_state) == 0 {
         return;
     }
-    centerwindow(20, 20, screencenter);
-    print(b"\nKeyboard controls:  \n\n\0" as *const u8 as *const i8);
-    print(b"move    : arrows    \n\0" as *const u8 as *const i8);
-    print(b"button1 : ctrl      \n\0" as *const u8 as *const i8);
-    print(b"button2 : alt       \n\0" as *const u8 as *const i8);
-    print(b"\nTo switch to mouse \n\0" as *const u8 as *const i8);
-    print(b"or joystick control,\n\0" as *const u8 as *const i8);
-    print(b"hit f2             \n\0" as *const u8 as *const i8);
-    if wantmore() == 0 {
+    centerwindow(20, 20, global_state);
+    print(
+        b"\nKeyboard controls:  \n\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"move    : arrows    \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"button1 : ctrl      \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"button2 : alt       \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\nTo switch to mouse \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"or joystick control,\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"hit f2             \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    if wantmore(global_state) == 0 {
         return;
     }
-    centerwindow(20, 20, screencenter);
-    print(b"Button 1 / ctrl key:\n\0" as *const u8 as *const i8);
-    print(b"Builds shot power.  \n\0" as *const u8 as *const i8);
-    print(b"If the shot power   \n\0" as *const u8 as *const i8);
-    print(b"meter is full when  \n\0" as *const u8 as *const i8);
-    print(b"the button is       \n\0" as *const u8 as *const i8);
-    print(b"released, a super   \n\0" as *const u8 as *const i8);
-    print(b"shot will be        \n\0" as *const u8 as *const i8);
-    print(b"launched.           \n\0" as *const u8 as *const i8);
-    print(b"\n\0" as *const u8 as *const i8);
+    centerwindow(20, 20, global_state);
+    print(
+        b"Button 1 / ctrl key:\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"Builds shot power.  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"If the shot power   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"meter is full when  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"the button is       \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"released, a super   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"shot will be        \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"launched.           \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(b"\n\0" as *const u8 as *const i8, global_state);
     y = 11;
     while y <= 18 {
         x = 3;
         while x <= 20 {
-            drawchartile(x, y, 128);
+            drawchartile(x, y, 128, global_state);
             x += 1;
         }
         y += 1;
     }
-    charpic(4, 14, player, east, 2, objdef);
-    charpic(19, 15, shot, east, 1, objdef);
-    charpic(17, 14, shot, east, 0, objdef);
-    charpic(15, 15, shot, east, 1, objdef);
-    charpic(8, 14, bigshot, east, 0, objdef);
-    if wantmore() == 0 {
+    charpic(4, 14, player, east, 2, global_state);
+    charpic(19, 15, shot, east, 1, global_state);
+    charpic(17, 14, shot, east, 0, global_state);
+    charpic(15, 15, shot, east, 1, global_state);
+    charpic(8, 14, bigshot, east, 0, global_state);
+    if wantmore(global_state) == 0 {
         return;
     }
-    centerwindow(20, 20, screencenter);
-    print(b"Button 2 / alt key:\n\0" as *const u8 as *const i8);
-    print(b"Allows you to move  \n\0" as *const u8 as *const i8);
-    print(b"without changing the\n\0" as *const u8 as *const i8);
-    print(b"direction you are   \n\0" as *const u8 as *const i8);
-    print(b"facing.  Good for   \n\0" as *const u8 as *const i8);
-    print(b"searching walls and \n\0" as *const u8 as *const i8);
-    print(b"fighting retreats.  \n\0" as *const u8 as *const i8);
+    centerwindow(20, 20, global_state);
+    print(
+        b"Button 2 / alt key:\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"Allows you to move  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"without changing the\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"direction you are   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"facing.  Good for   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"searching walls and \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"fighting retreats.  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
     y = 11;
     while y <= 18 {
         x = 3;
         while x <= 20 {
             if y == 15 {
-                drawchartile(x, y, 129);
+                drawchartile(x, y, 129, global_state);
             } else if y == 16 {
-                drawchartile(x, y, 131);
+                drawchartile(x, y, 131, global_state);
             } else {
-                drawchartile(x, y, 128);
+                drawchartile(x, y, 128, global_state);
             }
             x += 1;
         }
         y += 1;
     }
-    charpic(6, 13, player, south, 2, objdef);
+    charpic(6, 13, player, south, 2, global_state);
     sx = 6;
     sy = 15;
-    print(b"\x1D\x1D\x1E\x1E\x1F\x1F\0" as *const u8 as *const i8);
-    if wantmore() == 0 {
+    print(
+        b"\x1D\x1D\x1E\x1E\x1F\x1F\0" as *const u8 as *const i8,
+        global_state,
+    );
+    if wantmore(global_state) == 0 {
         return;
     }
-    centerwindow(20, 20, screencenter);
-    print(b"\"P\" or \"space\" will \n\0" as *const u8 as *const i8);
-    print(b"take a healing      \n\0" as *const u8 as *const i8);
-    print(b"potion if you have  \n\0" as *const u8 as *const i8);
-    print(b"one.  This restores \n\0" as *const u8 as *const i8);
-    print(b"the body meter to   \n\0" as *const u8 as *const i8);
-    print(b"full strength.  Keep\n\0" as *const u8 as *const i8);
-    print(b"a sharp eye on the  \n\0" as *const u8 as *const i8);
-    print(b"meter, because when \n\0" as *const u8 as *const i8);
-    print(b"it runs out, you are\n\0" as *const u8 as *const i8);
-    print(b"dead!               \n\n\0" as *const u8 as *const i8);
-    print(b"\"B\" will cast a bolt\n\0" as *const u8 as *const i8);
-    print(b"spell if you have   \n\0" as *const u8 as *const i8);
-    print(b"any.  You can mow   \n\0" as *const u8 as *const i8);
-    print(b"down a lot of       \n\0" as *const u8 as *const i8);
-    print(b"monsters with a bit \n\0" as *const u8 as *const i8);
-    print(b"of skill.           \n\0" as *const u8 as *const i8);
-    if wantmore() == 0 {
+    centerwindow(20, 20, global_state);
+    print(
+        b"\"P\" or \"space\" will \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"take a healing      \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"potion if you have  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"one.  This restores \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"the body meter to   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"full strength.  Keep\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"a sharp eye on the  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"meter, because when \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"it runs out, you are\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"dead!               \n\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"\"B\" will cast a bolt\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"spell if you have   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"any.  You can mow   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"down a lot of       \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"monsters with a bit \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"of skill.           \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    if wantmore(global_state) == 0 {
         return;
     }
-    centerwindow(20, 20, screencenter);
-    print(b"\"N\" or \"enter\" will \n\0" as *const u8 as *const i8);
-    print(b"cast a nuke spell.  \n\0" as *const u8 as *const i8);
-    print(b"This usually wipes  \n\0" as *const u8 as *const i8);
-    print(b"out all the monsters\n\0" as *const u8 as *const i8);
-    print(b"near you.  Consider \n\0" as *const u8 as *const i8);
-    print(b"it a panic button   \n\0" as *const u8 as *const i8);
-    print(b"when you are being  \n\0" as *const u8 as *const i8);
-    print(b"mobbed by monsters! \n\n\0" as *const u8 as *const i8);
-    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const i8);
-    printchartile(b"POTIONS:       \x80\xA2\x80\n\0" as *const u8 as *const i8);
-    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const i8);
-    printchartile(b"SCROLLS:       \x80\xA3\x80\n\0" as *const u8 as *const i8);
-    printchartile(b" (BOLTS/NUKES) \x80\x80\x80\n\0" as *const u8 as *const i8);
-    printchartile(b"TREASURE:      \x80\xA7\x80\n\0" as *const u8 as *const i8);
-    printchartile(b" (POINTS)      \x80\x80\x80\n\0" as *const u8 as *const i8);
-    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const i8);
-    wantmore();
+    centerwindow(20, 20, global_state);
+    print(
+        b"\"N\" or \"enter\" will \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"cast a nuke spell.  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"This usually wipes  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"out all the monsters\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"near you.  Consider \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"it a panic button   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"when you are being  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"mobbed by monsters! \n\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printchartile(
+        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printchartile(
+        b"POTIONS:       \x80\xA2\x80\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printchartile(
+        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printchartile(
+        b"SCROLLS:       \x80\xA3\x80\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printchartile(
+        b" (BOLTS/NUKES) \x80\x80\x80\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printchartile(
+        b"TREASURE:      \x80\xA7\x80\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printchartile(
+        b" (POINTS)      \x80\x80\x80\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printchartile(
+        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    wantmore(global_state);
 }
 
 unsafe fn reset(global_state: &mut GlobalState) {
-    centerwindow(18, 1, &global_state.screencenter);
-    print(b"reset game (y/n)?\0" as *const u8 as *const i8);
-    ch = get() as i8;
+    centerwindow(18, 1, global_state);
+    print(
+        b"reset game (y/n)?\0" as *const u8 as *const i8,
+        global_state,
+    );
+    ch = get(global_state) as i8;
     if ch as i32 == 'y' as i32 {
         global_state.gamexit = killed;
         playdone = true as boolean;
@@ -644,8 +848,8 @@ pub unsafe fn loadlevel(global_state: &mut GlobalState) {
     }
     sx = 33;
     sy = 1;
-    printint(level as i32);
-    print(b" \0" as *const u8 as *const i8);
+    printint(level as i32, global_state);
+    print(b" \0" as *const u8 as *const i8, global_state);
     restore(global_state);
     i = 0;
     while i < 6 {
@@ -656,59 +860,65 @@ pub unsafe fn loadlevel(global_state: &mut GlobalState) {
     saveo[0] = o[0];
 }
 
-unsafe fn drawside(items: &mut [i16]) {
+unsafe fn drawside(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
     sx = 0;
     while sx < 40 {
-        drawchar(sx, 24, 0);
+        drawchar(sx, 24, 0, global_state);
         sx += 1;
     }
     sy = 0;
     while sy < 24 {
-        drawchar(39, sy, 0);
+        drawchar(39, sy, 0, global_state);
         sy += 1;
     }
-    drawwindow(24, 0, 38, 23);
-    print(b"  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n\0" as *const u8 as *const i8);
-    print(b" shot power\n\n\n    body\n\n\n\0" as *const u8 as *const i8);
-    printhighscore();
-    printbody();
-    printshotpower();
-    printscore();
+    drawwindow(24, 0, 38, 23, global_state);
+    print(
+        b"  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b" shot power\n\n\n    body\n\n\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    printhighscore(global_state);
+    printbody(global_state);
+    printshotpower(global_state);
+    printscore(global_state);
     sx = 33;
     sy = 1;
-    printint(level as i32);
-    drawpic(25 * 8, 17 * 8, 13);
+    printint(level as i32, global_state);
+    drawpic(25 * 8, 17 * 8, 13, global_state);
     i = 1;
-    while i <= items[1] as i32 && i < 11 {
-        drawchar(26 + i, 7, 31);
+    while i <= global_state.items[1] as i32 && i < 11 {
+        drawchar(26 + i, 7, 31, global_state);
         i += 1;
     }
     i = 1;
-    while i <= items[2] as i32 && i < 11 {
-        drawchar(26 + i, 8, 29);
+    while i <= global_state.items[2] as i32 && i < 11 {
+        drawchar(26 + i, 8, 29, global_state);
         i += 1;
     }
     i = 1;
-    while i <= items[3] as i32 && i < 11 {
-        drawchar(26 + i, 9, 30);
+    while i <= global_state.items[3] as i32 && i < 11 {
+        drawchar(26 + i, 9, 30, global_state);
         i += 1;
     }
     i = 1;
-    while i <= items[5] as i32 && i < 11 {
-        drawchar(26 + i, 10, 30);
+    while i <= global_state.items[5] as i32 && i < 11 {
+        drawchar(26 + i, 10, 30, global_state);
         i += 1;
     }
 }
 
-unsafe fn playsetup(items: &mut [i16]) {
+unsafe fn playsetup(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
     shotpower = 0;
-    bar(0, 0, 23, 23, 0);
+    bar(0, 0, 23, 23, 0, global_state);
     if level as i32 == 0 {
         i = 1;
         while i < 6 {
-            items[i as usize] = 0;
+            global_state.items[i as usize] = 0;
             i += 1;
         }
         score = 0;
@@ -719,40 +929,40 @@ unsafe fn playsetup(items: &mut [i16]) {
         o[0].dir = west as i32 as u16;
         o[0].stage = 0;
         o[0].delay = 0;
-        drawside(items);
-        givenuke(items);
-        givenuke(items);
-        givebolt(items);
-        givebolt(items);
-        givebolt(items);
-        givepotion(items);
-        givepotion(items);
-        givepotion(items);
+        drawside(global_state);
+        givenuke(global_state);
+        givenuke(global_state);
+        givebolt(global_state);
+        givebolt(global_state);
+        givebolt(global_state);
+        givepotion(global_state);
+        givepotion(global_state);
+        givepotion(global_state);
     } else {
-        drawside(items);
+        drawside(global_state);
     };
 }
 
 pub unsafe fn repaintscreen(global_state: &mut GlobalState) {
     match gamestate {
         statetype::intitle => {
-            drawpic(0, 0, 14);
+            drawpic(0, 0, 14, global_state);
         }
         statetype::ingame => {
             restore(global_state);
-            drawside(&mut global_state.items);
-            printscore();
+            drawside(global_state);
+            printscore(global_state);
             sx = 33;
             sy = 1;
-            printint(level as i32);
+            printint(level as i32, global_state);
         }
         statetype::inscores => {
             restore(global_state);
-            drawside(&mut global_state.items);
-            printscore();
+            drawside(global_state);
+            printscore(global_state);
             sx = 33;
             sy = 1;
-            printint(level as i32);
+            printint(level as i32, global_state);
             indemo = demoenum::demoplay;
         }
     };
@@ -771,7 +981,7 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
     match key {
         58 => {
             clearkeys();
-            help(&global_state.objdef, &global_state.screencenter);
+            help(global_state);
         }
         59 => {
             clearkeys();
@@ -779,37 +989,55 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
         }
         60 => {
             clearkeys();
-            expwin(18, 1, &global_state.screencenter);
-            print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8);
-            ch = toupper(get()) as i8;
+            expwin(18, 1, global_state);
+            print(
+                b"RESET GAME (Y/N)?\0" as *const u8 as *const i8,
+                global_state,
+            );
+            ch = toupper(get(global_state)) as i8;
             if ch as i32 == 'Y' as i32 {
                 resetgame = true as boolean;
             }
         }
         61 => {
             clearkeys();
-            expwin(22, 4, &global_state.screencenter);
+            expwin(22, 4, global_state);
             if indemo != demoenum::notdemo {
-                print(b"Can't save game here!\0" as *const u8 as *const i8);
-                get();
+                print(
+                    b"Can't save game here!\0" as *const u8 as *const i8,
+                    global_state,
+                );
+                get(global_state);
             } else {
-                print(b"Save as game #(1-9):\0" as *const u8 as *const i8);
-                ch = toupper(get()) as i8;
-                drawchar(sx, sy, ch as i32);
+                print(
+                    b"Save as game #(1-9):\0" as *const u8 as *const i8,
+                    global_state,
+                );
+                ch = toupper(get(global_state)) as i8;
+                drawchar(sx, sy, ch as i32, global_state);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                     strcpy(str.as_mut_ptr(), b"GAME0.CA2\0" as *const u8 as *const i8);
                     str[4] = ch;
                     if _Verify(str.as_mut_ptr()) != 0 {
-                        print(b"\nGame exists,\noverwrite (Y/N)?\0" as *const u8 as *const i8);
-                        ch = get() as i8;
+                        print(
+                            b"\nGame exists,\noverwrite (Y/N)?\0" as *const u8 as *const i8,
+                            global_state,
+                        );
+                        ch = get(global_state) as i8;
                         if ch as i32 != 'Y' as i32 && ch as i32 != 'y' as i32 {
                             current_block_72 = 919954187481050311;
                         } else {
                             sx = leftedge;
-                            print(b"                    \0" as *const u8 as *const i8);
+                            print(
+                                b"                    \0" as *const u8 as *const i8,
+                                global_state,
+                            );
                             sy -= 1;
                             sx = leftedge;
-                            print(b"                    \0" as *const u8 as *const i8);
+                            print(
+                                b"                    \0" as *const u8 as *const i8,
+                                global_state,
+                            );
                             sx = leftedge;
                             sy -= 1;
                             current_block_72 = 1836292691772056875;
@@ -850,10 +1078,19 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
                                 ::std::mem::size_of::<activeobj>() as u64,
                             );
                             close(handle);
-                            print(b"\nGame saved.  Hit F5\n\0" as *const u8 as *const i8);
-                            print(b"when you wish to\n\0" as *const u8 as *const i8);
-                            print(b"restart the game.\0" as *const u8 as *const i8);
-                            get();
+                            print(
+                                b"\nGame saved.  Hit F5\n\0" as *const u8 as *const i8,
+                                global_state,
+                            );
+                            print(
+                                b"when you wish to\n\0" as *const u8 as *const i8,
+                                global_state,
+                            );
+                            print(
+                                b"restart the game.\0" as *const u8 as *const i8,
+                                global_state,
+                            );
+                            get(global_state);
                         }
                     }
                 }
@@ -861,10 +1098,13 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
         }
         62 => {
             clearkeys();
-            expwin(22, 4, &global_state.screencenter);
-            print(b"Load game #(1-9):\0" as *const u8 as *const i8);
-            ch = toupper(get()) as i8;
-            drawchar(sx, sy, ch as i32);
+            expwin(22, 4, global_state);
+            print(
+                b"Load game #(1-9):\0" as *const u8 as *const i8,
+                global_state,
+            );
+            ch = toupper(get(global_state)) as i8;
+            drawchar(sx, sy, ch as i32, global_state);
             if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                 strcpy(str.as_mut_ptr(), b"GAME0.CA2\0" as *const u8 as *const i8);
                 str[4] = ch;
@@ -876,8 +1116,11 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
                     0o200 as i32 | 0o400 as i32,
                 );
                 if handle == -(1) {
-                    print(b"\nGame not found.\0" as *const u8 as *const i8);
-                    get();
+                    print(
+                        b"\nGame not found.\0" as *const u8 as *const i8,
+                        global_state,
+                    );
+                    get(global_state);
                 } else {
                     read(
                         handle,
@@ -904,22 +1147,22 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
                     if indemo != demoenum::notdemo {
                         playdone = true as boolean;
                     }
-                    drawside(&mut global_state.items);
+                    drawside(global_state);
                     leveldone = true as boolean;
                 }
             }
         }
         66 => {
             clearkeys();
-            expwin(7, 1, &global_state.screencenter);
-            print(b"PAUSED\0" as *const u8 as *const i8);
-            get();
+            expwin(7, 1, global_state);
+            print(b"PAUSED\0" as *const u8 as *const i8, global_state);
+            get(global_state);
         }
         67 => {
             clearkeys();
-            expwin(12, 1, &global_state.screencenter);
-            print(b"QUIT (Y/N)?\0" as *const u8 as *const i8);
-            ch = toupper(get()) as i8;
+            expwin(12, 1, global_state);
+            print(b"QUIT (Y/N)?\0" as *const u8 as *const i8, global_state);
+            ch = toupper(get(global_state)) as i8;
             if ch as i32 == 'Y' as i32 {
                 _quit(b"\0" as *const u8 as *const i8 as *mut i8);
             }
@@ -933,8 +1176,8 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
 
 unsafe fn dotitlepage(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
-    drawpic(0, 0, 14);
-    UpdateScreen();
+    drawpic(0, 0, 14, global_state);
+    UpdateScreen(global_state);
     gamestate = statetype::intitle;
     i = 0;
     while i < 300 {
@@ -952,7 +1195,7 @@ unsafe fn dotitlepage(global_state: &mut GlobalState) {
             indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
                 dofkeys(global_state);
-                UpdateScreen();
+                UpdateScreen(global_state);
             }
             if exitdemo {
                 break;
@@ -962,37 +1205,73 @@ unsafe fn dotitlepage(global_state: &mut GlobalState) {
     }
     gamestate = statetype::ingame;
 }
-#[no_mangle]
-pub unsafe extern "C" fn doendpage() {
-    WaitEndSound();
-    drawpic(0, 0, 15);
+
+unsafe fn doendpage(global_state: &mut GlobalState) {
+    WaitEndSound(global_state);
+    drawpic(0, 0, 15, global_state);
     PlaySound(3);
-    WaitEndSound();
+    WaitEndSound(global_state);
     PlaySound(3);
-    WaitEndSound();
+    WaitEndSound(global_state);
     PlaySound(3);
-    WaitEndSound();
+    WaitEndSound(global_state);
     PlaySound(3);
-    WaitEndSound();
-    drawwindow(0, 0, 17, 9);
-    print(b"Congratulation! \n\0" as *const u8 as *const i8);
-    print(b"One as skilled  \n\0" as *const u8 as *const i8);
-    print(b"as yourself     \n\0" as *const u8 as *const i8);
-    print(b"deserves the    \n\0" as *const u8 as *const i8);
-    print(b"10,000,000 gold \n\0" as *const u8 as *const i8);
-    print(b"you pulled out  \n\0" as *const u8 as *const i8);
-    print(b"of the palace! \0" as *const u8 as *const i8);
+    WaitEndSound(global_state);
+    drawwindow(0, 0, 17, 9, global_state);
+    print(
+        b"Congratulation! \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"One as skilled  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"as yourself     \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"deserves the    \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"10,000,000 gold \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"you pulled out  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(b"of the palace! \0" as *const u8 as *const i8, global_state);
     clearkeys();
-    get();
-    drawwindow(0, 0, 17, 9);
-    print(b"Let us know what\n\0" as *const u8 as *const i8);
-    print(b"you enjoyed     \n\0" as *const u8 as *const i8);
-    print(b"about this game,\n\0" as *const u8 as *const i8);
-    print(b"so we can give  \n\0" as *const u8 as *const i8);
-    print(b"you more of it. \n\0" as *const u8 as *const i8);
-    print(b"Thank you for   \n\0" as *const u8 as *const i8);
-    print(b"playing!\0" as *const u8 as *const i8);
-    get();
+    get(global_state);
+    drawwindow(0, 0, 17, 9, global_state);
+    print(
+        b"Let us know what\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"you enjoyed     \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"about this game,\n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"so we can give  \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"you more of it. \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(
+        b"Thank you for   \n\0" as *const u8 as *const i8,
+        global_state,
+    );
+    print(b"playing!\0" as *const u8 as *const i8, global_state);
+    get(global_state);
 }
 
 unsafe fn dodemo(global_state: &mut GlobalState) {
@@ -1005,7 +1284,7 @@ unsafe fn dodemo(global_state: &mut GlobalState) {
         i = rnd(NUM_DEMOS - 1) + 1;
         LoadDemo(i);
         level = 0;
-        playsetup(&mut global_state.items);
+        playsetup(global_state);
         playloop(global_state);
         if exitdemo {
             break;
@@ -1013,8 +1292,8 @@ unsafe fn dodemo(global_state: &mut GlobalState) {
         level = 0;
         gamestate = statetype::inscores;
         indemo = demoenum::demoplay;
-        _showhighscores(&global_state.screencenter);
-        UpdateScreen();
+        _showhighscores(global_state);
+        UpdateScreen(global_state);
         i = 0;
         while i < 500 {
             WaitVBL();
@@ -1041,17 +1320,20 @@ unsafe fn dodemo(global_state: &mut GlobalState) {
 
 unsafe fn gameover(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
-    expwin(11, 4, &global_state.screencenter);
-    print(b"\n GAME OVER\n     \0" as *const u8 as *const i8);
-    UpdateScreen();
-    WaitEndSound();
+    expwin(11, 4, global_state);
+    print(
+        b"\n GAME OVER\n     \0" as *const u8 as *const i8,
+        global_state,
+    );
+    UpdateScreen(global_state);
+    WaitEndSound(global_state);
     i = 0;
     while i < 120 {
         WaitVBL();
         i += 1;
     }
     gamestate = statetype::inscores;
-    _checkhighscore(&global_state.screencenter);
+    _checkhighscore(global_state);
     level = 0;
     i = 0;
     while i < 500 {
@@ -1105,6 +1387,7 @@ pub fn original_main() {
         Vec2::new(19, 11),
         quited,
         [0; 576],
+        [8; 64000],
     );
 
     /***************************************************************************/
@@ -1197,18 +1480,36 @@ pub fn original_main() {
 
         //  _dontplay = 1;	// no sounds for debugging and profiling
 
-        _setupgame();
+        _setupgame(&mut global_state);
 
-        expwin(33, 13, &global_state.screencenter);
-        print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const i8);
-        print(b"          The Catacomb\n\n\0" as *const u8 as *const i8);
-        print(b"        By John Carmack\n\n\0" as *const u8 as *const i8);
-        print(b"       Copyright 1990-93\n\0" as *const u8 as *const i8);
-        print(b"      Softdisk Publishing\0" as *const u8 as *const i8);
-        print(b"\n\n\0" as *const u8 as *const i8);
-        print(b"\n\n\0" as *const u8 as *const i8);
-        print(b"         Press a key:\0" as *const u8 as *const i8);
-        get();
+        expwin(33, 13, &mut global_state);
+        print(
+            b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const i8,
+            &mut global_state,
+        );
+        print(
+            b"          The Catacomb\n\n\0" as *const u8 as *const i8,
+            &mut global_state,
+        );
+        print(
+            b"        By John Carmack\n\n\0" as *const u8 as *const i8,
+            &mut global_state,
+        );
+        print(
+            b"       Copyright 1990-93\n\0" as *const u8 as *const i8,
+            &mut global_state,
+        );
+        print(
+            b"      Softdisk Publishing\0" as *const u8 as *const i8,
+            &mut global_state,
+        );
+        print(b"\n\n\0" as *const u8 as *const i8, &mut global_state);
+        print(b"\n\n\0" as *const u8 as *const i8, &mut global_state);
+        print(
+            b"         Press a key:\0" as *const u8 as *const i8,
+            &mut global_state,
+        );
+        get(&mut global_state);
 
         clearkeys();
 
@@ -1221,14 +1522,14 @@ pub fn original_main() {
         // go until quit () is called
         loop {
             dodemo(&mut global_state);
-            playsetup(&mut global_state.items);
+            playsetup(&mut global_state);
             indemo = demoenum::notdemo;
             gamestate = statetype::ingame;
             playloop(&mut global_state);
             if indemo == demoenum::notdemo {
                 exitdemo = false;
                 if level > numlevels {
-                    doendpage(); // finished all levels
+                    doendpage(&mut global_state); // finished all levels
                 }
                 gameover(&mut global_state);
             }

@@ -10,6 +10,7 @@ pub struct GlobalState {
     pub screencenter: Vec2,
     pub gamexit: exittype,
     pub oldtiles: [i32; 576],
+    pub screenseg: [u8; 64000],
 }
 
 impl GlobalState {
@@ -22,6 +23,7 @@ impl GlobalState {
         screencenter: Vec2,
         gamexit: exittype,
         oldtiles: [i32; 576],
+        screenseg: [u8; 64000],
     ) -> Self {
         Self {
             priority,
@@ -32,6 +34,7 @@ impl GlobalState {
             screencenter,
             gamexit,
             oldtiles,
+            screenseg,
         }
     }
 }

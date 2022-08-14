@@ -1,6 +1,9 @@
 use ::libc;
 
-use crate::{extra_constants::PC_BASE_TIMER, extra_types::boolean, gr_type::grtype};
+use crate::{
+    extra_constants::PC_BASE_TIMER, extra_types::boolean, global_state::GlobalState,
+    gr_type::grtype, pcrlib_c::UpdateScreen,
+};
 extern "C" {
     pub type SDL_mutex;
     pub type SDL_semaphore;
@@ -35,12 +38,10 @@ extern "C" {
         callback: SDL_TimerCallback,
         param: *mut libc::c_void,
     ) -> SDL_TimerID;
-    static mut screenseg: [u8; 64000];
     static mut egaplaneofs: [u32; 4];
     static mut picptr: *mut libc::c_void;
     static mut charptr: *mut libc::c_void;
     static mut pictable: [pictype; 64];
-    fn UpdateScreen();
     static mut grmode: grtype;
 }
 pub type __time_t = i64;
@@ -354,12 +355,12 @@ pub unsafe extern "C" fn ContinueSound() {
     pcLengthLeft = SavedSound.pcLengthLeft;
     pcSound = SavedSound.pcSound;
 }
-#[no_mangle]
-pub unsafe extern "C" fn WaitEndSound() {
+
+pub unsafe fn WaitEndSound(global_state: &mut GlobalState) {
     if _dontplay != 0 {
         return;
     }
-    UpdateScreen();
+    UpdateScreen(global_state);
     while !pcSound.is_null() {
         WaitVBL();
     }
@@ -482,9 +483,10 @@ pub unsafe extern "C" fn WaitVBL() {
         }
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn drawchar(mut x: i32, mut y: i32, mut charnum: i32) {
-    let mut vbuf: *mut u8 = screenseg
+
+pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, global_state: &mut GlobalState) {
+    let mut vbuf: *mut u8 = global_state
+        .screenseg
         .as_mut_ptr()
         .offset(((y << 3) * screenpitch as i32) as isize)
         .offset((x << 3) as isize);
@@ -572,8 +574,14 @@ pub unsafe extern "C" fn drawchar(mut x: i32, mut y: i32, mut charnum: i32) {
     };
 }
 #[no_mangle]
-pub unsafe extern "C" fn drawpic(mut x: i32, mut y: i32, mut picnum: i32) {
-    let mut vbuf: *mut u8 = screenseg
+pub unsafe extern "C" fn drawpic(
+    mut x: i32,
+    mut y: i32,
+    mut picnum: i32,
+    global_state: &mut GlobalState,
+) {
+    let mut vbuf: *mut u8 = global_state
+        .screenseg
         .as_mut_ptr()
         .offset((y * screenpitch as i32) as isize)
         .offset(x as isize);
