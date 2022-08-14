@@ -25,7 +25,6 @@ extern "C" {
     fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
     fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
     fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> libc::c_int;
-    fn exit(_: libc::c_int) -> !;
     fn toupper(_: libc::c_int) -> libc::c_int;
     static mut stderr: *mut FILE;
     fn fprintf(_: *mut FILE, _: *const libc::c_char, _: ...) -> libc::c_int;
@@ -2313,7 +2312,7 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
             b"Failed to initialize SDL: %s\n\0" as *const u8 as *const libc::c_char,
             SDL_GetError(),
         );
-        exit(1);
+        std::process::exit(1);
     }
     atexit(Some(SDL_Quit as unsafe extern "C" fn() -> ()));
     SDL_AddEventWatch(
@@ -2367,7 +2366,7 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
             b"Could not get display mode: %s\n\0" as *const u8 as *const libc::c_char,
             SDL_GetError(),
         );
-        exit(1);
+        std::process::exit(1);
     }
     if windowed != 0 {
         bounds.x = (0x1fff0000 as libc::c_uint | 0) as libc::c_int;
@@ -2396,7 +2395,7 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
             b"Failed to create SDL window: %s\n\0" as *const u8 as *const libc::c_char,
             SDL_GetError(),
         );
-        exit(1);
+        std::process::exit(1);
     }
     sdltexture = SDL_CreateTexture(
         renderer,
@@ -2411,7 +2410,7 @@ pub unsafe fn _setupgame(args: Vec<*mut libc::c_char>) {
             b"Could not create video buffer: %s\n\0" as *const u8 as *const libc::c_char,
             SDL_GetError(),
         );
-        exit(1);
+        std::process::exit(1);
     }
     if mode.w == 320 && mode.h == 200 || mode.w == 640 && mode.h == 400 {
         updateRect.w = mode.w;
@@ -2475,7 +2474,7 @@ pub unsafe extern "C" fn _quit(mut error: *mut libc::c_char) {
                 as *const libc::c_char,
         );
         puts(b"\n\0" as *const u8 as *const libc::c_char);
-        exit(1);
+        std::process::exit(1);
     }
     ShutdownSound();
     ShutdownJoysticks();
@@ -2483,5 +2482,5 @@ pub unsafe extern "C" fn _quit(mut error: *mut libc::c_char) {
     SDL_DestroyWindow(window);
     renderer = 0 as *mut SDL_Renderer;
     window = 0 as *mut SDL_Window;
-    exit(0);
+    std::process::exit(0);
 }

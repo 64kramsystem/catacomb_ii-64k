@@ -19,7 +19,6 @@ extern "C" {
     fn read(__fd: libc::c_int, __buf: *mut libc::c_void, __nbytes: size_t) -> ssize_t;
     fn write(__fd: libc::c_int, __buf: *const libc::c_void, __n: size_t) -> ssize_t;
     fn free(_: *mut libc::c_void);
-    fn exit(_: libc::c_int) -> !;
     fn printf(_: *const libc::c_char, _: ...) -> libc::c_int;
     fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> libc::c_int;
     fn __ctype_b_loc() -> *mut *const libc::c_ushort;
@@ -1395,7 +1394,7 @@ pub fn original_main() {
                     Copyright 1993-2014 Flat Rock Software\n\
                 "
             );
-            exit(0);
+            std::process::exit(0);
         }
 
         initobjects(&mut objdef);
