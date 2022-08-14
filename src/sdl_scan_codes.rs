@@ -1,6 +1,6 @@
 /// This could be an usize; the problem is that it'd be semantically inconsistent, because SDL
 /// returns a u32.
-pub type SDL_Scancode = libc::c_uint;
+pub type SDL_Scancode = u32;
 
 pub const SDL_NUM_SCANCODES: SDL_Scancode = 512;
 
