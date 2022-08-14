@@ -7,7 +7,7 @@ extern "C" {
     fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
     fn time(__timer: *mut time_t) -> time_t;
     fn SDL_memset(dst: *mut libc::c_void, c: i32, len: u64) -> *mut libc::c_void;
-    fn SDL_GetError() -> *const libc::c_char;
+    fn SDL_GetError() -> *const i8;
     fn SDL_CreateMutex() -> *mut SDL_mutex;
     fn SDL_LockMutex(mutex: *mut SDL_mutex) -> i32;
     fn SDL_UnlockMutex(mutex: *mut SDL_mutex) -> i32;
@@ -17,7 +17,7 @@ extern "C" {
     fn SDL_SemPost(sem: *mut SDL_sem) -> i32;
     fn SDL_SemValue(sem: *mut SDL_sem) -> u32;
     fn SDL_OpenAudioDevice(
-        device: *const libc::c_char,
+        device: *const i8,
         iscapture: i32,
         desired: *const SDL_AudioSpec,
         obtained: *mut SDL_AudioSpec,
@@ -27,7 +27,7 @@ extern "C" {
     fn SDL_CloseAudio();
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    fn printf(_: *const libc::c_char, _: ...) -> i32;
+    fn printf(_: *const i8, _: ...) -> i32;
     fn SDL_InitSubSystem(flags: u32) -> i32;
     fn SDL_RemoveTimer(id: SDL_TimerID) -> SDL_bool;
     fn SDL_AddTimer(
@@ -78,12 +78,12 @@ pub struct spksndtype {
     pub start: u16,
     pub priority: u8,
     pub samplerate: u8,
-    pub name: [libc::c_char; 12],
+    pub name: [i8; 12],
 }
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct SPKRtable {
-    pub id: [libc::c_char; 4],
+    pub id: [i8; 4],
     pub filelength: u16,
     pub filler: [u16; 5],
     pub sounds: [spksndtype; 63],
@@ -108,7 +108,7 @@ pub struct pictype {
     pub width: i16,
     pub height: i16,
     pub shapeptr: u32,
-    pub name: [libc::c_char; 8],
+    pub name: [i8; 8],
 }
 pub type C2RustUnnamed_1 = u32;
 pub const screenpitch: C2RustUnnamed_1 = 320;
@@ -285,12 +285,11 @@ pub unsafe extern "C" fn StartupSound() {
         Some(UpdateSPKR as unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ());
     AudioMutex = SDL_CreateMutex();
     if AudioMutex.is_null() || SDL_InitSubSystem(0x10 as u32) < 0 || {
-        AudioDev =
-            SDL_OpenAudioDevice(0 as *const libc::c_char, 0, &mut desired, &mut AudioSpec, 0);
+        AudioDev = SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut AudioSpec, 0);
         AudioDev == 0
     } {
         printf(
-            b"Audio initialization failed: %s\n\0" as *const u8 as *const libc::c_char,
+            b"Audio initialization failed: %s\n\0" as *const u8 as *const i8,
             SDL_GetError(),
         );
         soundmode = off;

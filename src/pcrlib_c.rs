@@ -23,28 +23,28 @@ extern "C" {
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn fstat(__fd: i32, __buf: *mut stat) -> i32;
-    fn atoi(__nptr: *const libc::c_char) -> i32;
+    fn atoi(__nptr: *const i8) -> i32;
     fn malloc(_: u64) -> *mut libc::c_void;
     fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
     fn toupper(_: i32) -> i32;
     static mut stderr: *mut FILE;
-    fn fprintf(_: *mut FILE, _: *const libc::c_char, _: ...) -> i32;
-    fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> i32;
-    fn puts(__s: *const libc::c_char) -> i32;
+    fn fprintf(_: *mut FILE, _: *const i8, _: ...) -> i32;
+    fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
+    fn puts(__s: *const i8) -> i32;
     fn __assert_fail(
-        __assertion: *const libc::c_char,
-        __file: *const libc::c_char,
+        __assertion: *const i8,
+        __file: *const i8,
         __line: u32,
-        __function: *const libc::c_char,
+        __function: *const i8,
     ) -> !;
-    fn SDL_GetError() -> *const libc::c_char;
-    fn strlen(_: *const libc::c_char) -> u64;
-    fn strcat(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
-    fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
+    fn SDL_GetError() -> *const i8;
+    fn strlen(_: *const i8) -> u64;
+    fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
+    fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn loadgrfiles();
     fn WaitVBL();
-    fn open(__file: *const libc::c_char, __oflag: i32, _: ...) -> i32;
+    fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
     fn drawchar(x: i32, y: i32, charnum: i32);
     fn initrnd(randomize: boolean);
     fn initrndt(randomize: boolean);
@@ -85,7 +85,7 @@ extern "C" {
     fn SDL_GetDisplayBounds(displayIndex: i32, rect: *mut SDL_Rect) -> i32;
     fn SDL_GetCurrentDisplayMode(displayIndex: i32, mode_0: *mut SDL_DisplayMode) -> i32;
     fn SDL_CreateWindow(
-        title: *const libc::c_char,
+        title: *const i8,
         x: i32,
         y: i32,
         w: i32,
@@ -157,17 +157,17 @@ pub struct stat {
 #[repr(C)]
 pub struct _IO_FILE {
     pub _flags: i32,
-    pub _IO_read_ptr: *mut libc::c_char,
-    pub _IO_read_end: *mut libc::c_char,
-    pub _IO_read_base: *mut libc::c_char,
-    pub _IO_write_base: *mut libc::c_char,
-    pub _IO_write_ptr: *mut libc::c_char,
-    pub _IO_write_end: *mut libc::c_char,
-    pub _IO_buf_base: *mut libc::c_char,
-    pub _IO_buf_end: *mut libc::c_char,
-    pub _IO_save_base: *mut libc::c_char,
-    pub _IO_backup_base: *mut libc::c_char,
-    pub _IO_save_end: *mut libc::c_char,
+    pub _IO_read_ptr: *mut i8,
+    pub _IO_read_end: *mut i8,
+    pub _IO_read_base: *mut i8,
+    pub _IO_write_base: *mut i8,
+    pub _IO_write_ptr: *mut i8,
+    pub _IO_write_end: *mut i8,
+    pub _IO_buf_base: *mut i8,
+    pub _IO_buf_end: *mut i8,
+    pub _IO_save_base: *mut i8,
+    pub _IO_backup_base: *mut i8,
+    pub _IO_save_end: *mut i8,
     pub _markers: *mut _IO_marker,
     pub _chain: *mut _IO_FILE,
     pub _fileno: i32,
@@ -175,7 +175,7 @@ pub struct _IO_FILE {
     pub _old_offset: __off_t,
     pub _cur_column: libc::c_ushort,
     pub _vtable_offset: libc::c_schar,
-    pub _shortbuf: [libc::c_char; 1],
+    pub _shortbuf: [i8; 1],
     pub _lock: *mut libc::c_void,
     pub _offset: __off64_t,
     pub _codecvt: *mut _IO_codecvt,
@@ -184,7 +184,7 @@ pub struct _IO_FILE {
     pub _freeres_buf: *mut libc::c_void,
     pub __pad5: u64,
     pub _mode: i32,
-    pub _unused2: [libc::c_char; 20],
+    pub _unused2: [i8; 20],
 }
 pub type _IO_lock_t = ();
 pub type FILE = _IO_FILE;
@@ -447,7 +447,7 @@ pub struct SDL_TextEditingEvent {
     pub type_0: u32,
     pub timestamp: u32,
     pub windowID: u32,
-    pub text: [libc::c_char; 32],
+    pub text: [i8; 32],
     pub start: i32,
     pub length: i32,
 }
@@ -457,7 +457,7 @@ pub struct SDL_TextInputEvent {
     pub type_0: u32,
     pub timestamp: u32,
     pub windowID: u32,
-    pub text: [libc::c_char; 32],
+    pub text: [i8; 32],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -637,7 +637,7 @@ pub struct SDL_DollarGestureEvent {
 pub struct SDL_DropEvent {
     pub type_0: u32,
     pub timestamp: u32,
-    pub file: *mut libc::c_char,
+    pub file: *mut i8,
     pub windowID: u32,
 }
 #[derive(Copy, Clone)]
@@ -718,12 +718,12 @@ pub struct spksndtype {
     pub start: u16,
     pub priority: u8,
     pub samplerate: u8,
-    pub name: [libc::c_char; 12],
+    pub name: [i8; 12],
 }
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct SPKRtable {
-    pub id: [libc::c_char; 4],
+    pub id: [i8; 4],
     pub filelength: u16,
     pub filler: [u16; 5],
     pub sounds: [spksndtype; 63],
@@ -766,7 +766,7 @@ pub const text: grtype = 0;
 pub struct scores {
     pub score: i32,
     pub level: i16,
-    pub initials: [libc::c_char; 4],
+    pub initials: [i8; 4],
 }
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
@@ -784,30 +784,22 @@ pub struct ctlpaneltype {
     pub keyB2: u8,
 }
 #[inline]
-unsafe extern "C" fn itoa(
-    mut value: i32,
-    mut str_0: *mut libc::c_char,
-    mut base: i32,
-) -> *mut libc::c_char {
+unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     if base == 16 {
-        sprintf(str_0, b"%X\0" as *const u8 as *const libc::c_char, value);
+        sprintf(str_0, b"%X\0" as *const u8 as *const i8, value);
     } else {
-        sprintf(str_0, b"%d\0" as *const u8 as *const libc::c_char, value);
+        sprintf(str_0, b"%d\0" as *const u8 as *const i8, value);
     }
     return str_0;
 }
 #[inline]
-unsafe extern "C" fn ltoa(
-    mut value: i32,
-    mut str_0: *mut libc::c_char,
-    mut base: i32,
-) -> *mut libc::c_char {
+unsafe extern "C" fn ltoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     return itoa(value, str_0, base);
 }
 #[no_mangle]
-pub static mut ch: libc::c_char = 0;
+pub static mut ch: i8 = 0;
 #[no_mangle]
-pub static mut str: [libc::c_char; 80] = [0; 80];
+pub static mut str: [i8; 80] = [0; 80];
 #[no_mangle]
 pub static mut playermode: [inputtype; 3] = [keyboard, keyboard, joystick1];
 #[no_mangle]
@@ -831,9 +823,9 @@ pub static mut keyB1: i32 = 0;
 #[no_mangle]
 pub static mut keyB2: i32 = 0;
 #[no_mangle]
-pub static mut demobuffer: [libc::c_char; 5000] = [0; 5000];
+pub static mut demobuffer: [i8; 5000] = [0; 5000];
 #[no_mangle]
-pub static mut demoptr: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
+pub static mut demoptr: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut democount: i32 = 0;
 #[no_mangle]
@@ -898,7 +890,7 @@ unsafe extern "C" fn WatchUIEvents(
     mut event: *mut SDL_Event,
 ) -> i32 {
     if (*event).type_0 == SDL_QUIT as i32 as u32 {
-        _quit(b"\0" as *const u8 as *const libc::c_char as *mut libc::c_char);
+        _quit(b"\0" as *const u8 as *const i8 as *mut i8);
     } else if (*event).type_0 == SDL_WINDOWEVENT as i32 as u32 {
         match (*event).window.event as i32 {
             13 => {
@@ -1216,7 +1208,7 @@ pub unsafe extern "C" fn ControlPlayer(mut player: i32) -> ControlStruct {
                 as i32;
             let fresh0 = demoptr;
             demoptr = demoptr.offset(1);
-            *fresh0 = val as libc::c_char;
+            *fresh0 = val as i8;
         }
     } else {
         let fresh1 = demoptr;
@@ -1230,41 +1222,35 @@ pub unsafe extern "C" fn ControlPlayer(mut player: i32) -> ControlStruct {
 }
 #[no_mangle]
 pub unsafe extern "C" fn RecordDemo() {
-    demobuffer[0] = level as libc::c_char;
-    demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut libc::c_char;
+    demobuffer[0] = level as i8;
+    demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
     indemo = demoenum::recording;
 }
 #[no_mangle]
 pub unsafe extern "C" fn LoadDemo(mut demonum: i32) {
-    let mut st2: [libc::c_char; 5] = [0; 5];
-    strcpy(
-        str.as_mut_ptr(),
-        b"DEMO\0" as *const u8 as *const libc::c_char,
-    );
+    let mut st2: [i8; 5] = [0; 5];
+    strcpy(str.as_mut_ptr(), b"DEMO\0" as *const u8 as *const i8);
     itoa(demonum, st2.as_mut_ptr(), 10);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
-    strcat(str.as_mut_ptr(), b".\0" as *const u8 as *const libc::c_char);
+    strcat(str.as_mut_ptr(), b".\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
     LoadFile(str.as_mut_ptr(), demobuffer.as_mut_ptr());
     level = demobuffer[0] as i16;
-    demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut libc::c_char;
+    demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
     indemo = demoenum::demoplay;
 }
 #[no_mangle]
 pub unsafe extern "C" fn SaveDemo(mut demonum: i32) {
-    let mut st2: [libc::c_char; 5] = [0; 5];
-    strcpy(
-        str.as_mut_ptr(),
-        b"DEMO\0" as *const u8 as *const libc::c_char,
-    );
+    let mut st2: [i8; 5] = [0; 5];
+    strcpy(str.as_mut_ptr(), b"DEMO\0" as *const u8 as *const i8);
     itoa(demonum, st2.as_mut_ptr(), 10);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
-    strcat(str.as_mut_ptr(), b".\0" as *const u8 as *const libc::c_char);
+    strcat(str.as_mut_ptr(), b".\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
     SaveFile(
         str.as_mut_ptr(),
         demobuffer.as_mut_ptr(),
-        demoptr.offset_from(&mut *demobuffer.as_mut_ptr().offset(0) as *mut libc::c_char) as i64,
+        demoptr.offset_from(&mut *demobuffer.as_mut_ptr().offset(0) as *mut i8) as i64,
     );
     indemo = demoenum::notdemo;
 }
@@ -1313,10 +1299,7 @@ unsafe extern "C" fn filelength(mut fd: i32) -> i64 {
     return s.st_size;
 }
 #[no_mangle]
-pub unsafe extern "C" fn LoadFile(
-    mut filename: *mut libc::c_char,
-    mut buffer: *mut libc::c_char,
-) -> u64 {
+pub unsafe extern "C" fn LoadFile(mut filename: *mut i8, mut buffer: *mut i8) -> u64 {
     let mut fd: i32 = 0;
     fd = open(filename, 0o400 as i32);
     if fd < 0 {
@@ -1328,11 +1311,7 @@ pub unsafe extern "C" fn LoadFile(
     return bytesRead as u64;
 }
 #[no_mangle]
-pub unsafe extern "C" fn SaveFile(
-    mut filename: *mut libc::c_char,
-    mut buffer: *mut libc::c_char,
-    mut size: i64,
-) {
+pub unsafe extern "C" fn SaveFile(mut filename: *mut i8, mut buffer: *mut i8, mut size: i64) {
     let mut fd: i32 = 0;
     fd = open(
         filename,
@@ -1346,14 +1325,14 @@ pub unsafe extern "C" fn SaveFile(
     close(fd);
 }
 #[no_mangle]
-pub unsafe extern "C" fn bloadin(mut filename: *mut libc::c_char) -> *mut libc::c_void {
+pub unsafe extern "C" fn bloadin(mut filename: *mut i8) -> *mut libc::c_void {
     let mut handle: i32 = 0;
     let mut length: i64 = 0;
-    let mut location: *mut libc::c_char = 0 as *mut libc::c_char;
+    let mut location: *mut i8 = 0 as *mut i8;
     handle = open(filename, 0);
     if handle != -(1) {
         length = filelength(handle);
-        location = malloc(length as u64) as *mut libc::c_char;
+        location = malloc(length as u64) as *mut i8;
         close(handle);
         LoadFile(filename, location);
         return location as *mut libc::c_void;
@@ -1570,8 +1549,8 @@ pub unsafe extern "C" fn get() -> i32 {
     return SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
 }
 #[no_mangle]
-pub unsafe extern "C" fn print(mut str_0: *const libc::c_char) {
-    let mut ch_0: libc::c_char = 0;
+pub unsafe extern "C" fn print(mut str_0: *const i8) {
+    let mut ch_0: i8 = 0;
     loop {
         let fresh3 = str_0;
         str_0 = str_0.offset(1);
@@ -1592,8 +1571,8 @@ pub unsafe extern "C" fn print(mut str_0: *const libc::c_char) {
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn printchartile(mut str_0: *const libc::c_char) {
-    let mut ch_0: libc::c_char = 0;
+pub unsafe extern "C" fn printchartile(mut str_0: *const i8) {
+    let mut ch_0: i8 = 0;
     loop {
         let fresh5 = str_0;
         str_0 = str_0.offset(1);
@@ -1624,7 +1603,7 @@ pub unsafe extern "C" fn printlong(mut val: i64) {
     print(str.as_mut_ptr());
 }
 #[no_mangle]
-pub unsafe extern "C" fn _Verify(mut filename: *mut libc::c_char) -> i64 {
+pub unsafe extern "C" fn _Verify(mut filename: *mut i8) -> i64 {
     let mut handle: i32 = 0;
     let mut size: i64 = 0;
     handle = open(filename, 0);
@@ -1638,10 +1617,9 @@ pub unsafe extern "C" fn _Verify(mut filename: *mut libc::c_char) -> i64 {
 #[no_mangle]
 pub unsafe extern "C" fn _printhexb(mut value: libc::c_uchar) {
     let mut loop_0: i32 = 0;
-    let mut hexstr: [libc::c_char; 16] =
-        *::std::mem::transmute::<&[u8; 16], &mut [libc::c_char; 16]>(b"0123456789ABCDEF");
-    let mut str_0: [libc::c_char; 2] =
-        *::std::mem::transmute::<&[u8; 2], &mut [libc::c_char; 2]>(b"\0\0");
+    let mut hexstr: [i8; 16] =
+        *::std::mem::transmute::<&[u8; 16], &mut [i8; 16]>(b"0123456789ABCDEF");
+    let mut str_0: [i8; 2] = *::std::mem::transmute::<&[u8; 2], &mut [i8; 2]>(b"\0\0");
     loop_0 = 0;
     while loop_0 < 2 {
         str_0[0] = hexstr[(value as i32 >> (1 - loop_0) * 4 & 15) as usize];
@@ -1651,37 +1629,36 @@ pub unsafe extern "C" fn _printhexb(mut value: libc::c_uchar) {
 }
 #[no_mangle]
 pub unsafe extern "C" fn _printhex(mut value: u32) {
-    print(b"$\0" as *const u8 as *const libc::c_char);
+    print(b"$\0" as *const u8 as *const i8);
     _printhexb((value >> 8) as libc::c_uchar);
     _printhexb((value & 0xff as i32 as u32) as libc::c_uchar);
 }
 #[no_mangle]
 pub unsafe extern "C" fn _printbin(mut value: u32) {
     let mut loop_0: i32 = 0;
-    print(b"%\0" as *const u8 as *const libc::c_char);
+    print(b"%\0" as *const u8 as *const i8);
     loop_0 = 0;
     while loop_0 < 16 {
         if value >> 15 - loop_0 & 1 != 0 {
-            print(b"1\0" as *const u8 as *const libc::c_char);
+            print(b"1\0" as *const u8 as *const i8);
         } else {
-            print(b"0\0" as *const u8 as *const libc::c_char);
+            print(b"0\0" as *const u8 as *const i8);
         }
         loop_0 += 1;
     }
 }
 
-unsafe fn _printc(mut string: *mut libc::c_char, screencenterx: &i32) {
+unsafe fn _printc(mut string: *mut i8, screencenterx: &i32) {
     sx = 1 + screencenterx - (strlen(string)).wrapping_div(2) as i32;
     print(string);
 }
 #[no_mangle]
 pub unsafe extern "C" fn _inputint() -> u32 {
-    let mut string: [libc::c_char; 18] = *::std::mem::transmute::<&[u8; 18], &mut [libc::c_char; 18]>(
-        b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
-    );
-    let mut digit: libc::c_char = 0;
-    let mut hexstr: [libc::c_char; 16] =
-        *::std::mem::transmute::<&[u8; 16], &mut [libc::c_char; 16]>(b"0123456789ABCDEF");
+    let mut string: [i8; 18] =
+        *::std::mem::transmute::<&[u8; 18], &mut [i8; 18]>(b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
+    let mut digit: i8 = 0;
+    let mut hexstr: [i8; 16] =
+        *::std::mem::transmute::<&[u8; 16], &mut [i8; 16]>(b"0123456789ABCDEF");
     let mut value: u32 = 0;
     let mut loop_0: u32 = 0;
     let mut loop1: u32 = 0;
@@ -1695,7 +1672,7 @@ pub unsafe extern "C" fn _inputint() -> u32 {
         value = 0;
         loop1 = 0;
         while loop1 as u64 <= digits as u64 {
-            digit = toupper(string[loop1.wrapping_add(1) as usize] as i32) as libc::c_char;
+            digit = toupper(string[loop1.wrapping_add(1) as usize] as i32) as i8;
             loop_0 = 0;
             while loop_0 < 16 {
                 if digit as i32 == hexstr[loop_0 as usize] as i32 {
@@ -1731,12 +1708,12 @@ pub unsafe extern "C" fn _inputint() -> u32 {
     return value;
 }
 #[no_mangle]
-pub unsafe extern "C" fn _input(mut string: *mut libc::c_char, mut max: i32) -> i32 {
-    let mut key_0: libc::c_char = 0;
+pub unsafe extern "C" fn _input(mut string: *mut i8, mut max: i32) -> i32 {
+    let mut key_0: i8 = 0;
     let mut count: i32 = 0;
     let mut loop_0: i32 = 0;
     loop {
-        key_0 = toupper(get() & 0xff as i32) as libc::c_char;
+        key_0 = toupper(get() & 0xff as i32) as i8;
         if (key_0 as i32 == 127 || key_0 as i32 == 8) && count > 0 {
             count -= 1;
             drawchar(sx, sy, ' ' as i32);
@@ -1946,10 +1923,7 @@ pub unsafe extern "C" fn CheckMouseMode() {
 #[no_mangle]
 pub unsafe extern "C" fn _loadctrls() {
     let mut handle: i32 = 0;
-    strcpy(
-        str.as_mut_ptr(),
-        b"CTLPANEL.\0" as *const u8 as *const libc::c_char,
-    );
+    strcpy(str.as_mut_ptr(), b"CTLPANEL.\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
     // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
     // project.
@@ -2055,10 +2029,7 @@ pub unsafe extern "C" fn _savectrls() {
         keyB1: 0,
         keyB2: 0,
     };
-    strcpy(
-        str.as_mut_ptr(),
-        b"CTLPANEL.\0" as *const u8 as *const libc::c_char,
-    );
+    strcpy(str.as_mut_ptr(), b"CTLPANEL.\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
     handle = open(
         str.as_mut_ptr(),
@@ -2097,23 +2068,16 @@ pub unsafe extern "C" fn _savectrls() {
 #[no_mangle]
 pub unsafe extern "C" fn _loadhighscores() {
     let mut i: i32 = 0;
-    strcpy(
-        str.as_mut_ptr(),
-        b"SCORES.\0" as *const u8 as *const libc::c_char,
-    );
+    strcpy(str.as_mut_ptr(), b"SCORES.\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
-    if LoadFile(
-        str.as_mut_ptr(),
-        highscores.as_mut_ptr() as *mut libc::c_char,
-    ) == 0
-    {
+    if LoadFile(str.as_mut_ptr(), highscores.as_mut_ptr() as *mut i8) == 0 {
         i = 0;
         while i < 5 {
             highscores[i as usize].score = 100;
             highscores[i as usize].level = 1;
             strcpy(
                 (highscores[i as usize].initials).as_mut_ptr(),
-                b"PCR\0" as *const u8 as *const libc::c_char,
+                b"PCR\0" as *const u8 as *const i8,
             );
             i += 1;
         }
@@ -2121,14 +2085,11 @@ pub unsafe extern "C" fn _loadhighscores() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn _savehighscores() {
-    strcpy(
-        str.as_mut_ptr(),
-        b"SCORES.\0" as *const u8 as *const libc::c_char,
-    );
+    strcpy(str.as_mut_ptr(), b"SCORES.\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
     SaveFile(
         str.as_mut_ptr(),
-        highscores.as_mut_ptr() as *mut libc::c_char,
+        highscores.as_mut_ptr() as *mut i8,
         ::std::mem::size_of::<[scores; 5]>() as u64 as i64,
     );
 }
@@ -2136,11 +2097,11 @@ pub unsafe extern "C" fn _savehighscores() {
 pub unsafe fn _showhighscores(screencenterx: &i32, screencentery: &i32) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
-    let mut st2: [libc::c_char; 10] = [0; 10];
+    let mut st2: [i8; 10] = [0; 10];
     centerwindow(17, 17, screencenterx, screencentery);
-    print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const libc::c_char);
-    print(b" #  SCORE LV  BY\n\0" as *const u8 as *const libc::c_char);
-    print(b" - ------ -- ---\n\0" as *const u8 as *const libc::c_char);
+    print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8);
+    print(b" #  SCORE LV  BY\n\0" as *const u8 as *const i8);
+    print(b" - ------ -- ---\n\0" as *const u8 as *const i8);
     i = 0;
     while i < 5 {
         sx += 1;
@@ -2172,13 +2133,10 @@ pub unsafe fn _showhighscores(screencenterx: &i32, screencentery: &i32) {
         print(str.as_mut_ptr());
         sx += 1;
         print((highscores[i as usize].initials).as_mut_ptr());
-        print(b"\n\n\0" as *const u8 as *const libc::c_char);
+        print(b"\n\n\0" as *const u8 as *const i8);
         i += 1;
     }
-    strcpy(
-        str.as_mut_ptr(),
-        b"SCORE:\0" as *const u8 as *const libc::c_char,
-    );
+    strcpy(str.as_mut_ptr(), b"SCORE:\0" as *const u8 as *const i8);
     ltoa(score, st2.as_mut_ptr(), 10);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
     _printc(str.as_mut_ptr(), screencenterx);
@@ -2201,7 +2159,7 @@ pub unsafe fn _checkhighscore(screencenterx: &i32, screencentery: &i32) {
             highscores[i as usize].level = level;
             strcpy(
                 (highscores[i as usize].initials).as_mut_ptr(),
-                b"   \0" as *const u8 as *const libc::c_char,
+                b"   \0" as *const u8 as *const i8,
             );
             break;
         } else {
@@ -2218,7 +2176,7 @@ pub unsafe fn _checkhighscore(screencenterx: &i32, screencentery: &i32) {
         j = 0;
         loop {
             k = get();
-            ch = k as libc::c_char;
+            ch = k as i8;
             if ch as i32 >= ' ' as i32 && j < 3 {
                 drawchar(sx, sy, ch as i32);
                 sx += 1;
@@ -2247,7 +2205,7 @@ pub unsafe fn _setupgame() {
     if SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
         fprintf(
             stderr,
-            b"Failed to initialize SDL: %s\n\0" as *const u8 as *const libc::c_char,
+            b"Failed to initialize SDL: %s\n\0" as *const u8 as *const i8,
             SDL_GetError(),
         );
         std::process::exit(1);
@@ -2305,7 +2263,7 @@ pub unsafe fn _setupgame() {
     {
         fprintf(
             stderr,
-            b"Could not get display mode: %s\n\0" as *const u8 as *const libc::c_char,
+            b"Could not get display mode: %s\n\0" as *const u8 as *const i8,
             SDL_GetError(),
         );
         std::process::exit(1);
@@ -2317,7 +2275,7 @@ pub unsafe fn _setupgame() {
         mode.h = winHeight as i32;
     }
     window = SDL_CreateWindow(
-        b"The Catacomb\0" as *const u8 as *const libc::c_char,
+        b"The Catacomb\0" as *const u8 as *const i8,
         bounds.x,
         bounds.y,
         mode.w,
@@ -2334,7 +2292,7 @@ pub unsafe fn _setupgame() {
     } {
         fprintf(
             stderr,
-            b"Failed to create SDL window: %s\n\0" as *const u8 as *const libc::c_char,
+            b"Failed to create SDL window: %s\n\0" as *const u8 as *const i8,
             SDL_GetError(),
         );
         std::process::exit(1);
@@ -2349,7 +2307,7 @@ pub unsafe fn _setupgame() {
     if sdltexture.is_null() {
         fprintf(
             stderr,
-            b"Could not create video buffer: %s\n\0" as *const u8 as *const libc::c_char,
+            b"Could not create video buffer: %s\n\0" as *const u8 as *const i8,
             SDL_GetError(),
         );
         std::process::exit(1);
@@ -2381,10 +2339,7 @@ pub unsafe fn _setupgame() {
     } else {
         grmode = CGAgr;
     }
-    strcpy(
-        str.as_mut_ptr(),
-        b"SOUNDS.\0" as *const u8 as *const libc::c_char,
-    );
+    strcpy(str.as_mut_ptr(), b"SOUNDS.\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
     SoundData = bloadin(str.as_mut_ptr()) as *mut SPKRtable;
     StartupSound();
@@ -2396,23 +2351,17 @@ pub unsafe fn _setupgame() {
     SetupEmulatedVBL();
 }
 #[no_mangle]
-pub unsafe extern "C" fn _quit(mut error: *mut libc::c_char) {
+pub unsafe extern "C" fn _quit(mut error: *mut i8) {
     if *error == 0 {
         _savehighscores();
         _savectrls();
     } else {
         puts(error);
-        puts(b"\n\0" as *const u8 as *const libc::c_char);
-        puts(b"\n\0" as *const u8 as *const libc::c_char);
-        puts(
-            b"For techinical assistance with running this software\n\0" as *const u8
-                as *const libc::c_char,
-        );
-        puts(
-            b"    call Softdisk Publishing at 1-318-221-8311\n\0" as *const u8
-                as *const libc::c_char,
-        );
-        puts(b"\n\0" as *const u8 as *const libc::c_char);
+        puts(b"\n\0" as *const u8 as *const i8);
+        puts(b"\n\0" as *const u8 as *const i8);
+        puts(b"For techinical assistance with running this software\n\0" as *const u8 as *const i8);
+        puts(b"    call Softdisk Publishing at 1-318-221-8311\n\0" as *const u8 as *const i8);
+        puts(b"\n\0" as *const u8 as *const i8);
         std::process::exit(1);
     }
     ShutdownSound();

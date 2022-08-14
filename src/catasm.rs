@@ -6,10 +6,10 @@ use crate::{
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
     fn __assert_fail(
-        __assertion: *const libc::c_char,
-        __file: *const libc::c_char,
+        __assertion: *const i8,
+        __file: *const i8,
         __line: u32,
-        __function: *const libc::c_char,
+        __function: *const i8,
     ) -> !;
     static mut originy: i32;
     static mut originx: i32;
@@ -22,7 +22,7 @@ extern "C" {
     static mut playdone: boolean;
     static mut background: [[i32; 86]; 87];
     static mut obj: objtype;
-    static mut pics: *mut libc::c_char;
+    static mut pics: *mut i8;
     fn doinactive();
     static mut grmode: grtype;
     fn UpdateScreen();

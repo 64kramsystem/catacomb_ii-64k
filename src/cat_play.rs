@@ -12,7 +12,7 @@ use crate::{
     tag_type::tagtype::*,
 };
 extern "C" {
-    fn atoi(__nptr: *const libc::c_char) -> i32;
+    fn atoi(__nptr: *const i8) -> i32;
     fn abs(_: i32) -> i32;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
     static mut resetgame: boolean;
@@ -35,8 +35,8 @@ extern "C" {
     static mut leveldone: boolean;
     static mut frameon: u16;
     static mut boltsleft: i32;
-    static mut altmeters: [[libc::c_char; 14]; 14];
-    static mut meters: [[libc::c_char; 14]; 14];
+    static mut altmeters: [[i8; 14]; 14];
+    static mut meters: [[i8; 14]; 14];
     static mut shotpower: i32;
     fn clearold();
     static mut playdone: boolean;
@@ -47,7 +47,7 @@ extern "C" {
     static mut score: i32;
     fn printlong(val: i64);
     fn printint(val: i32);
-    fn print(str: *const libc::c_char);
+    fn print(str: *const i8);
     fn _inputint() -> u32;
     fn get() -> i32;
     fn drawchar(x: i32, y: i32, charnum: i32);
@@ -64,7 +64,7 @@ extern "C" {
     static mut keydown: [boolean; 512];
     fn WaitEndSound();
     fn PlaySound(sound: i32);
-    static mut ch: libc::c_char;
+    static mut ch: i8;
 }
 pub type boolean = u16;
 pub type dirtype = u32;
@@ -173,7 +173,7 @@ pub struct ControlStruct {
 pub struct scores {
     pub score: i32,
     pub level: i16,
-    pub initials: [libc::c_char; 4],
+    pub initials: [i8; 4],
 }
 pub type exittype = u32;
 pub const victorious: exittype = 3;
@@ -244,19 +244,19 @@ pub unsafe extern "C" fn printbody() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn levelcleared() {
-    let mut warp: [libc::c_char; 3] = [0; 3];
+    let mut warp: [i8; 3] = [0; 3];
     let mut value: i32 = 0;
     leveldone = true as boolean;
-    warp[0] = (background[(altobj.y as i32 + 2) as usize][altobj.x as usize] as libc::c_char as i32
-        - 161) as libc::c_char;
+    warp[0] =
+        (background[(altobj.y as i32 + 2) as usize][altobj.x as usize] as i8 as i32 - 161) as i8;
     if (warp[0] as i32) < '0' as i32 || warp[0] as i32 > '9' as i32 {
-        warp[0] = '0' as i32 as libc::c_char;
+        warp[0] = '0' as i32 as i8;
     }
-    warp[1] = (background[(altobj.y as i32 + 2) as usize][(altobj.x as i32 + 1) as usize]
-        as libc::c_char as i32
-        - 161) as libc::c_char;
+    warp[1] = (background[(altobj.y as i32 + 2) as usize][(altobj.x as i32 + 1) as usize] as i8
+        as i32
+        - 161) as i8;
     if (warp[1] as i32) < '0' as i32 || warp[1] as i32 > '9' as i32 {
-        warp[2] = ' ' as i32 as libc::c_char;
+        warp[2] = ' ' as i32 as i8;
     }
     value = atoi(warp.as_mut_ptr());
     if value > 0 {
@@ -948,7 +948,7 @@ unsafe fn playercmdthink(
                 && keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 centerwindow(16, 2, screencenterx, screencentery);
-                print(b"warp to which\nlevel (1-99)?\0" as *const u8 as *const libc::c_char);
+                print(b"warp to which\nlevel (1-99)?\0" as *const u8 as *const i8);
                 clearkeys();
                 level = _inputint() as i16;
                 if (level as i32) < 1 {
@@ -966,11 +966,11 @@ unsafe fn playercmdthink(
             {
                 if GODMODE != 0 {
                     centerwindow(13, 1, screencenterx, screencentery);
-                    print(b"God Mode Off\0" as *const u8 as *const libc::c_char);
+                    print(b"God Mode Off\0" as *const u8 as *const i8);
                     GODMODE = false as boolean;
                 } else {
                     centerwindow(12, 1, screencenterx, screencentery);
-                    print(b"God Mode On\0" as *const u8 as *const libc::c_char);
+                    print(b"God Mode On\0" as *const u8 as *const i8);
                     GODMODE = true as boolean;
                 }
                 UpdateScreen();
@@ -1371,9 +1371,9 @@ pub unsafe fn playloop(
     loop {
         if indemo == demoenum::notdemo {
             centerwindow(11, 2, screencenterx, screencentery);
-            print(b" Entering\nlevel \0" as *const u8 as *const libc::c_char);
+            print(b" Entering\nlevel \0" as *const u8 as *const i8);
             printint(level as i32);
-            print(b"...\0" as *const u8 as *const libc::c_char);
+            print(b"...\0" as *const u8 as *const i8);
             PlaySound(17);
             WaitEndSound();
         }
@@ -1388,9 +1388,9 @@ pub unsafe fn playloop(
             refresh(view);
             clearkeys();
             centerwindow(12, 1, screencenterx, screencentery);
-            print(b"RECORD DEMO\0" as *const u8 as *const libc::c_char);
+            print(b"RECORD DEMO\0" as *const u8 as *const i8);
             loop {
-                ch = get() as libc::c_char;
+                ch = get() as i8;
                 if !(ch as i32 != 13) {
                     break;
                 }
@@ -1417,9 +1417,9 @@ pub unsafe fn playloop(
         if indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1, screencenterx, screencentery);
-            print(b"SAVE AS DEMO#:\0" as *const u8 as *const libc::c_char);
+            print(b"SAVE AS DEMO#:\0" as *const u8 as *const i8);
             loop {
-                ch = get() as libc::c_char;
+                ch = get() as i8;
                 if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
                     break;
                 }

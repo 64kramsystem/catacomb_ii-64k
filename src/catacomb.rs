@@ -20,19 +20,19 @@ extern "C" {
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn free(_: *mut libc::c_void);
-    fn printf(_: *const libc::c_char, _: ...) -> i32;
-    fn sprintf(_: *mut libc::c_char, _: *const libc::c_char, _: ...) -> i32;
+    fn printf(_: *const i8, _: ...) -> i32;
+    fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
     fn __ctype_b_loc() -> *mut *const libc::c_ushort;
     fn tolower(_: i32) -> i32;
     fn toupper(_: i32) -> i32;
-    fn strcasecmp(_: *const libc::c_char, _: *const libc::c_char) -> i32;
-    fn strcat(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
-    fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
-    fn open(__file: *const libc::c_char, __oflag: i32, _: ...) -> i32;
+    fn strcasecmp(_: *const i8, _: *const i8) -> i32;
+    fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
+    fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
+    fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
-    fn RLEExpand(source: *mut libc::c_char, dest: *mut libc::c_char, origlen: i64);
+    fn RLEExpand(source: *mut i8, dest: *mut i8, origlen: i64);
     fn bioskey(_: i32) -> i32;
-    fn _quit(_: *mut libc::c_char);
+    fn _quit(_: *mut i8);
     static mut score: i32;
     fn printhighscore();
     fn printbody();
@@ -41,31 +41,31 @@ extern "C" {
     static mut level: i16;
     fn bar(xl: i32, yl: i32, xh: i32, yh: i32, ch_0: i32);
     fn printint(val: i32);
-    fn printchartile(str_0: *const libc::c_char);
-    fn print(str_0: *const libc::c_char);
+    fn printchartile(str_0: *const i8);
+    fn print(str_0: *const i8);
     fn get() -> i32;
     fn drawpic(x: i32, y: i32, picnum: i32);
     fn drawchar(x: i32, y: i32, charnum: i32);
-    fn installgrfile(filename: *mut libc::c_char, inmem: *mut libc::c_void);
+    fn installgrfile(filename: *mut i8, inmem: *mut libc::c_void);
     fn WaitVBL();
     fn UpdateScreen();
     static mut leftedge: i32;
     static mut sy: i32;
     static mut sx: i32;
     static mut grmode: grtype;
-    fn _Verify(filename: *mut libc::c_char) -> i64;
+    fn _Verify(filename: *mut i8) -> i64;
     fn clearkeys();
     fn rnd(_: u16) -> i32;
     fn rndt() -> i32;
-    fn bloadin(filename: *mut libc::c_char) -> *mut libc::c_void;
-    fn LoadFile(filename: *mut libc::c_char, buffer: *mut libc::c_char) -> u64;
+    fn bloadin(filename: *mut i8) -> *mut libc::c_void;
+    fn LoadFile(filename: *mut i8, buffer: *mut i8) -> u64;
     fn LoadDemo(demonum: i32);
     fn ControlPlayer(player_0: i32) -> ControlStruct;
     static mut keydown: [boolean; 512];
     fn WaitEndSound();
     fn PlaySound(sound: i32);
-    static mut str: [libc::c_char; 80];
-    static mut ch: libc::c_char;
+    static mut str: [i8; 80];
+    static mut ch: i8;
 }
 pub type C2RustUnnamed = u32;
 pub const _ISalnum: C2RustUnnamed = 8;
@@ -163,20 +163,16 @@ pub const reseted: exittype = 2;
 pub const killed: exittype = 1;
 pub const quited: exittype = 0;
 #[inline]
-unsafe extern "C" fn itoa(
-    mut value: i32,
-    mut str_0: *mut libc::c_char,
-    mut base: i32,
-) -> *mut libc::c_char {
+unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     if base == 16 {
-        sprintf(str_0, b"%X\0" as *const u8 as *const libc::c_char, value);
+        sprintf(str_0, b"%X\0" as *const u8 as *const i8, value);
     } else {
-        sprintf(str_0, b"%d\0" as *const u8 as *const libc::c_char, value);
+        sprintf(str_0, b"%d\0" as *const u8 as *const i8, value);
     }
     return str_0;
 }
 #[no_mangle]
-pub static mut altmeters: [[libc::c_char; 14]; 14] = [
+pub static mut altmeters: [[i8; 14]; 14] = [
     [
         127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
@@ -205,7 +201,7 @@ pub static mut altmeters: [[libc::c_char; 14]; 14] = [
     [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 0],
 ];
 #[no_mangle]
-pub static mut meters: [[libc::c_char; 14]; 14] = [
+pub static mut meters: [[i8; 14]; 14] = [
     [
         127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
     ],
@@ -351,7 +347,7 @@ pub static mut leveldone: boolean = 0;
 #[no_mangle]
 pub static mut tempb: boolean = 0;
 #[no_mangle]
-pub static mut tempp: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
+pub static mut tempp: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut chkx: i32 = 0;
 #[no_mangle]
@@ -361,7 +357,7 @@ pub static mut chkspot: i32 = 0;
 #[no_mangle]
 pub static mut frameon: u16 = 0;
 #[no_mangle]
-pub static mut grmem: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
+pub static mut grmem: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut VGAPAL: i32 = 0;
 #[no_mangle]
@@ -377,9 +373,9 @@ pub static mut ctrl: ControlStruct = ControlStruct {
     button2: 0,
 };
 #[no_mangle]
-pub static mut pics: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
+pub static mut pics: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
-pub static mut picsexact: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
+pub static mut picsexact: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut EGADATASTART: u32 = 0;
 #[no_mangle]
@@ -387,62 +383,62 @@ pub static mut savescore: i32 = 0;
 #[no_mangle]
 pub static mut GODMODE: boolean = false as boolean;
 #[no_mangle]
-pub static mut demowin: [[libc::c_char; 16]; 5] = [
+pub static mut demowin: [[i8; 16]; 5] = [
     [
         14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 16,
     ],
     [
         17,
-        ' ' as i32 as libc::c_char,
-        '-' as i32 as libc::c_char,
-        '-' as i32 as libc::c_char,
-        '-' as i32 as libc::c_char,
-        ' ' as i32 as libc::c_char,
-        'D' as i32 as libc::c_char,
-        'E' as i32 as libc::c_char,
-        'M' as i32 as libc::c_char,
-        'O' as i32 as libc::c_char,
-        ' ' as i32 as libc::c_char,
-        '-' as i32 as libc::c_char,
-        '-' as i32 as libc::c_char,
-        '-' as i32 as libc::c_char,
-        ' ' as i32 as libc::c_char,
+        ' ' as i32 as i8,
+        '-' as i32 as i8,
+        '-' as i32 as i8,
+        '-' as i32 as i8,
+        ' ' as i32 as i8,
+        'D' as i32 as i8,
+        'E' as i32 as i8,
+        'M' as i32 as i8,
+        'O' as i32 as i8,
+        ' ' as i32 as i8,
+        '-' as i32 as i8,
+        '-' as i32 as i8,
+        '-' as i32 as i8,
+        ' ' as i32 as i8,
         18,
     ],
     [
         17,
-        'S' as i32 as libc::c_char,
-        'P' as i32 as libc::c_char,
-        'A' as i32 as libc::c_char,
-        'C' as i32 as libc::c_char,
-        'E' as i32 as libc::c_char,
-        ' ' as i32 as libc::c_char,
-        'T' as i32 as libc::c_char,
-        'O' as i32 as libc::c_char,
-        ' ' as i32 as libc::c_char,
-        'S' as i32 as libc::c_char,
-        'T' as i32 as libc::c_char,
-        'A' as i32 as libc::c_char,
-        'R' as i32 as libc::c_char,
-        'T' as i32 as libc::c_char,
+        'S' as i32 as i8,
+        'P' as i32 as i8,
+        'A' as i32 as i8,
+        'C' as i32 as i8,
+        'E' as i32 as i8,
+        ' ' as i32 as i8,
+        'T' as i32 as i8,
+        'O' as i32 as i8,
+        ' ' as i32 as i8,
+        'S' as i32 as i8,
+        'T' as i32 as i8,
+        'A' as i32 as i8,
+        'R' as i32 as i8,
+        'T' as i32 as i8,
         18,
     ],
     [
         17,
-        'F' as i32 as libc::c_char,
-        '1' as i32 as libc::c_char,
-        ' ' as i32 as libc::c_char,
-        'T' as i32 as libc::c_char,
-        'O' as i32 as libc::c_char,
-        ' ' as i32 as libc::c_char,
-        'G' as i32 as libc::c_char,
-        'E' as i32 as libc::c_char,
-        'T' as i32 as libc::c_char,
-        ' ' as i32 as libc::c_char,
-        'H' as i32 as libc::c_char,
-        'E' as i32 as libc::c_char,
-        'L' as i32 as libc::c_char,
-        'P' as i32 as libc::c_char,
+        'F' as i32 as i8,
+        '1' as i32 as i8,
+        ' ' as i32 as i8,
+        'T' as i32 as i8,
+        'O' as i32 as i8,
+        ' ' as i32 as i8,
+        'G' as i32 as i8,
+        'E' as i32 as i8,
+        'T' as i32 as i8,
+        ' ' as i32 as i8,
+        'H' as i32 as i8,
+        'E' as i32 as i8,
+        'L' as i32 as i8,
+        'P' as i32 as i8,
         18,
     ],
     [
@@ -507,19 +503,17 @@ pub unsafe extern "C" fn loadgrfiles() {
         free(picsexact as *mut libc::c_void);
     }
     if grmode as u32 == CGAgr as i32 as u32 {
-        pics = bloadin(b"CGACHARS.CA2\0" as *const u8 as *const libc::c_char as *mut libc::c_char)
-            as *mut libc::c_char;
+        pics = bloadin(b"CGACHARS.CA2\0" as *const u8 as *const i8 as *mut i8) as *mut i8;
         picsexact = pics;
         installgrfile(
-            b"CGAPICS.CA2\0" as *const u8 as *const libc::c_char as *mut libc::c_char,
+            b"CGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
         );
     } else {
-        pics = bloadin(b"EGACHARS.CA2\0" as *const u8 as *const libc::c_char as *mut libc::c_char)
-            as *mut libc::c_char;
+        pics = bloadin(b"EGACHARS.CA2\0" as *const u8 as *const i8 as *mut i8) as *mut i8;
         picsexact = pics;
         installgrfile(
-            b"EGAPICS.CA2\0" as *const u8 as *const libc::c_char as *mut libc::c_char,
+            b"EGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
         );
     };
@@ -541,10 +535,10 @@ pub unsafe fn restore(view: &mut [[i32; 86]]) {
 pub unsafe extern "C" fn wantmore() -> boolean {
     sx = 2;
     sy = 20;
-    print(b"(space for more/esc)\0" as *const u8 as *const libc::c_char);
+    print(b"(space for more/esc)\0" as *const u8 as *const i8);
     sx = 12;
     sy = 21;
-    ch = get() as libc::c_char;
+    ch = get() as i8;
     if ch as i32 == 27 {
         return false as boolean;
     }
@@ -587,45 +581,45 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     centerwindow(20, 20, screencenterx, screencentery);
-    print(b"  C A T A C O M B   \n\0" as *const u8 as *const libc::c_char);
-    print(b"   - - - - - - -    \n\0" as *const u8 as *const libc::c_char);
-    print(b" by John Carmack    \n\0" as *const u8 as *const libc::c_char);
-    print(b"                    \n\0" as *const u8 as *const libc::c_char);
-    print(b"\n\0" as *const u8 as *const libc::c_char);
-    print(b"f1 = help           \n\0" as *const u8 as *const libc::c_char);
-    print(b"f2 = control panel  \n\0" as *const u8 as *const libc::c_char);
-    print(b"f3 = game reset     \n\0" as *const u8 as *const libc::c_char);
-    print(b"f4 = save game      \n\0" as *const u8 as *const libc::c_char);
-    print(b"f5 = load saved game\n\0" as *const u8 as *const libc::c_char);
-    print(b"f9 = pause          \n\0" as *const u8 as *const libc::c_char);
-    print(b"f10 / ESC = quit    \n\0" as *const u8 as *const libc::c_char);
-    print(b"\n\0" as *const u8 as *const libc::c_char);
-    print(b"hit fire at the demo\n\0" as *const u8 as *const libc::c_char);
-    print(b"to begin playing.   \n\0" as *const u8 as *const libc::c_char);
+    print(b"  C A T A C O M B   \n\0" as *const u8 as *const i8);
+    print(b"   - - - - - - -    \n\0" as *const u8 as *const i8);
+    print(b" by John Carmack    \n\0" as *const u8 as *const i8);
+    print(b"                    \n\0" as *const u8 as *const i8);
+    print(b"\n\0" as *const u8 as *const i8);
+    print(b"f1 = help           \n\0" as *const u8 as *const i8);
+    print(b"f2 = control panel  \n\0" as *const u8 as *const i8);
+    print(b"f3 = game reset     \n\0" as *const u8 as *const i8);
+    print(b"f4 = save game      \n\0" as *const u8 as *const i8);
+    print(b"f5 = load saved game\n\0" as *const u8 as *const i8);
+    print(b"f9 = pause          \n\0" as *const u8 as *const i8);
+    print(b"f10 / ESC = quit    \n\0" as *const u8 as *const i8);
+    print(b"\n\0" as *const u8 as *const i8);
+    print(b"hit fire at the demo\n\0" as *const u8 as *const i8);
+    print(b"to begin playing.   \n\0" as *const u8 as *const i8);
     if wantmore() == 0 {
         return;
     }
     centerwindow(20, 20, screencenterx, screencentery);
-    print(b"\nKeyboard controls:  \n\n\0" as *const u8 as *const libc::c_char);
-    print(b"move    : arrows    \n\0" as *const u8 as *const libc::c_char);
-    print(b"button1 : ctrl      \n\0" as *const u8 as *const libc::c_char);
-    print(b"button2 : alt       \n\0" as *const u8 as *const libc::c_char);
-    print(b"\nTo switch to mouse \n\0" as *const u8 as *const libc::c_char);
-    print(b"or joystick control,\n\0" as *const u8 as *const libc::c_char);
-    print(b"hit f2             \n\0" as *const u8 as *const libc::c_char);
+    print(b"\nKeyboard controls:  \n\n\0" as *const u8 as *const i8);
+    print(b"move    : arrows    \n\0" as *const u8 as *const i8);
+    print(b"button1 : ctrl      \n\0" as *const u8 as *const i8);
+    print(b"button2 : alt       \n\0" as *const u8 as *const i8);
+    print(b"\nTo switch to mouse \n\0" as *const u8 as *const i8);
+    print(b"or joystick control,\n\0" as *const u8 as *const i8);
+    print(b"hit f2             \n\0" as *const u8 as *const i8);
     if wantmore() == 0 {
         return;
     }
     centerwindow(20, 20, screencenterx, screencentery);
-    print(b"Button 1 / ctrl key:\n\0" as *const u8 as *const libc::c_char);
-    print(b"Builds shot power.  \n\0" as *const u8 as *const libc::c_char);
-    print(b"If the shot power   \n\0" as *const u8 as *const libc::c_char);
-    print(b"meter is full when  \n\0" as *const u8 as *const libc::c_char);
-    print(b"the button is       \n\0" as *const u8 as *const libc::c_char);
-    print(b"released, a super   \n\0" as *const u8 as *const libc::c_char);
-    print(b"shot will be        \n\0" as *const u8 as *const libc::c_char);
-    print(b"launched.           \n\0" as *const u8 as *const libc::c_char);
-    print(b"\n\0" as *const u8 as *const libc::c_char);
+    print(b"Button 1 / ctrl key:\n\0" as *const u8 as *const i8);
+    print(b"Builds shot power.  \n\0" as *const u8 as *const i8);
+    print(b"If the shot power   \n\0" as *const u8 as *const i8);
+    print(b"meter is full when  \n\0" as *const u8 as *const i8);
+    print(b"the button is       \n\0" as *const u8 as *const i8);
+    print(b"released, a super   \n\0" as *const u8 as *const i8);
+    print(b"shot will be        \n\0" as *const u8 as *const i8);
+    print(b"launched.           \n\0" as *const u8 as *const i8);
+    print(b"\n\0" as *const u8 as *const i8);
     y = 11;
     while y <= 18 {
         x = 3;
@@ -644,13 +638,13 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
         return;
     }
     centerwindow(20, 20, screencenterx, screencentery);
-    print(b"Button 2 / alt key:\n\0" as *const u8 as *const libc::c_char);
-    print(b"Allows you to move  \n\0" as *const u8 as *const libc::c_char);
-    print(b"without changing the\n\0" as *const u8 as *const libc::c_char);
-    print(b"direction you are   \n\0" as *const u8 as *const libc::c_char);
-    print(b"facing.  Good for   \n\0" as *const u8 as *const libc::c_char);
-    print(b"searching walls and \n\0" as *const u8 as *const libc::c_char);
-    print(b"fighting retreats.  \n\0" as *const u8 as *const libc::c_char);
+    print(b"Button 2 / alt key:\n\0" as *const u8 as *const i8);
+    print(b"Allows you to move  \n\0" as *const u8 as *const i8);
+    print(b"without changing the\n\0" as *const u8 as *const i8);
+    print(b"direction you are   \n\0" as *const u8 as *const i8);
+    print(b"facing.  Good for   \n\0" as *const u8 as *const i8);
+    print(b"searching walls and \n\0" as *const u8 as *const i8);
+    print(b"fighting retreats.  \n\0" as *const u8 as *const i8);
     y = 11;
     while y <= 18 {
         x = 3;
@@ -669,54 +663,54 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
     charpic(6, 13, player, south, 2, objdef);
     sx = 6;
     sy = 15;
-    print(b"\x1D\x1D\x1E\x1E\x1F\x1F\0" as *const u8 as *const libc::c_char);
+    print(b"\x1D\x1D\x1E\x1E\x1F\x1F\0" as *const u8 as *const i8);
     if wantmore() == 0 {
         return;
     }
     centerwindow(20, 20, screencenterx, screencentery);
-    print(b"\"P\" or \"space\" will \n\0" as *const u8 as *const libc::c_char);
-    print(b"take a healing      \n\0" as *const u8 as *const libc::c_char);
-    print(b"potion if you have  \n\0" as *const u8 as *const libc::c_char);
-    print(b"one.  This restores \n\0" as *const u8 as *const libc::c_char);
-    print(b"the body meter to   \n\0" as *const u8 as *const libc::c_char);
-    print(b"full strength.  Keep\n\0" as *const u8 as *const libc::c_char);
-    print(b"a sharp eye on the  \n\0" as *const u8 as *const libc::c_char);
-    print(b"meter, because when \n\0" as *const u8 as *const libc::c_char);
-    print(b"it runs out, you are\n\0" as *const u8 as *const libc::c_char);
-    print(b"dead!               \n\n\0" as *const u8 as *const libc::c_char);
-    print(b"\"B\" will cast a bolt\n\0" as *const u8 as *const libc::c_char);
-    print(b"spell if you have   \n\0" as *const u8 as *const libc::c_char);
-    print(b"any.  You can mow   \n\0" as *const u8 as *const libc::c_char);
-    print(b"down a lot of       \n\0" as *const u8 as *const libc::c_char);
-    print(b"monsters with a bit \n\0" as *const u8 as *const libc::c_char);
-    print(b"of skill.           \n\0" as *const u8 as *const libc::c_char);
+    print(b"\"P\" or \"space\" will \n\0" as *const u8 as *const i8);
+    print(b"take a healing      \n\0" as *const u8 as *const i8);
+    print(b"potion if you have  \n\0" as *const u8 as *const i8);
+    print(b"one.  This restores \n\0" as *const u8 as *const i8);
+    print(b"the body meter to   \n\0" as *const u8 as *const i8);
+    print(b"full strength.  Keep\n\0" as *const u8 as *const i8);
+    print(b"a sharp eye on the  \n\0" as *const u8 as *const i8);
+    print(b"meter, because when \n\0" as *const u8 as *const i8);
+    print(b"it runs out, you are\n\0" as *const u8 as *const i8);
+    print(b"dead!               \n\n\0" as *const u8 as *const i8);
+    print(b"\"B\" will cast a bolt\n\0" as *const u8 as *const i8);
+    print(b"spell if you have   \n\0" as *const u8 as *const i8);
+    print(b"any.  You can mow   \n\0" as *const u8 as *const i8);
+    print(b"down a lot of       \n\0" as *const u8 as *const i8);
+    print(b"monsters with a bit \n\0" as *const u8 as *const i8);
+    print(b"of skill.           \n\0" as *const u8 as *const i8);
     if wantmore() == 0 {
         return;
     }
     centerwindow(20, 20, screencenterx, screencentery);
-    print(b"\"N\" or \"enter\" will \n\0" as *const u8 as *const libc::c_char);
-    print(b"cast a nuke spell.  \n\0" as *const u8 as *const libc::c_char);
-    print(b"This usually wipes  \n\0" as *const u8 as *const libc::c_char);
-    print(b"out all the monsters\n\0" as *const u8 as *const libc::c_char);
-    print(b"near you.  Consider \n\0" as *const u8 as *const libc::c_char);
-    print(b"it a panic button   \n\0" as *const u8 as *const libc::c_char);
-    print(b"when you are being  \n\0" as *const u8 as *const libc::c_char);
-    print(b"mobbed by monsters! \n\n\0" as *const u8 as *const libc::c_char);
-    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const libc::c_char);
-    printchartile(b"POTIONS:       \x80\xA2\x80\n\0" as *const u8 as *const libc::c_char);
-    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const libc::c_char);
-    printchartile(b"SCROLLS:       \x80\xA3\x80\n\0" as *const u8 as *const libc::c_char);
-    printchartile(b" (BOLTS/NUKES) \x80\x80\x80\n\0" as *const u8 as *const libc::c_char);
-    printchartile(b"TREASURE:      \x80\xA7\x80\n\0" as *const u8 as *const libc::c_char);
-    printchartile(b" (POINTS)      \x80\x80\x80\n\0" as *const u8 as *const libc::c_char);
-    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const libc::c_char);
+    print(b"\"N\" or \"enter\" will \n\0" as *const u8 as *const i8);
+    print(b"cast a nuke spell.  \n\0" as *const u8 as *const i8);
+    print(b"This usually wipes  \n\0" as *const u8 as *const i8);
+    print(b"out all the monsters\n\0" as *const u8 as *const i8);
+    print(b"near you.  Consider \n\0" as *const u8 as *const i8);
+    print(b"it a panic button   \n\0" as *const u8 as *const i8);
+    print(b"when you are being  \n\0" as *const u8 as *const i8);
+    print(b"mobbed by monsters! \n\n\0" as *const u8 as *const i8);
+    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const i8);
+    printchartile(b"POTIONS:       \x80\xA2\x80\n\0" as *const u8 as *const i8);
+    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const i8);
+    printchartile(b"SCROLLS:       \x80\xA3\x80\n\0" as *const u8 as *const i8);
+    printchartile(b" (BOLTS/NUKES) \x80\x80\x80\n\0" as *const u8 as *const i8);
+    printchartile(b"TREASURE:      \x80\xA7\x80\n\0" as *const u8 as *const i8);
+    printchartile(b" (POINTS)      \x80\x80\x80\n\0" as *const u8 as *const i8);
+    printchartile(b"               \x80\x80\x80\n\0" as *const u8 as *const i8);
     wantmore();
 }
 
 unsafe fn reset(screencenterx: &i32, screencentery: &i32) {
     centerwindow(18, 1, screencenterx, screencentery);
-    print(b"reset game (y/n)?\0" as *const u8 as *const libc::c_char);
-    ch = get() as libc::c_char;
+    print(b"reset game (y/n)?\0" as *const u8 as *const i8);
+    ch = get() as i8;
     if ch as i32 == 'y' as i32 {
         gamexit = killed;
         playdone = true as boolean;
@@ -730,25 +724,19 @@ pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i
         secretgate, nothing, nothing, nothing, nothing, nothing, nothing, nothing, nothing,
         nothing, nothing, nothing, nothing, nothing, nothing, nothing,
     ];
-    let mut filename: [libc::c_char; 64] = [0; 64];
-    let mut st: [libc::c_char; 64] = [0; 64];
+    let mut filename: [i8; 64] = [0; 64];
+    let mut st: [i8; 64] = [0; 64];
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     let mut xx: i32 = 0;
     let mut yy: i32 = 0;
     let mut btile: u8 = 0;
-    let mut sm: [libc::c_char; 4096] = [0; 4096];
-    let mut rle: [libc::c_char; 4096] = [0; 4096];
-    strcpy(
-        filename.as_mut_ptr(),
-        b"LEVEL\0" as *const u8 as *const libc::c_char,
-    );
+    let mut sm: [i8; 4096] = [0; 4096];
+    let mut rle: [i8; 4096] = [0; 4096];
+    strcpy(filename.as_mut_ptr(), b"LEVEL\0" as *const u8 as *const i8);
     itoa(level as i32, st.as_mut_ptr(), 10);
     strcat(filename.as_mut_ptr(), st.as_mut_ptr());
-    strcat(
-        filename.as_mut_ptr(),
-        b".CA2\0" as *const u8 as *const libc::c_char,
-    );
+    strcat(filename.as_mut_ptr(), b".CA2\0" as *const u8 as *const i8);
     LoadFile(filename.as_mut_ptr(), rle.as_mut_ptr());
     RLEExpand(&mut *rle.as_mut_ptr().offset(4), sm.as_mut_ptr(), 4096);
     numobj = 0;
@@ -807,7 +795,7 @@ pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i
     sx = 33;
     sy = 1;
     printint(level as i32);
-    print(b" \0" as *const u8 as *const libc::c_char);
+    print(b" \0" as *const u8 as *const i8);
     restore(view);
     i = 0;
     while i < 6 {
@@ -831,10 +819,8 @@ unsafe fn drawside(items: &mut [i16]) {
         sy += 1;
     }
     drawwindow(24, 0, 38, 23);
-    print(
-        b"  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n\0" as *const u8 as *const libc::c_char,
-    );
-    print(b" shot power\n\n\n    body\n\n\n\0" as *const u8 as *const libc::c_char);
+    print(b"  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n\0" as *const u8 as *const i8);
+    print(b" shot power\n\n\n    body\n\n\n\0" as *const u8 as *const i8);
     printhighscore();
     printbody();
     printshotpower();
@@ -950,8 +936,8 @@ pub unsafe fn dofkeys(
         60 => {
             clearkeys();
             expwin(18, 1, screencenterx, screencentery);
-            print(b"RESET GAME (Y/N)?\0" as *const u8 as *const libc::c_char);
-            ch = toupper(get()) as libc::c_char;
+            print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8);
+            ch = toupper(get()) as i8;
             if ch as i32 == 'Y' as i32 {
                 resetgame = true as boolean;
             }
@@ -960,32 +946,26 @@ pub unsafe fn dofkeys(
             clearkeys();
             expwin(22, 4, screencenterx, screencentery);
             if indemo != demoenum::notdemo {
-                print(b"Can't save game here!\0" as *const u8 as *const libc::c_char);
+                print(b"Can't save game here!\0" as *const u8 as *const i8);
                 get();
             } else {
-                print(b"Save as game #(1-9):\0" as *const u8 as *const libc::c_char);
-                ch = toupper(get()) as libc::c_char;
+                print(b"Save as game #(1-9):\0" as *const u8 as *const i8);
+                ch = toupper(get()) as i8;
                 drawchar(sx, sy, ch as i32);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
-                    strcpy(
-                        str.as_mut_ptr(),
-                        b"GAME0.CA2\0" as *const u8 as *const libc::c_char,
-                    );
+                    strcpy(str.as_mut_ptr(), b"GAME0.CA2\0" as *const u8 as *const i8);
                     str[4] = ch;
                     if _Verify(str.as_mut_ptr()) != 0 {
-                        print(
-                            b"\nGame exists,\noverwrite (Y/N)?\0" as *const u8
-                                as *const libc::c_char,
-                        );
-                        ch = get() as libc::c_char;
+                        print(b"\nGame exists,\noverwrite (Y/N)?\0" as *const u8 as *const i8);
+                        ch = get() as i8;
                         if ch as i32 != 'Y' as i32 && ch as i32 != 'y' as i32 {
                             current_block_72 = 919954187481050311;
                         } else {
                             sx = leftedge;
-                            print(b"                    \0" as *const u8 as *const libc::c_char);
+                            print(b"                    \0" as *const u8 as *const i8);
                             sy -= 1;
                             sx = leftedge;
-                            print(b"                    \0" as *const u8 as *const libc::c_char);
+                            print(b"                    \0" as *const u8 as *const i8);
                             sx = leftedge;
                             sy -= 1;
                             current_block_72 = 1836292691772056875;
@@ -1026,9 +1006,9 @@ pub unsafe fn dofkeys(
                                 ::std::mem::size_of::<activeobj>() as u64,
                             );
                             close(handle);
-                            print(b"\nGame saved.  Hit F5\n\0" as *const u8 as *const libc::c_char);
-                            print(b"when you wish to\n\0" as *const u8 as *const libc::c_char);
-                            print(b"restart the game.\0" as *const u8 as *const libc::c_char);
+                            print(b"\nGame saved.  Hit F5\n\0" as *const u8 as *const i8);
+                            print(b"when you wish to\n\0" as *const u8 as *const i8);
+                            print(b"restart the game.\0" as *const u8 as *const i8);
                             get();
                         }
                     }
@@ -1038,14 +1018,11 @@ pub unsafe fn dofkeys(
         62 => {
             clearkeys();
             expwin(22, 4, screencenterx, screencentery);
-            print(b"Load game #(1-9):\0" as *const u8 as *const libc::c_char);
-            ch = toupper(get()) as libc::c_char;
+            print(b"Load game #(1-9):\0" as *const u8 as *const i8);
+            ch = toupper(get()) as i8;
             drawchar(sx, sy, ch as i32);
             if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
-                strcpy(
-                    str.as_mut_ptr(),
-                    b"GAME0.CA2\0" as *const u8 as *const libc::c_char,
-                );
+                strcpy(str.as_mut_ptr(), b"GAME0.CA2\0" as *const u8 as *const i8);
                 str[4] = ch;
                 // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
                 // project.
@@ -1055,7 +1032,7 @@ pub unsafe fn dofkeys(
                     0o200 as i32 | 0o400 as i32,
                 );
                 if handle == -(1) {
-                    print(b"\nGame not found.\0" as *const u8 as *const libc::c_char);
+                    print(b"\nGame not found.\0" as *const u8 as *const i8);
                     get();
                 } else {
                     read(
@@ -1091,16 +1068,16 @@ pub unsafe fn dofkeys(
         66 => {
             clearkeys();
             expwin(7, 1, screencenterx, screencentery);
-            print(b"PAUSED\0" as *const u8 as *const libc::c_char);
+            print(b"PAUSED\0" as *const u8 as *const i8);
             get();
         }
         67 => {
             clearkeys();
             expwin(12, 1, screencenterx, screencentery);
-            print(b"QUIT (Y/N)?\0" as *const u8 as *const libc::c_char);
-            ch = toupper(get()) as libc::c_char;
+            print(b"QUIT (Y/N)?\0" as *const u8 as *const i8);
+            ch = toupper(get()) as i8;
             if ch as i32 == 'Y' as i32 {
-                _quit(b"\0" as *const u8 as *const libc::c_char as *mut libc::c_char);
+                _quit(b"\0" as *const u8 as *const i8 as *mut i8);
             }
         }
         _ => return,
@@ -1160,23 +1137,23 @@ pub unsafe extern "C" fn doendpage() {
     PlaySound(3);
     WaitEndSound();
     drawwindow(0, 0, 17, 9);
-    print(b"Congratulation! \n\0" as *const u8 as *const libc::c_char);
-    print(b"One as skilled  \n\0" as *const u8 as *const libc::c_char);
-    print(b"as yourself     \n\0" as *const u8 as *const libc::c_char);
-    print(b"deserves the    \n\0" as *const u8 as *const libc::c_char);
-    print(b"10,000,000 gold \n\0" as *const u8 as *const libc::c_char);
-    print(b"you pulled out  \n\0" as *const u8 as *const libc::c_char);
-    print(b"of the palace! \0" as *const u8 as *const libc::c_char);
+    print(b"Congratulation! \n\0" as *const u8 as *const i8);
+    print(b"One as skilled  \n\0" as *const u8 as *const i8);
+    print(b"as yourself     \n\0" as *const u8 as *const i8);
+    print(b"deserves the    \n\0" as *const u8 as *const i8);
+    print(b"10,000,000 gold \n\0" as *const u8 as *const i8);
+    print(b"you pulled out  \n\0" as *const u8 as *const i8);
+    print(b"of the palace! \0" as *const u8 as *const i8);
     clearkeys();
     get();
     drawwindow(0, 0, 17, 9);
-    print(b"Let us know what\n\0" as *const u8 as *const libc::c_char);
-    print(b"you enjoyed     \n\0" as *const u8 as *const libc::c_char);
-    print(b"about this game,\n\0" as *const u8 as *const libc::c_char);
-    print(b"so we can give  \n\0" as *const u8 as *const libc::c_char);
-    print(b"you more of it. \n\0" as *const u8 as *const libc::c_char);
-    print(b"Thank you for   \n\0" as *const u8 as *const libc::c_char);
-    print(b"playing!\0" as *const u8 as *const libc::c_char);
+    print(b"Let us know what\n\0" as *const u8 as *const i8);
+    print(b"you enjoyed     \n\0" as *const u8 as *const i8);
+    print(b"about this game,\n\0" as *const u8 as *const i8);
+    print(b"so we can give  \n\0" as *const u8 as *const i8);
+    print(b"you more of it. \n\0" as *const u8 as *const i8);
+    print(b"Thank you for   \n\0" as *const u8 as *const i8);
+    print(b"playing!\0" as *const u8 as *const i8);
     get();
 }
 
@@ -1249,7 +1226,7 @@ unsafe fn gameover(
 ) {
     let mut i: i32 = 0;
     expwin(11, 4, screencenterx, screencentery);
-    print(b"\n GAME OVER\n     \0" as *const u8 as *const libc::c_char);
+    print(b"\n GAME OVER\n     \0" as *const u8 as *const i8);
     UpdateScreen();
     WaitEndSound();
     i = 0;
@@ -1400,14 +1377,14 @@ pub fn original_main() {
         _setupgame();
 
         expwin(33, 13, &screencenterx, &screencentery);
-        print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const libc::c_char);
-        print(b"          The Catacomb\n\n\0" as *const u8 as *const libc::c_char);
-        print(b"        By John Carmack\n\n\0" as *const u8 as *const libc::c_char);
-        print(b"       Copyright 1990-93\n\0" as *const u8 as *const libc::c_char);
-        print(b"      Softdisk Publishing\0" as *const u8 as *const libc::c_char);
-        print(b"\n\n\0" as *const u8 as *const libc::c_char);
-        print(b"\n\n\0" as *const u8 as *const libc::c_char);
-        print(b"         Press a key:\0" as *const u8 as *const libc::c_char);
+        print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const i8);
+        print(b"          The Catacomb\n\n\0" as *const u8 as *const i8);
+        print(b"        By John Carmack\n\n\0" as *const u8 as *const i8);
+        print(b"       Copyright 1990-93\n\0" as *const u8 as *const i8);
+        print(b"      Softdisk Publishing\0" as *const u8 as *const i8);
+        print(b"\n\n\0" as *const u8 as *const i8);
+        print(b"\n\n\0" as *const u8 as *const i8);
+        print(b"         Press a key:\0" as *const u8 as *const i8);
         get();
 
         clearkeys();

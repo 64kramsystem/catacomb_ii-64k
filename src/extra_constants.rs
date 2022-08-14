@@ -23,4 +23,4 @@ pub const tile2s: usize = 256; /*tile number where the 2*2 pictures start*/
 // pub const tile5s: usize = tile4s + 19 * 16;
 // pub const lasttile: usize = tile5s + 19 * 25;
 
-pub const _extension: *const libc::c_char = b"CA2\0" as *const _ as *const libc::c_char;
+pub const _extension: *const i8 = b"CA2\0" as *const _ as *const i8;
