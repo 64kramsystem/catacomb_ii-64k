@@ -25,7 +25,6 @@ extern "C" {
     static mut frameon: u16;
     static mut leveldone: boolean;
     static mut playdone: boolean;
-    static mut obj: objtype;
     static mut pics: *mut i8;
     static mut grmode: grtype;
 }
@@ -51,56 +50,57 @@ const table86: [u16; 87] = [
     7052, 7138, 7224, 7310, 7396,
 ];
 
-pub unsafe fn drawobj(priority: &[u8], view: &mut [[i32; 86]]) {
-    let mut tilenum: i32 = obj.firstchar as i32
-        + squares[obj.size as usize] as i32
-            * ((obj.dir as i32 & obj.dirmask as i32) * obj.stages as i32 + obj.stage as i32);
-    obj.oldtile = tilenum as i16;
-    obj.oldy = obj.y;
-    obj.oldx = obj.x;
-    let objpri: u8 = priority[tilenum as usize];
-    let mut ofs: u32 = (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
+pub unsafe fn drawobj(gs: &mut GlobalState) {
+    let mut tilenum: i32 = gs.obj.firstchar as i32
+        + squares[gs.obj.size as usize] as i32
+            * ((gs.obj.dir as i32 & gs.obj.dirmask as i32) * gs.obj.stages as i32
+                + gs.obj.stage as i32);
+    gs.obj.oldtile = tilenum as i16;
+    gs.obj.oldy = gs.obj.y;
+    gs.obj.oldx = gs.obj.x;
+    let objpri: u8 = gs.priority[tilenum as usize];
+    let mut ofs: u32 = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as u32;
     let mut x: u32 = 0;
     let mut y: u32 = 0;
-    y = obj.size as u32;
+    y = gs.obj.size as u32;
     loop {
         let fresh0 = y;
         y = y.wrapping_sub(1);
         if !(fresh0 > 0) {
             break;
         }
-        x = obj.size as u32;
+        x = gs.obj.size as u32;
         loop {
             let fresh1 = x;
             x = x.wrapping_sub(1);
             if !(fresh1 > 0) {
                 break;
             }
-            if priority[*(view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize] as i32
+            if gs.priority[*(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize] as i32
                 <= objpri as i32
             {
-                *(view.as_mut_ptr() as *mut i32).offset(ofs as isize) = tilenum;
+                *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) = tilenum;
             }
             tilenum += 1;
             ofs = ofs.wrapping_add(1);
         }
-        ofs = ofs.wrapping_add((86 - obj.size as i32) as u32);
+        ofs = ofs.wrapping_add((86 - gs.obj.size as i32) as u32);
     }
 }
 
 pub unsafe fn eraseobj(gs: &mut GlobalState) {
-    let mut tilenum: i32 = obj.oldtile as i32;
-    let mut ofs: u32 = (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
+    let mut tilenum: i32 = gs.obj.oldtile as i32;
+    let mut ofs: u32 = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as u32;
     let mut x: u32 = 0;
     let mut y: u32 = 0;
-    y = obj.size as u32;
+    y = gs.obj.size as u32;
     loop {
         let fresh2 = y;
         y = y.wrapping_sub(1);
         if !(fresh2 > 0) {
             break;
         }
-        x = obj.size as u32;
+        x = gs.obj.size as u32;
         loop {
             let fresh3 = x;
             x = x.wrapping_sub(1);
@@ -114,7 +114,7 @@ pub unsafe fn eraseobj(gs: &mut GlobalState) {
             tilenum += 1;
             ofs = ofs.wrapping_add(1);
         }
-        ofs = ofs.wrapping_add((86 - obj.size as i32) as u32);
+        ofs = ofs.wrapping_add((86 - gs.obj.size as i32) as u32);
     }
 }
 
@@ -125,19 +125,19 @@ pub unsafe fn doall(gs: &mut GlobalState) {
         objecton = numobj;
         loop {
             memcpy(
-                &mut obj as *mut objtype as *mut libc::c_void,
+                &mut gs.obj as *mut objtype as *mut libc::c_void,
                 &mut *gs.o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
                     as *const libc::c_void,
                 ::std::mem::size_of::<activeobj>() as u64,
             );
-            if obj.class as i32 != nothing as i32 {
+            if gs.obj.class as i32 != nothing as i32 {
                 memcpy(
-                    &mut obj.think as *mut u8 as *mut libc::c_void,
-                    &mut *gs.objdef.as_mut_ptr().offset(obj.class as isize) as *mut objdeftype
+                    &mut gs.obj.think as *mut u8 as *mut libc::c_void,
+                    &mut *gs.objdef.as_mut_ptr().offset(gs.obj.class as isize) as *mut objdeftype
                         as *const libc::c_void,
                     ::std::mem::size_of::<objdeftype>() as u64,
                 );
-                if obj.active != 0 {
+                if gs.obj.active != 0 {
                     doactive(gs);
                 } else {
                     doinactive(gs);

@@ -1,4 +1,7 @@
-use crate::{active_obj::activeobj, exit_type::exittype, obj_def_type::objdeftype, vec2::Vec2};
+use crate::{
+    active_obj::activeobj, exit_type::exittype, obj_def_type::objdeftype, obj_type::objtype,
+    vec2::Vec2,
+};
 
 /// Includes most of the former globals.
 pub struct GlobalState {
@@ -18,6 +21,7 @@ pub struct GlobalState {
 
     pub o: [activeobj; 201],   /*everything that moves is here*/
     pub saveo: [activeobj; 1], // ^^
+    pub obj: objtype,
     //     objtype obj, altobj;               /*total info about objecton and alt*/
     //     int altnum;                        /*o[#] of altobj*/
     //     int numobj, objecton;              /*number of objects in o now*/
@@ -68,6 +72,7 @@ impl GlobalState {
         shotpower: i32,
         o: [activeobj; 201],
         saveo: [activeobj; 1],
+        obj: objtype,
         objdef: [objdeftype; 23],
         side: i32,
         boltsleft: i32,
@@ -86,6 +91,7 @@ impl GlobalState {
             shotpower,
             o,
             saveo,
+            obj,
             objdef,
             side,
             boltsleft,

@@ -35,7 +35,6 @@ extern "C" {
     static mut chkx: i32;
     static mut chky: i32;
     static mut numobj: i32;
-    static mut obj: objtype;
     static mut objecton: i32;
     static mut leveldone: boolean;
     static mut frameon: u16;
@@ -272,7 +271,7 @@ unsafe fn takepotion(gs: &mut GlobalState) {
         }
         PlaySound(12);
         gs.o[0].hp = 13;
-        obj.hp = 13;
+        gs.obj.hp = 13;
         printbody(gs);
     } else {
         PlaySound(14);
@@ -324,8 +323,8 @@ unsafe fn castnuke(gs: &mut GlobalState) {
     base.delay = 0;
     base.stage = 0;
     base.active = true as boolean;
-    base.x = obj.x;
-    base.y = obj.y;
+    base.x = gs.obj.x;
+    base.y = gs.obj.y;
     base.oldx = base.x;
     base.oldy = base.y;
     base.oldtile = -(1) as i16;
@@ -351,14 +350,14 @@ unsafe fn castnuke(gs: &mut GlobalState) {
         x += 1;
     }
     PlaySound(13);
-    obj.stage = 2;
-    obj.delay = 4;
+    gs.obj.stage = 2;
+    gs.obj.delay = 4;
 }
 
 unsafe fn playshoot(gs: &mut GlobalState) {
     let mut new: i32 = 0;
-    obj.stage = 2;
-    obj.delay = 4;
+    gs.obj.stage = 2;
+    gs.obj.delay = 4;
     PlaySound(5);
     new = newobject(gs);
     gs.o[new as usize].class = shot as i32 as u16;
@@ -366,23 +365,23 @@ unsafe fn playshoot(gs: &mut GlobalState) {
     gs.o[new as usize].delay = 0;
     gs.o[new as usize].stage = 0;
     gs.o[new as usize].active = true as boolean;
-    gs.o[new as usize].dir = obj.dir;
+    gs.o[new as usize].dir = gs.obj.dir;
     match gs.o[new as usize].dir as i32 {
         0 => {
-            gs.o[new as usize].x = (obj.x as i32 + gs.side) as u8;
-            gs.o[new as usize].y = obj.y;
+            gs.o[new as usize].x = (gs.obj.x as i32 + gs.side) as u8;
+            gs.o[new as usize].y = gs.obj.y;
         }
         1 => {
-            gs.o[new as usize].x = (obj.x as i32 + 1) as u8;
-            gs.o[new as usize].y = (obj.y as i32 + gs.side) as u8;
+            gs.o[new as usize].x = (gs.obj.x as i32 + 1) as u8;
+            gs.o[new as usize].y = (gs.obj.y as i32 + gs.side) as u8;
         }
         2 => {
-            gs.o[new as usize].x = (obj.x as i32 + gs.side) as u8;
-            gs.o[new as usize].y = (obj.y as i32 + 1) as u8;
+            gs.o[new as usize].x = (gs.obj.x as i32 + gs.side) as u8;
+            gs.o[new as usize].y = (gs.obj.y as i32 + 1) as u8;
         }
         3 => {
-            gs.o[new as usize].x = obj.x;
-            gs.o[new as usize].y = (obj.y as i32 + gs.side) as u8;
+            gs.o[new as usize].x = gs.obj.x;
+            gs.o[new as usize].y = (gs.obj.y as i32 + gs.side) as u8;
         }
         _ => {}
     };
@@ -390,18 +389,18 @@ unsafe fn playshoot(gs: &mut GlobalState) {
 
 unsafe fn playbigshoot(gs: &mut GlobalState) {
     let mut new: i32 = 0;
-    obj.stage = 2;
+    gs.obj.stage = 2;
     if gs.boltsleft == 0 {
-        obj.delay = 4;
+        gs.obj.delay = 4;
     }
     PlaySound(4);
     new = newobject(gs);
     gs.o[new as usize].delay = 0;
     gs.o[new as usize].stage = 0;
     gs.o[new as usize].active = true as boolean;
-    gs.o[new as usize].dir = obj.dir;
-    gs.o[new as usize].x = obj.x;
-    gs.o[new as usize].y = obj.y;
+    gs.o[new as usize].dir = gs.obj.dir;
+    gs.o[new as usize].x = gs.obj.x;
+    gs.o[new as usize].y = gs.obj.y;
     gs.o[new as usize].class = bigshot as i32 as u16;
 }
 
@@ -457,8 +456,8 @@ unsafe fn tagobject(gs: &mut GlobalState) {
     if GODMODE as i32 != 0 && altobj.class as i32 == player as i32 {
         return;
     }
-    altobj.hp = (altobj.hp as i32 - obj.damage as i32) as i8;
-    if i <= obj.damage as i32 {
+    altobj.hp = (altobj.hp as i32 - gs.obj.damage as i32) as i8;
+    if i <= gs.obj.damage as i32 {
         if altobj.class as i32 == player as i32 {
             gs.o[0].hp = 0;
             altobj.hp = gs.o[0].hp;
@@ -531,13 +530,13 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     if gotit == 0 {
         return true as boolean;
     }
-    match obj.contact as i32 {
+    match gs.obj.contact as i32 {
         0 => return false as boolean,
         1 | 3 => {
             if altnum == 0 {
                 tagobject(gs);
-                obj.stage = 2;
-                obj.delay = 20;
+                gs.obj.stage = 2;
+                gs.obj.delay = 20;
             } else if altobj.class as i32 == shot as i32 {
                 return true as boolean;
             }
@@ -567,9 +566,9 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         return intomonster(gs);
     }
     if chkspot >= 129 && chkspot <= 135 {
-        if obj.contact as i32 == pshot as i32
-            || obj.contact as i32 == nukeshot as i32
-            || obj.contact as i32 == mshot as i32
+        if gs.obj.contact as i32 == pshot as i32
+            || gs.obj.contact as i32 == nukeshot as i32
+            || gs.obj.contact as i32 == mshot as i32
         {
             new = newobject(gs);
             gs.o[new as usize].active = true as boolean;
@@ -583,7 +582,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         return false as boolean;
     }
     if chkspot >= 136 && chkspot <= 145 {
-        if obj.contact as i32 == pshot as i32 || obj.contact as i32 == nukeshot as i32 {
+        if gs.obj.contact as i32 == pshot as i32 || gs.obj.contact as i32 == nukeshot as i32 {
             PlaySound(6);
             if chkspot < 143 {
                 gs.background[chky as usize][chkx as usize] = 128;
@@ -597,7 +596,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
             gs.o[new as usize].stage = 0;
             gs.o[new as usize].delay = 2;
             gs.o[new as usize].class = dead1 as i32 as u16;
-            if obj.contact as i32 == pshot as i32 {
+            if gs.obj.contact as i32 == pshot as i32 {
                 return false as boolean;
             } else {
                 return true as boolean;
@@ -607,7 +606,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         }
     }
     if chkspot == 162 {
-        if obj.class as i32 == player as i32 {
+        if gs.obj.class as i32 == player as i32 {
             givepotion(gs);
             gs.view[chky as usize][chkx as usize] = 128;
             gs.background[chky as usize][chkx as usize] = 128;
@@ -616,7 +615,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         return true as boolean;
     }
     if chkspot == 163 {
-        if obj.class as i32 == player as i32 {
+        if gs.obj.class as i32 == player as i32 {
             givescroll(gs);
             gs.view[chky as usize][chkx as usize] = 128;
             gs.background[chky as usize][chkx as usize] = 128;
@@ -625,7 +624,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         return true as boolean;
     }
     if chkspot == 164 {
-        if obj.class as i32 == player as i32 {
+        if gs.obj.class as i32 == player as i32 {
             givekey(gs);
             gs.view[chky as usize][chkx as usize] = 128;
             gs.background[chky as usize][chkx as usize] = 128;
@@ -634,7 +633,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         return true as boolean;
     }
     if chkspot == 165 || chkspot == 166 {
-        if obj.class as i32 == player as i32 {
+        if gs.obj.class as i32 == player as i32 {
             if takekey(gs) != 0 {
                 opendoor(gs);
                 return true as boolean;
@@ -643,7 +642,7 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         return false as boolean;
     }
     if chkspot == 167 {
-        if obj.class as i32 == player as i32 {
+        if gs.obj.class as i32 == player as i32 {
             score += 500;
             printscore(gs);
             gs.background[chky as usize][chkx as usize] = 128;
@@ -665,34 +664,34 @@ unsafe fn walk(gs: &mut GlobalState) -> boolean {
     let mut deltay: i32 = 0;
     let mut deltax: i32 = 0;
     let mut try_0: boolean = 0;
-    match obj.dir as i32 {
+    match gs.obj.dir as i32 {
         0 => {
-            newx = obj.x as i32;
-            newy = obj.y as i32 - 1;
+            newx = gs.obj.x as i32;
+            newy = gs.obj.y as i32 - 1;
             chkx = newx;
             chky = newy;
             deltax = 1;
             deltay = 0;
         }
         1 => {
-            newx = obj.x as i32 + 1;
-            newy = obj.y as i32;
-            chkx = obj.x as i32 + obj.size as i32;
+            newx = gs.obj.x as i32 + 1;
+            newy = gs.obj.y as i32;
+            chkx = gs.obj.x as i32 + gs.obj.size as i32;
             chky = newy;
             deltax = 0;
             deltay = 1;
         }
         2 => {
-            newx = obj.x as i32;
-            newy = obj.y as i32 + 1;
+            newx = gs.obj.x as i32;
+            newy = gs.obj.y as i32 + 1;
             chkx = newx;
-            chky = obj.y as i32 + obj.size as i32;
+            chky = gs.obj.y as i32 + gs.obj.size as i32;
             deltax = 1;
             deltay = 0;
         }
         3 => {
-            newx = obj.x as i32 - 1;
-            newy = obj.y as i32;
+            newx = gs.obj.x as i32 - 1;
+            newy = gs.obj.y as i32;
             chkx = newx;
             chky = newy;
             deltax = 0;
@@ -701,14 +700,14 @@ unsafe fn walk(gs: &mut GlobalState) -> boolean {
         _ => return false as boolean,
     }
     i = 1;
-    while i <= obj.size as i32 {
+    while i <= gs.obj.size as i32 {
         chkspot = gs.view[chky as usize][chkx as usize];
         if chkspot != 128 {
             try_0 = walkthrough(gs);
             if leveldone != 0 {
                 return true as boolean;
             }
-            if obj.stage as i32 == 2 {
+            if gs.obj.stage as i32 == 2 {
                 return true as boolean;
             }
             if try_0 == 0 {
@@ -719,9 +718,9 @@ unsafe fn walk(gs: &mut GlobalState) -> boolean {
         chky = chky + deltay;
         i += 1;
     }
-    obj.x = newx as u8;
-    obj.y = newy as u8;
-    obj.stage = (obj.stage as i32 ^ 1) as u8;
+    gs.obj.x = newx as u8;
+    gs.obj.y = newy as u8;
+    gs.obj.stage = (gs.obj.stage as i32 ^ 1) as u8;
     return true as boolean;
 }
 
@@ -733,7 +732,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         button2: 0,
     };
     c = ControlPlayer(1);
-    obj.stage = (obj.stage as i32 & 1) as u8;
+    gs.obj.stage = (gs.obj.stage as i32 & 1) as u8;
     if c.button1 as i32 != 0
         && c.button2 as i32 != 0
         && keydown[SDL_SCANCODE_Q as usize] as i32 != 0
@@ -744,28 +743,28 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
     }
     if (c.dir as u32) < nodir as i32 as u32 && frameon as i32 % 2 != 0 {
         if c.button2 != 0 {
-            olddir = obj.dir.try_into().unwrap();
+            olddir = gs.obj.dir.try_into().unwrap();
         }
         if c.dir as u32 > west as i32 as u32 {
             if frameon as i32 / 2 % 2 != 0 {
                 match c.dir as u32 {
                     4 => {
-                        obj.dir = east as i32 as u16;
+                        gs.obj.dir = east as i32 as u16;
                         walk(gs);
                         c.dir = north;
                     }
                     5 => {
-                        obj.dir = south as i32 as u16;
+                        gs.obj.dir = south as i32 as u16;
                         walk(gs);
                         c.dir = east;
                     }
                     6 => {
-                        obj.dir = west as i32 as u16;
+                        gs.obj.dir = west as i32 as u16;
                         walk(gs);
                         c.dir = south;
                     }
                     7 => {
-                        obj.dir = north as i32 as u16;
+                        gs.obj.dir = north as i32 as u16;
                         walk(gs);
                         c.dir = west;
                     }
@@ -774,22 +773,22 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
             } else {
                 match c.dir as u32 {
                     4 => {
-                        obj.dir = north as i32 as u16;
+                        gs.obj.dir = north as i32 as u16;
                         walk(gs);
                         c.dir = east;
                     }
                     5 => {
-                        obj.dir = east as i32 as u16;
+                        gs.obj.dir = east as i32 as u16;
                         walk(gs);
                         c.dir = south;
                     }
                     6 => {
-                        obj.dir = south as i32 as u16;
+                        gs.obj.dir = south as i32 as u16;
                         walk(gs);
                         c.dir = west;
                     }
                     7 => {
-                        obj.dir = west as i32 as u16;
+                        gs.obj.dir = west as i32 as u16;
                         walk(gs);
                         c.dir = north;
                     }
@@ -797,32 +796,32 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
                 }
             }
         }
-        obj.dir = c.dir as u16;
+        gs.obj.dir = c.dir as u16;
         if walk(gs) == 0 {
             PlaySound(1);
         }
         if c.button2 != 0 {
-            obj.dir = olddir as u16;
+            gs.obj.dir = olddir as u16;
         }
     } else if c.button2 == 0 {
         match c.dir as u32 {
             7 | 0 => {
-                obj.dir = north as i32 as u16;
+                gs.obj.dir = north as i32 as u16;
             }
             4 | 1 => {
-                obj.dir = east as i32 as u16;
+                gs.obj.dir = east as i32 as u16;
             }
             5 | 2 => {
-                obj.dir = south as i32 as u16;
+                gs.obj.dir = south as i32 as u16;
             }
             6 | 3 => {
-                obj.dir = west as i32 as u16;
+                gs.obj.dir = west as i32 as u16;
             }
             8 | _ => {}
         }
     }
-    gs.origin.x = obj.x as i32 - 11;
-    gs.origin.y = obj.y as i32 - 11;
+    gs.origin.x = gs.obj.x as i32 - 11;
+    gs.origin.y = gs.obj.y as i32 - 11;
     if gs.boltsleft > 0 {
         if frameon as i32 % 3 == 0 {
             playbigshoot(gs);
@@ -848,7 +847,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         if keydown[SDL_SCANCODE_P as usize] as i32 != 0
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
-            if (obj.hp as i32) < 13 {
+            if (gs.obj.hp as i32) < 13 {
                 takepotion(gs);
                 keydown[SDL_SCANCODE_Q as usize] = false as boolean;
                 keydown[SDL_SCANCODE_SPACE as usize] = false as boolean;
@@ -940,11 +939,11 @@ unsafe fn chasethink(mut diagonal: boolean, gs: &mut GlobalState) {
     let mut tdir: i32 = 0;
     let mut olddir: i32 = 0;
     let mut turnaround: i32 = 0;
-    obj.stage = (obj.stage as i32 & 1) as u8;
-    olddir = obj.dir as i32;
+    gs.obj.stage = (gs.obj.stage as i32 & 1) as u8;
+    olddir = gs.obj.dir as i32;
     turnaround = opposite[olddir as usize] as i32;
-    deltax = gs.o[0].x as i32 - obj.x as i32;
-    deltay = gs.o[0].y as i32 - obj.y as i32;
+    deltax = gs.o[0].x as i32 - gs.obj.x as i32;
+    deltay = gs.o[0].y as i32 - gs.obj.y as i32;
     d[1] = nodir;
     d[2] = nodir;
     if deltax > 0 {
@@ -972,41 +971,41 @@ unsafe fn chasethink(mut diagonal: boolean, gs: &mut GlobalState) {
     }
     if diagonal != 0 {
         if d[1] as u32 != nodir as i32 as u32 {
-            obj.dir = d[1] as u16;
-            if walk(gs) as i32 != 0 || obj.stage as i32 == 3 {
+            gs.obj.dir = d[1] as u16;
+            if walk(gs) as i32 != 0 || gs.obj.stage as i32 == 3 {
                 return;
             }
         }
         if d[2] as u32 != nodir as i32 as u32 {
-            obj.dir = d[2] as u16;
-            if walk(gs) as i32 != 0 || obj.stage as i32 == 3 {
+            gs.obj.dir = d[2] as u16;
+            if walk(gs) as i32 != 0 || gs.obj.stage as i32 == 3 {
                 return;
             }
         }
     } else {
         if d[2] as u32 != nodir as i32 as u32 {
-            obj.dir = d[2] as u16;
-            if walk(gs) as i32 != 0 || obj.stage as i32 == 3 {
+            gs.obj.dir = d[2] as u16;
+            if walk(gs) as i32 != 0 || gs.obj.stage as i32 == 3 {
                 return;
             }
         }
         if d[1] as u32 != nodir as i32 as u32 {
-            obj.dir = d[1] as u16;
-            if walk(gs) as i32 != 0 || obj.stage as i32 == 3 {
+            gs.obj.dir = d[1] as u16;
+            if walk(gs) as i32 != 0 || gs.obj.stage as i32 == 3 {
                 return;
             }
         }
     }
-    obj.dir = olddir as u16;
-    if walk(gs) as i32 != 0 || obj.stage as i32 == 3 {
+    gs.obj.dir = olddir as u16;
+    if walk(gs) as i32 != 0 || gs.obj.stage as i32 == 3 {
         return;
     }
     if rndt() > 128 {
         tdir = north as i32;
         while tdir <= west as i32 {
             if tdir != turnaround {
-                obj.dir = tdir as u16;
-                if walk(gs) as i32 != 0 || obj.stage as i32 == 3 {
+                gs.obj.dir = tdir as u16;
+                if walk(gs) as i32 != 0 || gs.obj.stage as i32 == 3 {
                     return;
                 }
             }
@@ -1016,46 +1015,46 @@ unsafe fn chasethink(mut diagonal: boolean, gs: &mut GlobalState) {
         tdir = west as i32;
         while tdir >= north as i32 {
             if tdir != turnaround {
-                obj.dir = tdir as u16;
-                if walk(gs) as i32 != 0 || obj.stage as i32 == 3 {
+                gs.obj.dir = tdir as u16;
+                if walk(gs) as i32 != 0 || gs.obj.stage as i32 == 3 {
                     return;
                 }
             }
             tdir -= 1;
         }
     }
-    obj.dir = turnaround as u16;
+    gs.obj.dir = turnaround as u16;
     walk(gs);
 }
 
 unsafe fn gargthink(gs: &mut GlobalState) {
     let mut n: i32 = 0;
     if rndt() > 220 {
-        obj.stage = 2;
-        obj.delay = 6;
+        gs.obj.stage = 2;
+        gs.obj.delay = 6;
         PlaySound(5);
         n = newobject(gs);
         gs.o[n as usize].class = rock as i32 as u16;
         gs.o[n as usize].delay = 0;
         gs.o[n as usize].stage = 0;
         gs.o[n as usize].active = true as boolean;
-        gs.o[n as usize].dir = obj.dir;
-        match obj.dir as i32 {
+        gs.o[n as usize].dir = gs.obj.dir;
+        match gs.obj.dir as i32 {
             0 => {
-                gs.o[n as usize].x = (obj.x as i32 + 1 + gs.side) as u8;
-                gs.o[n as usize].y = obj.y;
+                gs.o[n as usize].x = (gs.obj.x as i32 + 1 + gs.side) as u8;
+                gs.o[n as usize].y = gs.obj.y;
             }
             1 => {
-                gs.o[n as usize].x = (obj.x as i32 + 3) as u8;
-                gs.o[n as usize].y = (obj.y as i32 + 1 + gs.side) as u8;
+                gs.o[n as usize].x = (gs.obj.x as i32 + 3) as u8;
+                gs.o[n as usize].y = (gs.obj.y as i32 + 1 + gs.side) as u8;
             }
             2 => {
-                gs.o[n as usize].x = (obj.x as i32 + 1 + gs.side) as u8;
-                gs.o[n as usize].y = (obj.y as i32 + 3) as u8;
+                gs.o[n as usize].x = (gs.obj.x as i32 + 1 + gs.side) as u8;
+                gs.o[n as usize].y = (gs.obj.y as i32 + 3) as u8;
             }
             3 => {
-                gs.o[n as usize].x = obj.x;
-                gs.o[n as usize].y = (obj.y as i32 + 1 + gs.side) as u8;
+                gs.o[n as usize].x = gs.obj.x;
+                gs.o[n as usize].y = (gs.obj.y as i32 + 1 + gs.side) as u8;
             }
             _ => {}
         }
@@ -1068,31 +1067,31 @@ unsafe fn gargthink(gs: &mut GlobalState) {
 unsafe fn dragonthink(gs: &mut GlobalState) {
     let mut n: i32 = 0;
     if rndt() > 220 {
-        obj.stage = 2;
-        obj.delay = 6;
+        gs.obj.stage = 2;
+        gs.obj.delay = 6;
         PlaySound(5);
         n = newobject(gs);
         gs.o[n as usize].class = bigshot as i32 as u16;
         gs.o[n as usize].delay = 0;
         gs.o[n as usize].stage = 0;
         gs.o[n as usize].active = true as boolean;
-        gs.o[n as usize].dir = obj.dir;
+        gs.o[n as usize].dir = gs.obj.dir;
         match gs.o[n as usize].dir as i32 {
             0 => {
-                gs.o[n as usize].x = (obj.x as i32 + 1 + gs.side) as u8;
-                gs.o[n as usize].y = obj.y;
+                gs.o[n as usize].x = (gs.obj.x as i32 + 1 + gs.side) as u8;
+                gs.o[n as usize].y = gs.obj.y;
             }
             1 => {
-                gs.o[n as usize].x = (obj.x as i32 + 3) as u8;
-                gs.o[n as usize].y = (obj.y as i32 + 1 + gs.side) as u8;
+                gs.o[n as usize].x = (gs.obj.x as i32 + 3) as u8;
+                gs.o[n as usize].y = (gs.obj.y as i32 + 1 + gs.side) as u8;
             }
             2 => {
-                gs.o[n as usize].x = (obj.x as i32 + 1 + gs.side) as u8;
-                gs.o[n as usize].y = (obj.y as i32 + 3) as u8;
+                gs.o[n as usize].x = (gs.obj.x as i32 + 1 + gs.side) as u8;
+                gs.o[n as usize].y = (gs.obj.y as i32 + 3) as u8;
             }
             3 => {
-                gs.o[n as usize].x = obj.x;
-                gs.o[n as usize].y = (obj.y as i32 + 1 + gs.side) as u8;
+                gs.o[n as usize].x = gs.obj.x;
+                gs.o[n as usize].y = (gs.obj.y as i32 + 1 + gs.side) as u8;
             }
             _ => {}
         }
@@ -1105,42 +1104,42 @@ unsafe fn dragonthink(gs: &mut GlobalState) {
 unsafe fn gunthink(mut dir: i32, gs: &mut GlobalState) {
     let mut n: i32 = 0;
     PlaySound(5);
-    obj.stage = 0;
+    gs.obj.stage = 0;
     n = newobject(gs);
     gs.o[n as usize].class = bigshot as i32 as u16;
     gs.o[n as usize].delay = 0;
     gs.o[n as usize].stage = 0;
     gs.o[n as usize].active = true as boolean;
     gs.o[n as usize].dir = dir as u16;
-    gs.o[n as usize].x = obj.x;
-    gs.o[n as usize].y = obj.y;
+    gs.o[n as usize].x = gs.obj.x;
+    gs.o[n as usize].y = gs.obj.y;
 }
 
 unsafe fn shooterthink(gs: &mut GlobalState) {
-    if (obj.x as i32) < gs.origin.x - 1
-        || (obj.y as i32) < gs.origin.y - 1
-        || obj.x as i32 > gs.origin.x + 22
-        || obj.y as i32 > gs.origin.y + 22
+    if (gs.obj.x as i32) < gs.origin.x - 1
+        || (gs.obj.y as i32) < gs.origin.y - 1
+        || gs.obj.x as i32 > gs.origin.x + 22
+        || gs.obj.y as i32 > gs.origin.y + 22
         || walk(gs) == 0
-        || obj.stage as i32 == 2
+        || gs.obj.stage as i32 == 2
     {
-        obj.class = nothing as i32 as u16;
+        gs.obj.class = nothing as i32 as u16;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn idlethink() {
-    obj.stage = (obj.stage).wrapping_add(1);
-    obj.delay = 2;
-    if obj.stage as i32 == obj.stages as i32 {
-        obj.stage = 0;
+
+unsafe fn idlethink(gs: &mut GlobalState) {
+    gs.obj.stage = (gs.obj.stage).wrapping_add(1);
+    gs.obj.delay = 2;
+    if gs.obj.stage as i32 == gs.obj.stages as i32 {
+        gs.obj.stage = 0;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn fadethink() {
-    obj.stage = (obj.stage).wrapping_add(1);
-    obj.delay = 2;
-    if obj.stage as i32 == obj.stages as i32 {
-        obj.class = nothing as i32 as u16;
+
+unsafe fn fadethink(gs: &mut GlobalState) {
+    gs.obj.stage = (gs.obj.stage).wrapping_add(1);
+    gs.obj.delay = 2;
+    if gs.obj.stage as i32 == gs.obj.stages as i32 {
+        gs.obj.class = nothing as i32 as u16;
     }
 }
 
@@ -1167,24 +1166,24 @@ unsafe fn killnear(mut chkx_0: i32, mut chky_0: i32, gs: &mut GlobalState) {
 }
 
 unsafe fn explodethink(gs: &mut GlobalState) {
-    obj.stage = (obj.stage).wrapping_add(1);
-    if obj.stage as i32 == 1 {
-        killnear(obj.x as i32 - 1, obj.y as i32, gs);
-        killnear(obj.x as i32, obj.y as i32 - 1, gs);
-        killnear(obj.x as i32 + 1, obj.y as i32, gs);
-        killnear(obj.x as i32, obj.y as i32 + 1, gs);
+    gs.obj.stage = (gs.obj.stage).wrapping_add(1);
+    if gs.obj.stage as i32 == 1 {
+        killnear(gs.obj.x as i32 - 1, gs.obj.y as i32, gs);
+        killnear(gs.obj.x as i32, gs.obj.y as i32 - 1, gs);
+        killnear(gs.obj.x as i32 + 1, gs.obj.y as i32, gs);
+        killnear(gs.obj.x as i32, gs.obj.y as i32 + 1, gs);
     }
-    obj.delay = 2;
-    if obj.stage as i32 == obj.stages as i32 {
-        obj.class = nothing as i32 as u16;
+    gs.obj.delay = 2;
+    if gs.obj.stage as i32 == gs.obj.stages as i32 {
+        gs.obj.class = nothing as i32 as u16;
     }
 }
 
 unsafe fn think(gs: &mut GlobalState) {
-    if obj.delay as i32 > 0 {
-        obj.delay = (obj.delay).wrapping_sub(1);
-    } else if rndt() < obj.speed as i32 {
-        match obj.think as i32 {
+    if gs.obj.delay as i32 > 0 {
+        gs.obj.delay = (gs.obj.delay).wrapping_sub(1);
+    } else if rndt() < gs.obj.speed as i32 {
+        match gs.obj.think as i32 {
             0 => {
                 playercmdthink(gs);
             }
@@ -1204,10 +1203,10 @@ unsafe fn think(gs: &mut GlobalState) {
                 shooterthink(gs);
             }
             6 => {
-                idlethink();
+                idlethink(gs);
             }
             7 => {
-                fadethink();
+                fadethink(gs);
             }
             8 => {
                 explodethink(gs);
@@ -1224,11 +1223,11 @@ unsafe fn think(gs: &mut GlobalState) {
 }
 
 pub unsafe fn doactive(gs: &mut GlobalState) {
-    if obj.class as i32 != dead1 as i32
-        && ((obj.x as i32) < gs.origin.x - 10
-            || obj.x as i32 > gs.origin.x + 34
-            || (obj.y as i32) < gs.origin.y - 10
-            || obj.y as i32 > gs.origin.y + 34)
+    if gs.obj.class as i32 != dead1 as i32
+        && ((gs.obj.x as i32) < gs.origin.x - 10
+            || gs.obj.x as i32 > gs.origin.x + 34
+            || (gs.obj.y as i32) < gs.origin.y - 10
+            || gs.obj.y as i32 > gs.origin.y + 34)
     {
         gs.o[objecton as usize].active = false as boolean;
     } else {
@@ -1237,27 +1236,27 @@ pub unsafe fn doactive(gs: &mut GlobalState) {
         if playdone != 0 {
             return;
         }
-        if obj.class as i32 > nothing as i32 {
-            drawobj(&gs.priority, &mut gs.view);
+        if gs.obj.class as i32 > nothing as i32 {
+            drawobj(gs);
         }
         memcpy(
             &mut *gs.o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
                 as *mut libc::c_void,
-            &mut obj as *mut objtype as *const libc::c_void,
+            &mut gs.obj as *mut objtype as *const libc::c_void,
             ::std::mem::size_of::<activeobj>() as u64,
         );
     };
 }
 
 pub unsafe fn doinactive(gs: &mut GlobalState) {
-    if obj.x as i32 + obj.size as i32 >= gs.origin.x
-        && (obj.x as i32) < gs.origin.x + 24
-        && obj.y as i32 + obj.size as i32 >= gs.origin.y
-        && (obj.y as i32) < gs.origin.y + 24
+    if gs.obj.x as i32 + gs.obj.size as i32 >= gs.origin.x
+        && (gs.obj.x as i32) < gs.origin.x + 24
+        && gs.obj.y as i32 + gs.obj.size as i32 >= gs.origin.y
+        && (gs.obj.y as i32) < gs.origin.y + 24
     {
-        obj.active = true as boolean;
-        obj.dir = north as i32 as u16;
-        gs.o[objecton as usize] = obj.into();
+        gs.obj.active = true as boolean;
+        gs.obj.dir = north as i32 as u16;
+        gs.o[objecton as usize] = gs.obj.into();
     }
 }
 
