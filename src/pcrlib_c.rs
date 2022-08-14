@@ -35,7 +35,6 @@ extern "C" {
     fn fstat(__fd: i32, __buf: *mut stat) -> i32;
     fn atoi(__nptr: *const i8) -> i32;
     fn malloc(_: u64) -> *mut libc::c_void;
-    fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
     fn toupper(_: i32) -> i32;
     static mut stderr: *mut FILE;
     fn fprintf(_: *mut FILE, _: *const i8, _: ...) -> i32;
@@ -2073,7 +2072,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         );
         std::process::exit(1);
     }
-    atexit(Some(SDL_Quit as unsafe extern "C" fn() -> ()));
+    safe_register_sdl_quit_on_exit();
     safe_SDL_AddEventWatch(
         Some(WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32),
         0 as *mut libc::c_void,

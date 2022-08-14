@@ -10,7 +10,6 @@ use crate::{
     spkr_table::SPKRtable,
 };
 extern "C" {
-    fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
     fn time(__timer: *mut time_t) -> time_t;
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
@@ -424,7 +423,7 @@ unsafe extern "C" fn VBLCallback(mut _interval: u32, mut _param: *mut libc::c_vo
     return VBL_TIME as i32 as u32;
 }
 
-unsafe extern "C" fn ShutdownEmulatedVBL() {
+pub unsafe extern "C" fn ShutdownEmulatedVBL() {
     safe_SDL_RemoveTimer(vbltimer);
     safe_SDL_DestroySemaphore(vblsem);
 }
@@ -436,7 +435,7 @@ pub unsafe fn SetupEmulatedVBL() {
         Some(VBLCallback as unsafe extern "C" fn(u32, *mut libc::c_void) -> u32),
         0 as *mut libc::c_void,
     );
-    atexit(Some(ShutdownEmulatedVBL as unsafe extern "C" fn() -> ()));
+    safe_register_shutdown_vbl_on_exit();
 }
 
 pub unsafe fn WaitVBL() {

@@ -1,7 +1,11 @@
-// Safe wrappers around unsafe SDL calls. This will also make it easy to use a Rust media library
+// Safe wrappers around unsafe SDL calls and related routines. This will also make it easy to use a
+// Rust media library.
 
 use crate::{
-    pcrlib_a::{SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerCallback, SDL_TimerID, SDL_sem},
+    pcrlib_a::{
+        SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerCallback, SDL_TimerID, SDL_sem,
+        ShutdownEmulatedVBL,
+    },
     pcrlib_c::*,
     sdl_scan_codes::SDL_Scancode,
 };
@@ -15,6 +19,7 @@ extern "C" {
     pub type SDL_Texture;
     pub type SDL_mutex;
     pub type SDL_semaphore;
+
     fn SDL_Quit();
     fn SDL_Init(flags: u32) -> i32;
     fn SDL_Delay(ms: u32);
@@ -102,7 +107,13 @@ extern "C" {
         callback: SDL_TimerCallback,
         param: *mut libc::c_void,
     ) -> SDL_TimerID;
+
+    fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
 }
+
+// //////////////////////////////////////////////////////////////////////////////////////////////////
+// DIRECT SDL APIS
+// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn safe_SDL_Quit() {
     unsafe { SDL_Quit() }
@@ -337,4 +348,20 @@ pub fn safe_SDL_AddTimer(
     param: *mut libc::c_void,
 ) -> SDL_TimerID {
     unsafe { SDL_AddTimer(interval, callback, param) }
+}
+
+// //////////////////////////////////////////////////////////////////////////////////////////////////
+// OTHER ROUTINES
+// //////////////////////////////////////////////////////////////////////////////////////////////////
+
+pub fn safe_register_sdl_quit_on_exit() {
+    unsafe {
+        atexit(Some(SDL_Quit as unsafe extern "C" fn() -> ()));
+    }
+}
+
+pub fn safe_register_shutdown_vbl_on_exit() {
+    unsafe {
+        atexit(Some(ShutdownEmulatedVBL as unsafe extern "C" fn() -> ()));
+    }
 }
