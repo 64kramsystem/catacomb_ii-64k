@@ -20,7 +20,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    static mut objecton: i32;
     static mut frameon: u16;
     static mut leveldone: boolean;
     static mut playdone: boolean;
@@ -121,11 +120,11 @@ pub unsafe fn doall(gs: &mut GlobalState) {
     assert!(gs.numobj > 0);
 
     loop {
-        objecton = gs.numobj;
+        gs.objecton = gs.numobj;
         loop {
             memcpy(
                 &mut gs.obj as *mut objtype as *mut libc::c_void,
-                &mut *gs.o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
+                &mut *gs.o.as_mut_ptr().offset(gs.objecton as isize) as *mut activeobj
                     as *const libc::c_void,
                 ::std::mem::size_of::<activeobj>() as u64,
             );
@@ -145,8 +144,8 @@ pub unsafe fn doall(gs: &mut GlobalState) {
             if leveldone as i32 != 0 || playdone as i32 != 0 {
                 return;
             }
-            objecton -= 1;
-            if !(objecton >= 0) {
+            gs.objecton -= 1;
+            if !(gs.objecton >= 0) {
                 break;
             }
         }

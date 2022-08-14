@@ -32,7 +32,6 @@ extern "C" {
     static mut chkspot: i32;
     static mut chkx: i32;
     static mut chky: i32;
-    static mut objecton: i32;
     static mut leveldone: boolean;
     static mut frameon: u16;
     static mut playdone: boolean;
@@ -495,7 +494,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     gotit = false as boolean;
     loop {
         gs.altobj.update_from_active(gs.o[gs.altnum as usize]);
-        if gs.altobj.class as i32 > nothing as i32 && gs.altnum != objecton {
+        if gs.altobj.class as i32 > nothing as i32 && gs.altnum != gs.objecton {
             memcpy(
                 &mut gs.altobj.think as *mut u8 as *mut libc::c_void,
                 &mut *gs.objdef.as_mut_ptr().offset(gs.altobj.class as isize) as *mut objdeftype
@@ -509,7 +508,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
             {
                 if gs.altobj.solid != 0 {
                     gotit = true as boolean;
-                } else if objecton == 0
+                } else if gs.objecton == 0
                     && (gs.altobj.class as i32 == teleporter as i32
                         || gs.altobj.class as i32 == secretgate as i32)
                 {
@@ -1226,7 +1225,7 @@ pub unsafe fn doactive(gs: &mut GlobalState) {
             || (gs.obj.y as i32) < gs.origin.y - 10
             || gs.obj.y as i32 > gs.origin.y + 34)
     {
-        gs.o[objecton as usize].active = false as boolean;
+        gs.o[gs.objecton as usize].active = false as boolean;
     } else {
         think(gs);
         eraseobj(gs);
@@ -1237,7 +1236,7 @@ pub unsafe fn doactive(gs: &mut GlobalState) {
             drawobj(gs);
         }
         memcpy(
-            &mut *gs.o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
+            &mut *gs.o.as_mut_ptr().offset(gs.objecton as isize) as *mut activeobj
                 as *mut libc::c_void,
             &mut gs.obj as *mut objtype as *const libc::c_void,
             ::std::mem::size_of::<activeobj>() as u64,
@@ -1253,7 +1252,7 @@ pub unsafe fn doinactive(gs: &mut GlobalState) {
     {
         gs.obj.active = true as boolean;
         gs.obj.dir = north as i32 as u16;
-        gs.o[objecton as usize] = gs.obj.into();
+        gs.o[gs.objecton as usize] = gs.obj.into();
     }
 }
 
