@@ -40,7 +40,6 @@ extern "C" {
     static mut objecton: i32;
     static mut leveldone: boolean;
     static mut frameon: u16;
-    static mut boltsleft: i32;
     static mut playdone: boolean;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
@@ -290,7 +289,7 @@ unsafe fn castbolt(gs: &mut GlobalState) {
         if i < 11 {
             drawchar(27 + i, 9, 32, gs);
         }
-        boltsleft = 8;
+        gs.boltsleft = 8;
         PlaySound(13);
     } else {
         PlaySound(14);
@@ -390,11 +389,11 @@ unsafe fn playshoot(side: &mut i32) {
         _ => {}
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn playbigshoot() {
+
+unsafe fn playbigshoot(gs: &mut GlobalState) {
     let mut new: i32 = 0;
     obj.stage = 2;
-    if boltsleft == 0 {
+    if gs.boltsleft == 0 {
         obj.delay = 4;
     }
     PlaySound(4);
@@ -826,10 +825,10 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
     }
     gs.origin.x = obj.x as i32 - 11;
     gs.origin.y = obj.y as i32 - 11;
-    if boltsleft > 0 {
+    if gs.boltsleft > 0 {
         if frameon as i32 % 3 == 0 {
-            playbigshoot();
-            boltsleft -= 1;
+            playbigshoot(gs);
+            gs.boltsleft -= 1;
         }
     } else if c.button1 != 0 {
         if gs.shotpower == 0 {
@@ -840,7 +839,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         printshotpower(gs);
     } else if gs.shotpower > 0 {
         if gs.shotpower == 13 {
-            playbigshoot();
+            playbigshoot(gs);
         } else {
             playshoot(&mut gs.side);
         }
@@ -1298,7 +1297,7 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
         }
         playdone = false as boolean;
         frameon = 0;
-        boltsleft = 0;
+        gs.boltsleft = 0;
         gs.shotpower = 0;
         initrndt(false as boolean);
         printshotpower(gs);

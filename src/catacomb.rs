@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut boltsleft: i32 = 0;
-#[no_mangle]
 pub static mut o: [activeobj; 201] = [activeobj {
     active: 0,
     class: 0,
@@ -1127,6 +1125,7 @@ pub fn original_main() {
             points: 0,
             filler: [0; 2],
         }; 23],
+        0,
         0,
         [[0; 86]; 87],
         Vec2::new(19, 11),
