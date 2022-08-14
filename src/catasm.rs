@@ -21,7 +21,6 @@ extern "C" {
     static mut frameon: u16;
     static mut leveldone: boolean;
     static mut playdone: boolean;
-    static mut background: [[i32; 86]; 87];
     static mut obj: objtype;
     static mut pics: *mut i8;
     fn doinactive();
@@ -86,7 +85,7 @@ pub unsafe fn drawobj(priority: &[u8], view: &mut [[i32; 86]]) {
     }
 }
 
-pub unsafe fn eraseobj(view: &mut [[i32; 86]]) {
+pub unsafe fn eraseobj(global_state: &mut GlobalState) {
     let mut tilenum: i32 = obj.oldtile as i32;
     let mut ofs: u32 = (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
     let mut x: u32 = 0;
@@ -105,9 +104,9 @@ pub unsafe fn eraseobj(view: &mut [[i32; 86]]) {
             if !(fresh3 > 0) {
                 break;
             }
-            if *(view.as_mut_ptr() as *mut i32).offset(ofs as isize) == tilenum {
-                *(view.as_mut_ptr() as *mut i32).offset(ofs as isize) =
-                    *(background.as_mut_ptr() as *mut i32).offset(ofs as isize);
+            if *(global_state.view.as_mut_ptr() as *mut i32).offset(ofs as isize) == tilenum {
+                *(global_state.view.as_mut_ptr() as *mut i32).offset(ofs as isize) =
+                    *(global_state.background.as_mut_ptr() as *mut i32).offset(ofs as isize);
             }
             tilenum += 1;
             ofs = ofs.wrapping_add(1);

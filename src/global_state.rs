@@ -4,9 +4,9 @@ use crate::{exit_type::exittype, obj_def_type::objdeftype, vec2::Vec2};
 pub struct GlobalState {
     pub gamexit: exittype, /*determines what to do after playloop*/
 
-    pub oldtiles: [i32; 576], /*tile displayed last refresh*/
-    //     int background[87][86];     /*base map*/
-    pub view: [[i32; 86]; 87], /*base map with objects drawn in*/
+    pub oldtiles: [i32; 576],        /*tile displayed last refresh*/
+    pub background: [[i32; 86]; 87], /*base map*/
+    pub view: [[i32; 86]; 87],       /*base map with objects drawn in*/
     //     int originx, originy;       /*current world location of ul corn*/
     pub priority: [u8; 2048], /*tile draw overlap priorities*/
 
@@ -70,6 +70,7 @@ impl GlobalState {
         gamexit: exittype,
         oldtiles: [i32; 576],
         screenseg: [u8; 64000],
+        background: [[i32; 86]; 87],
     ) -> Self {
         Self {
             priority,
@@ -81,6 +82,7 @@ impl GlobalState {
             gamexit,
             oldtiles,
             screenseg,
+            background,
         }
     }
 }

@@ -10,7 +10,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
-    exit_type::exittype::{self, *},
+    exit_type::exittype::*,
     extra_types::boolean,
     global_state::GlobalState,
     indemo,
@@ -36,7 +36,6 @@ extern "C" {
     static mut chkspot: i32;
     static mut chkx: i32;
     static mut chky: i32;
-    static mut background: [[i32; 86]; 87];
     static mut numobj: i32;
     static mut obj: objtype;
     static mut o: [activeobj; 201];
@@ -190,17 +189,18 @@ pub unsafe fn printbody(global_state: &mut GlobalState) {
     };
 }
 
-unsafe fn levelcleared(gamexit: &mut exittype) {
+unsafe fn levelcleared(global_state: &mut GlobalState) {
     let mut warp: [i8; 3] = [0; 3];
     let mut value: i32 = 0;
     leveldone = true as boolean;
-    warp[0] =
-        (background[(altobj.y as i32 + 2) as usize][altobj.x as usize] as i8 as i32 - 161) as i8;
+    warp[0] = (global_state.background[(altobj.y as i32 + 2) as usize][altobj.x as usize] as i8
+        as i32
+        - 161) as i8;
     if (warp[0] as i32) < '0' as i32 || warp[0] as i32 > '9' as i32 {
         warp[0] = '0' as i32 as i8;
     }
-    warp[1] = (background[(altobj.y as i32 + 2) as usize][(altobj.x as i32 + 1) as usize] as i8
-        as i32
+    warp[1] = (global_state.background[(altobj.y as i32 + 2) as usize]
+        [(altobj.x as i32 + 1) as usize] as i8 as i32
         - 161) as i8;
     if (warp[1] as i32) < '0' as i32 || warp[1] as i32 > '9' as i32 {
         warp[2] = ' ' as i32 as i8;
@@ -213,7 +213,7 @@ unsafe fn levelcleared(gamexit: &mut exittype) {
     }
     if level as i32 > 30 {
         playdone = true as boolean;
-        *gamexit = victorious;
+        global_state.gamexit = victorious;
     }
 }
 
@@ -420,7 +420,7 @@ unsafe fn givescroll(global_state: &mut GlobalState) {
     };
 }
 
-unsafe fn opendoor(view: &mut [[i32; 86]]) {
+unsafe fn opendoor(global_state: &mut GlobalState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     PlaySound(11);
@@ -428,32 +428,32 @@ unsafe fn opendoor(view: &mut [[i32; 86]]) {
     y = chky;
     if chkspot == 165 {
         loop {
-            view[y as usize][x as usize] = 128;
-            background[y as usize][x as usize] = 128;
+            global_state.view[y as usize][x as usize] = 128;
+            global_state.background[y as usize][x as usize] = 128;
             y -= 1;
-            if !(view[y as usize][x as usize] == 165) {
+            if !(global_state.view[y as usize][x as usize] == 165) {
                 break;
             }
         }
         y = chky + 1;
-        while view[y as usize][x as usize] == 165 {
-            view[y as usize][x as usize] = 128;
-            background[y as usize][x as usize] = 128;
+        while global_state.view[y as usize][x as usize] == 165 {
+            global_state.view[y as usize][x as usize] = 128;
+            global_state.background[y as usize][x as usize] = 128;
             y += 1;
         }
     } else {
         loop {
-            view[y as usize][x as usize] = 128;
-            background[y as usize][x as usize] = 128;
+            global_state.view[y as usize][x as usize] = 128;
+            global_state.background[y as usize][x as usize] = 128;
             x -= 1;
-            if !(view[y as usize][x as usize] == 166) {
+            if !(global_state.view[y as usize][x as usize] == 166) {
                 break;
             }
         }
         x = chkx + 1;
-        while view[y as usize][x as usize] == 166 {
-            view[y as usize][x as usize] = 128;
-            background[y as usize][x as usize] = 128;
+        while global_state.view[y as usize][x as usize] == 166 {
+            global_state.view[y as usize][x as usize] = 128;
+            global_state.background[y as usize][x as usize] = 128;
             x += 1;
         }
     };
@@ -527,7 +527,7 @@ unsafe fn intomonster(global_state: &mut GlobalState) -> boolean {
                     && (altobj.class as i32 == teleporter as i32
                         || altobj.class as i32 == secretgate as i32)
                 {
-                    levelcleared(&mut global_state.gamexit);
+                    levelcleared(global_state);
                 }
             }
         }
@@ -596,9 +596,9 @@ unsafe fn walkthrough(global_state: &mut GlobalState) -> boolean {
         if obj.contact as i32 == pshot as i32 || obj.contact as i32 == nukeshot as i32 {
             PlaySound(6);
             if chkspot < 143 {
-                background[chky as usize][chkx as usize] = 128;
+                global_state.background[chky as usize][chkx as usize] = 128;
             } else {
-                background[chky as usize][chkx as usize] = chkspot + 19;
+                global_state.background[chky as usize][chkx as usize] = chkspot + 19;
             }
             new = newobject();
             o[new as usize].active = true as boolean;
@@ -620,7 +620,7 @@ unsafe fn walkthrough(global_state: &mut GlobalState) -> boolean {
         if obj.class as i32 == player as i32 {
             givepotion(global_state);
             global_state.view[chky as usize][chkx as usize] = 128;
-            background[chky as usize][chkx as usize] = 128;
+            global_state.background[chky as usize][chkx as usize] = 128;
             PlaySound(2);
         }
         return true as boolean;
@@ -629,7 +629,7 @@ unsafe fn walkthrough(global_state: &mut GlobalState) -> boolean {
         if obj.class as i32 == player as i32 {
             givescroll(global_state);
             global_state.view[chky as usize][chkx as usize] = 128;
-            background[chky as usize][chkx as usize] = 128;
+            global_state.background[chky as usize][chkx as usize] = 128;
             PlaySound(2);
         }
         return true as boolean;
@@ -638,7 +638,7 @@ unsafe fn walkthrough(global_state: &mut GlobalState) -> boolean {
         if obj.class as i32 == player as i32 {
             givekey(global_state);
             global_state.view[chky as usize][chkx as usize] = 128;
-            background[chky as usize][chkx as usize] = 128;
+            global_state.background[chky as usize][chkx as usize] = 128;
             PlaySound(2);
         }
         return true as boolean;
@@ -646,7 +646,7 @@ unsafe fn walkthrough(global_state: &mut GlobalState) -> boolean {
     if chkspot == 165 || chkspot == 166 {
         if obj.class as i32 == player as i32 {
             if takekey(global_state) != 0 {
-                opendoor(&mut global_state.view);
+                opendoor(global_state);
                 return true as boolean;
             }
         }
@@ -656,7 +656,7 @@ unsafe fn walkthrough(global_state: &mut GlobalState) -> boolean {
         if obj.class as i32 == player as i32 {
             score += 500;
             printscore(global_state);
-            background[chky as usize][chkx as usize] = 128;
+            global_state.background[chky as usize][chkx as usize] = 128;
             global_state.view[chky as usize][chkx as usize] = 128;
             PlaySound(3);
         }
@@ -1153,19 +1153,19 @@ pub unsafe extern "C" fn fadethink() {
         obj.class = nothing as i32 as u16;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn killnear(mut chkx_0: i32, mut chky_0: i32) {
+
+unsafe fn killnear(mut chkx_0: i32, mut chky_0: i32, global_state: &mut GlobalState) {
     let mut spot: i32 = 0;
     let mut new: i32 = 0;
-    spot = background[chky_0 as usize][chkx_0 as usize];
+    spot = global_state.background[chky_0 as usize][chkx_0 as usize];
     if spot < 136 || spot > 145 {
         return;
     }
     PlaySound(6);
     if spot < 143 {
-        background[chky_0 as usize][chkx_0 as usize] = 128;
+        global_state.background[chky_0 as usize][chkx_0 as usize] = 128;
     } else {
-        background[chky_0 as usize][chkx_0 as usize] = spot + 19;
+        global_state.background[chky_0 as usize][chkx_0 as usize] = spot + 19;
     }
     new = newobject();
     o[new as usize].active = true as boolean;
@@ -1175,14 +1175,14 @@ pub unsafe extern "C" fn killnear(mut chkx_0: i32, mut chky_0: i32) {
     o[new as usize].delay = 2;
     o[new as usize].class = dead1 as i32 as u16;
 }
-#[no_mangle]
-pub unsafe extern "C" fn explodethink() {
+
+unsafe fn explodethink(global_state: &mut GlobalState) {
     obj.stage = (obj.stage).wrapping_add(1);
     if obj.stage as i32 == 1 {
-        killnear(obj.x as i32 - 1, obj.y as i32);
-        killnear(obj.x as i32, obj.y as i32 - 1);
-        killnear(obj.x as i32 + 1, obj.y as i32);
-        killnear(obj.x as i32, obj.y as i32 + 1);
+        killnear(obj.x as i32 - 1, obj.y as i32, global_state);
+        killnear(obj.x as i32, obj.y as i32 - 1, global_state);
+        killnear(obj.x as i32 + 1, obj.y as i32, global_state);
+        killnear(obj.x as i32, obj.y as i32 + 1, global_state);
     }
     obj.delay = 2;
     if obj.stage as i32 == obj.stages as i32 {
@@ -1220,7 +1220,7 @@ unsafe fn think(global_state: &mut GlobalState) {
                 fadethink();
             }
             8 => {
-                explodethink();
+                explodethink(global_state);
             }
             9 => {
                 gunthink(west as i32);
@@ -1243,7 +1243,7 @@ pub unsafe fn doactive(global_state: &mut GlobalState) {
         o[objecton as usize].active = false as boolean;
     } else {
         think(global_state);
-        eraseobj(&mut global_state.view);
+        eraseobj(global_state);
         if playdone != 0 {
             return;
         }

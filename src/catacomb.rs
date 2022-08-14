@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut background: [[i32; 86]; 87] = [[0; 86]; 87];
-#[no_mangle]
 pub static mut originx: i32 = 0;
 #[no_mangle]
 pub static mut originy: i32 = 0;
@@ -806,9 +804,9 @@ pub unsafe fn loadlevel(global_state: &mut GlobalState) {
         while xx < 64 {
             btile = sm[(yy * 64 + xx) as usize] as u8;
             if (btile as i32) < 230 {
-                background[(yy + 11) as usize][(xx + 11) as usize] = btile as i32;
+                global_state.background[(yy + 11) as usize][(xx + 11) as usize] = btile as i32;
             } else {
-                background[(yy + 11) as usize][(xx + 11) as usize] = 128;
+                global_state.background[(yy + 11) as usize][(xx + 11) as usize] = 128;
                 if tokens[(btile as i32 - 230) as usize] as u32 == player as i32 as u32 {
                     o[0].x = (xx + 11) as u8;
                     o[0].y = (yy + 11) as u8;
@@ -841,7 +839,8 @@ pub unsafe fn loadlevel(global_state: &mut GlobalState) {
     while y < 65 + 11 {
         x = 11 - 1;
         while x < 64 + 11 {
-            global_state.view[y as usize][x as usize] = background[y as usize][x as usize];
+            global_state.view[y as usize][x as usize] =
+                global_state.background[y as usize][x as usize];
             x += 1;
         }
         y += 1;
@@ -1388,6 +1387,7 @@ pub fn original_main() {
         quited,
         [0; 576],
         [8; 64000],
+        [[0; 86]; 87],
     );
 
     /***************************************************************************/
@@ -1462,8 +1462,8 @@ pub fn original_main() {
             for y in 0..=(topoff - 1) {
                 global_state.view[x][y] = solidwall;
                 global_state.view[x][(85 - y)] = solidwall;
-                background[x][y] = solidwall;
-                background[x][(85 - y)] = solidwall;
+                global_state.background[x][y] = solidwall;
+                global_state.background[x][(85 - y)] = solidwall;
             }
             global_state.view[86][x] = solidwall;
         }
@@ -1471,8 +1471,8 @@ pub fn original_main() {
             for x in 0..=(leftoff - 1) {
                 global_state.view[x][y] = solidwall;
                 global_state.view[(85 - x)][y] = solidwall;
-                background[x][y] = solidwall;
-                background[(85 - x)][y] = solidwall;
+                global_state.background[x][y] = solidwall;
+                global_state.background[(85 - x)][y] = solidwall;
             }
         }
 
