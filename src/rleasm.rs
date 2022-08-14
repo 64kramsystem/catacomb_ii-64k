@@ -18,8 +18,7 @@ pub unsafe extern "C" fn RLEExpand(
         source = source.offset(1);
         let mut val: byte = *(fresh0 as *mut byte);
         if val as libc::c_int & 0x80 as libc::c_int != 0 {
-            let mut len: byte =
-                ((val as libc::c_int & 0x7f as libc::c_int) + 1 as libc::c_int) as byte;
+            let mut len: byte = ((val as libc::c_int & 0x7f as libc::c_int) + 1) as byte;
             memcpy(
                 dest as *mut libc::c_void,
                 source as *const libc::c_void,
@@ -28,7 +27,7 @@ pub unsafe extern "C" fn RLEExpand(
             source = source.offset(len as libc::c_int as isize);
             dest = dest.offset(len as libc::c_int as isize);
         } else {
-            let mut len_0: byte = (val as libc::c_int + 3 as libc::c_int) as byte;
+            let mut len_0: byte = (val as libc::c_int + 3) as byte;
             let fresh1 = source;
             source = source.offset(1);
             memset(

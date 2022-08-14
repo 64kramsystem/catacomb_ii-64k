@@ -83,9 +83,6 @@ pub struct SDL_AudioSpec {
 pub type SDL_AudioDeviceID = Uint32;
 pub type SDL_TimerCallback = Option<unsafe extern "C" fn(Uint32, *mut libc::c_void) -> Uint32>;
 pub type SDL_TimerID = libc::c_int;
-pub type C2RustUnnamed = libc::c_uint;
-pub const true_0: C2RustUnnamed = 1;
-pub const false_0: C2RustUnnamed = 0;
 pub type boolean = uint16_t;
 pub type byte = uint8_t;
 pub type word = uint16_t;
@@ -140,17 +137,10 @@ pub type C2RustUnnamed_2 = libc::c_uint;
 pub const VBL_TIME: C2RustUnnamed_2 = 14;
 #[inline]
 unsafe extern "C" fn EGA(mut chan: *const byte, mut ofs: byte) -> byte {
-    return ((*chan.offset(3 as libc::c_int as isize) as libc::c_int >> ofs as libc::c_int
-        & 1 as libc::c_int)
-        << 3 as libc::c_int
-        | (*chan.offset(2 as libc::c_int as isize) as libc::c_int >> ofs as libc::c_int
-            & 1 as libc::c_int)
-            << 2 as libc::c_int
-        | (*chan.offset(1 as libc::c_int as isize) as libc::c_int >> ofs as libc::c_int
-            & 1 as libc::c_int)
-            << 1 as libc::c_int
-        | *chan.offset(0 as libc::c_int as isize) as libc::c_int >> ofs as libc::c_int
-            & 1 as libc::c_int) as byte;
+    return ((*chan.offset(3) as libc::c_int >> ofs as libc::c_int & 1) << 3
+        | (*chan.offset(2) as libc::c_int >> ofs as libc::c_int & 1) << 2
+        | (*chan.offset(1) as libc::c_int >> ofs as libc::c_int & 1) << 1
+        | *chan.offset(0) as libc::c_int >> ofs as libc::c_int & 1) as byte;
 }
 #[no_mangle]
 pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
@@ -158,9 +148,9 @@ pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtab
 pub static mut soundmode: soundtype = spkr;
 static mut SndPriority: byte = 0;
 #[no_mangle]
-pub static mut xormask: libc::c_int = 0 as libc::c_int;
+pub static mut xormask: libc::c_int = 0;
 #[no_mangle]
-pub static mut _dontplay: libc::c_int = 0 as libc::c_int;
+pub static mut _dontplay: libc::c_int = 0;
 static mut AudioMutex: *mut SDL_mutex = 0 as *const SDL_mutex as *mut SDL_mutex;
 static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {
     freq: 0,
@@ -174,28 +164,28 @@ static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {
     userdata: 0 as *const libc::c_void as *mut libc::c_void,
 };
 static mut AudioDev: SDL_AudioDeviceID = 0;
-static mut pcVolume: libc::c_short = 5000 as libc::c_int as libc::c_short;
-static mut pcPhaseTick: libc::c_uint = 0 as libc::c_int as libc::c_uint;
+static mut pcVolume: libc::c_short = 5000;
+static mut pcPhaseTick: libc::c_uint = 0;
 static mut pcPhaseLength: libc::c_uint = 0;
-static mut pcActive: boolean = false_0 as libc::c_int as boolean;
+static mut pcActive: boolean = false as boolean;
 static mut pcSamplesPerTick: libc::c_uint = 0;
-static mut pcNumReadySamples: libc::c_uint = 0 as libc::c_int as libc::c_uint;
-static mut pcLastSample: word = 0 as libc::c_int as word;
+static mut pcNumReadySamples: libc::c_uint = 0;
+static mut pcLastSample: word = 0;
 static mut pcLengthLeft: libc::c_uint = 0;
 static mut pcSound: *mut word = 0 as *const word as *mut word;
 #[inline]
 unsafe extern "C" fn _SDL_turnOnPCSpeaker(mut pcSample: word) {
-    // The transpiler break the correctness here; in the source project, `AudioSpec.freq` is a long
+    // The transpiler break the correctness here; in the sdl port project, `AudioSpec.freq` is a long
     // int (__syscall_slong_t), but it's translated as c_int, which doesn't accommodate the multiplication
     // result range (u32).
     //
     pcPhaseLength = pcSample as libc::c_uint * AudioSpec.freq as libc::c_uint / (2 * PC_BASE_TIMER);
-    pcActive = true_0 as libc::c_int as boolean;
+    pcActive = true as boolean;
 }
 #[inline]
 unsafe extern "C" fn _SDL_turnOffPCSpeaker() {
-    pcActive = false_0 as libc::c_int as boolean;
-    pcPhaseTick = 0 as libc::c_int as libc::c_uint;
+    pcActive = false as boolean;
+    pcPhaseTick = 0;
 }
 #[inline]
 unsafe extern "C" fn _SDL_PCService() {
@@ -212,26 +202,25 @@ unsafe extern "C" fn _SDL_PCService() {
         pcLengthLeft = pcLengthLeft.wrapping_sub(1);
         if pcLengthLeft == 0 {
             pcSound = 0 as *mut word;
-            SndPriority = 0 as libc::c_int as byte;
+            SndPriority = 0;
             _SDL_turnOffPCSpeaker();
         }
     }
 }
 unsafe extern "C" fn _SDL_PCPlaySound(mut sound: libc::c_int) {
     SDL_LockMutex(AudioMutex);
-    pcPhaseTick = 0 as libc::c_int as libc::c_uint;
-    pcLastSample = 0 as libc::c_int as word;
+    pcPhaseTick = 0;
+    pcLastSample = 0;
     pcLengthLeft = ((*SoundData).sounds[sound as usize].start as libc::c_int
-        - (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].start as libc::c_int
-        >> 1 as libc::c_int) as libc::c_uint;
-    pcSound = (SoundData as *mut byte).offset(
-        (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].start as libc::c_int as isize,
-    ) as *mut word;
-    SndPriority = (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].priority;
+        - (*SoundData).sounds[(sound - 1) as usize].start as libc::c_int
+        >> 1) as libc::c_uint;
+    pcSound = (SoundData as *mut byte)
+        .offset((*SoundData).sounds[(sound - 1) as usize].start as libc::c_int as isize)
+        as *mut word;
+    SndPriority = (*SoundData).sounds[(sound - 1) as usize].priority;
     pcSamplesPerTick = (AudioSpec.freq
-        / (1193181 as libc::c_int
-            * (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].samplerate as libc::c_int
-            >> 16 as libc::c_int)) as libc::c_uint;
+        / (1193181 * (*SoundData).sounds[(sound - 1) as usize].samplerate as libc::c_int >> 16))
+        as libc::c_uint;
     SDL_UnlockMutex(AudioMutex);
 }
 unsafe extern "C" fn _SDL_PCStopSound() {
@@ -249,14 +238,10 @@ unsafe extern "C" fn UpdateSPKR(
     mut len: libc::c_int,
 ) {
     if soundmode as libc::c_uint != spkr as libc::c_int as libc::c_uint {
-        memset(
-            stream as *mut libc::c_void,
-            0 as libc::c_int,
-            len as libc::c_ulong,
-        );
+        memset(stream as *mut libc::c_void, 0, len as libc::c_ulong);
         return;
     }
-    let mut sampleslen: libc::c_int = len >> 1 as libc::c_int;
+    let mut sampleslen: libc::c_int = len >> 1;
     let mut stream16: *mut Sint16 = stream as *mut libc::c_void as *mut Sint16;
     SDL_LockMutex(AudioMutex);
     loop {
@@ -272,7 +257,7 @@ unsafe extern "C" fn UpdateSPKR(
                     pcPhaseTick = pcPhaseTick.wrapping_add(1);
                     if fresh1 >= pcPhaseLength {
                         pcVolume = -(pcVolume as libc::c_int) as libc::c_short;
-                        pcPhaseTick = 0 as libc::c_int as libc::c_uint;
+                        pcPhaseTick = 0;
                     }
                 }
             } else {
@@ -281,7 +266,7 @@ unsafe extern "C" fn UpdateSPKR(
                     sampleslen -= 1;
                     let fresh2 = stream16;
                     stream16 = stream16.offset(1);
-                    *fresh2 = 0 as libc::c_int as Sint16;
+                    *fresh2 = 0 as Sint16;
                 }
             }
             if sampleslen == 0 {
@@ -311,37 +296,32 @@ pub unsafe extern "C" fn StartupSound() {
     };
     SDL_memset(
         &mut desired as *mut SDL_AudioSpec as *mut libc::c_void,
-        0 as libc::c_int,
+        0,
         ::std::mem::size_of::<SDL_AudioSpec>() as libc::c_ulong,
     );
-    desired.freq = 48000 as libc::c_int;
+    desired.freq = 48000;
     desired.format = 0x8010 as libc::c_int as SDL_AudioFormat;
-    desired.channels = 1 as libc::c_int as Uint8;
-    desired.samples = 4096 as libc::c_int as Uint16;
+    desired.channels = 1 as Uint8;
+    desired.samples = 4096 as Uint16;
     desired.callback =
         Some(UpdateSPKR as unsafe extern "C" fn(*mut libc::c_void, *mut Uint8, libc::c_int) -> ());
     AudioMutex = SDL_CreateMutex();
-    if AudioMutex.is_null() || SDL_InitSubSystem(0x10 as libc::c_uint) < 0 as libc::c_int || {
-        AudioDev = SDL_OpenAudioDevice(
-            0 as *const libc::c_char,
-            0 as libc::c_int,
-            &mut desired,
-            &mut AudioSpec,
-            0 as libc::c_int,
-        );
-        AudioDev == 0 as libc::c_int as libc::c_uint
+    if AudioMutex.is_null() || SDL_InitSubSystem(0x10 as libc::c_uint) < 0 || {
+        AudioDev =
+            SDL_OpenAudioDevice(0 as *const libc::c_char, 0, &mut desired, &mut AudioSpec, 0);
+        AudioDev == 0
     } {
         printf(
             b"Audio initialization failed: %s\n\0" as *const u8 as *const libc::c_char,
             SDL_GetError(),
         );
         soundmode = off;
-        _dontplay = 1 as libc::c_int;
+        _dontplay = 1;
         return;
     }
-    pcSamplesPerTick = (AudioSpec.freq / 145 as libc::c_int) as libc::c_uint;
+    pcSamplesPerTick = (AudioSpec.freq / 145) as libc::c_uint;
     soundmode = spkr;
-    SDL_PauseAudioDevice(AudioDev, 0 as libc::c_int);
+    SDL_PauseAudioDevice(AudioDev, 0);
 }
 #[no_mangle]
 pub unsafe extern "C" fn ShutdownSound() {
@@ -356,7 +336,7 @@ pub unsafe extern "C" fn PlaySound(mut sound: libc::c_int) {
     if _dontplay != 0 {
         return;
     }
-    if (*SoundData).sounds[(sound - 1 as libc::c_int) as usize].priority as libc::c_int
+    if (*SoundData).sounds[(sound - 1) as usize].priority as libc::c_int
         >= SndPriority as libc::c_int
     {
         _SDL_PCPlaySound(sound);
@@ -385,8 +365,8 @@ pub unsafe extern "C" fn PauseSound() {
     SavedSound.pcSamplesPerTick = pcSamplesPerTick;
     SavedSound.pcLengthLeft = pcLengthLeft;
     SavedSound.pcSound = pcSound;
-    SndPriority = 0 as libc::c_int as byte;
-    pcLengthLeft = 0 as libc::c_int as libc::c_uint;
+    SndPriority = 0;
+    pcLengthLeft = 0;
     pcSound = 0 as *mut word;
     _SDL_turnOffPCSpeaker();
     SDL_UnlockMutex(AudioMutex);
@@ -396,8 +376,8 @@ pub unsafe extern "C" fn ContinueSound() {
     if _dontplay != 0 {
         return;
     }
-    pcPhaseTick = 0 as libc::c_int as libc::c_uint;
-    pcLastSample = 0 as libc::c_int as word;
+    pcPhaseTick = 0;
+    pcLastSample = 0;
     SndPriority = SavedSound.SndPriority;
     pcSamplesPerTick = SavedSound.pcSamplesPerTick;
     pcLengthLeft = SavedSound.pcLengthLeft;
@@ -415,285 +395,26 @@ pub unsafe extern "C" fn WaitEndSound() {
 }
 static mut rndindex: word = 0;
 static mut rndtable: [byte; 256] = [
-    0 as libc::c_int as byte,
-    8 as libc::c_int as byte,
-    109 as libc::c_int as byte,
-    220 as libc::c_int as byte,
-    222 as libc::c_int as byte,
-    241 as libc::c_int as byte,
-    149 as libc::c_int as byte,
-    107 as libc::c_int as byte,
-    75 as libc::c_int as byte,
-    248 as libc::c_int as byte,
-    254 as libc::c_int as byte,
-    140 as libc::c_int as byte,
-    16 as libc::c_int as byte,
-    66 as libc::c_int as byte,
-    74 as libc::c_int as byte,
-    21 as libc::c_int as byte,
-    211 as libc::c_int as byte,
-    47 as libc::c_int as byte,
-    80 as libc::c_int as byte,
-    242 as libc::c_int as byte,
-    154 as libc::c_int as byte,
-    27 as libc::c_int as byte,
-    205 as libc::c_int as byte,
-    128 as libc::c_int as byte,
-    161 as libc::c_int as byte,
-    89 as libc::c_int as byte,
-    77 as libc::c_int as byte,
-    36 as libc::c_int as byte,
-    95 as libc::c_int as byte,
-    110 as libc::c_int as byte,
-    85 as libc::c_int as byte,
-    48 as libc::c_int as byte,
-    212 as libc::c_int as byte,
-    140 as libc::c_int as byte,
-    211 as libc::c_int as byte,
-    249 as libc::c_int as byte,
-    22 as libc::c_int as byte,
-    79 as libc::c_int as byte,
-    200 as libc::c_int as byte,
-    50 as libc::c_int as byte,
-    28 as libc::c_int as byte,
-    188 as libc::c_int as byte,
-    52 as libc::c_int as byte,
-    140 as libc::c_int as byte,
-    202 as libc::c_int as byte,
-    120 as libc::c_int as byte,
-    68 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    62 as libc::c_int as byte,
-    70 as libc::c_int as byte,
-    184 as libc::c_int as byte,
-    190 as libc::c_int as byte,
-    91 as libc::c_int as byte,
-    197 as libc::c_int as byte,
-    152 as libc::c_int as byte,
-    224 as libc::c_int as byte,
-    149 as libc::c_int as byte,
-    104 as libc::c_int as byte,
-    25 as libc::c_int as byte,
-    178 as libc::c_int as byte,
-    252 as libc::c_int as byte,
-    182 as libc::c_int as byte,
-    202 as libc::c_int as byte,
-    182 as libc::c_int as byte,
-    141 as libc::c_int as byte,
-    197 as libc::c_int as byte,
-    4 as libc::c_int as byte,
-    81 as libc::c_int as byte,
-    181 as libc::c_int as byte,
-    242 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    42 as libc::c_int as byte,
-    39 as libc::c_int as byte,
-    227 as libc::c_int as byte,
-    156 as libc::c_int as byte,
-    198 as libc::c_int as byte,
-    225 as libc::c_int as byte,
-    193 as libc::c_int as byte,
-    219 as libc::c_int as byte,
-    93 as libc::c_int as byte,
-    122 as libc::c_int as byte,
-    175 as libc::c_int as byte,
-    249 as libc::c_int as byte,
-    0 as libc::c_int as byte,
-    175 as libc::c_int as byte,
-    143 as libc::c_int as byte,
-    70 as libc::c_int as byte,
-    239 as libc::c_int as byte,
-    46 as libc::c_int as byte,
-    246 as libc::c_int as byte,
-    163 as libc::c_int as byte,
-    53 as libc::c_int as byte,
-    163 as libc::c_int as byte,
-    109 as libc::c_int as byte,
-    168 as libc::c_int as byte,
-    135 as libc::c_int as byte,
-    2 as libc::c_int as byte,
-    235 as libc::c_int as byte,
-    25 as libc::c_int as byte,
-    92 as libc::c_int as byte,
-    20 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    138 as libc::c_int as byte,
-    77 as libc::c_int as byte,
-    69 as libc::c_int as byte,
-    166 as libc::c_int as byte,
-    78 as libc::c_int as byte,
-    176 as libc::c_int as byte,
-    173 as libc::c_int as byte,
-    212 as libc::c_int as byte,
-    166 as libc::c_int as byte,
-    113 as libc::c_int as byte,
-    94 as libc::c_int as byte,
-    161 as libc::c_int as byte,
-    41 as libc::c_int as byte,
-    50 as libc::c_int as byte,
-    239 as libc::c_int as byte,
-    49 as libc::c_int as byte,
-    111 as libc::c_int as byte,
-    164 as libc::c_int as byte,
-    70 as libc::c_int as byte,
-    60 as libc::c_int as byte,
-    2 as libc::c_int as byte,
-    37 as libc::c_int as byte,
-    171 as libc::c_int as byte,
-    75 as libc::c_int as byte,
-    136 as libc::c_int as byte,
-    156 as libc::c_int as byte,
-    11 as libc::c_int as byte,
-    56 as libc::c_int as byte,
-    42 as libc::c_int as byte,
-    146 as libc::c_int as byte,
-    138 as libc::c_int as byte,
-    229 as libc::c_int as byte,
-    73 as libc::c_int as byte,
-    146 as libc::c_int as byte,
-    77 as libc::c_int as byte,
-    61 as libc::c_int as byte,
-    98 as libc::c_int as byte,
-    196 as libc::c_int as byte,
-    135 as libc::c_int as byte,
-    106 as libc::c_int as byte,
-    63 as libc::c_int as byte,
-    197 as libc::c_int as byte,
-    195 as libc::c_int as byte,
-    86 as libc::c_int as byte,
-    96 as libc::c_int as byte,
-    203 as libc::c_int as byte,
-    113 as libc::c_int as byte,
-    101 as libc::c_int as byte,
-    170 as libc::c_int as byte,
-    247 as libc::c_int as byte,
-    181 as libc::c_int as byte,
-    113 as libc::c_int as byte,
-    80 as libc::c_int as byte,
-    250 as libc::c_int as byte,
-    108 as libc::c_int as byte,
-    7 as libc::c_int as byte,
-    255 as libc::c_int as byte,
-    237 as libc::c_int as byte,
-    129 as libc::c_int as byte,
-    226 as libc::c_int as byte,
-    79 as libc::c_int as byte,
-    107 as libc::c_int as byte,
-    112 as libc::c_int as byte,
-    166 as libc::c_int as byte,
-    103 as libc::c_int as byte,
-    241 as libc::c_int as byte,
-    24 as libc::c_int as byte,
-    223 as libc::c_int as byte,
-    239 as libc::c_int as byte,
-    120 as libc::c_int as byte,
-    198 as libc::c_int as byte,
-    58 as libc::c_int as byte,
-    60 as libc::c_int as byte,
-    82 as libc::c_int as byte,
-    128 as libc::c_int as byte,
-    3 as libc::c_int as byte,
-    184 as libc::c_int as byte,
-    66 as libc::c_int as byte,
-    143 as libc::c_int as byte,
-    224 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    224 as libc::c_int as byte,
-    81 as libc::c_int as byte,
-    206 as libc::c_int as byte,
-    163 as libc::c_int as byte,
-    45 as libc::c_int as byte,
-    63 as libc::c_int as byte,
-    90 as libc::c_int as byte,
-    168 as libc::c_int as byte,
-    114 as libc::c_int as byte,
-    59 as libc::c_int as byte,
-    33 as libc::c_int as byte,
-    159 as libc::c_int as byte,
-    95 as libc::c_int as byte,
-    28 as libc::c_int as byte,
-    139 as libc::c_int as byte,
-    123 as libc::c_int as byte,
-    98 as libc::c_int as byte,
-    125 as libc::c_int as byte,
-    196 as libc::c_int as byte,
-    15 as libc::c_int as byte,
-    70 as libc::c_int as byte,
-    194 as libc::c_int as byte,
-    253 as libc::c_int as byte,
-    54 as libc::c_int as byte,
-    14 as libc::c_int as byte,
-    109 as libc::c_int as byte,
-    226 as libc::c_int as byte,
-    71 as libc::c_int as byte,
-    17 as libc::c_int as byte,
-    161 as libc::c_int as byte,
-    93 as libc::c_int as byte,
-    186 as libc::c_int as byte,
-    87 as libc::c_int as byte,
-    244 as libc::c_int as byte,
-    138 as libc::c_int as byte,
-    20 as libc::c_int as byte,
-    52 as libc::c_int as byte,
-    123 as libc::c_int as byte,
-    251 as libc::c_int as byte,
-    26 as libc::c_int as byte,
-    36 as libc::c_int as byte,
-    17 as libc::c_int as byte,
-    46 as libc::c_int as byte,
-    52 as libc::c_int as byte,
-    231 as libc::c_int as byte,
-    232 as libc::c_int as byte,
-    76 as libc::c_int as byte,
-    31 as libc::c_int as byte,
-    221 as libc::c_int as byte,
-    84 as libc::c_int as byte,
-    37 as libc::c_int as byte,
-    216 as libc::c_int as byte,
-    165 as libc::c_int as byte,
-    212 as libc::c_int as byte,
-    106 as libc::c_int as byte,
-    197 as libc::c_int as byte,
-    242 as libc::c_int as byte,
-    98 as libc::c_int as byte,
-    43 as libc::c_int as byte,
-    39 as libc::c_int as byte,
-    175 as libc::c_int as byte,
-    254 as libc::c_int as byte,
-    145 as libc::c_int as byte,
-    190 as libc::c_int as byte,
-    84 as libc::c_int as byte,
-    118 as libc::c_int as byte,
-    222 as libc::c_int as byte,
-    187 as libc::c_int as byte,
-    136 as libc::c_int as byte,
-    120 as libc::c_int as byte,
-    163 as libc::c_int as byte,
-    236 as libc::c_int as byte,
-    249 as libc::c_int as byte,
+    0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66, 74, 21, 211, 47, 80, 242, 154,
+    27, 205, 128, 161, 89, 77, 36, 95, 110, 85, 48, 212, 140, 211, 249, 22, 79, 200, 50, 28, 188,
+    52, 140, 202, 120, 68, 145, 62, 70, 184, 190, 91, 197, 152, 224, 149, 104, 25, 178, 252, 182,
+    202, 182, 141, 197, 4, 81, 181, 242, 145, 42, 39, 227, 156, 198, 225, 193, 219, 93, 122, 175,
+    249, 0, 175, 143, 70, 239, 46, 246, 163, 53, 163, 109, 168, 135, 2, 235, 25, 92, 20, 145, 138,
+    77, 69, 166, 78, 176, 173, 212, 166, 113, 94, 161, 41, 50, 239, 49, 111, 164, 70, 60, 2, 37,
+    171, 75, 136, 156, 11, 56, 42, 146, 138, 229, 73, 146, 77, 61, 98, 196, 135, 106, 63, 197, 195,
+    86, 96, 203, 113, 101, 170, 247, 181, 113, 80, 250, 108, 7, 255, 237, 129, 226, 79, 107, 112,
+    166, 103, 241, 24, 223, 239, 120, 198, 58, 60, 82, 128, 3, 184, 66, 143, 224, 145, 224, 81,
+    206, 163, 45, 63, 90, 168, 114, 59, 33, 159, 95, 28, 139, 123, 98, 125, 196, 15, 70, 194, 253,
+    54, 14, 109, 226, 71, 17, 161, 93, 186, 87, 244, 138, 20, 52, 123, 251, 26, 36, 17, 46, 52,
+    231, 232, 76, 31, 221, 84, 37, 216, 165, 212, 106, 197, 242, 98, 43, 39, 175, 254, 145, 190,
+    84, 118, 222, 187, 136, 120, 163, 236, 249,
 ];
 static mut indexi: word = 0;
 static mut indexj: word = 0;
 static mut LastRnd: word = 0;
 static mut RndArray: [word; 17] = [0; 17];
 static mut baseRndArray: [word; 17] = [
-    1 as libc::c_int as word,
-    1 as libc::c_int as word,
-    2 as libc::c_int as word,
-    3 as libc::c_int as word,
-    5 as libc::c_int as word,
-    8 as libc::c_int as word,
-    13 as libc::c_int as word,
-    21 as libc::c_int as word,
-    54 as libc::c_int as word,
-    75 as libc::c_int as word,
-    129 as libc::c_int as word,
-    204 as libc::c_int as word,
-    323 as libc::c_int as word,
-    527 as libc::c_int as word,
-    850 as libc::c_int as word,
-    1377 as libc::c_int as word,
-    2227 as libc::c_int as word,
+    1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
 #[no_mangle]
 pub unsafe extern "C" fn initrnd(mut randomize: boolean) {
@@ -702,16 +423,14 @@ pub unsafe extern "C" fn initrnd(mut randomize: boolean) {
         baseRndArray.as_mut_ptr() as *const libc::c_void,
         ::std::mem::size_of::<[word; 17]>() as libc::c_ulong,
     );
-    LastRnd = 0 as libc::c_int as word;
-    indexi = 17 as libc::c_int as word;
-    indexj = 5 as libc::c_int as word;
+    LastRnd = 0;
+    indexi = 17;
+    indexj = 5;
     if randomize != 0 {
         let mut now: time_t = time(0 as *mut time_t);
-        RndArray[16 as libc::c_int as usize] =
-            (now & 0xffff as libc::c_int as libc::c_long) as word;
-        RndArray[4 as libc::c_int as usize] = (now & 0xffff as libc::c_int as libc::c_long
-            ^ now >> 16 as libc::c_int & 0xffff as libc::c_int as libc::c_long)
-            as word;
+        RndArray[16] = (now & 0xffff as libc::c_int as libc::c_long) as word;
+        RndArray[4] = (now & 0xffff as libc::c_int as libc::c_long
+            ^ now >> 16 & 0xffff as libc::c_int as libc::c_long) as word;
     }
     rnd(0xffff as libc::c_int as word);
 }
@@ -720,32 +439,32 @@ pub unsafe extern "C" fn rnd(mut maxval: word) -> libc::c_int {
     let mut mask: word = 0;
     let mut shift: word = 0;
     let mut val: libc::c_int = 0;
-    if maxval as libc::c_int == 0 as libc::c_int {
-        return 0 as libc::c_int;
+    if maxval as libc::c_int == 0 {
+        return 0;
     }
     mask = 0xffff as libc::c_int as word;
     shift = maxval;
     while shift as libc::c_int & 0x8000 as libc::c_int == 0 {
-        shift = ((shift as libc::c_int) << 1 as libc::c_int) as word;
-        mask = (mask as libc::c_int >> 1 as libc::c_int) as word;
+        shift = ((shift as libc::c_int) << 1) as word;
+        mask = (mask as libc::c_int >> 1) as word;
     }
-    val = RndArray[(indexi as libc::c_int - 1 as libc::c_int) as usize] as libc::c_int
-        + RndArray[(indexj as libc::c_int - 1 as libc::c_int) as usize] as libc::c_int
-        + 1 as libc::c_int;
-    RndArray[(indexi as libc::c_int - 1 as libc::c_int) as usize] = val as word;
+    val = RndArray[(indexi as libc::c_int - 1) as usize] as libc::c_int
+        + RndArray[(indexj as libc::c_int - 1) as usize] as libc::c_int
+        + 1;
+    RndArray[(indexi as libc::c_int - 1) as usize] = val as word;
     val += LastRnd as libc::c_int;
     LastRnd = val as word;
     indexi = indexi.wrapping_sub(1);
-    if indexi as libc::c_int == 0 as libc::c_int {
-        indexi = 17 as libc::c_int as word;
+    if indexi as libc::c_int == 0 {
+        indexi = 17;
     }
     indexj = indexj.wrapping_sub(1);
-    if indexj as libc::c_int == 0 as libc::c_int {
-        indexj = 17 as libc::c_int as word;
+    if indexj as libc::c_int == 0 {
+        indexj = 17;
     }
     val &= mask as libc::c_int;
     if val > maxval as libc::c_int {
-        val >>= 1 as libc::c_int;
+        val >>= 1;
     }
     return val;
 }
@@ -754,12 +473,12 @@ pub unsafe extern "C" fn initrndt(mut randomize: boolean) {
     rndindex = (if randomize as libc::c_int != 0 {
         time(0 as *mut time_t) & 0xff as libc::c_int as libc::c_long
     } else {
-        0 as libc::c_int as libc::c_long
+        0
     }) as word;
 }
 #[no_mangle]
 pub unsafe extern "C" fn rndt() -> libc::c_int {
-    rndindex = (rndindex as libc::c_int + 1 as libc::c_int & 0xff as libc::c_int) as word;
+    rndindex = (rndindex as libc::c_int + 1 & 0xff as libc::c_int) as word;
     return rndtable[rndindex as usize] as libc::c_int;
 }
 #[no_mangle]
@@ -776,7 +495,7 @@ unsafe extern "C" fn ShutdownEmulatedVBL() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn SetupEmulatedVBL() {
-    vblsem = SDL_CreateSemaphore(0 as libc::c_int as Uint32);
+    vblsem = SDL_CreateSemaphore(0 as Uint32);
     vbltimer = SDL_AddTimer(
         VBL_TIME as libc::c_int as Uint32,
         Some(VBLCallback as unsafe extern "C" fn(Uint32, *mut libc::c_void) -> Uint32),
@@ -801,100 +520,85 @@ pub unsafe extern "C" fn drawchar(
 ) {
     let mut vbuf: *mut byte = screenseg
         .as_mut_ptr()
-        .offset(((y << 3 as libc::c_int) * screenpitch as libc::c_int) as isize)
-        .offset((x << 3 as libc::c_int) as isize);
+        .offset(((y << 3) * screenpitch as libc::c_int) as isize)
+        .offset((x << 3) as isize);
     let mut src: *mut byte = 0 as *mut byte;
     let mut i: libc::c_uint = 0;
     match grmode as libc::c_uint {
         1 => {
-            src = (charptr as *mut byte).offset((charnum * 16 as libc::c_int) as isize);
-            i = 0 as libc::c_int as libc::c_uint;
-            while i < 8 as libc::c_int as libc::c_uint {
+            src = (charptr as *mut byte).offset((charnum * 16) as isize);
+            i = 0;
+            while i < 8 {
                 let fresh10 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh10 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 6 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh10 = (*src.offset(0) as libc::c_int >> 6 & 3) as byte;
                 let fresh11 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh11 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 4 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh11 = (*src.offset(0) as libc::c_int >> 4 & 3) as byte;
                 let fresh12 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh12 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 2 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh12 = (*src.offset(0) as libc::c_int >> 2 & 3) as byte;
                 let fresh13 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh13 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 0 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh13 = (*src.offset(0) as libc::c_int >> 0 & 3) as byte;
                 let fresh14 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh14 = (*src.offset(1 as libc::c_int as isize) as libc::c_int
-                    >> 6 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh14 = (*src.offset(1) as libc::c_int >> 6 & 3) as byte;
                 let fresh15 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh15 = (*src.offset(1 as libc::c_int as isize) as libc::c_int
-                    >> 4 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh15 = (*src.offset(1) as libc::c_int >> 4 & 3) as byte;
                 let fresh16 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh16 = (*src.offset(1 as libc::c_int as isize) as libc::c_int
-                    >> 2 as libc::c_int
-                    & 3 as libc::c_int) as byte;
-                *vbuf = (*src.offset(1 as libc::c_int as isize) as libc::c_int >> 0 as libc::c_int
-                    & 3 as libc::c_int) as byte;
-                vbuf = vbuf.offset((screenpitch as libc::c_int - 7 as libc::c_int) as isize);
+                *fresh16 = (*src.offset(1) as libc::c_int >> 2 & 3) as byte;
+                *vbuf = (*src.offset(1) as libc::c_int >> 0 & 3) as byte;
+                vbuf = vbuf.offset((screenpitch as libc::c_int - 7) as isize);
                 i = i.wrapping_add(1);
-                src = src.offset(2 as libc::c_int as isize);
+                src = src.offset(2);
             }
         }
         3 => {
-            src = (charptr as *mut byte).offset((charnum * 64 as libc::c_int) as isize);
-            i = 0 as libc::c_int as libc::c_uint;
-            while i < 8 as libc::c_int as libc::c_uint {
+            src = (charptr as *mut byte).offset((charnum * 64) as isize);
+            i = 0;
+            while i < 8 {
                 *(vbuf as *mut qword) = *(src as *mut qword);
                 i = i.wrapping_add(1);
-                src = src.offset(8 as libc::c_int as isize);
-                vbuf = vbuf.offset((screenpitch as libc::c_int - 7 as libc::c_int) as isize);
+                src = src.offset(8);
+                vbuf = vbuf.offset((screenpitch as libc::c_int - 7) as isize);
             }
         }
         2 | _ => {
-            src = (charptr as *mut byte).offset((charnum * 8 as libc::c_int) as isize);
-            i = 0 as libc::c_int as libc::c_uint;
-            while i < 8 as libc::c_int as libc::c_uint {
+            src = (charptr as *mut byte).offset((charnum * 8) as isize);
+            i = 0;
+            while i < 8 {
                 let chan: [byte; 4] = [
-                    *src.offset(egaplaneofs[0 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[1 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[2 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[3 as libc::c_int as usize] as isize),
+                    *src.offset(egaplaneofs[0] as isize),
+                    *src.offset(egaplaneofs[1] as isize),
+                    *src.offset(egaplaneofs[2] as isize),
+                    *src.offset(egaplaneofs[3] as isize),
                 ];
                 let fresh3 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh3 = EGA(chan.as_ptr(), 7 as libc::c_int as byte);
+                *fresh3 = EGA(chan.as_ptr(), 7);
                 let fresh4 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh4 = EGA(chan.as_ptr(), 6 as libc::c_int as byte);
+                *fresh4 = EGA(chan.as_ptr(), 6);
                 let fresh5 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh5 = EGA(chan.as_ptr(), 5 as libc::c_int as byte);
+                *fresh5 = EGA(chan.as_ptr(), 5);
                 let fresh6 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh6 = EGA(chan.as_ptr(), 4 as libc::c_int as byte);
+                *fresh6 = EGA(chan.as_ptr(), 4);
                 let fresh7 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh7 = EGA(chan.as_ptr(), 3 as libc::c_int as byte);
+                *fresh7 = EGA(chan.as_ptr(), 3);
                 let fresh8 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh8 = EGA(chan.as_ptr(), 2 as libc::c_int as byte);
+                *fresh8 = EGA(chan.as_ptr(), 2);
                 let fresh9 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh9 = EGA(chan.as_ptr(), 1 as libc::c_int as byte);
-                *vbuf = EGA(chan.as_ptr(), 0 as libc::c_int as byte);
-                vbuf = vbuf.offset((screenpitch as libc::c_int - 7 as libc::c_int) as isize);
+                *fresh9 = EGA(chan.as_ptr(), 1);
+                *vbuf = EGA(chan.as_ptr(), 0);
+                vbuf = vbuf.offset((screenpitch as libc::c_int - 7) as isize);
                 i = i.wrapping_add(1);
                 src = src.offset(1);
             }
@@ -918,24 +622,16 @@ pub unsafe extern "C" fn drawpic(mut x: libc::c_int, mut y: libc::c_int, mut pic
             loop {
                 let fresh25 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh25 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 6 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh25 = (*src.offset(0) as libc::c_int >> 6 & 3) as byte;
                 let fresh26 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh26 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 4 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh26 = (*src.offset(0) as libc::c_int >> 4 & 3) as byte;
                 let fresh27 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh27 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 2 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh27 = (*src.offset(0) as libc::c_int >> 2 & 3) as byte;
                 let fresh28 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh28 = (*src.offset(0 as libc::c_int as isize) as libc::c_int
-                    >> 0 as libc::c_int
-                    & 3 as libc::c_int) as byte;
+                *fresh28 = (*src.offset(0) as libc::c_int >> 0 & 3) as byte;
                 src = src.offset(1);
                 i = i.wrapping_sub(1);
                 if !(i != 0) {
@@ -943,8 +639,7 @@ pub unsafe extern "C" fn drawpic(mut x: libc::c_int, mut y: libc::c_int, mut pic
                 }
             }
             vbuf = vbuf.offset(
-                (screenpitch as libc::c_int as libc::c_uint)
-                    .wrapping_sub(picwidth << 2 as libc::c_int) as isize,
+                (screenpitch as libc::c_int as libc::c_uint).wrapping_sub(picwidth << 2) as isize,
             );
             picheight = picheight.wrapping_sub(1);
             if !(picheight != 0) {
@@ -976,44 +671,43 @@ pub unsafe extern "C" fn drawpic(mut x: libc::c_int, mut y: libc::c_int, mut pic
             i = picwidth;
             loop {
                 let chan: [byte; 4] = [
-                    *src.offset(egaplaneofs[0 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[1 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[2 as libc::c_int as usize] as isize),
-                    *src.offset(egaplaneofs[3 as libc::c_int as usize] as isize),
+                    *src.offset(egaplaneofs[0] as isize),
+                    *src.offset(egaplaneofs[1] as isize),
+                    *src.offset(egaplaneofs[2] as isize),
+                    *src.offset(egaplaneofs[3] as isize),
                 ];
                 src = src.offset(1);
                 let fresh17 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh17 = EGA(chan.as_ptr(), 7 as libc::c_int as byte);
+                *fresh17 = EGA(chan.as_ptr(), 7);
                 let fresh18 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh18 = EGA(chan.as_ptr(), 6 as libc::c_int as byte);
+                *fresh18 = EGA(chan.as_ptr(), 6);
                 let fresh19 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh19 = EGA(chan.as_ptr(), 5 as libc::c_int as byte);
+                *fresh19 = EGA(chan.as_ptr(), 5);
                 let fresh20 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh20 = EGA(chan.as_ptr(), 4 as libc::c_int as byte);
+                *fresh20 = EGA(chan.as_ptr(), 4);
                 let fresh21 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh21 = EGA(chan.as_ptr(), 3 as libc::c_int as byte);
+                *fresh21 = EGA(chan.as_ptr(), 3);
                 let fresh22 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh22 = EGA(chan.as_ptr(), 2 as libc::c_int as byte);
+                *fresh22 = EGA(chan.as_ptr(), 2);
                 let fresh23 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh23 = EGA(chan.as_ptr(), 1 as libc::c_int as byte);
+                *fresh23 = EGA(chan.as_ptr(), 1);
                 let fresh24 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh24 = EGA(chan.as_ptr(), 0 as libc::c_int as byte);
+                *fresh24 = EGA(chan.as_ptr(), 0);
                 i = i.wrapping_sub(1);
                 if !(i != 0) {
                     break;
                 }
             }
             vbuf = vbuf.offset(
-                (screenpitch as libc::c_int as libc::c_uint)
-                    .wrapping_sub(picwidth << 3 as libc::c_int) as isize,
+                (screenpitch as libc::c_int as libc::c_uint).wrapping_sub(picwidth << 3) as isize,
             );
             picheight = picheight.wrapping_sub(1);
             if !(picheight != 0) {
