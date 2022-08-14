@@ -228,8 +228,8 @@ unsafe extern "C" fn UpdateSPKR(
     }
     safe_SDL_UnlockMutex(AudioMutex);
 }
-#[no_mangle]
-pub unsafe extern "C" fn StartupSound() {
+
+pub unsafe fn StartupSound() {
     let mut desired: SDL_AudioSpec = SDL_AudioSpec {
         freq: 0,
         format: 0,
@@ -269,16 +269,16 @@ pub unsafe extern "C" fn StartupSound() {
     soundmode = spkr;
     safe_SDL_PauseAudioDevice(AudioDev, 0);
 }
-#[no_mangle]
-pub unsafe extern "C" fn ShutdownSound() {
+
+pub unsafe fn ShutdownSound() {
     if _dontplay != 0 {
         return;
     }
     _SDL_ShutPC();
     safe_SDL_CloseAudio();
 }
-#[no_mangle]
-pub unsafe extern "C" fn PlaySound(mut sound: i32) {
+
+pub unsafe fn PlaySound(mut sound: i32) {
     if _dontplay != 0 {
         return;
     }
@@ -286,8 +286,8 @@ pub unsafe extern "C" fn PlaySound(mut sound: i32) {
         _SDL_PCPlaySound(sound);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn StopSound() {
+
+pub unsafe fn StopSound() {
     if _dontplay != 0 {
         return;
     }
@@ -299,8 +299,8 @@ static mut SavedSound: C2RustUnnamed_0 = C2RustUnnamed_0 {
     pcLengthLeft: 0,
     pcSound: 0 as *const u16 as *mut u16,
 };
-#[no_mangle]
-pub unsafe extern "C" fn PauseSound() {
+
+pub unsafe fn PauseSound() {
     if _dontplay != 0 {
         return;
     }
@@ -315,8 +315,8 @@ pub unsafe extern "C" fn PauseSound() {
     _SDL_turnOffPCSpeaker();
     safe_SDL_UnlockMutex(AudioMutex);
 }
-#[no_mangle]
-pub unsafe extern "C" fn ContinueSound() {
+
+pub unsafe fn ContinueSound() {
     if _dontplay != 0 {
         return;
     }
@@ -360,8 +360,8 @@ static mut RndArray: [u16; 17] = [0; 17];
 static mut baseRndArray: [u16; 17] = [
     1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
-#[no_mangle]
-pub unsafe extern "C" fn initrnd(mut randomize: boolean) {
+
+pub unsafe fn initrnd(mut randomize: boolean) {
     memcpy(
         RndArray.as_mut_ptr() as *mut libc::c_void,
         baseRndArray.as_mut_ptr() as *const libc::c_void,
@@ -377,8 +377,8 @@ pub unsafe extern "C" fn initrnd(mut randomize: boolean) {
     }
     rnd(0xffff as i32 as u16);
 }
-#[no_mangle]
-pub unsafe extern "C" fn rnd(mut maxval: u16) -> i32 {
+
+pub unsafe fn rnd(mut maxval: u16) -> i32 {
     let mut mask: u16 = 0;
     let mut shift: u16 = 0;
     let mut val: i32 = 0;
@@ -411,16 +411,16 @@ pub unsafe extern "C" fn rnd(mut maxval: u16) -> i32 {
     }
     return val;
 }
-#[no_mangle]
-pub unsafe extern "C" fn initrndt(mut randomize: boolean) {
+
+pub unsafe fn initrndt(mut randomize: boolean) {
     rndindex = (if randomize as i32 != 0 {
         time(0 as *mut time_t) & 0xff as i32 as i64
     } else {
         0
     }) as u16;
 }
-#[no_mangle]
-pub unsafe extern "C" fn rndt() -> i32 {
+
+pub unsafe fn rndt() -> i32 {
     rndindex = (rndindex as i32 + 1 & 0xff as i32) as u16;
     return rndtable[rndindex as usize] as i32;
 }
@@ -436,8 +436,8 @@ unsafe extern "C" fn ShutdownEmulatedVBL() {
     safe_SDL_RemoveTimer(vbltimer);
     safe_SDL_DestroySemaphore(vblsem);
 }
-#[no_mangle]
-pub unsafe extern "C" fn SetupEmulatedVBL() {
+
+pub unsafe fn SetupEmulatedVBL() {
     vblsem = safe_SDL_CreateSemaphore(0 as u32);
     vbltimer = safe_SDL_AddTimer(
         VBL_TIME as i32 as u32,
@@ -446,8 +446,8 @@ pub unsafe extern "C" fn SetupEmulatedVBL() {
     );
     atexit(Some(ShutdownEmulatedVBL as unsafe extern "C" fn() -> ()));
 }
-#[no_mangle]
-pub unsafe extern "C" fn WaitVBL() {
+
+pub unsafe fn WaitVBL() {
     loop {
         safe_SDL_SemWait(vblsem);
         if !(safe_SDL_SemValue(vblsem) != 0) {
@@ -545,8 +545,8 @@ pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, gs: &mut Global
         }
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn drawpic(mut x: i32, mut y: i32, mut picnum: i32, gs: &mut GlobalState) {
+
+pub unsafe fn drawpic(mut x: i32, mut y: i32, mut picnum: i32, gs: &mut GlobalState) {
     let mut vbuf: *mut u8 = gs
         .screenseg
         .as_mut_ptr()

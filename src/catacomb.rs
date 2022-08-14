@@ -25,7 +25,7 @@ use crate::{
     obj_def_type::objdeftype,
     obj_type::objtype,
     objects::initobjects,
-    pcrlib_a::{drawchar, drawpic, WaitEndSound},
+    pcrlib_a::{drawchar, drawpic, rnd, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{
         _checkhighscore, _setupgame, _showhighscores, bar, centerwindow, drawwindow, expwin, get,
         print, printchartile, printint, UpdateScreen,
@@ -54,21 +54,17 @@ extern "C" {
     static mut score: i32;
     static mut level: i16;
     fn installgrfile(filename: *mut i8, inmem: *mut libc::c_void);
-    fn WaitVBL();
     static mut leftedge: i32;
     static mut sy: i32;
     static mut sx: i32;
     static mut grmode: grtype;
     fn _Verify(filename: *mut i8) -> i64;
     fn clearkeys();
-    fn rnd(_: u16) -> i32;
-    fn rndt() -> i32;
     fn bloadin(filename: *mut i8) -> *mut libc::c_void;
     fn LoadFile(filename: *mut i8, buffer: *mut i8) -> u64;
     fn LoadDemo(demonum: i32);
     fn ControlPlayer(player_0: i32) -> ControlStruct;
     static mut keydown: [boolean; 512];
-    fn PlaySound(sound: i32);
     static mut str: [i8; 80];
     static mut ch: i8;
 }

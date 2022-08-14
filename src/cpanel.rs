@@ -9,7 +9,7 @@ use crate::{
     extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    pcrlib_a::{drawchar, drawpic},
+    pcrlib_a::{drawchar, drawpic, ContinueSound, PauseSound, WaitVBL},
     pcrlib_c::{drawwindow, erasewindow, expwin, get, print, UpdateScreen},
     sdl_scan_codes::*,
 };
@@ -26,7 +26,6 @@ extern "C" {
     static mut picptr: *mut libc::c_void;
     static mut tileptr: *mut libc::c_void;
     static mut charptr: *mut libc::c_void;
-    fn WaitVBL();
     static mut xormask: i32;
     static mut leftedge: i32;
     static mut sy: i32;
@@ -50,8 +49,6 @@ extern "C" {
     static mut JoyXlow: [i32; 3];
     static mut keydown: [boolean; 512];
     static mut playermode: [inputtype; 3];
-    fn ContinueSound();
-    fn PauseSound();
     static mut soundmode: soundtype;
     fn SDL_NumJoysticks() -> i32;
 }

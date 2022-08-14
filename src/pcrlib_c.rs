@@ -14,7 +14,10 @@ use crate::{
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     indemo,
-    pcrlib_a::drawchar,
+    pcrlib_a::{
+        drawchar, initrnd, initrndt, PlaySound, SetupEmulatedVBL, ShutdownSound, StartupSound,
+        WaitVBL,
+    },
     safe_sdl::*,
     scores::scores,
     sdl_scan_codes::*,
@@ -48,13 +51,7 @@ extern "C" {
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn loadgrfiles();
-    fn WaitVBL();
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
-    fn initrnd(randomize: boolean);
-    fn initrndt(randomize: boolean);
-    fn PlaySound(sound: i32);
-    fn ShutdownSound();
-    fn StartupSound();
     static mut SoundData: *mut SPKRtable;
     static mut soundmode: soundtype;
 }

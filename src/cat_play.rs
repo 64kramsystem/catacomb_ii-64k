@@ -16,7 +16,7 @@ use crate::{
     indemo,
     obj_def_type::objdeftype,
     obj_type::objtype,
-    pcrlib_a::{drawchar, WaitEndSound},
+    pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{centerwindow, get, print, printint, printlong, UpdateScreen, _inputint},
     scores::scores,
     sdl_scan_codes::*,
@@ -30,17 +30,13 @@ extern "C" {
     static mut highscores: [scores; 5];
     static mut level: i16;
     static mut score: i32;
-    fn WaitVBL();
     static mut sy: i32;
     static mut sx: i32;
     fn clearkeys();
-    fn rndt() -> i32;
-    fn initrndt(randomize: boolean);
     fn RecordDemo();
     fn SaveDemo(demonum: i32);
     fn ControlPlayer(player_0: i32) -> ControlStruct;
     static mut keydown: [boolean; 512];
-    fn PlaySound(sound: i32);
     static mut ch: i8;
 }
 

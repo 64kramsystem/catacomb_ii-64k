@@ -76,7 +76,6 @@ extern "C" {
         button: SDL_GameControllerButton,
     ) -> u8;
     fn SDL_GameControllerClose(gamecontroller: *mut SDL_GameController);
-    fn SetupEmulatedVBL();
     fn SDL_memset(dst: *mut libc::c_void, c: i32, len: u64) -> *mut libc::c_void;
     fn SDL_GetError() -> *const i8;
     fn SDL_CreateMutex() -> *mut SDL_mutex;
