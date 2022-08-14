@@ -1,4 +1,4 @@
-use crate::{exit_type::exittype, obj_def_type::objdeftype};
+use crate::{exit_type::exittype, obj_def_type::objdeftype, vec2::Vec2};
 
 /// Includes most of the former globals.
 pub struct GlobalState {
@@ -7,8 +7,7 @@ pub struct GlobalState {
     pub objdef: [objdeftype; 23],
     pub side: i32,
     pub view: [[i32; 86]; 87],
-    pub screencenterx: i32,
-    pub screencentery: i32,
+    pub screencenter: Vec2,
     pub gamexit: exittype,
     pub oldtiles: [i32; 576],
 }
@@ -20,8 +19,7 @@ impl GlobalState {
         objdef: [objdeftype; 23],
         side: i32,
         view: [[i32; 86]; 87],
-        screencenterx: i32,
-        screencentery: i32,
+        screencenter: Vec2,
         gamexit: exittype,
         oldtiles: [i32; 576],
     ) -> Self {
@@ -31,8 +29,7 @@ impl GlobalState {
             objdef,
             side,
             view,
-            screencenterx,
-            screencentery,
+            screencenter,
             gamexit,
             oldtiles,
         }

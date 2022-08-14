@@ -25,6 +25,7 @@ use crate::{
     pcrlib_c::{_checkhighscore, _setupgame, _showhighscores, centerwindow, drawwindow, expwin},
     sdl_scan_codes::*,
     state_type::statetype,
+    vec2::Vec2,
 };
 extern "C" {
     fn close(__fd: i32) -> i32;
@@ -429,10 +430,10 @@ unsafe fn charpic(
     }
 }
 
-unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) {
+unsafe fn help(objdef: &[objdeftype], screencenter: &Vec2) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
-    centerwindow(20, 20, screencenterx, screencentery);
+    centerwindow(20, 20, screencenter);
     print(b"  C A T A C O M B   \n\0" as *const u8 as *const i8);
     print(b"   - - - - - - -    \n\0" as *const u8 as *const i8);
     print(b" by John Carmack    \n\0" as *const u8 as *const i8);
@@ -451,7 +452,7 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20, screencenterx, screencentery);
+    centerwindow(20, 20, screencenter);
     print(b"\nKeyboard controls:  \n\n\0" as *const u8 as *const i8);
     print(b"move    : arrows    \n\0" as *const u8 as *const i8);
     print(b"button1 : ctrl      \n\0" as *const u8 as *const i8);
@@ -462,7 +463,7 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20, screencenterx, screencentery);
+    centerwindow(20, 20, screencenter);
     print(b"Button 1 / ctrl key:\n\0" as *const u8 as *const i8);
     print(b"Builds shot power.  \n\0" as *const u8 as *const i8);
     print(b"If the shot power   \n\0" as *const u8 as *const i8);
@@ -489,7 +490,7 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20, screencenterx, screencentery);
+    centerwindow(20, 20, screencenter);
     print(b"Button 2 / alt key:\n\0" as *const u8 as *const i8);
     print(b"Allows you to move  \n\0" as *const u8 as *const i8);
     print(b"without changing the\n\0" as *const u8 as *const i8);
@@ -519,7 +520,7 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20, screencenterx, screencentery);
+    centerwindow(20, 20, screencenter);
     print(b"\"P\" or \"space\" will \n\0" as *const u8 as *const i8);
     print(b"take a healing      \n\0" as *const u8 as *const i8);
     print(b"potion if you have  \n\0" as *const u8 as *const i8);
@@ -539,7 +540,7 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
     if wantmore() == 0 {
         return;
     }
-    centerwindow(20, 20, screencenterx, screencentery);
+    centerwindow(20, 20, screencenter);
     print(b"\"N\" or \"enter\" will \n\0" as *const u8 as *const i8);
     print(b"cast a nuke spell.  \n\0" as *const u8 as *const i8);
     print(b"This usually wipes  \n\0" as *const u8 as *const i8);
@@ -560,12 +561,7 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
 }
 
 unsafe fn reset(global_state: &mut GlobalState) {
-    centerwindow(
-        18,
-        1,
-        &global_state.screencenterx,
-        &global_state.screencentery,
-    );
+    centerwindow(18, 1, &global_state.screencenter);
     print(b"reset game (y/n)?\0" as *const u8 as *const i8);
     ch = get() as i8;
     if ch as i32 == 'y' as i32 {
@@ -780,11 +776,7 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
     match key {
         58 => {
             clearkeys();
-            help(
-                &global_state.objdef,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            help(&global_state.objdef, &global_state.screencenter);
         }
         59 => {
             clearkeys();
@@ -792,12 +784,7 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
         }
         60 => {
             clearkeys();
-            expwin(
-                18,
-                1,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            expwin(18, 1, &global_state.screencenter);
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8);
             ch = toupper(get()) as i8;
             if ch as i32 == 'Y' as i32 {
@@ -806,12 +793,7 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
         }
         61 => {
             clearkeys();
-            expwin(
-                22,
-                4,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            expwin(22, 4, &global_state.screencenter);
             if indemo != demoenum::notdemo {
                 print(b"Can't save game here!\0" as *const u8 as *const i8);
                 get();
@@ -884,12 +866,7 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
         }
         62 => {
             clearkeys();
-            expwin(
-                22,
-                4,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            expwin(22, 4, &global_state.screencenter);
             print(b"Load game #(1-9):\0" as *const u8 as *const i8);
             ch = toupper(get()) as i8;
             drawchar(sx, sy, ch as i32);
@@ -939,23 +916,13 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
         }
         66 => {
             clearkeys();
-            expwin(
-                7,
-                1,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            expwin(7, 1, &global_state.screencenter);
             print(b"PAUSED\0" as *const u8 as *const i8);
             get();
         }
         67 => {
             clearkeys();
-            expwin(
-                12,
-                1,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            expwin(12, 1, &global_state.screencenter);
             print(b"QUIT (Y/N)?\0" as *const u8 as *const i8);
             ch = toupper(get()) as i8;
             if ch as i32 == 'Y' as i32 {
@@ -1051,7 +1018,7 @@ unsafe fn dodemo(global_state: &mut GlobalState) {
         level = 0;
         gamestate = statetype::inscores;
         indemo = demoenum::demoplay;
-        _showhighscores(&global_state.screencenterx, &global_state.screencentery);
+        _showhighscores(&global_state.screencenter);
         UpdateScreen();
         i = 0;
         while i < 500 {
@@ -1079,12 +1046,7 @@ unsafe fn dodemo(global_state: &mut GlobalState) {
 
 unsafe fn gameover(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
-    expwin(
-        11,
-        4,
-        &global_state.screencenterx,
-        &global_state.screencentery,
-    );
+    expwin(11, 4, &global_state.screencenter);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const i8);
     UpdateScreen();
     WaitEndSound();
@@ -1094,7 +1056,7 @@ unsafe fn gameover(global_state: &mut GlobalState) {
         i += 1;
     }
     gamestate = statetype::inscores;
-    _checkhighscore(&global_state.screencenterx, &global_state.screencentery);
+    _checkhighscore(&global_state.screencenter);
     level = 0;
     i = 0;
     while i < 500 {
@@ -1145,8 +1107,7 @@ pub fn original_main() {
         }; 23],
         0,
         [[0; 86]; 87],
-        19,
-        11,
+        Vec2::new(19, 11),
         quited,
         [0; 576],
     );
@@ -1243,12 +1204,7 @@ pub fn original_main() {
 
         _setupgame();
 
-        expwin(
-            33,
-            13,
-            &global_state.screencenterx,
-            &global_state.screencentery,
-        );
+        expwin(33, 13, &global_state.screencenter);
         print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const i8);
         print(b"          The Catacomb\n\n\0" as *const u8 as *const i8);
         print(b"        By John Carmack\n\n\0" as *const u8 as *const i8);
@@ -1261,8 +1217,8 @@ pub fn original_main() {
 
         clearkeys();
 
-        global_state.screencentery = 11;
-        global_state.screencenterx = 11;
+        global_state.screencenter.x = 11;
+        global_state.screencenter.y = 11;
 
         exitdemo = false;
         level = 0;

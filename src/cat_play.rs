@@ -890,12 +890,7 @@ unsafe fn playercmdthink(global_state: &mut GlobalState) {
                 && keydown[SDL_SCANCODE_T as usize] as i32 != 0
                 && keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
-                centerwindow(
-                    16,
-                    2,
-                    &global_state.screencenterx,
-                    &global_state.screencentery,
-                );
+                centerwindow(16, 2, &global_state.screencenter);
                 print(b"warp to which\nlevel (1-99)?\0" as *const u8 as *const i8);
                 clearkeys();
                 level = _inputint() as i16;
@@ -913,21 +908,11 @@ unsafe fn playercmdthink(global_state: &mut GlobalState) {
                 && keydown[SDL_SCANCODE_TAB as usize] as i32 != 0
             {
                 if GODMODE != 0 {
-                    centerwindow(
-                        13,
-                        1,
-                        &global_state.screencenterx,
-                        &global_state.screencentery,
-                    );
+                    centerwindow(13, 1, &global_state.screencenter);
                     print(b"God Mode Off\0" as *const u8 as *const i8);
                     GODMODE = false as boolean;
                 } else {
-                    centerwindow(
-                        12,
-                        1,
-                        &global_state.screencenterx,
-                        &global_state.screencentery,
-                    );
+                    centerwindow(12, 1, &global_state.screencenter);
                     print(b"God Mode On\0" as *const u8 as *const i8);
                     GODMODE = true as boolean;
                 }
@@ -1287,15 +1272,10 @@ pub unsafe extern "C" fn doinactive() {
 }
 
 pub unsafe fn playloop(global_state: &mut GlobalState) {
-    global_state.screencenterx = 11;
+    global_state.screencenter.x = 11;
     loop {
         if indemo == demoenum::notdemo {
-            centerwindow(
-                11,
-                2,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            centerwindow(11, 2, &global_state.screencenter);
             print(b" Entering\nlevel \0" as *const u8 as *const i8);
             printint(level as i32);
             print(b"...\0" as *const u8 as *const i8);
@@ -1312,12 +1292,7 @@ pub unsafe fn playloop(global_state: &mut GlobalState) {
             refresh(global_state);
             refresh(global_state);
             clearkeys();
-            centerwindow(
-                12,
-                1,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            centerwindow(12, 1, &global_state.screencenter);
             print(b"RECORD DEMO\0" as *const u8 as *const i8);
             loop {
                 ch = get() as i8;
@@ -1338,12 +1313,7 @@ pub unsafe fn playloop(global_state: &mut GlobalState) {
         doall(global_state);
         if indemo == demoenum::recording {
             clearkeys();
-            centerwindow(
-                15,
-                1,
-                &global_state.screencenterx,
-                &global_state.screencentery,
-            );
+            centerwindow(15, 1, &global_state.screencenter);
             print(b"SAVE AS DEMO#:\0" as *const u8 as *const i8);
             loop {
                 ch = get() as i8;

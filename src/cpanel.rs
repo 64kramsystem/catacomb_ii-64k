@@ -11,6 +11,7 @@ use crate::{
     gr_type::grtype::{self, *},
     pcrlib_c::{drawwindow, erasewindow, expwin},
     sdl_scan_codes::*,
+    vec2::Vec2,
 };
 
 extern "C" {
@@ -400,7 +401,7 @@ pub static mut joy2ok: i32 = 0;
 #[no_mangle]
 pub static mut mouseok: i32 = 0;
 
-unsafe fn calibratejoy(mut joynum: i32, screencenterx: &i32, screencentery: &i32) {
+unsafe fn calibratejoy(mut joynum: i32, screencenter: &Vec2) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
     let mut dx: i32 = 0;
@@ -414,7 +415,7 @@ unsafe fn calibratejoy(mut joynum: i32, screencenterx: &i32, screencentery: &i32
         button1: 0,
         button2: 0,
     };
-    expwin(24, 9, screencenterx, screencentery);
+    expwin(24, 9, screencenter);
     print(b" Joystick Configuration\n\r\0" as *const u8 as *const i8);
     print(b" ----------------------\n\r\0" as *const u8 as *const i8);
     print(b"Hold the joystick in the\n\r\0" as *const u8 as *const i8);
@@ -506,9 +507,9 @@ unsafe fn calibratejoy(mut joynum: i32, screencenterx: &i32, screencentery: &i32
     erasewindow();
 }
 
-unsafe fn calibratemouse(screencenterx: &i32, screencentery: &i32) {
+unsafe fn calibratemouse(screencenter: &Vec2) {
     let mut ch: i8 = 0;
-    expwin(24, 5, screencenterx, screencentery);
+    expwin(24, 5, screencenter);
     print(b"  Mouse Configuration   \n\r\0" as *const u8 as *const i8);
     print(b"  -------------------   \n\r\0" as *const u8 as *const i8);
     print(b"Choose the sensitivity  \n\r\0" as *const u8 as *const i8);
@@ -713,14 +714,14 @@ pub unsafe extern "C" fn printscan(mut sc: i32) {
     };
 }
 
-unsafe fn calibratekeys(screencenterx: &i32, screencentery: &i32) {
+unsafe fn calibratekeys(screencenter: &Vec2) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
     let mut hy: i32 = 0;
     let mut i: i32 = 0;
     let mut select: i32 = 0;
     let mut new: i32 = 0;
-    expwin(22, 15, screencenterx, screencentery);
+    expwin(22, 15, screencenter);
     print(b"Keyboard Configuration\n\r\0" as *const u8 as *const i8);
     print(b"----------------------\0" as *const u8 as *const i8);
     print(b"\n\r0 north    :\0" as *const u8 as *const i8);
@@ -888,10 +889,10 @@ pub unsafe fn controlpanel(global_state: &mut GlobalState) {
     newplayermode[1] = oldplayermode[1];
     oldplayermode[2] = playermode[2];
     newplayermode[2] = oldplayermode[2];
-    oldcenterx = global_state.screencenterx;
-    oldcentery = global_state.screencentery;
-    global_state.screencenterx = 19;
-    global_state.screencentery = 11;
+    oldcenterx = global_state.screencenter.x;
+    oldcentery = global_state.screencenter.y;
+    global_state.screencenter.x = 19;
+    global_state.screencenter.y = 11;
     drawwindow(0, 0, 39, 24);
     drawpanel();
     row = 0;
@@ -969,13 +970,13 @@ pub unsafe fn controlpanel(global_state: &mut GlobalState) {
                     );
                     newplayermode[1] = collumn as inputtype;
                     if newplayermode[1] as u32 == keyboard as i32 as u32 {
-                        calibratekeys(&global_state.screencenterx, &global_state.screencentery);
+                        calibratekeys(&global_state.screencenter);
                     } else if newplayermode[1] as u32 == mouse as i32 as u32 {
-                        calibratemouse(&global_state.screencenterx, &global_state.screencentery);
+                        calibratemouse(&global_state.screencenter);
                     } else if newplayermode[1] as u32 == joystick1 as i32 as u32 {
-                        calibratejoy(1, &global_state.screencenterx, &global_state.screencentery);
+                        calibratejoy(1, &global_state.screencenter);
                     } else if newplayermode[1] as u32 == joystick2 as i32 as u32 {
-                        calibratejoy(2, &global_state.screencenterx, &global_state.screencentery);
+                        calibratejoy(2, &global_state.screencenter);
                     }
                     drawpanel();
                 }
@@ -991,8 +992,8 @@ pub unsafe fn controlpanel(global_state: &mut GlobalState) {
     playermode[2] = newplayermode[2];
     CheckMouseMode();
     grmode = newgrmode;
-    global_state.screencenterx = oldcenterx;
-    global_state.screencentery = oldcentery;
+    global_state.screencenter.x = oldcenterx;
+    global_state.screencenter.y = oldcentery;
     soundmode = newsoundmode;
     repaintscreen(global_state);
     ContinueSound();

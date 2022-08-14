@@ -15,6 +15,7 @@ use crate::{
     indemo,
     scores::scores,
     sdl_scan_codes::*,
+    vec2::Vec2,
 };
 extern "C" {
     pub type _IO_wide_data;
@@ -1403,48 +1404,43 @@ pub unsafe extern "C" fn erasewindow() {
     bar(win_xl, win_yl, win_xh, win_yh, ' ' as i32);
 }
 
-pub unsafe fn centerwindow(
-    mut width: i32,
-    mut height: i32,
-    screencenterx: &i32,
-    screencentery: &i32,
-) {
-    let mut xl: i32 = screencenterx - width / 2;
-    let mut yl: i32 = screencentery - height / 2;
+pub unsafe fn centerwindow(mut width: i32, mut height: i32, screencenter: &Vec2) {
+    let mut xl: i32 = screencenter.x - width / 2;
+    let mut yl: i32 = screencenter.y - height / 2;
     drawwindow(xl, yl, xl + width + 1, yl + height + 1);
 }
 
-pub unsafe fn expwin(mut width: i32, mut height: i32, screencenterx: &i32, screencentery: &i32) {
+pub unsafe fn expwin(mut width: i32, mut height: i32, screencenter: &Vec2) {
     if width > 2 {
         if height > 2 {
-            expwin(width - 2, height - 2, screencenterx, screencentery);
+            expwin(width - 2, height - 2, screencenter);
         } else {
-            expwinh(width - 2, height, screencenterx, screencentery);
+            expwinh(width - 2, height, screencenter);
         }
     } else if height > 2 {
-        expwinv(width, height - 2, screencenterx, screencentery);
+        expwinv(width, height - 2, screencenter);
     }
     UpdateScreen();
     WaitVBL();
-    centerwindow(width, height, screencenterx, screencentery);
+    centerwindow(width, height, screencenter);
 }
 
-unsafe fn expwinh(mut width: i32, mut height: i32, screencenterx: &i32, screencentery: &i32) {
+unsafe fn expwinh(mut width: i32, mut height: i32, screencenter: &Vec2) {
     if width > 2 {
-        expwinh(width - 2, height, screencenterx, screencentery);
+        expwinh(width - 2, height, screencenter);
     }
     UpdateScreen();
     WaitVBL();
-    centerwindow(width, height, screencenterx, screencentery);
+    centerwindow(width, height, screencenter);
 }
 
-unsafe fn expwinv(mut width: i32, mut height: i32, screencenterx: &i32, screencentery: &i32) {
+unsafe fn expwinv(mut width: i32, mut height: i32, screencenter: &Vec2) {
     if height > 2 {
-        expwinv(width, height - 2, screencenterx, screencentery);
+        expwinv(width, height - 2, screencenter);
     }
     UpdateScreen();
     WaitVBL();
-    centerwindow(width, height, screencenterx, screencentery);
+    centerwindow(width, height, screencenter);
 }
 #[no_mangle]
 pub unsafe extern "C" fn bioskey(mut cmd: i32) -> i32 {
@@ -2074,11 +2070,11 @@ pub unsafe extern "C" fn _savehighscores() {
     );
 }
 
-pub unsafe fn _showhighscores(screencenterx: &i32, screencentery: &i32) {
+pub unsafe fn _showhighscores(screencenter: &Vec2) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
     let mut st2: [i8; 10] = [0; 10];
-    centerwindow(17, 17, screencenterx, screencentery);
+    centerwindow(17, 17, screencenter);
     print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8);
     print(b" #  SCORE LV  BY\n\0" as *const u8 as *const i8);
     print(b" - ------ -- ---\n\0" as *const u8 as *const i8);
@@ -2119,10 +2115,10 @@ pub unsafe fn _showhighscores(screencenterx: &i32, screencentery: &i32) {
     strcpy(str.as_mut_ptr(), b"SCORE:\0" as *const u8 as *const i8);
     ltoa(score, st2.as_mut_ptr(), 10);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
-    _printc(str.as_mut_ptr(), screencenterx);
+    _printc(str.as_mut_ptr(), &screencenter.x);
 }
 
-pub unsafe fn _checkhighscore(screencenterx: &i32, screencentery: &i32) {
+pub unsafe fn _checkhighscore(screencenter: &Vec2) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
     let mut k: i32 = 0;
@@ -2146,13 +2142,13 @@ pub unsafe fn _checkhighscore(screencenterx: &i32, screencentery: &i32) {
             i += 1;
         }
     }
-    _showhighscores(screencenterx, screencentery);
+    _showhighscores(screencenter);
     UpdateScreen();
     if i < 5 {
         PlaySound(16);
         clearkeys();
-        sx = screencenterx - 17 / 2 + 14;
-        sy = screencentery - 17 / 2 + 6 + i * 2;
+        sx = screencenter.x - 17 / 2 + 14;
+        sy = screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
             k = get();
