@@ -21,7 +21,6 @@ extern "C" {
         __function: *const i8,
     ) -> !;
     static mut numobj: i32;
-    static mut o: [activeobj; 201];
     static mut objecton: i32;
     static mut frameon: u16;
     static mut leveldone: boolean;
@@ -127,7 +126,7 @@ pub unsafe fn doall(gs: &mut GlobalState) {
         loop {
             memcpy(
                 &mut obj as *mut objtype as *mut libc::c_void,
-                &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
+                &mut *gs.o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
                     as *const libc::c_void,
                 ::std::mem::size_of::<activeobj>() as u64,
             );

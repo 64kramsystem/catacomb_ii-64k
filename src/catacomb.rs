@@ -84,21 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut o: [activeobj; 201] = [activeobj {
-    active: 0,
-    class: 0,
-    x: 0,
-    y: 0,
-    stage: 0,
-    delay: 0,
-    dir: 0,
-    hp: 0,
-    oldx: 0,
-    oldy: 0,
-    oldtile: 0,
-    filler: [0; 1],
-}; 201];
-#[no_mangle]
 pub static mut saveo: [activeobj; 1] = [activeobj {
     active: 0,
     class: 0,
@@ -602,14 +587,14 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
     LoadFile(filename.as_mut_ptr(), rle.as_mut_ptr());
     RLEExpand(&mut *rle.as_mut_ptr().offset(4), sm.as_mut_ptr(), 4096);
     numobj = 0;
-    o[0].x = 13;
-    o[0].y = 13;
-    o[0].stage = 0;
-    o[0].delay = 0;
-    o[0].dir = east as i32 as u16;
-    o[0].oldx = 0;
-    o[0].oldy = 0;
-    o[0].oldtile = -(1) as i16;
+    gs.o[0].x = 13;
+    gs.o[0].y = 13;
+    gs.o[0].stage = 0;
+    gs.o[0].delay = 0;
+    gs.o[0].dir = east as i32 as u16;
+    gs.o[0].oldx = 0;
+    gs.o[0].oldy = 0;
+    gs.o[0].oldtile = -(1) as i16;
     yy = 0;
     while yy < 64 {
         xx = 0;
@@ -620,32 +605,32 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
             } else {
                 gs.background[(yy + 11) as usize][(xx + 11) as usize] = 128;
                 if tokens[(btile as i32 - 230) as usize] as u32 == player as i32 as u32 {
-                    o[0].x = (xx + 11) as u8;
-                    o[0].y = (yy + 11) as u8;
+                    gs.o[0].x = (xx + 11) as u8;
+                    gs.o[0].y = (yy + 11) as u8;
                 } else {
                     numobj += 1;
-                    o[numobj as usize].active = false as boolean;
-                    o[numobj as usize].class = tokens[(btile as i32 - 230) as usize] as u16;
-                    o[numobj as usize].x = (xx + 11) as u8;
-                    o[numobj as usize].y = (yy + 11) as u8;
-                    o[numobj as usize].stage = 0;
-                    o[numobj as usize].delay = 0;
+                    gs.o[numobj as usize].active = false as boolean;
+                    gs.o[numobj as usize].class = tokens[(btile as i32 - 230) as usize] as u16;
+                    gs.o[numobj as usize].x = (xx + 11) as u8;
+                    gs.o[numobj as usize].y = (yy + 11) as u8;
+                    gs.o[numobj as usize].stage = 0;
+                    gs.o[numobj as usize].delay = 0;
                     // Ugly defensive typecast.
-                    o[numobj as usize].dir =
+                    gs.o[numobj as usize].dir =
                         TryInto::<dirtype>::try_into(rndt() / 64).unwrap() as u16;
-                    o[numobj as usize].hp =
-                        gs.objdef[o[numobj as usize].class as usize].hitpoints as i8;
-                    o[numobj as usize].oldx = o[numobj as usize].x;
-                    o[numobj as usize].oldy = o[numobj as usize].y;
-                    o[numobj as usize].oldtile = -(1) as i16;
+                    gs.o[numobj as usize].hp =
+                        gs.objdef[gs.o[numobj as usize].class as usize].hitpoints as i8;
+                    gs.o[numobj as usize].oldx = gs.o[numobj as usize].x;
+                    gs.o[numobj as usize].oldy = gs.o[numobj as usize].y;
+                    gs.o[numobj as usize].oldtile = -(1) as i16;
                 }
             }
             xx += 1;
         }
         yy += 1;
     }
-    gs.origin.x = o[0].x as i32 - 11;
-    gs.origin.y = o[0].y as i32 - 11;
+    gs.origin.x = gs.o[0].x as i32 - 11;
+    gs.origin.y = gs.o[0].y as i32 - 11;
     gs.shotpower = 0;
     y = 11 - 1;
     while y < 65 + 11 {
@@ -667,7 +652,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
         i += 1;
     }
     savescore = score;
-    saveo[0] = o[0];
+    saveo[0] = gs.o[0];
 }
 
 unsafe fn drawside(gs: &mut GlobalState) {
@@ -733,12 +718,12 @@ unsafe fn playsetup(gs: &mut GlobalState) {
         }
         score = 0;
         level = 1;
-        o[0].active = true as boolean;
-        o[0].class = player as i32 as u16;
-        o[0].hp = 13;
-        o[0].dir = west as i32 as u16;
-        o[0].stage = 0;
-        o[0].delay = 0;
+        gs.o[0].active = true as boolean;
+        gs.o[0].class = player as i32 as u16;
+        gs.o[0].hp = 13;
+        gs.o[0].dir = west as i32 as u16;
+        gs.o[0].stage = 0;
+        gs.o[0].delay = 0;
         drawside(gs);
         givenuke(gs);
         givenuke(gs);
@@ -919,7 +904,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                     );
                     read(
                         handle,
-                        &mut *o.as_mut_ptr().offset(0) as *mut activeobj as *mut libc::c_void,
+                        &mut *gs.o.as_mut_ptr().offset(0) as *mut activeobj as *mut libc::c_void,
                         ::std::mem::size_of::<activeobj>() as u64,
                     );
                     close(handle);
@@ -1111,6 +1096,20 @@ pub fn original_main() {
         [0; 6],
         [0; 6],
         0,
+        [activeobj {
+            active: 0,
+            class: 0,
+            x: 0,
+            y: 0,
+            stage: 0,
+            delay: 0,
+            dir: 0,
+            hp: 0,
+            oldx: 0,
+            oldy: 0,
+            oldtile: 0,
+            filler: [0; 1],
+        }; 201],
         [objdeftype {
             think: 0,
             contact: 0,
