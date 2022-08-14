@@ -1,9 +1,16 @@
 use ::libc;
 
 use crate::{
-    active_obj::activeobj, cat_play::doactive, catacomb::refresh, class_type::classtype::*,
-    extra_types::boolean, global_state::GlobalState, gr_type::grtype, obj_def_type::objdeftype,
-    obj_type::objtype, pcrlib_c::UpdateScreen,
+    active_obj::activeobj,
+    cat_play::{doactive, doinactive},
+    catacomb::refresh,
+    class_type::classtype::*,
+    extra_types::boolean,
+    global_state::GlobalState,
+    gr_type::grtype,
+    obj_def_type::objdeftype,
+    obj_type::objtype,
+    pcrlib_c::UpdateScreen,
 };
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
@@ -13,8 +20,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    static mut originy: i32;
-    static mut originx: i32;
     static mut numobj: i32;
     static mut o: [activeobj; 201];
     static mut objecton: i32;
@@ -23,7 +28,6 @@ extern "C" {
     static mut playdone: boolean;
     static mut obj: objtype;
     static mut pics: *mut i8;
-    fn doinactive();
     static mut grmode: grtype;
 }
 
@@ -137,7 +141,7 @@ pub unsafe fn doall(global_state: &mut GlobalState) {
                 if obj.active != 0 {
                     doactive(global_state);
                 } else {
-                    doinactive();
+                    doinactive(global_state);
                 }
             }
             if leveldone as i32 != 0 || playdone as i32 != 0 {
@@ -192,7 +196,7 @@ unsafe extern "C" fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
 }
 
 pub unsafe fn cgarefresh(global_state: &mut GlobalState) {
-    let mut ofs: u32 = (originy * 86 + originx) as u32;
+    let mut ofs: u32 = (global_state.origin.y * 86 + global_state.origin.x) as u32;
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
     let mut endofrow: u32 = ofs.wrapping_add(24);
@@ -258,7 +262,7 @@ unsafe extern "C" fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
 }
 
 pub unsafe fn egarefresh(global_state: &mut GlobalState) {
-    let mut ofs: u32 = (originy * 86 + originx) as u32;
+    let mut ofs: u32 = (global_state.origin.y * 86 + global_state.origin.x) as u32;
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
     let mut endofrow: u32 = ofs.wrapping_add(24);

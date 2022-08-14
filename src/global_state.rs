@@ -7,8 +7,8 @@ pub struct GlobalState {
     pub oldtiles: [i32; 576],        /*tile displayed last refresh*/
     pub background: [[i32; 86]; 87], /*base map*/
     pub view: [[i32; 86]; 87],       /*base map with objects drawn in*/
-    //     int originx, originy;       /*current world location of ul corn*/
-    pub priority: [u8; 2048], /*tile draw overlap priorities*/
+    pub origin: Vec2,                /*current world location of ul corn*/
+    pub priority: [u8; 2048],        /*tile draw overlap priorities*/
 
     //     sword items[6], saveitems[6];
     pub items: [i16; 6],
@@ -71,6 +71,7 @@ impl GlobalState {
         oldtiles: [i32; 576],
         screenseg: [u8; 64000],
         background: [[i32; 86]; 87],
+        origin: Vec2,
     ) -> Self {
         Self {
             priority,
@@ -83,6 +84,7 @@ impl GlobalState {
             oldtiles,
             screenseg,
             background,
+            origin,
         }
     }
 }

@@ -84,11 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut originx: i32 = 0;
-#[no_mangle]
-pub static mut originy: i32 = 0;
-
-#[no_mangle]
 pub static mut saveitems: [i16; 6] = [0; 6];
 #[no_mangle]
 pub static mut shotpower: i32 = 0;
@@ -296,8 +291,8 @@ pub unsafe fn refresh(global_state: &mut GlobalState) {
     let mut basex: i32 = 0;
     let mut basey: i32 = 0;
     let mut underwin: [[u16; 16]; 5] = [[0; 16]; 5];
-    basex = originx + 4;
-    basey = originy + 17;
+    basex = global_state.origin.x + 4;
+    basey = global_state.origin.y + 17;
     if indemo != demoenum::notdemo {
         y = 0;
         while y <= 4 {
@@ -832,8 +827,8 @@ pub unsafe fn loadlevel(global_state: &mut GlobalState) {
         }
         yy += 1;
     }
-    originx = o[0].x as i32 - 11;
-    originy = o[0].y as i32 - 11;
+    global_state.origin.x = o[0].x as i32 - 11;
+    global_state.origin.y = o[0].y as i32 - 11;
     shotpower = 0;
     y = 11 - 1;
     while y < 65 + 11 {
@@ -1388,6 +1383,7 @@ pub fn original_main() {
         [0; 576],
         [8; 64000],
         [[0; 86]; 87],
+        Vec2::new(0, 0),
     );
 
     /***************************************************************************/

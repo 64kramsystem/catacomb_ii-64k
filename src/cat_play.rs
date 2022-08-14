@@ -29,8 +29,6 @@ extern "C" {
     static mut resetgame: boolean;
     static mut ctrl: ControlStruct;
     static mut exitdemo: boolean;
-    static mut originx: i32;
-    static mut originy: i32;
     static mut altobj: objtype;
     static mut altnum: i32;
     static mut chkspot: i32;
@@ -831,8 +829,8 @@ unsafe fn playercmdthink(global_state: &mut GlobalState) {
             8 | _ => {}
         }
     }
-    originx = obj.x as i32 - 11;
-    originy = obj.y as i32 - 11;
+    global_state.origin.x = obj.x as i32 - 11;
+    global_state.origin.y = obj.y as i32 - 11;
     if boltsleft > 0 {
         if frameon as i32 % 3 == 0 {
             playbigshoot();
@@ -1127,10 +1125,10 @@ pub unsafe extern "C" fn gunthink(mut dir: i32) {
 }
 
 unsafe fn shooterthink(global_state: &mut GlobalState) {
-    if (obj.x as i32) < originx - 1
-        || (obj.y as i32) < originy - 1
-        || obj.x as i32 > originx + 22
-        || obj.y as i32 > originy + 22
+    if (obj.x as i32) < global_state.origin.x - 1
+        || (obj.y as i32) < global_state.origin.y - 1
+        || obj.x as i32 > global_state.origin.x + 22
+        || obj.y as i32 > global_state.origin.y + 22
         || walk(global_state) == 0
         || obj.stage as i32 == 2
     {
@@ -1235,10 +1233,10 @@ unsafe fn think(global_state: &mut GlobalState) {
 
 pub unsafe fn doactive(global_state: &mut GlobalState) {
     if obj.class as i32 != dead1 as i32
-        && ((obj.x as i32) < originx - 10
-            || obj.x as i32 > originx + 34
-            || (obj.y as i32) < originy - 10
-            || obj.y as i32 > originy + 34)
+        && ((obj.x as i32) < global_state.origin.x - 10
+            || obj.x as i32 > global_state.origin.x + 34
+            || (obj.y as i32) < global_state.origin.y - 10
+            || obj.y as i32 > global_state.origin.y + 34)
     {
         o[objecton as usize].active = false as boolean;
     } else {
@@ -1257,12 +1255,12 @@ pub unsafe fn doactive(global_state: &mut GlobalState) {
         );
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn doinactive() {
-    if obj.x as i32 + obj.size as i32 >= originx
-        && (obj.x as i32) < originx + 24
-        && obj.y as i32 + obj.size as i32 >= originy
-        && (obj.y as i32) < originy + 24
+
+pub unsafe fn doinactive(global_state: &mut GlobalState) {
+    if obj.x as i32 + obj.size as i32 >= global_state.origin.x
+        && (obj.x as i32) < global_state.origin.x + 24
+        && obj.y as i32 + obj.size as i32 >= global_state.origin.y
+        && (obj.y as i32) < global_state.origin.y + 24
     {
         obj.active = true as boolean;
         obj.dir = north as i32 as u16;
