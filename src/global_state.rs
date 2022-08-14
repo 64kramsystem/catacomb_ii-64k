@@ -16,8 +16,8 @@ pub struct GlobalState {
     pub side: i32,      /*which side shots come from*/
     pub boltsleft: i32, /*number of shots left in a bolt*/
 
-    pub o: [activeobj; 201], /*everything that moves is here*/
-    //     activeobj o[maxobj + 1], saveo[1];
+    pub o: [activeobj; 201],   /*everything that moves is here*/
+    pub saveo: [activeobj; 1], // ^^
     //     objtype obj, altobj;               /*total info about objecton and alt*/
     //     int altnum;                        /*o[#] of altobj*/
     //     int numobj, objecton;              /*number of objects in o now*/
@@ -67,6 +67,7 @@ impl GlobalState {
         saveitems: [i16; 6],
         shotpower: i32,
         o: [activeobj; 201],
+        saveo: [activeobj; 1],
         objdef: [objdeftype; 23],
         side: i32,
         boltsleft: i32,
@@ -84,6 +85,7 @@ impl GlobalState {
             saveitems,
             shotpower,
             o,
+            saveo,
             objdef,
             side,
             boltsleft,

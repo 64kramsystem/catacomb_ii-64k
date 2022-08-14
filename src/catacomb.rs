@@ -84,21 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut saveo: [activeobj; 1] = [activeobj {
-    active: 0,
-    class: 0,
-    x: 0,
-    y: 0,
-    stage: 0,
-    delay: 0,
-    dir: 0,
-    hp: 0,
-    oldx: 0,
-    oldy: 0,
-    oldtile: 0,
-    filler: [0; 1],
-}; 1];
-#[no_mangle]
 pub static mut obj: objtype = objtype {
     active: 0,
     class: 0,
@@ -652,7 +637,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
         i += 1;
     }
     savescore = score;
-    saveo[0] = gs.o[0];
+    gs.saveo[0] = gs.o[0];
 }
 
 unsafe fn drawside(gs: &mut GlobalState) {
@@ -853,7 +838,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                             );
                             write(
                                 handle,
-                                &mut *saveo.as_mut_ptr().offset(0) as *mut activeobj
+                                &mut *gs.saveo.as_mut_ptr().offset(0) as *mut activeobj
                                     as *const libc::c_void,
                                 ::std::mem::size_of::<activeobj>() as u64,
                             );
@@ -1110,6 +1095,20 @@ pub fn original_main() {
             oldtile: 0,
             filler: [0; 1],
         }; 201],
+        [activeobj {
+            active: 0,
+            class: 0,
+            x: 0,
+            y: 0,
+            stage: 0,
+            delay: 0,
+            dir: 0,
+            hp: 0,
+            oldx: 0,
+            oldy: 0,
+            oldtile: 0,
+            filler: [0; 1],
+        }; 1],
         [objdeftype {
             think: 0,
             contact: 0,
