@@ -2,6 +2,7 @@ use libc::O_RDONLY;
 
 use crate::{
     cat_play::{givebolt, givenuke, givepotion, playloop},
+    catasm::{cgarefresh, egarefresh},
     class_type::classtype::{self, *},
     cpanel::controlpanel,
     demo_enum::demoenum,
@@ -73,8 +74,6 @@ extern "C" {
     fn PlaySound(sound: libc::c_int);
     static mut str: [libc::c_char; 80];
     static mut ch: libc::c_char;
-    fn cgarefresh();
-    fn egarefresh();
 }
 pub type __int8_t = libc::c_schar;
 pub type __uint8_t = libc::c_uchar;
@@ -270,8 +269,6 @@ pub static mut gamexit: exittype = quited;
 pub static mut oldtiles: [libc::c_int; 576] = [0; 576];
 #[no_mangle]
 pub static mut background: [[libc::c_int; 86]; 87] = [[0; 86]; 87];
-#[no_mangle]
-pub static mut view: [[libc::c_int; 86]; 87] = [[0; 86]; 87];
 #[no_mangle]
 pub static mut originx: libc::c_int = 0;
 #[no_mangle]
@@ -478,8 +475,8 @@ pub static mut demowin: [[libc::c_char; 16]; 5] = [
         19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21,
     ],
 ];
-#[no_mangle]
-pub unsafe extern "C" fn refresh() {
+
+pub unsafe fn refresh(view: &mut [[libc::c_int; 86]]) {
     let mut x: libc::c_int = 0;
     let mut y: libc::c_int = 0;
     let mut basex: libc::c_int = 0;
@@ -503,9 +500,9 @@ pub unsafe extern "C" fn refresh() {
     }
     WaitVBL();
     if grmode as libc::c_uint == CGAgr as libc::c_int as libc::c_uint {
-        cgarefresh();
+        cgarefresh(view);
     } else {
-        egarefresh();
+        egarefresh(view);
     }
     if indemo != demoenum::notdemo {
         y = 0;
@@ -521,13 +518,13 @@ pub unsafe extern "C" fn refresh() {
     }
     WaitVBL();
 }
-#[no_mangle]
-pub unsafe extern "C" fn simplerefresh() {
+
+unsafe fn simplerefresh(view: &mut [[libc::c_int; 86]]) {
     WaitVBL();
     if grmode as libc::c_uint == CGAgr as libc::c_int as libc::c_uint {
-        cgarefresh();
+        cgarefresh(view);
     } else {
-        egarefresh();
+        egarefresh(view);
     };
 }
 #[no_mangle]
@@ -561,10 +558,10 @@ pub unsafe extern "C" fn clearold() {
         ::std::mem::size_of::<[libc::c_int; 576]>() as libc::c_ulong,
     );
 }
-#[no_mangle]
-pub unsafe extern "C" fn restore() {
+
+pub unsafe fn restore(view: &mut [[libc::c_int; 86]]) {
     clearold();
-    simplerefresh();
+    simplerefresh(view);
 }
 #[no_mangle]
 pub unsafe extern "C" fn wantmore() -> boolean {
@@ -752,7 +749,11 @@ pub unsafe extern "C" fn reset() {
     }
 }
 
-pub unsafe fn loadlevel(items: &mut [sword], objdef: &[objdeftype]) {
+pub unsafe fn loadlevel(
+    items: &mut [sword],
+    objdef: &[objdeftype],
+    view: &mut [[libc::c_int; 86]],
+) {
     let mut i: libc::c_int = 0;
     let mut tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
@@ -840,7 +841,7 @@ pub unsafe fn loadlevel(items: &mut [sword], objdef: &[objdeftype]) {
     sy = 1;
     printint(level as libc::c_int);
     print(b" \0" as *const u8 as *const libc::c_char);
-    restore();
+    restore(view);
     i = 0;
     while i < 6 {
         saveitems[i as usize] = items[i as usize];
@@ -929,13 +930,13 @@ unsafe fn playsetup(items: &mut [sword]) {
     };
 }
 
-pub unsafe fn repaintscreen(items: &mut [sword]) {
+pub unsafe fn repaintscreen(items: &mut [sword], view: &mut [[libc::c_int; 86]]) {
     match gamestate {
         statetype::intitle => {
             drawpic(0, 0, 14);
         }
         statetype::ingame => {
-            restore();
+            restore(view);
             drawside(items);
             printscore();
             sx = 33;
@@ -943,7 +944,7 @@ pub unsafe fn repaintscreen(items: &mut [sword]) {
             printint(level as libc::c_int);
         }
         statetype::inscores => {
-            restore();
+            restore(view);
             drawside(items);
             printscore();
             sx = 33;
@@ -954,7 +955,7 @@ pub unsafe fn repaintscreen(items: &mut [sword]) {
     };
 }
 
-pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype]) {
+pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype], view: &mut [[libc::c_int; 86]]) {
     let mut handle: libc::c_int = 0;
     let mut key: libc::c_int = bioskey(1);
     if key == SDL_SCANCODE_ESCAPE as libc::c_int {
@@ -971,7 +972,7 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype]) {
         }
         59 => {
             clearkeys();
-            controlpanel(items);
+            controlpanel(items, view);
         }
         60 => {
             clearkeys();
@@ -1136,10 +1137,10 @@ pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype]) {
     }
     clearold();
     clearkeys();
-    repaintscreen(items);
+    repaintscreen(items, view);
 }
 
-unsafe fn dotitlepage(items: &mut [sword], objdef: &[objdeftype]) {
+unsafe fn dotitlepage(items: &mut [sword], objdef: &[objdeftype], view: &mut [[libc::c_int; 86]]) {
     let mut i: libc::c_int = 0;
     drawpic(0, 0, 14);
     UpdateScreen();
@@ -1159,7 +1160,7 @@ unsafe fn dotitlepage(items: &mut [sword], objdef: &[objdeftype]) {
         } else {
             indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
-                dofkeys(items, objdef);
+                dofkeys(items, objdef, view);
                 UpdateScreen();
             }
             if exitdemo {
@@ -1208,10 +1209,11 @@ unsafe fn dodemo(
     items: &mut [sword],
     objdef: &mut [objdeftype],
     side: &mut i32,
+    view: &mut [[libc::c_int; 86]],
 ) {
     let mut i: libc::c_int = 0;
     while !exitdemo {
-        dotitlepage(items, objdef);
+        dotitlepage(items, objdef, view);
         if exitdemo {
             break;
         }
@@ -1219,7 +1221,7 @@ unsafe fn dodemo(
         LoadDemo(i);
         level = 0;
         playsetup(items);
-        playloop(priority, items, objdef, side);
+        playloop(priority, items, objdef, side, view);
         if exitdemo {
             break;
         }
@@ -1241,7 +1243,7 @@ unsafe fn dodemo(
                 break;
             } else {
                 if bioskey(1) != 0 {
-                    dofkeys(items, objdef);
+                    dofkeys(items, objdef, view);
                 }
                 if exitdemo {
                     break;
@@ -1252,7 +1254,7 @@ unsafe fn dodemo(
     }
 }
 
-unsafe fn gameover(items: &mut [sword], objdef: &[objdeftype]) {
+unsafe fn gameover(items: &mut [sword], objdef: &[objdeftype], view: &mut [[libc::c_int; 86]]) {
     let mut i: libc::c_int = 0;
     expwin(11, 4);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const libc::c_char);
@@ -1277,7 +1279,7 @@ unsafe fn gameover(items: &mut [sword], objdef: &[objdeftype]) {
             break;
         }
         if bioskey(1) != 0 {
-            dofkeys(items, objdef);
+            dofkeys(items, objdef, view);
         }
         if exitdemo as libc::c_int != 0 || indemo == demoenum::demoplay {
             break;
@@ -1316,6 +1318,7 @@ pub fn original_main() {
         filler: [0; 2],
     }; 23];
     let mut side = 0;
+    let mut view: [[libc::c_int; 86]; 87] = [[0; 86]; 87];
 
     /***************************************************************************/
 
@@ -1423,17 +1426,17 @@ pub fn original_main() {
 
         // go until quit () is called
         loop {
-            dodemo(&priority, &mut items, &mut objdef, &mut side);
+            dodemo(&priority, &mut items, &mut objdef, &mut side, &mut view);
             playsetup(&mut items);
             indemo = demoenum::notdemo;
             gamestate = statetype::ingame;
-            playloop(&priority, &mut items, &mut objdef, &mut side);
+            playloop(&priority, &mut items, &mut objdef, &mut side, &mut view);
             if indemo == demoenum::notdemo {
                 exitdemo = false;
                 if level > numlevels {
                     doendpage(); // finished all levels
                 }
-                gameover(&mut items, &objdef);
+                gameover(&mut items, &objdef, &mut view);
             }
         }
     }

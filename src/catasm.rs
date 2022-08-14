@@ -1,6 +1,8 @@
 use ::libc;
 
-use crate::{cat_play::doactive, class_type::classtype::*, obj_def_type::objdeftype};
+use crate::{
+    cat_play::doactive, catacomb::refresh, class_type::classtype::*, obj_def_type::objdeftype,
+};
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
     fn __assert_fail(
@@ -18,12 +20,10 @@ extern "C" {
     static mut frameon: word;
     static mut leveldone: boolean;
     static mut playdone: boolean;
-    static mut view: [[libc::c_int; 86]; 87];
     static mut background: [[libc::c_int; 86]; 87];
     static mut obj: objtype;
     static mut pics: *mut libc::c_char;
     fn doinactive();
-    fn refresh();
     static mut grmode: grtype;
     fn UpdateScreen();
     static mut screenseg: [byte; 64000];
@@ -113,7 +113,7 @@ pub static mut table86: [word; 87] = [
     7052, 7138, 7224, 7310, 7396,
 ];
 
-pub unsafe fn drawobj(priority: &[byte]) {
+pub unsafe fn drawobj(priority: &[byte], view: &mut [[libc::c_int; 86]]) {
     let mut tilenum: libc::c_int = obj.firstchar as libc::c_int
         + squares[obj.size as usize] as libc::c_int
             * ((obj.dir as libc::c_int & obj.dirmask as libc::c_int) * obj.stages as libc::c_int
@@ -152,8 +152,8 @@ pub unsafe fn drawobj(priority: &[byte]) {
         ofs = ofs.wrapping_add((86 - obj.size as libc::c_int) as libc::c_uint);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn eraseobj() {
+
+pub unsafe fn eraseobj(view: &mut [[libc::c_int; 86]]) {
     let mut tilenum: libc::c_int = obj.oldtile as libc::c_int;
     let mut ofs: libc::c_uint =
         (table86[obj.oldy as usize] as libc::c_int + obj.oldx as libc::c_int) as libc::c_uint;
@@ -189,6 +189,7 @@ pub unsafe fn doall(
     items: &mut [sword],
     objdef: &mut [objdeftype],
     side: &mut i32,
+    view: &mut [[libc::c_int; 86]],
 ) {
     assert!(numobj > 0);
 
@@ -209,7 +210,7 @@ pub unsafe fn doall(
                     ::std::mem::size_of::<objdeftype>() as libc::c_ulong,
                 );
                 if obj.active != 0 {
-                    doactive(priority, items, objdef, side);
+                    doactive(priority, items, objdef, side, view);
                 } else {
                     doinactive();
                 }
@@ -222,7 +223,7 @@ pub unsafe fn doall(
                 break;
             }
         }
-        refresh();
+        refresh(view);
         frameon = frameon.wrapping_add(1);
         if leveldone != 0 {
             return;
@@ -264,8 +265,8 @@ unsafe extern "C" fn drawcgachartile(mut dest: *mut byte, mut tile: libc::c_int)
         src = src.offset(2);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn cgarefresh() {
+
+pub unsafe fn cgarefresh(view: &mut [[libc::c_int; 86]]) {
     let mut ofs: libc::c_uint = (originy * 86 + originx) as libc::c_uint;
     let mut tile: libc::c_int = 0;
     let mut i: libc::c_uint = 0;
@@ -330,8 +331,8 @@ unsafe extern "C" fn drawegachartile(mut dest: *mut byte, mut tile: libc::c_int)
         src = src.offset(1);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn egarefresh() {
+
+pub unsafe fn egarefresh(view: &mut [[libc::c_int; 86]]) {
     let mut ofs: libc::c_uint = (originy * 86 + originx) as libc::c_uint;
     let mut tile: libc::c_int = 0;
     let mut i: libc::c_uint = 0;

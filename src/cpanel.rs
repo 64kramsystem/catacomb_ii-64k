@@ -907,7 +907,7 @@ pub unsafe extern "C" fn drawpanel() {
     print(b"       ESC to return to your game     \n\r\0" as *const u8 as *const libc::c_char);
 }
 
-pub unsafe fn controlpanel(items: &mut [sword]) {
+pub unsafe fn controlpanel(items: &mut [sword], view: &mut [[libc::c_int; 86]]) {
     let mut chf: libc::c_int = 0;
     let mut oldcenterx: libc::c_int = 0;
     let mut oldcentery: libc::c_int = 0;
@@ -1034,7 +1034,7 @@ pub unsafe fn controlpanel(items: &mut [sword]) {
     screencenterx = oldcenterx;
     screencentery = oldcentery;
     soundmode = newsoundmode;
-    repaintscreen(items);
+    repaintscreen(items, view);
     ContinueSound();
 }
 #[no_mangle]

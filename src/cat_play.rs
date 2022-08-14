@@ -1,8 +1,8 @@
 use ::libc;
 
 use crate::{
-    catacomb::{dofkeys, loadlevel},
-    catasm::{doall, drawobj},
+    catacomb::{dofkeys, loadlevel, refresh, restore},
+    catasm::{doall, drawobj, eraseobj},
     class_type::classtype::*,
     demo_enum::demoenum,
     indemo,
@@ -23,17 +23,14 @@ extern "C" {
     static mut gamexit: exittype;
     static mut altobj: objtype;
     static mut altnum: libc::c_int;
-    static mut view: [[libc::c_int; 86]; 87];
     static mut chkspot: libc::c_int;
     static mut chkx: libc::c_int;
     static mut chky: libc::c_int;
     static mut background: [[libc::c_int; 86]; 87];
     static mut numobj: libc::c_int;
-    fn eraseobj();
     static mut obj: objtype;
     static mut o: [activeobj; 201];
     static mut objecton: libc::c_int;
-    fn restore();
     static mut leveldone: boolean;
     static mut frameon: word;
     static mut boltsleft: libc::c_int;
@@ -42,7 +39,6 @@ extern "C" {
     static mut shotpower: libc::c_int;
     fn clearold();
     static mut playdone: boolean;
-    fn refresh();
     static mut GODMODE: boolean;
     fn bioskey(_: libc::c_int) -> libc::c_int;
     static mut highscores: [scores; 5];
@@ -493,8 +489,8 @@ unsafe fn givescroll(items: &mut [sword]) {
         givenuke(items);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn opendoor() {
+
+unsafe fn opendoor(view: &mut [[libc::c_int; 86]]) {
     let mut x: libc::c_int = 0;
     let mut y: libc::c_int = 0;
     PlaySound(11);
@@ -639,7 +635,11 @@ unsafe fn intomonster(objdef: &mut [objdeftype]) -> boolean {
     return false as boolean;
 }
 
-unsafe fn walkthrough(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean {
+unsafe fn walkthrough(
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    view: &mut [[libc::c_int; 86]],
+) -> boolean {
     let mut new: libc::c_int = 0;
     if chkspot == 128 {
         return true as boolean;
@@ -719,7 +719,7 @@ unsafe fn walkthrough(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean
     if chkspot == 165 || chkspot == 166 {
         if obj.class as libc::c_int == player as libc::c_int {
             if takekey(items) != 0 {
-                opendoor();
+                opendoor(view);
                 return true as boolean;
             }
         }
@@ -741,7 +741,11 @@ unsafe fn walkthrough(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean
     return false as boolean;
 }
 
-unsafe fn walk(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean {
+unsafe fn walk(
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    view: &mut [[libc::c_int; 86]],
+) -> boolean {
     let mut i: libc::c_int = 0;
     let mut newx: libc::c_int = 0;
     let mut newy: libc::c_int = 0;
@@ -787,7 +791,7 @@ unsafe fn walk(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean {
     while i <= obj.size as libc::c_int {
         chkspot = view[chky as usize][chkx as usize];
         if chkspot != 128 {
-            try_0 = walkthrough(items, objdef);
+            try_0 = walkthrough(items, objdef, view);
             if leveldone != 0 {
                 return true as boolean;
             }
@@ -808,7 +812,12 @@ unsafe fn walk(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean {
     return true as boolean;
 }
 
-unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &mut i32) {
+unsafe fn playercmdthink(
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    side: &mut i32,
+    view: &mut [[libc::c_int; 86]],
+) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
         dir: north,
@@ -836,22 +845,22 @@ unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &
                 match c.dir as libc::c_uint {
                     4 => {
                         obj.dir = east as libc::c_int as word;
-                        walk(items, objdef);
+                        walk(items, objdef, view);
                         c.dir = north;
                     }
                     5 => {
                         obj.dir = south as libc::c_int as word;
-                        walk(items, objdef);
+                        walk(items, objdef, view);
                         c.dir = east;
                     }
                     6 => {
                         obj.dir = west as libc::c_int as word;
-                        walk(items, objdef);
+                        walk(items, objdef, view);
                         c.dir = south;
                     }
                     7 => {
                         obj.dir = north as libc::c_int as word;
-                        walk(items, objdef);
+                        walk(items, objdef, view);
                         c.dir = west;
                     }
                     _ => {}
@@ -860,22 +869,22 @@ unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &
                 match c.dir as libc::c_uint {
                     4 => {
                         obj.dir = north as libc::c_int as word;
-                        walk(items, objdef);
+                        walk(items, objdef, view);
                         c.dir = east;
                     }
                     5 => {
                         obj.dir = east as libc::c_int as word;
-                        walk(items, objdef);
+                        walk(items, objdef, view);
                         c.dir = south;
                     }
                     6 => {
                         obj.dir = south as libc::c_int as word;
-                        walk(items, objdef);
+                        walk(items, objdef, view);
                         c.dir = west;
                     }
                     7 => {
                         obj.dir = west as libc::c_int as word;
-                        walk(items, objdef);
+                        walk(items, objdef, view);
                         c.dir = north;
                     }
                     _ => {}
@@ -883,7 +892,7 @@ unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &
             }
         }
         obj.dir = c.dir as word;
-        if walk(items, objdef) == 0 {
+        if walk(items, objdef, view) == 0 {
             PlaySound(1);
         }
         if c.button2 != 0 {
@@ -949,7 +958,7 @@ unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &
             keydown[SDL_SCANCODE_RETURN as usize] = false as boolean;
         }
     }
-    dofkeys(items, objdef);
+    dofkeys(items, objdef, view);
     if resetgame != 0 {
         resetgame = false as boolean;
         playdone = true as boolean;
@@ -971,7 +980,7 @@ unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &
                 if level as libc::c_int > 30 {
                     level = 30;
                 }
-                restore();
+                restore(view);
                 leveldone = true as boolean;
             }
             if keydown[SDL_SCANCODE_C as usize] as libc::c_int != 0
@@ -992,7 +1001,7 @@ unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &
                 while bioskey(0) == 0 {
                     WaitVBL();
                 }
-                restore();
+                restore(view);
                 clearkeys();
             }
         }
@@ -1015,7 +1024,12 @@ unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype], side: &
     };
 }
 
-unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword], objdef: &mut [objdeftype]) {
+unsafe fn chasethink(
+    mut diagonal: boolean,
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    view: &mut [[libc::c_int; 86]],
+) {
     let mut deltax: libc::c_int = 0;
     let mut deltay: libc::c_int = 0;
     let mut d: [dirtype; 3] = [north; 3];
@@ -1055,32 +1069,32 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword], objdef: &mut [o
     if diagonal != 0 {
         if d[1] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[1] as word;
-            if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items, objdef, view) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
         if d[2] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[2] as word;
-            if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items, objdef, view) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
     } else {
         if d[2] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[2] as word;
-            if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items, objdef, view) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
         if d[1] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[1] as word;
-            if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items, objdef, view) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
     }
     obj.dir = olddir as word;
-    if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+    if walk(items, objdef, view) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
         return;
     }
     if rndt() > 128 {
@@ -1088,7 +1102,7 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword], objdef: &mut [o
         while tdir <= west as libc::c_int {
             if tdir != turnaround {
                 obj.dir = tdir as word;
-                if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+                if walk(items, objdef, view) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                     return;
                 }
             }
@@ -1099,7 +1113,7 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword], objdef: &mut [o
         while tdir >= north as libc::c_int {
             if tdir != turnaround {
                 obj.dir = tdir as word;
-                if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+                if walk(items, objdef, view) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                     return;
                 }
             }
@@ -1107,10 +1121,15 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword], objdef: &mut [o
         }
     }
     obj.dir = turnaround as word;
-    walk(items, objdef);
+    walk(items, objdef, view);
 }
 
-unsafe fn gargthink(items: &mut [sword], objdef: &mut [objdeftype], side: &i32) {
+unsafe fn gargthink(
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    side: &i32,
+    view: &mut [[libc::c_int; 86]],
+) {
     let mut n: libc::c_int = 0;
     if rndt() > 220 {
         obj.stage = 2;
@@ -1143,11 +1162,16 @@ unsafe fn gargthink(items: &mut [sword], objdef: &mut [objdeftype], side: &i32) 
         }
         return;
     } else {
-        chasethink(false as boolean, items, objdef);
+        chasethink(false as boolean, items, objdef, view);
     };
 }
 
-unsafe fn dragonthink(items: &mut [sword], objdef: &mut [objdeftype], side: &i32) {
+unsafe fn dragonthink(
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    side: &i32,
+    view: &mut [[libc::c_int; 86]],
+) {
     let mut n: libc::c_int = 0;
     if rndt() > 220 {
         obj.stage = 2;
@@ -1180,7 +1204,7 @@ unsafe fn dragonthink(items: &mut [sword], objdef: &mut [objdeftype], side: &i32
         }
         return;
     } else {
-        chasethink(false as boolean, items, objdef);
+        chasethink(false as boolean, items, objdef, view);
     };
 }
 #[no_mangle]
@@ -1198,12 +1222,16 @@ pub unsafe extern "C" fn gunthink(mut dir: libc::c_int) {
     o[n as usize].y = obj.y;
 }
 
-unsafe fn shooterthink(items: &mut [sword], objdef: &mut [objdeftype]) {
+unsafe fn shooterthink(
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    view: &mut [[libc::c_int; 86]],
+) {
     if (obj.x as libc::c_int) < originx - 1
         || (obj.y as libc::c_int) < originy - 1
         || obj.x as libc::c_int > originx + 22
         || obj.y as libc::c_int > originy + 22
-        || walk(items, objdef) == 0
+        || walk(items, objdef, view) == 0
         || obj.stage as libc::c_int == 2
     {
         obj.class = nothing as libc::c_int as word;
@@ -1262,28 +1290,33 @@ pub unsafe extern "C" fn explodethink() {
     }
 }
 
-unsafe fn think(items: &mut [sword], objdef: &mut [objdeftype], side: &mut i32) {
+unsafe fn think(
+    items: &mut [sword],
+    objdef: &mut [objdeftype],
+    side: &mut i32,
+    view: &mut [[libc::c_int; 86]],
+) {
     if obj.delay as libc::c_int > 0 {
         obj.delay = (obj.delay).wrapping_sub(1);
     } else if rndt() < obj.speed as libc::c_int {
         match obj.think as libc::c_int {
             0 => {
-                playercmdthink(items, objdef, side);
+                playercmdthink(items, objdef, side, view);
             }
             3 => {
-                chasethink(false as boolean, items, objdef);
+                chasethink(false as boolean, items, objdef, view);
             }
             4 => {
-                chasethink(true as boolean, items, objdef);
+                chasethink(true as boolean, items, objdef, view);
             }
             1 => {
-                gargthink(items, objdef, side);
+                gargthink(items, objdef, side, view);
             }
             2 => {
-                dragonthink(items, objdef, side);
+                dragonthink(items, objdef, side, view);
             }
             5 => {
-                shooterthink(items, objdef);
+                shooterthink(items, objdef, view);
             }
             6 => {
                 idlethink();
@@ -1310,6 +1343,7 @@ pub unsafe fn doactive(
     items: &mut [sword],
     objdef: &mut [objdeftype],
     side: &mut i32,
+    view: &mut [[libc::c_int; 86]],
 ) {
     if obj.class as libc::c_int != dead1 as libc::c_int
         && ((obj.x as libc::c_int) < originx - 10
@@ -1319,13 +1353,13 @@ pub unsafe fn doactive(
     {
         o[objecton as usize].active = false as boolean;
     } else {
-        think(items, objdef, side);
-        eraseobj();
+        think(items, objdef, side, view);
+        eraseobj(view);
         if playdone != 0 {
             return;
         }
         if obj.class as libc::c_int > nothing as libc::c_int {
-            drawobj(priority);
+            drawobj(priority, view);
         }
         memcpy(
             &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj as *mut libc::c_void,
@@ -1352,6 +1386,7 @@ pub unsafe fn playloop(
     items: &mut [sword],
     objdef: &mut [objdeftype],
     side: &mut i32,
+    view: &mut [[libc::c_int; 86]],
 ) {
     screencenterx = 11;
     loop {
@@ -1364,14 +1399,14 @@ pub unsafe fn playloop(
             WaitEndSound();
         }
         clearold();
-        loadlevel(items, objdef);
+        loadlevel(items, objdef, view);
         leveldone = false as boolean;
         if keydown[SDL_SCANCODE_F7 as usize] as libc::c_int != 0
             && keydown[SDL_SCANCODE_D as usize] as libc::c_int != 0
         {
             clearold();
-            refresh();
-            refresh();
+            refresh(view);
+            refresh(view);
             clearkeys();
             centerwindow(12, 1);
             print(b"RECORD DEMO\0" as *const u8 as *const libc::c_char);
@@ -1391,7 +1426,7 @@ pub unsafe fn playloop(
         shotpower = 0;
         initrndt(false as boolean);
         printshotpower();
-        doall(priority, items, objdef, side);
+        doall(priority, items, objdef, side, view);
         if indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1);
@@ -1404,8 +1439,8 @@ pub unsafe fn playloop(
             }
             SaveDemo(ch as libc::c_int - '0' as i32);
             clearold();
-            refresh();
-            refresh();
+            refresh(view);
+            refresh(view);
         }
         if indemo != demoenum::notdemo {
             playdone = true as boolean;
