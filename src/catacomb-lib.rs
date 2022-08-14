@@ -20,6 +20,7 @@ mod cat_play;
 pub mod catacomb;
 mod catasm;
 mod class_type;
+mod control_struct;
 mod cpanel;
 mod demo_enum;
 mod dir_type;

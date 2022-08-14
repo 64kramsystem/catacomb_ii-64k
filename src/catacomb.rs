@@ -7,6 +7,7 @@ use crate::{
     cat_play::{givebolt, givenuke, givepotion, playloop},
     catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
+    control_struct::ControlStruct,
     cpanel::controlpanel,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
@@ -75,14 +76,6 @@ extern "C" {
     fn PlaySound(sound: i32);
     static mut str: [i8; 80];
     static mut ch: i8;
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct ControlStruct {
-    pub dir: dirtype,
-    pub button1: boolean,
-    pub button2: boolean,
 }
 
 pub type exittype = u32;

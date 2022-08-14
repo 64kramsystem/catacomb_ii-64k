@@ -4,7 +4,8 @@ use ::libc;
 
 use crate::{
     catacomb::repaintscreen,
-    dir_type::dirtype::{self, *},
+    control_struct::ControlStruct,
+    dir_type::dirtype::*,
     extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
@@ -311,13 +312,7 @@ pub type soundtype = u32;
 pub const sdlib: soundtype = 2;
 pub const spkr: soundtype = 1;
 pub const off: soundtype = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct ControlStruct {
-    pub dir: dirtype,
-    pub button1: boolean,
-    pub button2: boolean,
-}
+
 pub type inputtype = u32;
 pub const demo: inputtype = 4;
 pub const joystick2: inputtype = 3;

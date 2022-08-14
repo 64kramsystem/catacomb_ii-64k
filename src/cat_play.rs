@@ -7,6 +7,7 @@ use crate::{
     catacomb::{altmeters, dofkeys, loadlevel, meters, opposite, refresh, restore},
     catasm::{doall, drawobj, eraseobj},
     class_type::classtype::*,
+    control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
     extra_types::boolean,
@@ -69,14 +70,6 @@ extern "C" {
     fn WaitEndSound();
     fn PlaySound(sound: i32);
     static mut ch: i8;
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct ControlStruct {
-    pub dir: dirtype,
-    pub button1: boolean,
-    pub button2: boolean,
 }
 
 #[derive(Copy, Clone)]

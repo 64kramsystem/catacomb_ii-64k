@@ -5,8 +5,9 @@ use libc::O_RDONLY;
 
 use crate::{
     catasm::drawchartile,
+    control_struct::ControlStruct,
     demo_enum::demoenum,
-    dir_type::dirtype::{self, *},
+    dir_type::dirtype::*,
     extra_constants::{_extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
     extra_types::boolean,
@@ -724,13 +725,7 @@ pub struct SPKRtable {
     pub sounds: [spksndtype; 63],
     pub freqdata: [u16; 0],
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct ControlStruct {
-    pub dir: dirtype,
-    pub button1: boolean,
-    pub button2: boolean,
-}
+
 pub type inputtype = u32;
 pub const demo: inputtype = 4;
 pub const joystick2: inputtype = 3;
