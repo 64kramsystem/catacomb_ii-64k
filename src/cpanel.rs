@@ -10,7 +10,10 @@ use crate::{
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_a::{drawchar, drawpic, ContinueSound, PauseSound, WaitVBL},
-    pcrlib_c::{drawwindow, erasewindow, expwin, get, print, UpdateScreen},
+    pcrlib_c::{
+        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, print, CheckMouseMode,
+        ControlJoystick, ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen,
+    },
     sdl_scan_codes::*,
 };
 
@@ -18,7 +21,6 @@ extern "C" {
     fn free(_: *mut libc::c_void);
     fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
     fn loadgrfiles();
-    fn bioskey(_: i32) -> i32;
     static mut _vgaok: boolean;
     static mut _egaok: boolean;
     static mut egaplaneofs: [u32; 4];
@@ -31,14 +33,6 @@ extern "C" {
     static mut sy: i32;
     static mut sx: i32;
     static mut grmode: grtype;
-    fn clearkeys();
-    fn bloadin(filename: *mut i8) -> *mut libc::c_void;
-    fn ControlJoystick(joynum: i32) -> ControlStruct;
-    fn ReadJoystick(joynum: i32, xcount: *mut i32, ycount: *mut i32);
-    fn ProbeJoysticks();
-    fn CheckMouseMode();
-    fn ScancodeToDOS(sc: SDL_Scancode) -> i32;
-    fn ProcessEvents();
     static mut keyB2: i32;
     static mut keyB1: i32;
     static mut key: [i32; 8];

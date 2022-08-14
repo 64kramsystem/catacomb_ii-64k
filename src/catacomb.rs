@@ -27,8 +27,9 @@ use crate::{
     objects::initobjects,
     pcrlib_a::{drawchar, drawpic, rnd, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{
-        _checkhighscore, _setupgame, _showhighscores, bar, centerwindow, drawwindow, expwin, get,
-        print, printchartile, printint, UpdateScreen,
+        _checkhighscore, _setupgame, _showhighscores, bar, bioskey, bloadin, centerwindow,
+        clearkeys, drawwindow, expwin, get, print, printchartile, printint, ControlPlayer,
+        LoadDemo, LoadFile, UpdateScreen, _Verify, _quit,
     },
     sdl_scan_codes::*,
     state_type::statetype,
@@ -49,8 +50,6 @@ extern "C" {
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
     fn RLEExpand(source: *mut i8, dest: *mut i8, origlen: i64);
-    fn bioskey(_: i32) -> i32;
-    fn _quit(_: *mut i8);
     static mut score: i32;
     static mut level: i16;
     fn installgrfile(filename: *mut i8, inmem: *mut libc::c_void);
@@ -58,12 +57,6 @@ extern "C" {
     static mut sy: i32;
     static mut sx: i32;
     static mut grmode: grtype;
-    fn _Verify(filename: *mut i8) -> i64;
-    fn clearkeys();
-    fn bloadin(filename: *mut i8) -> *mut libc::c_void;
-    fn LoadFile(filename: *mut i8, buffer: *mut i8) -> u64;
-    fn LoadDemo(demonum: i32);
-    fn ControlPlayer(player_0: i32) -> ControlStruct;
     static mut keydown: [boolean; 512];
     static mut str: [i8; 80];
     static mut ch: i8;

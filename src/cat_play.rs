@@ -17,7 +17,10 @@ use crate::{
     obj_def_type::objdeftype,
     obj_type::objtype,
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
-    pcrlib_c::{centerwindow, get, print, printint, printlong, UpdateScreen, _inputint},
+    pcrlib_c::{
+        centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
+        bioskey, clearkeys, RecordDemo, SaveDemo,
+    },
     scores::scores,
     sdl_scan_codes::*,
     tag_type::tagtype::*,
@@ -26,16 +29,11 @@ extern "C" {
     fn atoi(__nptr: *const i8) -> i32;
     fn abs(_: i32) -> i32;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    fn bioskey(_: i32) -> i32;
     static mut highscores: [scores; 5];
     static mut level: i16;
     static mut score: i32;
     static mut sy: i32;
     static mut sx: i32;
-    fn clearkeys();
-    fn RecordDemo();
-    fn SaveDemo(demonum: i32);
-    fn ControlPlayer(player_0: i32) -> ControlStruct;
     static mut keydown: [boolean; 512];
     static mut ch: i8;
 }

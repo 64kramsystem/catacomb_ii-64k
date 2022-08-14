@@ -695,8 +695,9 @@ pub struct ctlpaneltype {
     pub keyB1: u8,
     pub keyB2: u8,
 }
+
 #[inline]
-unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
+unsafe fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     if base == 16 {
         sprintf(str_0, b"%X\0" as *const u8 as *const i8, value);
     } else {
@@ -704,10 +705,12 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
     }
     return str_0;
 }
+
 #[inline]
-unsafe extern "C" fn ltoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
+unsafe fn ltoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     return itoa(value, str_0, base);
 }
+
 #[no_mangle]
 pub static mut ch: i8 = 0;
 #[no_mangle]
@@ -772,8 +775,8 @@ pub static mut joystick: [joyinfo_t; 3] = [joyinfo_t {
     device: 0,
     isgamecontroller: 0,
 }; 3];
-#[no_mangle]
-pub unsafe extern "C" fn SetupKBD() {
+
+pub unsafe fn SetupKBD() {
     let mut i: u32 = 0;
     i = 0;
     while i < 128 {
@@ -781,8 +784,8 @@ pub unsafe extern "C" fn SetupKBD() {
         i = i.wrapping_add(1);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn ProcessEvents() {
+
+pub unsafe fn ProcessEvents() {
     mouseEvent = false as boolean;
     let mut event: SDL_Event = SDL_Event { type_0: 0 };
     while safe_SDL_PollEvent(&mut event) != 0 {
@@ -822,8 +825,8 @@ unsafe extern "C" fn WatchUIEvents(
     }
     return 0;
 }
-#[no_mangle]
-pub unsafe extern "C" fn ControlKBD() -> ControlStruct {
+
+pub unsafe fn ControlKBD() -> ControlStruct {
     let mut xmove: i32 = 0;
     let mut ymove: i32 = 0;
     let mut action: ControlStruct = ControlStruct {
@@ -894,8 +897,7 @@ pub unsafe extern "C" fn ControlKBD() -> ControlStruct {
     return action;
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn ControlMouse() -> ControlStruct {
+pub unsafe fn ControlMouse() -> ControlStruct {
     let mut newx: i32 = 0;
     let mut newy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -969,8 +971,8 @@ unsafe extern "C" fn ShutdownJoysticks() {
         j = j.wrapping_add(1);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn ProbeJoysticks() {
+
+pub unsafe fn ProbeJoysticks() {
     let mut j: i32 = 0;
     if joystick[1].device > 0 || joystick[2].device > 0 {
         ShutdownJoysticks();
@@ -991,8 +993,8 @@ pub unsafe extern "C" fn ProbeJoysticks() {
         j += 1;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn ReadJoystick(mut joynum: i32, mut xcount: *mut i32, mut ycount: *mut i32) {
+
+pub unsafe fn ReadJoystick(mut joynum: i32, mut xcount: *mut i32, mut ycount: *mut i32) {
     let mut a1: i32 = 0;
     let mut a2: i32 = 0;
     *xcount = 0;
@@ -1014,8 +1016,8 @@ pub unsafe extern "C" fn ReadJoystick(mut joynum: i32, mut xcount: *mut i32, mut
     *xcount = a1;
     *ycount = a2;
 }
-#[no_mangle]
-pub unsafe extern "C" fn ControlJoystick(mut joynum: i32) -> ControlStruct {
+
+pub unsafe fn ControlJoystick(mut joynum: i32) -> ControlStruct {
     let mut joyx: i32 = 0;
     let mut joyy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -1091,8 +1093,8 @@ pub unsafe extern "C" fn ControlJoystick(mut joynum: i32) -> ControlStruct {
     }
     return action;
 }
-#[no_mangle]
-pub unsafe extern "C" fn ControlPlayer(mut player: i32) -> ControlStruct {
+
+pub unsafe fn ControlPlayer(mut player: i32) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
         button1: 0,
@@ -1132,14 +1134,14 @@ pub unsafe extern "C" fn ControlPlayer(mut player: i32) -> ControlStruct {
     }
     return ret;
 }
-#[no_mangle]
-pub unsafe extern "C" fn RecordDemo() {
+
+pub unsafe fn RecordDemo() {
     demobuffer[0] = level as i8;
     demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
     indemo = demoenum::recording;
 }
-#[no_mangle]
-pub unsafe extern "C" fn LoadDemo(mut demonum: i32) {
+
+pub unsafe fn LoadDemo(mut demonum: i32) {
     let mut st2: [i8; 5] = [0; 5];
     strcpy(str.as_mut_ptr(), b"DEMO\0" as *const u8 as *const i8);
     itoa(demonum, st2.as_mut_ptr(), 10);
@@ -1151,8 +1153,8 @@ pub unsafe extern "C" fn LoadDemo(mut demonum: i32) {
     demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
     indemo = demoenum::demoplay;
 }
-#[no_mangle]
-pub unsafe extern "C" fn SaveDemo(mut demonum: i32) {
+
+pub unsafe fn SaveDemo(mut demonum: i32) {
     let mut st2: [i8; 5] = [0; 5];
     strcpy(str.as_mut_ptr(), b"DEMO\0" as *const u8 as *const i8);
     itoa(demonum, st2.as_mut_ptr(), 10);
@@ -1166,8 +1168,8 @@ pub unsafe extern "C" fn SaveDemo(mut demonum: i32) {
     );
     indemo = demoenum::notdemo;
 }
-#[no_mangle]
-pub unsafe extern "C" fn clearkeys() {
+
+pub unsafe fn clearkeys() {
     let mut i: i32 = 0;
     while bioskey(1) != 0 {
         bioskey(0);
@@ -1210,8 +1212,8 @@ unsafe extern "C" fn filelength(mut fd: i32) -> i64 {
     }
     return s.st_size;
 }
-#[no_mangle]
-pub unsafe extern "C" fn LoadFile(mut filename: *mut i8, mut buffer: *mut i8) -> u64 {
+
+pub unsafe fn LoadFile(mut filename: *mut i8, mut buffer: *mut i8) -> u64 {
     let mut fd: i32 = 0;
     fd = open(filename, 0o400 as i32);
     if fd < 0 {
@@ -1222,8 +1224,8 @@ pub unsafe extern "C" fn LoadFile(mut filename: *mut i8, mut buffer: *mut i8) ->
     close(fd);
     return bytesRead as u64;
 }
-#[no_mangle]
-pub unsafe extern "C" fn SaveFile(mut filename: *mut i8, mut buffer: *mut i8, mut size: i64) {
+
+pub unsafe fn SaveFile(mut filename: *mut i8, mut buffer: *mut i8, mut size: i64) {
     let mut fd: i32 = 0;
     fd = open(
         filename,
@@ -1236,8 +1238,8 @@ pub unsafe extern "C" fn SaveFile(mut filename: *mut i8, mut buffer: *mut i8, mu
     write(fd, buffer as *const libc::c_void, size as u64);
     close(fd);
 }
-#[no_mangle]
-pub unsafe extern "C" fn bloadin(mut filename: *mut i8) -> *mut libc::c_void {
+
+pub unsafe fn bloadin(mut filename: *mut i8) -> *mut libc::c_void {
     let mut handle: i32 = 0;
     let mut length: i64 = 0;
     let mut location: *mut i8 = 0 as *mut i8;
@@ -1379,8 +1381,8 @@ unsafe fn expwinv(mut width: i32, mut height: i32, gs: &mut GlobalState) {
     WaitVBL();
     centerwindow(width, height, gs);
 }
-#[no_mangle]
-pub unsafe extern "C" fn bioskey(mut cmd: i32) -> i32 {
+
+pub unsafe fn bioskey(mut cmd: i32) -> i32 {
     if lastkey as u64 != 0 {
         let mut oldkey: i32 = lastkey as i32;
         if cmd != 1 {
@@ -1432,8 +1434,8 @@ pub unsafe fn UpdateScreen(gs: &mut GlobalState) {
     safe_SDL_RenderCopy(renderer, sdltexture, 0 as *const SDL_Rect, &mut updateRect);
     safe_SDL_RenderPresent(renderer);
 }
-#[no_mangle]
-pub unsafe extern "C" fn get(gs: &mut GlobalState) -> i32 {
+
+pub unsafe fn get(gs: &mut GlobalState) -> i32 {
     let mut cycle: i32 = 0;
     let mut key_0: i32 = 0;
     loop {
@@ -1483,8 +1485,8 @@ pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState) {
         }
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn printchartile(mut str_0: *const i8, gs: &mut GlobalState) {
+
+pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState) {
     let mut ch_0: i8 = 0;
     loop {
         let fresh5 = str_0;
@@ -1515,8 +1517,8 @@ pub unsafe fn printlong(mut val: i64, gs: &mut GlobalState) {
     ltoa(val as i32, str.as_mut_ptr(), 10);
     print(str.as_mut_ptr(), gs);
 }
-#[no_mangle]
-pub unsafe extern "C" fn _Verify(mut filename: *mut i8) -> i64 {
+
+pub unsafe fn _Verify(mut filename: *mut i8) -> i64 {
     let mut handle: i32 = 0;
     let mut size: i64 = 0;
     handle = open(filename, 0);
@@ -1565,8 +1567,8 @@ unsafe fn _printc(mut string: *mut i8, gs: &mut GlobalState) {
     sx = 1 + gs.screencenter.x - (strlen(string)).wrapping_div(2) as i32;
     print(string, gs);
 }
-#[no_mangle]
-pub unsafe extern "C" fn _inputint(gs: &mut GlobalState) -> u32 {
+
+pub unsafe fn _inputint(gs: &mut GlobalState) -> u32 {
     let mut string: [i8; 18] =
         *::std::mem::transmute::<&[u8; 18], &mut [i8; 18]>(b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
     let mut digit: i8 = 0;
@@ -1813,8 +1815,8 @@ static mut DOSScanCodeMap: [SDL_Scancode; 128] = [
     SDL_SCANCODE_UNKNOWN,
     SDL_SCANCODE_UNKNOWN,
 ];
-#[no_mangle]
-pub unsafe extern "C" fn ScancodeToDOS(mut sc: SDL_Scancode) -> i32 {
+
+pub unsafe fn ScancodeToDOS(mut sc: SDL_Scancode) -> i32 {
     let mut i: i32 = 0;
     i = 0;
     while i < 128 {
@@ -1825,16 +1827,16 @@ pub unsafe extern "C" fn ScancodeToDOS(mut sc: SDL_Scancode) -> i32 {
     }
     return 0;
 }
-#[no_mangle]
-pub unsafe extern "C" fn CheckMouseMode() {
+
+pub unsafe fn CheckMouseMode() {
     safe_SDL_SetRelativeMouseMode(
         (hasFocus as i32 != 0
             && (playermode[1] as u32 == mouse as i32 as u32
                 || playermode[2] as u32 == mouse as i32 as u32)) as i32 as SDL_bool,
     );
 }
-#[no_mangle]
-pub unsafe extern "C" fn _loadctrls() {
+
+pub unsafe fn _loadctrls() {
     let mut handle: i32 = 0;
     strcpy(str.as_mut_ptr(), b"CTLPANEL.\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
@@ -1926,8 +1928,8 @@ pub unsafe extern "C" fn _loadctrls() {
         keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize] as i32;
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn _savectrls() {
+
+pub unsafe fn _savectrls() {
     let mut handle: i32 = 0;
     let mut ctlpanel: ctlpaneltype = ctlpaneltype {
         grmode: text,
@@ -1978,8 +1980,8 @@ pub unsafe extern "C" fn _savectrls() {
     );
     close(handle);
 }
-#[no_mangle]
-pub unsafe extern "C" fn _loadhighscores() {
+
+pub unsafe fn _loadhighscores() {
     let mut i: i32 = 0;
     strcpy(str.as_mut_ptr(), b"SCORES.\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
@@ -1996,8 +1998,8 @@ pub unsafe extern "C" fn _loadhighscores() {
         }
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn _savehighscores() {
+
+pub unsafe fn _savehighscores() {
     strcpy(str.as_mut_ptr(), b"SCORES.\0" as *const u8 as *const i8);
     strcat(str.as_mut_ptr(), _extension);
     SaveFile(
@@ -2261,8 +2263,8 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
     loadgrfiles();
     SetupEmulatedVBL();
 }
-#[no_mangle]
-pub unsafe extern "C" fn _quit(mut error: *mut i8) {
+
+pub unsafe fn _quit(mut error: *mut i8) {
     if *error == 0 {
         _savehighscores();
         _savectrls();

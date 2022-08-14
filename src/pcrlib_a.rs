@@ -83,13 +83,15 @@ pub type C2RustUnnamed_1 = u32;
 pub const screenpitch: C2RustUnnamed_1 = 320;
 pub type C2RustUnnamed_2 = u32;
 pub const VBL_TIME: C2RustUnnamed_2 = 14;
+
 #[inline]
-unsafe extern "C" fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
+unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
     return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
         | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
         | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
         | *chan.offset(0) as i32 >> ofs as i32 & 1) as u8;
 }
+
 #[no_mangle]
 pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
 #[no_mangle]
@@ -428,10 +430,12 @@ pub unsafe fn rndt() -> i32 {
 pub static mut vblsem: *mut SDL_sem = 0 as *const SDL_sem as *mut SDL_sem;
 #[no_mangle]
 pub static mut vbltimer: SDL_TimerID = 0;
+
 unsafe extern "C" fn VBLCallback(mut _interval: u32, mut _param: *mut libc::c_void) -> u32 {
     safe_SDL_SemPost(vblsem);
     return VBL_TIME as i32 as u32;
 }
+
 unsafe extern "C" fn ShutdownEmulatedVBL() {
     safe_SDL_RemoveTimer(vbltimer);
     safe_SDL_DestroySemaphore(vblsem);
