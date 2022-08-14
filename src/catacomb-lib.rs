@@ -39,6 +39,8 @@ mod rleasm;
 mod safe_sdl;
 mod scores;
 mod sdl_scan_codes;
+mod spkr_table;
+mod spksndtype;
 mod state_type;
 mod tag_type;
 mod think_type;

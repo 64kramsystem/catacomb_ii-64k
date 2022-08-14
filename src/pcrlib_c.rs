@@ -640,23 +640,6 @@ pub type soundtype = u32;
 pub const sdlib: soundtype = 2;
 pub const spkr: soundtype = 1;
 pub const off: soundtype = 0;
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct spksndtype {
-    pub start: u16,
-    pub priority: u8,
-    pub samplerate: u8,
-    pub name: [i8; 12],
-}
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct SPKRtable {
-    pub id: [i8; 4],
-    pub filelength: u16,
-    pub filler: [u16; 5],
-    pub sounds: [spksndtype; 63],
-    pub freqdata: [u16; 0],
-}
 
 pub type inputtype = u32;
 pub const demo: inputtype = 4;

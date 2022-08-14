@@ -45,23 +45,7 @@ type soundtype = u32;
 const sdlib: soundtype = 2;
 const spkr: soundtype = 1;
 const off: soundtype = 0;
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-struct spksndtype {
-    pub start: u16,
-    pub priority: u8,
-    pub samplerate: u8,
-    pub name: [i8; 12],
-}
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-struct SPKRtable {
-    pub id: [i8; 4],
-    pub filelength: u16,
-    pub filler: [u16; 5],
-    pub sounds: [spksndtype; 63],
-    pub freqdata: [u16; 0],
-}
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 struct C2RustUnnamed_0 {
