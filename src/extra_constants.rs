@@ -11,7 +11,7 @@ pub const PC_BASE_TIMER: u32 = 1193181;
 
 pub const maxpics: usize = 2047;
 // pub const NUMTILES: usize = 24 * 24; /*number of tiles displayed on screen*/
-// pub const numlevels: usize = 30;
+pub const numlevels: i16 = 30;
 // pub const maxobj: usize = 200; /*maximum possible active objects*/
 pub const solidwall: i32 = 129;
 pub const blankfloor: usize = 128;

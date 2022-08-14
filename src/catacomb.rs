@@ -5,7 +5,7 @@ use crate::{
     cpanel::controlpanel,
     demo_enum::demoenum,
     extra_constants::{
-        blankfloor, leftoff, maxpics, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
+        blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
     indemo,
     pcrlib_c::_setupgame,
@@ -1530,7 +1530,7 @@ pub fn original_main() {
             playloop(&priority, &mut items);
             if indemo == demoenum::notdemo {
                 exitdemo = false;
-                if level > 30 {
+                if level > numlevels {
                     doendpage(); // finished all levels
                 }
                 gameover(&mut items);
