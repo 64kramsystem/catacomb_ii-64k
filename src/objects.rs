@@ -20,8 +20,8 @@ pub struct objdeftype {
     pub points: u16,
     pub filler: [u8; 2],
 }
-#[no_mangle]
-pub unsafe extern "C" fn initobjects() {
+
+pub unsafe fn initobjects() {
     objdef[player as usize].think = playercmd as u8;
     objdef[player as usize].contact = benign as u8;
     objdef[player as usize].solid = true as u8;

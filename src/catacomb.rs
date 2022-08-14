@@ -9,6 +9,7 @@ use crate::{
         blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
     indemo,
+    objects::initobjects,
     pcrlib_c::_setupgame,
     sdl_scan_codes::*,
 };
@@ -28,7 +29,6 @@ extern "C" {
     fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn open(__file: *const libc::c_char, __oflag: libc::c_int, _: ...) -> libc::c_int;
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-    fn initobjects();
     fn RLEExpand(source: *mut libc::c_char, dest: *mut libc::c_char, origlen: libc::c_long);
     fn bioskey(_: libc::c_int) -> libc::c_int;
     fn _quit(_: *mut libc::c_char);
