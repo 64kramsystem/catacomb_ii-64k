@@ -50,7 +50,6 @@ extern "C" {
     fn strlen(_: *const i8) -> u64;
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
     static mut SoundData: *mut SPKRtable;
     static mut soundmode: soundtype;
@@ -2240,11 +2239,7 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         updateRect.x = mode.w - updateRect.w >> 1;
         updateRect.y = 0;
     }
-    memset(
-        gs.screenseg.as_mut_ptr() as *mut libc::c_void,
-        0,
-        ::std::mem::size_of::<[u8; 64000]>() as u64,
-    );
+    gs.screenseg.fill(0);
     grmode = EGAgr;
     joystick[2].device = -(1);
     joystick[1].device = joystick[2].device;
