@@ -1,8 +1,8 @@
 use ::libc;
 
 use crate::{
-    cat_play::doactive, catacomb::refresh, class_type::classtype::*, extra_types::boolean,
-    gr_type::grtype, obj_def_type::objdeftype,
+    active_obj::activeobj, cat_play::doactive, catacomb::refresh, class_type::classtype::*,
+    extra_types::boolean, gr_type::grtype, obj_def_type::objdeftype, obj_type::objtype,
 };
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
@@ -30,51 +30,6 @@ extern "C" {
     static mut screenseg: [u8; 64000];
 }
 
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct activeobj {
-    pub active: boolean,
-    pub class: u16,
-    pub x: u8,
-    pub y: u8,
-    pub stage: u8,
-    pub delay: u8,
-    pub dir: u16,
-    pub hp: i8,
-    pub oldx: u8,
-    pub oldy: u8,
-    pub oldtile: i16,
-    pub filler: [u8; 1],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct objtype {
-    pub active: boolean,
-    pub class: u16,
-    pub x: u8,
-    pub y: u8,
-    pub stage: u8,
-    pub delay: u8,
-    pub dir: u16,
-    pub hp: i8,
-    pub oldx: u8,
-    pub oldy: u8,
-    pub oldtile: i16,
-    pub filler: [u8; 1],
-    pub think: u8,
-    pub contact: u8,
-    pub solid: u8,
-    pub firstchar: u16,
-    pub size: u8,
-    pub stages: u8,
-    pub dirmask: u8,
-    pub speed: u16,
-    pub hitpoints: u8,
-    pub damage: u8,
-    pub points: u16,
-    pub filler2: [u8; 2],
-}
 pub type C2RustUnnamed_0 = u32;
 pub const screenpitch: C2RustUnnamed_0 = 320;
 #[inline]

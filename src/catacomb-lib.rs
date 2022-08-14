@@ -15,6 +15,7 @@
 use demo_enum::demoenum;
 
 extern crate libc;
+mod active_obj;
 mod cat_play;
 pub mod catacomb;
 mod catasm;
@@ -27,6 +28,7 @@ mod extra_macros;
 mod extra_types;
 mod gr_type;
 mod obj_def_type;
+mod obj_type;
 mod objects;
 mod pcrlib_a;
 mod pcrlib_c;

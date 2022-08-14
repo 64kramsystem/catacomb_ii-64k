@@ -3,6 +3,7 @@ use std::convert::TryInto;
 use libc::O_RDONLY;
 
 use crate::{
+    active_obj::activeobj,
     cat_play::{givebolt, givenuke, givepotion, playloop},
     catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
@@ -16,6 +17,7 @@ use crate::{
     gr_type::grtype::{self, *},
     indemo,
     obj_def_type::objdeftype,
+    obj_type::objtype,
     objects::initobjects,
     pcrlib_c::{_checkhighscore, _setupgame, _showhighscores, centerwindow, drawwindow, expwin},
     sdl_scan_codes::*,
@@ -77,52 +79,6 @@ pub enum statetype {
     inscores, // 2
     intitle,  // 1
     ingame,   // 0
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct activeobj {
-    pub active: boolean,
-    pub class: u16,
-    pub x: u8,
-    pub y: u8,
-    pub stage: u8,
-    pub delay: u8,
-    pub dir: u16,
-    pub hp: i8,
-    pub oldx: u8,
-    pub oldy: u8,
-    pub oldtile: i16,
-    pub filler: [u8; 1],
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct objtype {
-    pub active: boolean,
-    pub class: u16,
-    pub x: u8,
-    pub y: u8,
-    pub stage: u8,
-    pub delay: u8,
-    pub dir: u16,
-    pub hp: i8,
-    pub oldx: u8,
-    pub oldy: u8,
-    pub oldtile: i16,
-    pub filler: [u8; 1],
-    pub think: u8,
-    pub contact: u8,
-    pub solid: u8,
-    pub firstchar: u16,
-    pub size: u8,
-    pub stages: u8,
-    pub dirmask: u8,
-    pub speed: u16,
-    pub hitpoints: u8,
-    pub damage: u8,
-    pub points: u16,
-    pub filler2: [u8; 2],
 }
 
 #[derive(Copy, Clone)]
