@@ -18,7 +18,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[goblin as usize].think = ramstraight as u8;
     objdef[goblin as usize].contact = monster as u8;
     objdef[goblin as usize].solid = true as u8;
-    objdef[goblin as usize].firstchar = (256 + 64) as u16;
+    objdef[goblin as usize].firstchar = 256 + 64;
     objdef[goblin as usize].size = 2;
     objdef[goblin as usize].stages = 4;
     objdef[goblin as usize].dirmask = 3;
@@ -29,7 +29,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[skeleton as usize].think = ramdiag as u8;
     objdef[skeleton as usize].contact = monster as u8;
     objdef[skeleton as usize].solid = true as u8;
-    objdef[skeleton as usize].firstchar = (256 + 128) as u16;
+    objdef[skeleton as usize].firstchar = 256 + 128;
     objdef[skeleton as usize].size = 2;
     objdef[skeleton as usize].stages = 4;
     objdef[skeleton as usize].dirmask = 3;
@@ -40,7 +40,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[ogre as usize].think = ramstraight as u8;
     objdef[ogre as usize].contact = monster as u8;
     objdef[ogre as usize].solid = true as u8;
-    objdef[ogre as usize].firstchar = (256 + 67 * 4) as u16;
+    objdef[ogre as usize].firstchar = 256 + 67 * 4;
     objdef[ogre as usize].size = 3;
     objdef[ogre as usize].stages = 4;
     objdef[ogre as usize].dirmask = 3;
@@ -51,7 +51,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[gargoyle as usize].think = gargcmd as u8;
     objdef[gargoyle as usize].contact = monster as u8;
     objdef[gargoyle as usize].solid = true as u8;
-    objdef[gargoyle as usize].firstchar = (256 + 67 * 4 + 35 * 9) as u16;
+    objdef[gargoyle as usize].firstchar = 256 + 67 * 4 + 35 * 9;
     objdef[gargoyle as usize].size = 4;
     objdef[gargoyle as usize].stages = 4;
     objdef[gargoyle as usize].dirmask = 3;
@@ -62,7 +62,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[dragon as usize].think = dragoncmd as u8;
     objdef[dragon as usize].contact = monster as u8;
     objdef[dragon as usize].solid = true as u8;
-    objdef[dragon as usize].firstchar = (256 + 67 * 4 + 35 * 9 + 19 * 16) as u16;
+    objdef[dragon as usize].firstchar = 256 + 67 * 4 + 35 * 9 + 19 * 16;
     objdef[dragon as usize].size = 5;
     objdef[dragon as usize].stages = 4;
     objdef[dragon as usize].dirmask = 3;
@@ -73,7 +73,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[turbogre as usize].think = ramstraight as u8;
     objdef[turbogre as usize].contact = monster as u8;
     objdef[turbogre as usize].solid = true as u8;
-    objdef[turbogre as usize].firstchar = (256 + 67 * 4 + 19 * 9) as u16;
+    objdef[turbogre as usize].firstchar = 256 + 67 * 4 + 19 * 9;
     objdef[turbogre as usize].size = 3;
     objdef[turbogre as usize].stages = 4;
     objdef[turbogre as usize].dirmask = 3;
@@ -106,7 +106,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[dead2 as usize].think = fade as u8;
     objdef[dead2 as usize].contact = benign as u8;
     objdef[dead2 as usize].solid = false as u8;
-    objdef[dead2 as usize].firstchar = (256 + 224) as u16;
+    objdef[dead2 as usize].firstchar = 256 + 224;
     objdef[dead2 as usize].size = 2;
     objdef[dead2 as usize].stages = 3;
     objdef[dead2 as usize].dirmask = 0;
@@ -117,7 +117,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[dead3 as usize].think = fade as u8;
     objdef[dead3 as usize].contact = benign as u8;
     objdef[dead3 as usize].solid = false as u8;
-    objdef[dead3 as usize].firstchar = (256 + 67 * 4 + 9 * 16) as u16;
+    objdef[dead3 as usize].firstchar = 256 + 67 * 4 + 9 * 16;
     objdef[dead3 as usize].size = 3;
     objdef[dead3 as usize].stages = 3;
     objdef[dead3 as usize].dirmask = 0;
@@ -128,7 +128,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[dead4 as usize].think = fade as u8;
     objdef[dead4 as usize].contact = benign as u8;
     objdef[dead4 as usize].solid = false as u8;
-    objdef[dead4 as usize].firstchar = (256 + 67 * 4 + 35 * 9 + 16 * 16) as u16;
+    objdef[dead4 as usize].firstchar = 256 + 67 * 4 + 35 * 9 + 16 * 16;
     objdef[dead4 as usize].size = 4;
     objdef[dead4 as usize].stages = 3;
     objdef[dead4 as usize].dirmask = 0;
@@ -139,7 +139,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[dead5 as usize].think = fade as u8;
     objdef[dead5 as usize].contact = benign as u8;
     objdef[dead5 as usize].solid = false as u8;
-    objdef[dead5 as usize].firstchar = (256 + 67 * 4 + 35 * 9 + 19 * 16 + 25 * 16) as u16;
+    objdef[dead5 as usize].firstchar = 256 + 67 * 4 + 35 * 9 + 19 * 16 + 25 * 16;
     objdef[dead5 as usize].size = 5;
     objdef[dead5 as usize].stages = 3;
     objdef[dead5 as usize].dirmask = 0;
@@ -161,7 +161,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[guns as usize].think = gunthinks as u8;
     objdef[guns as usize].contact = benign as u8;
     objdef[guns as usize].solid = true as u8;
-    objdef[guns as usize].firstchar = (256 + 67 * 4 - 8) as u16;
+    objdef[guns as usize].firstchar = 256 + 67 * 4 - 8;
     objdef[guns as usize].size = 2;
     objdef[guns as usize].stages = 1;
     objdef[guns as usize].dirmask = 0;
@@ -172,7 +172,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[gune as usize].think = gunthinke as u8;
     objdef[gune as usize].contact = benign as u8;
     objdef[gune as usize].solid = true as u8;
-    objdef[gune as usize].firstchar = (256 + 67 * 4 - 4) as u16;
+    objdef[gune as usize].firstchar = 256 + 67 * 4 - 4;
     objdef[gune as usize].size = 2;
     objdef[gune as usize].stages = 1;
     objdef[gune as usize].dirmask = 0;
@@ -194,7 +194,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[bigshot as usize].think = straight as u8;
     objdef[bigshot as usize].contact = nukeshot as u8;
     objdef[bigshot as usize].solid = false as u8;
-    objdef[bigshot as usize].firstchar = (256 + 192) as u16;
+    objdef[bigshot as usize].firstchar = 256 + 192;
     objdef[bigshot as usize].size = 2;
     objdef[bigshot as usize].stages = 2;
     objdef[bigshot as usize].dirmask = 3;
@@ -205,7 +205,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[teleporter as usize].think = idle as u8;
     objdef[teleporter as usize].contact = benign as u8;
     objdef[teleporter as usize].solid = false as u8;
-    objdef[teleporter as usize].firstchar = (256 + 236) as u16;
+    objdef[teleporter as usize].firstchar = 256 + 236;
     objdef[teleporter as usize].size = 2;
     objdef[teleporter as usize].stages = 5;
     objdef[teleporter as usize].dirmask = 0;
@@ -216,7 +216,7 @@ pub fn initobjects(objdef: &mut [objdeftype]) {
     objdef[secretgate as usize].think = idle as u8;
     objdef[secretgate as usize].contact = benign as u8;
     objdef[secretgate as usize].solid = false as u8;
-    objdef[secretgate as usize].firstchar = (256 + 67 * 4 - 12) as u16;
+    objdef[secretgate as usize].firstchar = 256 + 67 * 4 - 12;
     objdef[secretgate as usize].size = 2;
     objdef[secretgate as usize].stages = 1;
     objdef[secretgate as usize].dirmask = 0;
