@@ -21,8 +21,8 @@ pub struct GlobalState {
 
     pub o: [activeobj; 201],   /*everything that moves is here*/
     pub saveo: [activeobj; 1], // ^^
-    pub obj: objtype,
-    //     objtype obj, altobj;               /*total info about objecton and alt*/
+    pub obj: objtype,          /*total info about objecton and alt*/
+    pub altobj: objtype,       // ^^
     //     int altnum;                        /*o[#] of altobj*/
     //     int numobj, objecton;              /*number of objects in o now*/
 
@@ -73,6 +73,7 @@ impl GlobalState {
         o: [activeobj; 201],
         saveo: [activeobj; 1],
         obj: objtype,
+        altobj: objtype,
         objdef: [objdeftype; 23],
         side: i32,
         boltsleft: i32,
@@ -92,6 +93,7 @@ impl GlobalState {
             o,
             saveo,
             obj,
+            altobj,
             objdef,
             side,
             boltsleft,

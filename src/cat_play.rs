@@ -29,7 +29,6 @@ extern "C" {
     static mut resetgame: boolean;
     static mut ctrl: ControlStruct;
     static mut exitdemo: boolean;
-    static mut altobj: objtype;
     static mut altnum: i32;
     static mut chkspot: i32;
     static mut chkx: i32;
@@ -186,13 +185,13 @@ unsafe fn levelcleared(gs: &mut GlobalState) {
     let mut warp: [i8; 3] = [0; 3];
     let mut value: i32 = 0;
     leveldone = true as boolean;
-    warp[0] =
-        (gs.background[(altobj.y as i32 + 2) as usize][altobj.x as usize] as i8 as i32 - 161) as i8;
+    warp[0] = (gs.background[(gs.altobj.y as i32 + 2) as usize][gs.altobj.x as usize] as i8 as i32
+        - 161) as i8;
     if (warp[0] as i32) < '0' as i32 || warp[0] as i32 > '9' as i32 {
         warp[0] = '0' as i32 as i8;
     }
-    warp[1] = (gs.background[(altobj.y as i32 + 2) as usize][(altobj.x as i32 + 1) as usize] as i8
-        as i32
+    warp[1] = (gs.background[(gs.altobj.y as i32 + 2) as usize][(gs.altobj.x as i32 + 1) as usize]
+        as i8 as i32
         - 161) as i8;
     if (warp[1] as i32) < '0' as i32 || warp[1] as i32 > '9' as i32 {
         warp[2] = ' ' as i32 as i8;
@@ -452,25 +451,25 @@ unsafe fn opendoor(gs: &mut GlobalState) {
 }
 
 unsafe fn tagobject(gs: &mut GlobalState) {
-    let mut i: i32 = altobj.hp as i32;
-    if GODMODE as i32 != 0 && altobj.class as i32 == player as i32 {
+    let mut i: i32 = gs.altobj.hp as i32;
+    if GODMODE as i32 != 0 && gs.altobj.class as i32 == player as i32 {
         return;
     }
-    altobj.hp = (altobj.hp as i32 - gs.obj.damage as i32) as i8;
+    gs.altobj.hp = (gs.altobj.hp as i32 - gs.obj.damage as i32) as i8;
     if i <= gs.obj.damage as i32 {
-        if altobj.class as i32 == player as i32 {
+        if gs.altobj.class as i32 == player as i32 {
             gs.o[0].hp = 0;
-            altobj.hp = gs.o[0].hp;
+            gs.altobj.hp = gs.o[0].hp;
             printbody(gs);
             PlaySound(10);
             playdone = true as boolean;
             gs.gamexit = killed;
         } else {
-            score = score + altobj.points as i32;
+            score = score + gs.altobj.points as i32;
             printscore(gs);
             PlaySound(9);
         }
-        gs.o[altnum as usize].class = (dead1 as i32 - 1 + altobj.size as i32) as u16;
+        gs.o[altnum as usize].class = (dead1 as i32 - 1 + gs.altobj.size as i32) as u16;
         gs.o[altnum as usize].delay = 2;
         gs.o[altnum as usize].stage = 0;
     } else {
@@ -479,7 +478,7 @@ unsafe fn tagobject(gs: &mut GlobalState) {
         {
             return;
         }
-        gs.o[altnum as usize].hp = altobj.hp;
+        gs.o[altnum as usize].hp = gs.altobj.hp;
         gs.o[altnum as usize].stage = 3;
         if altnum == 0 {
             gs.o[0].delay = 2;
@@ -497,24 +496,24 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     altnum = 0;
     gotit = false as boolean;
     loop {
-        altobj.update_from_active(gs.o[altnum as usize]);
-        if altobj.class as i32 > nothing as i32 && altnum != objecton {
+        gs.altobj.update_from_active(gs.o[altnum as usize]);
+        if gs.altobj.class as i32 > nothing as i32 && altnum != objecton {
             memcpy(
-                &mut altobj.think as *mut u8 as *mut libc::c_void,
-                &mut *gs.objdef.as_mut_ptr().offset(altobj.class as isize) as *mut objdeftype
+                &mut gs.altobj.think as *mut u8 as *mut libc::c_void,
+                &mut *gs.objdef.as_mut_ptr().offset(gs.altobj.class as isize) as *mut objdeftype
                     as *const libc::c_void,
                 ::std::mem::size_of::<objdeftype>() as u64,
             );
-            if chkx >= altobj.x as i32
-                && (chkx - altobj.x as i32) < altobj.size as i32
-                && chky >= altobj.y as i32
-                && (chky - altobj.y as i32) < altobj.size as i32
+            if chkx >= gs.altobj.x as i32
+                && (chkx - gs.altobj.x as i32) < gs.altobj.size as i32
+                && chky >= gs.altobj.y as i32
+                && (chky - gs.altobj.y as i32) < gs.altobj.size as i32
             {
-                if altobj.solid != 0 {
+                if gs.altobj.solid != 0 {
                     gotit = true as boolean;
                 } else if objecton == 0
-                    && (altobj.class as i32 == teleporter as i32
-                        || altobj.class as i32 == secretgate as i32)
+                    && (gs.altobj.class as i32 == teleporter as i32
+                        || gs.altobj.class as i32 == secretgate as i32)
                 {
                     levelcleared(gs);
                 }
@@ -537,7 +536,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
                 tagobject(gs);
                 gs.obj.stage = 2;
                 gs.obj.delay = 20;
-            } else if altobj.class as i32 == shot as i32 {
+            } else if gs.altobj.class as i32 == shot as i32 {
                 return true as boolean;
             }
             return false as boolean;
