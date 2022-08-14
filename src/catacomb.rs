@@ -1316,12 +1316,11 @@ pub fn original_main() {
 
     /***************************************************************************/
 
-    unsafe {
-        let ver_arg_position = std::env::args().position(|arg| arg == "/VER");
+    let ver_arg_position = std::env::args().position(|arg| arg == "/VER");
 
-        if let Some(1) = ver_arg_position {
-            print!(
-                "\
+    if let Some(1) = ver_arg_position {
+        print!(
+            "\
                     CatacombSDL\n\
                     Version 1.03\n
 \
@@ -1333,47 +1332,47 @@ pub fn original_main() {
                     Copyright 1990-1993 Softdisk Publishing\n\
                     Copyright 1993-2014 Flat Rock Software\n\
                 "
-            );
-            std::process::exit(0);
-        }
+        );
+        std::process::exit(0);
+    }
 
-        initobjects(&mut objdef);
+    initobjects(&mut objdef);
 
-        priority.fill(99);
+    priority.fill(99);
 
-        priority[blankfloor] = 0;
-        for i in objdef[teleporter as usize].firstchar..=objdef[teleporter as usize].firstchar + 20
+    priority[blankfloor] = 0;
+    for i in objdef[teleporter as usize].firstchar..=objdef[teleporter as usize].firstchar + 20 {
+        priority[i as usize] = 0;
+    }
+    for clvar in (dead2 as usize)..=(dead5 as usize) {
+        for i in objdef[clvar].firstchar
+            ..=(objdef[clvar].firstchar + objdef[clvar].size as u16 * objdef[clvar].size as u16)
         {
-            priority[i as usize] = 0;
+            priority[i as usize] = 0; /*deadthing*/
         }
-        for clvar in (dead2 as usize)..=(dead5 as usize) {
-            for i in objdef[clvar].firstchar
-                ..=(objdef[clvar].firstchar + objdef[clvar].size as u16 * objdef[clvar].size as u16)
-            {
-                priority[i as usize] = 0; /*deadthing*/
-            }
+    }
+    for i in 152..=161 {
+        priority[i] = 2; /*shots*/
+    }
+    for i in objdef[bigshot as usize].firstchar..=(objdef[bigshot as usize].firstchar + 31) {
+        priority[i as usize] = 2; /*bigshot*/
+    }
+    for i in 0..=(tile2s - 1) {
+        if priority[i] == 99 {
+            priority[i] = 3; /*most 1*1 tiles are walls, etc*/
         }
-        for i in 152..=161 {
-            priority[i] = 2; /*shots*/
+    }
+    priority[167] = 1; // chest
+    for i in tile2s..=maxpics {
+        if priority[i] as libc::c_int == 99 {
+            priority[i] = 4; /*most bigger tiles are monsters*/
         }
-        for i in objdef[bigshot as usize].firstchar..=(objdef[bigshot as usize].firstchar + 31) {
-            priority[i as usize] = 2; /*bigshot*/
-        }
-        for i in 0..=(tile2s - 1) {
-            if priority[i] == 99 {
-                priority[i] = 3; /*most 1*1 tiles are walls, etc*/
-            }
-        }
-        priority[167] = 1; // chest
-        for i in tile2s..=maxpics {
-            if priority[i] as libc::c_int == 99 {
-                priority[i] = 4; /*most bigger tiles are monsters*/
-            }
-        }
-        for i in objdef[player as usize].firstchar..=(objdef[player as usize].firstchar + 63) {
-            priority[i as usize] = 5; /*player*/
-        }
+    }
+    for i in objdef[player as usize].firstchar..=(objdef[player as usize].firstchar + 63) {
+        priority[i as usize] = 5; /*player*/
+    }
 
+    unsafe {
         side = 0;
 
         for x in 0..=85 {
