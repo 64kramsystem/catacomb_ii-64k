@@ -1,4 +1,5 @@
-#[repr(u32)]
+/// In the original, this is an enum, (automatically) narrowed down to u8 on assignment.
+#[repr(u8)]
 pub enum thinktype {
     gunthinks = 10,
     gunthinke = 9,
