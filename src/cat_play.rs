@@ -29,9 +29,6 @@ extern "C" {
     static mut resetgame: boolean;
     static mut ctrl: ControlStruct;
     static mut exitdemo: boolean;
-    static mut chkspot: i32;
-    static mut chkx: i32;
-    static mut chky: i32;
     static mut frameon: u16;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
@@ -410,9 +407,9 @@ unsafe fn opendoor(gs: &mut GlobalState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     PlaySound(11);
-    x = chkx;
-    y = chky;
-    if chkspot == 165 {
+    x = gs.chkx;
+    y = gs.chky;
+    if gs.chkspot == 165 {
         loop {
             gs.view[y as usize][x as usize] = 128;
             gs.background[y as usize][x as usize] = 128;
@@ -421,7 +418,7 @@ unsafe fn opendoor(gs: &mut GlobalState) {
                 break;
             }
         }
-        y = chky + 1;
+        y = gs.chky + 1;
         while gs.view[y as usize][x as usize] == 165 {
             gs.view[y as usize][x as usize] = 128;
             gs.background[y as usize][x as usize] = 128;
@@ -436,7 +433,7 @@ unsafe fn opendoor(gs: &mut GlobalState) {
                 break;
             }
         }
-        x = chkx + 1;
+        x = gs.chkx + 1;
         while gs.view[y as usize][x as usize] == 166 {
             gs.view[y as usize][x as usize] = 128;
             gs.background[y as usize][x as usize] = 128;
@@ -499,10 +496,10 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
                     as *const libc::c_void,
                 ::std::mem::size_of::<objdeftype>() as u64,
             );
-            if chkx >= gs.altobj.x as i32
-                && (chkx - gs.altobj.x as i32) < gs.altobj.size as i32
-                && chky >= gs.altobj.y as i32
-                && (chky - gs.altobj.y as i32) < gs.altobj.size as i32
+            if gs.chkx >= gs.altobj.x as i32
+                && (gs.chkx - gs.altobj.x as i32) < gs.altobj.size as i32
+                && gs.chky >= gs.altobj.y as i32
+                && (gs.chky - gs.altobj.y as i32) < gs.altobj.size as i32
             {
                 if gs.altobj.solid != 0 {
                     gotit = true as boolean;
@@ -553,21 +550,21 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
 
 unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
     let mut new: i32 = 0;
-    if chkspot == 128 {
+    if gs.chkspot == 128 {
         return true as boolean;
     }
-    if chkspot >= 256 && chkspot <= 256 + 67 * 4 + 35 * 9 + 19 * 16 + 19 * 25 {
+    if gs.chkspot >= 256 && gs.chkspot <= 256 + 67 * 4 + 35 * 9 + 19 * 16 + 19 * 25 {
         return intomonster(gs);
     }
-    if chkspot >= 129 && chkspot <= 135 {
+    if gs.chkspot >= 129 && gs.chkspot <= 135 {
         if gs.obj.contact as i32 == pshot as i32
             || gs.obj.contact as i32 == nukeshot as i32
             || gs.obj.contact as i32 == mshot as i32
         {
             new = newobject(gs);
             gs.o[new as usize].active = true as boolean;
-            gs.o[new as usize].x = chkx as u8;
-            gs.o[new as usize].y = chky as u8;
+            gs.o[new as usize].x = gs.chkx as u8;
+            gs.o[new as usize].y = gs.chky as u8;
             gs.o[new as usize].stage = 0;
             gs.o[new as usize].delay = 2;
             gs.o[new as usize].class = wallhit as i32 as u16;
@@ -575,18 +572,18 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         }
         return false as boolean;
     }
-    if chkspot >= 136 && chkspot <= 145 {
+    if gs.chkspot >= 136 && gs.chkspot <= 145 {
         if gs.obj.contact as i32 == pshot as i32 || gs.obj.contact as i32 == nukeshot as i32 {
             PlaySound(6);
-            if chkspot < 143 {
-                gs.background[chky as usize][chkx as usize] = 128;
+            if gs.chkspot < 143 {
+                gs.background[gs.chky as usize][gs.chkx as usize] = 128;
             } else {
-                gs.background[chky as usize][chkx as usize] = chkspot + 19;
+                gs.background[gs.chky as usize][gs.chkx as usize] = gs.chkspot + 19;
             }
             new = newobject(gs);
             gs.o[new as usize].active = true as boolean;
-            gs.o[new as usize].x = chkx as u8;
-            gs.o[new as usize].y = chky as u8;
+            gs.o[new as usize].x = gs.chkx as u8;
+            gs.o[new as usize].y = gs.chky as u8;
             gs.o[new as usize].stage = 0;
             gs.o[new as usize].delay = 2;
             gs.o[new as usize].class = dead1 as i32 as u16;
@@ -599,34 +596,34 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
             return false as boolean;
         }
     }
-    if chkspot == 162 {
+    if gs.chkspot == 162 {
         if gs.obj.class as i32 == player as i32 {
             givepotion(gs);
-            gs.view[chky as usize][chkx as usize] = 128;
-            gs.background[chky as usize][chkx as usize] = 128;
+            gs.view[gs.chky as usize][gs.chkx as usize] = 128;
+            gs.background[gs.chky as usize][gs.chkx as usize] = 128;
             PlaySound(2);
         }
         return true as boolean;
     }
-    if chkspot == 163 {
+    if gs.chkspot == 163 {
         if gs.obj.class as i32 == player as i32 {
             givescroll(gs);
-            gs.view[chky as usize][chkx as usize] = 128;
-            gs.background[chky as usize][chkx as usize] = 128;
+            gs.view[gs.chky as usize][gs.chkx as usize] = 128;
+            gs.background[gs.chky as usize][gs.chkx as usize] = 128;
             PlaySound(2);
         }
         return true as boolean;
     }
-    if chkspot == 164 {
+    if gs.chkspot == 164 {
         if gs.obj.class as i32 == player as i32 {
             givekey(gs);
-            gs.view[chky as usize][chkx as usize] = 128;
-            gs.background[chky as usize][chkx as usize] = 128;
+            gs.view[gs.chky as usize][gs.chkx as usize] = 128;
+            gs.background[gs.chky as usize][gs.chkx as usize] = 128;
             PlaySound(2);
         }
         return true as boolean;
     }
-    if chkspot == 165 || chkspot == 166 {
+    if gs.chkspot == 165 || gs.chkspot == 166 {
         if gs.obj.class as i32 == player as i32 {
             if takekey(gs) != 0 {
                 opendoor(gs);
@@ -635,17 +632,17 @@ unsafe fn walkthrough(gs: &mut GlobalState) -> boolean {
         }
         return false as boolean;
     }
-    if chkspot == 167 {
+    if gs.chkspot == 167 {
         if gs.obj.class as i32 == player as i32 {
             score += 500;
             printscore(gs);
-            gs.background[chky as usize][chkx as usize] = 128;
-            gs.view[chky as usize][chkx as usize] = 128;
+            gs.background[gs.chky as usize][gs.chkx as usize] = 128;
+            gs.view[gs.chky as usize][gs.chkx as usize] = 128;
             PlaySound(3);
         }
         return true as boolean;
     }
-    if chkspot >= 29 && chkspot <= 31 {
+    if gs.chkspot >= 29 && gs.chkspot <= 31 {
         return true as boolean;
     }
     return false as boolean;
@@ -662,32 +659,32 @@ unsafe fn walk(gs: &mut GlobalState) -> boolean {
         0 => {
             newx = gs.obj.x as i32;
             newy = gs.obj.y as i32 - 1;
-            chkx = newx;
-            chky = newy;
+            gs.chkx = newx;
+            gs.chky = newy;
             deltax = 1;
             deltay = 0;
         }
         1 => {
             newx = gs.obj.x as i32 + 1;
             newy = gs.obj.y as i32;
-            chkx = gs.obj.x as i32 + gs.obj.size as i32;
-            chky = newy;
+            gs.chkx = gs.obj.x as i32 + gs.obj.size as i32;
+            gs.chky = newy;
             deltax = 0;
             deltay = 1;
         }
         2 => {
             newx = gs.obj.x as i32;
             newy = gs.obj.y as i32 + 1;
-            chkx = newx;
-            chky = gs.obj.y as i32 + gs.obj.size as i32;
+            gs.chkx = newx;
+            gs.chky = gs.obj.y as i32 + gs.obj.size as i32;
             deltax = 1;
             deltay = 0;
         }
         3 => {
             newx = gs.obj.x as i32 - 1;
             newy = gs.obj.y as i32;
-            chkx = newx;
-            chky = newy;
+            gs.chkx = newx;
+            gs.chky = newy;
             deltax = 0;
             deltay = 1;
         }
@@ -695,8 +692,8 @@ unsafe fn walk(gs: &mut GlobalState) -> boolean {
     }
     i = 1;
     while i <= gs.obj.size as i32 {
-        chkspot = gs.view[chky as usize][chkx as usize];
-        if chkspot != 128 {
+        gs.chkspot = gs.view[gs.chky as usize][gs.chkx as usize];
+        if gs.chkspot != 128 {
             try_0 = walkthrough(gs);
             if gs.leveldone {
                 return true as boolean;
@@ -708,8 +705,8 @@ unsafe fn walk(gs: &mut GlobalState) -> boolean {
                 return false as boolean;
             }
         }
-        chkx = chkx + deltax;
-        chky = chky + deltay;
+        gs.chkx = gs.chkx + deltax;
+        gs.chky = gs.chky + deltay;
         i += 1;
     }
     gs.obj.x = newx as u8;

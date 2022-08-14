@@ -32,12 +32,14 @@ pub struct GlobalState {
     pub playdone: bool,
     pub leveldone: bool,
 
-    // Rust port: these are actually unused!
-    // pub tempb: bool,
-    // pub tempp: *mut i8,
+    /* Rust port: these are actually unused!
+     pub tempb: bool,
+     pub tempp: *mut i8,
+    */
+    pub chkx: i32,    /*spot being checked by walk*/
+    pub chky: i32,    // ^^
+    pub chkspot: i32, // ^^
 
-    //     int chkx, chky, chkspot; /*spot being checked by walk*/
-    //
     //     word frameon;
     //     char *grmem;
     //     classtype clvar;
@@ -82,6 +84,9 @@ impl GlobalState {
         objdef: [objdeftype; 23],
         playdone: bool,
         leveldone: bool,
+        chkx: i32,
+        chky: i32,
+        chkspot: i32,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -107,6 +112,9 @@ impl GlobalState {
             objdef,
             playdone,
             leveldone,
+            chkx,
+            chky,
+            chkspot,
             side,
             boltsleft,
             view,
