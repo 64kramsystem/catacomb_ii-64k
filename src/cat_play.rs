@@ -10,6 +10,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
+    exit_type::exittype::{self, *},
     extra_types::boolean,
     global_state::GlobalState,
     indemo,
@@ -79,11 +80,7 @@ pub struct scores {
     pub level: i16,
     pub initials: [i8; 4],
 }
-pub type exittype = u32;
-pub const victorious: exittype = 3;
-pub const reseted: exittype = 2;
-pub const killed: exittype = 1;
-pub const quited: exittype = 0;
+
 #[no_mangle]
 pub unsafe extern "C" fn newobject() -> i32 {
     let mut current_block: u64;

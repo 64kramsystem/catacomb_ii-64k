@@ -11,6 +11,7 @@ use crate::{
     cpanel::controlpanel,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
+    exit_type::exittype::{self, *},
     extra_constants::{
         blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
@@ -78,11 +79,6 @@ extern "C" {
     static mut ch: i8;
 }
 
-pub type exittype = u32;
-pub const victorious: exittype = 3;
-pub const reseted: exittype = 2;
-pub const killed: exittype = 1;
-pub const quited: exittype = 0;
 #[inline]
 unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     if base == 16 {

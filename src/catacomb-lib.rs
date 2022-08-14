@@ -24,6 +24,7 @@ mod control_struct;
 mod cpanel;
 mod demo_enum;
 mod dir_type;
+mod exit_type;
 mod extra_constants;
 mod extra_macros;
 mod extra_types;
