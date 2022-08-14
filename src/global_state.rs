@@ -23,7 +23,7 @@ pub struct GlobalState {
     pub saveo: [activeobj; 1], // ^^
     pub obj: objtype,          /*total info about objecton and alt*/
     pub altobj: objtype,       // ^^
-    //     int altnum;                        /*o[#] of altobj*/
+    pub altnum: i32,           /*o[#] of altobj*/
     //     int numobj, objecton;              /*number of objects in o now*/
 
     //
@@ -74,6 +74,7 @@ impl GlobalState {
         saveo: [activeobj; 1],
         obj: objtype,
         altobj: objtype,
+        altnum: i32,
         objdef: [objdeftype; 23],
         side: i32,
         boltsleft: i32,
@@ -94,6 +95,7 @@ impl GlobalState {
             saveo,
             obj,
             altobj,
+            altnum,
             objdef,
             side,
             boltsleft,

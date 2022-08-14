@@ -29,7 +29,6 @@ extern "C" {
     static mut resetgame: boolean;
     static mut ctrl: ControlStruct;
     static mut exitdemo: boolean;
-    static mut altnum: i32;
     static mut chkspot: i32;
     static mut chkx: i32;
     static mut chky: i32;
@@ -469,23 +468,23 @@ unsafe fn tagobject(gs: &mut GlobalState) {
             printscore(gs);
             PlaySound(9);
         }
-        gs.o[altnum as usize].class = (dead1 as i32 - 1 + gs.altobj.size as i32) as u16;
-        gs.o[altnum as usize].delay = 2;
-        gs.o[altnum as usize].stage = 0;
+        gs.o[gs.altnum as usize].class = (dead1 as i32 - 1 + gs.altobj.size as i32) as u16;
+        gs.o[gs.altnum as usize].delay = 2;
+        gs.o[gs.altnum as usize].stage = 0;
     } else {
-        if gs.o[altnum as usize].class as i32 == guns as i32
-            || gs.o[altnum as usize].class as i32 == gune as i32
+        if gs.o[gs.altnum as usize].class as i32 == guns as i32
+            || gs.o[gs.altnum as usize].class as i32 == gune as i32
         {
             return;
         }
-        gs.o[altnum as usize].hp = gs.altobj.hp;
-        gs.o[altnum as usize].stage = 3;
-        if altnum == 0 {
+        gs.o[gs.altnum as usize].hp = gs.altobj.hp;
+        gs.o[gs.altnum as usize].stage = 3;
+        if gs.altnum == 0 {
             gs.o[0].delay = 2;
             printbody(gs);
             PlaySound(8);
         } else {
-            gs.o[altnum as usize].delay = 4;
+            gs.o[gs.altnum as usize].delay = 4;
             PlaySound(7);
         }
     };
@@ -493,11 +492,11 @@ unsafe fn tagobject(gs: &mut GlobalState) {
 
 unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     let mut gotit: boolean = 0;
-    altnum = 0;
+    gs.altnum = 0;
     gotit = false as boolean;
     loop {
-        gs.altobj.update_from_active(gs.o[altnum as usize]);
-        if gs.altobj.class as i32 > nothing as i32 && altnum != objecton {
+        gs.altobj.update_from_active(gs.o[gs.altnum as usize]);
+        if gs.altobj.class as i32 > nothing as i32 && gs.altnum != objecton {
             memcpy(
                 &mut gs.altobj.think as *mut u8 as *mut libc::c_void,
                 &mut *gs.objdef.as_mut_ptr().offset(gs.altobj.class as isize) as *mut objdeftype
@@ -520,9 +519,9 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
             }
         }
         if gotit == 0 {
-            altnum += 1;
+            gs.altnum += 1;
         }
-        if gotit as i32 != 0 || altnum > numobj {
+        if gotit as i32 != 0 || gs.altnum > numobj {
             break;
         }
     }
@@ -532,7 +531,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     match gs.obj.contact as i32 {
         0 => return false as boolean,
         1 | 3 => {
-            if altnum == 0 {
+            if gs.altnum == 0 {
                 tagobject(gs);
                 gs.obj.stage = 2;
                 gs.obj.delay = 20;
@@ -542,7 +541,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
             return false as boolean;
         }
         2 => {
-            if altnum > 0 {
+            if gs.altnum > 0 {
                 tagobject(gs);
             }
             return false as boolean;

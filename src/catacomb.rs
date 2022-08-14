@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut altnum: i32 = 0;
-#[no_mangle]
 pub static mut numobj: i32 = 0;
 #[no_mangle]
 pub static mut objecton: i32 = 0;
@@ -1107,6 +1105,7 @@ pub fn original_main() {
             points: 0,
             filler2: [0; 2],
         },
+        0,
         [objdeftype {
             think: 0,
             contact: 0,
