@@ -3,22 +3,23 @@ use std::convert::TryInto;
 use ::libc;
 
 use crate::{
-    catacomb::repaintscreen,
+    catacomb::{loadgrfiles, repaintscreen},
     control_struct::ControlStruct,
     dir_type::dirtype::*,
     extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    pcrlib_a::{drawchar, drawpic},
-    pcrlib_c::{drawwindow, erasewindow, expwin, get, print, UpdateScreen},
+    pcrlib_a::{drawchar, drawpic, ContinueSound, PauseSound, WaitVBL},
+    pcrlib_c::{
+        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, print, CheckMouseMode,
+        ControlJoystick, ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen,
+    },
     sdl_scan_codes::*,
 };
 
 extern "C" {
     fn free(_: *mut libc::c_void);
     fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
-    fn loadgrfiles();
-    fn bioskey(_: i32) -> i32;
     static mut _vgaok: boolean;
     static mut _egaok: boolean;
     static mut egaplaneofs: [u32; 4];
@@ -26,20 +27,11 @@ extern "C" {
     static mut picptr: *mut libc::c_void;
     static mut tileptr: *mut libc::c_void;
     static mut charptr: *mut libc::c_void;
-    fn WaitVBL();
     static mut xormask: i32;
     static mut leftedge: i32;
     static mut sy: i32;
     static mut sx: i32;
     static mut grmode: grtype;
-    fn clearkeys();
-    fn bloadin(filename: *mut i8) -> *mut libc::c_void;
-    fn ControlJoystick(joynum: i32) -> ControlStruct;
-    fn ReadJoystick(joynum: i32, xcount: *mut i32, ycount: *mut i32);
-    fn ProbeJoysticks();
-    fn CheckMouseMode();
-    fn ScancodeToDOS(sc: SDL_Scancode) -> i32;
-    fn ProcessEvents();
     static mut keyB2: i32;
     static mut keyB1: i32;
     static mut key: [i32; 8];
@@ -50,8 +42,6 @@ extern "C" {
     static mut JoyXlow: [i32; 3];
     static mut keydown: [boolean; 512];
     static mut playermode: [inputtype; 3];
-    fn ContinueSound();
-    fn PauseSound();
     static mut soundmode: soundtype;
     fn SDL_NumJoysticks() -> i32;
 }
@@ -354,12 +344,14 @@ pub struct picfiletype {
     pub numpics: i16,
     pub numsprites: i16,
 }
+
 #[inline]
-unsafe extern "C" fn flatptr(mut ptr: farptr) -> u32 {
+unsafe fn flatptr(mut ptr: farptr) -> u32 {
     return (((ptr.seg as i32) << 4) + ptr.ofs as i32) as u32;
 }
+
 #[inline]
-unsafe extern "C" fn itoa(mut value: i32, mut str: *mut i8, mut base: i32) -> *mut i8 {
+unsafe fn itoa(mut value: i32, mut str: *mut i8, mut base: i32) -> *mut i8 {
     if base == 16 {
         sprintf(str, b"%X\0" as *const u8 as *const i8, value);
     } else {
@@ -818,8 +810,9 @@ unsafe fn calibratekeys(gs: &mut GlobalState) {
     }
     erasewindow(gs);
 }
+
 #[no_mangle]
-pub unsafe extern "C" fn getconfig() {
+pub unsafe fn getconfig() {
     spotok[0][0] = 1;
     spotok[0][1] = _egaok as i32;
     spotok[0][2] = _vgaok as i32;
@@ -1083,18 +1076,14 @@ pub static mut pictable: [pictype; 64] = [pictype {
     shapeptr: 0,
     name: [0; 8],
 }; 64];
-#[no_mangle]
+
 pub static mut lastgrpic: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-#[no_mangle]
 pub static mut numchars: i32 = 0;
-#[no_mangle]
 pub static mut numtiles: i32 = 0;
-#[no_mangle]
 pub static mut numpics: i32 = 0;
-#[no_mangle]
 pub static mut numsprites: i32 = 0;
-#[no_mangle]
-pub unsafe extern "C" fn installgrfile(mut filename: *mut i8, mut inmem: *mut libc::c_void) {
+
+pub unsafe fn installgrfile(mut filename: *mut i8, mut inmem: *mut libc::c_void) {
     let mut i: i32 = 0;
     let mut picfile: *mut picfiletype = 0 as *mut picfiletype;
     let mut spriteinfile: *mut stype = 0 as *mut stype;

@@ -5,7 +5,6 @@ use crate::{
     cat_play::{doactive, doinactive},
     catacomb::refresh,
     class_type::classtype::*,
-    extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype,
     obj_def_type::objdeftype,
@@ -20,21 +19,15 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    static mut numobj: i32;
-    static mut o: [activeobj; 201];
-    static mut objecton: i32;
-    static mut frameon: u16;
-    static mut leveldone: boolean;
-    static mut playdone: boolean;
-    static mut obj: objtype;
     static mut pics: *mut i8;
     static mut grmode: grtype;
 }
 
 pub type C2RustUnnamed_0 = u32;
 pub const screenpitch: C2RustUnnamed_0 = 320;
+
 #[inline]
-unsafe extern "C" fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
+unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
     return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
         | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
         | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
@@ -52,56 +45,57 @@ const table86: [u16; 87] = [
     7052, 7138, 7224, 7310, 7396,
 ];
 
-pub unsafe fn drawobj(priority: &[u8], view: &mut [[i32; 86]]) {
-    let mut tilenum: i32 = obj.firstchar as i32
-        + squares[obj.size as usize] as i32
-            * ((obj.dir as i32 & obj.dirmask as i32) * obj.stages as i32 + obj.stage as i32);
-    obj.oldtile = tilenum as i16;
-    obj.oldy = obj.y;
-    obj.oldx = obj.x;
-    let objpri: u8 = priority[tilenum as usize];
-    let mut ofs: u32 = (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
+pub unsafe fn drawobj(gs: &mut GlobalState) {
+    let mut tilenum: i32 = gs.obj.firstchar as i32
+        + squares[gs.obj.size as usize] as i32
+            * ((gs.obj.dir as i32 & gs.obj.dirmask as i32) * gs.obj.stages as i32
+                + gs.obj.stage as i32);
+    gs.obj.oldtile = tilenum as i16;
+    gs.obj.oldy = gs.obj.y;
+    gs.obj.oldx = gs.obj.x;
+    let objpri: u8 = gs.priority[tilenum as usize];
+    let mut ofs: u32 = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as u32;
     let mut x: u32 = 0;
     let mut y: u32 = 0;
-    y = obj.size as u32;
+    y = gs.obj.size as u32;
     loop {
         let fresh0 = y;
         y = y.wrapping_sub(1);
         if !(fresh0 > 0) {
             break;
         }
-        x = obj.size as u32;
+        x = gs.obj.size as u32;
         loop {
             let fresh1 = x;
             x = x.wrapping_sub(1);
             if !(fresh1 > 0) {
                 break;
             }
-            if priority[*(view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize] as i32
+            if gs.priority[*(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize] as i32
                 <= objpri as i32
             {
-                *(view.as_mut_ptr() as *mut i32).offset(ofs as isize) = tilenum;
+                *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) = tilenum;
             }
             tilenum += 1;
             ofs = ofs.wrapping_add(1);
         }
-        ofs = ofs.wrapping_add((86 - obj.size as i32) as u32);
+        ofs = ofs.wrapping_add((86 - gs.obj.size as i32) as u32);
     }
 }
 
 pub unsafe fn eraseobj(gs: &mut GlobalState) {
-    let mut tilenum: i32 = obj.oldtile as i32;
-    let mut ofs: u32 = (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
+    let mut tilenum: i32 = gs.obj.oldtile as i32;
+    let mut ofs: u32 = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as u32;
     let mut x: u32 = 0;
     let mut y: u32 = 0;
-    y = obj.size as u32;
+    y = gs.obj.size as u32;
     loop {
         let fresh2 = y;
         y = y.wrapping_sub(1);
         if !(fresh2 > 0) {
             break;
         }
-        x = obj.size as u32;
+        x = gs.obj.size as u32;
         loop {
             let fresh3 = x;
             x = x.wrapping_sub(1);
@@ -115,54 +109,55 @@ pub unsafe fn eraseobj(gs: &mut GlobalState) {
             tilenum += 1;
             ofs = ofs.wrapping_add(1);
         }
-        ofs = ofs.wrapping_add((86 - obj.size as i32) as u32);
+        ofs = ofs.wrapping_add((86 - gs.obj.size as i32) as u32);
     }
 }
 
 pub unsafe fn doall(gs: &mut GlobalState) {
-    assert!(numobj > 0);
+    assert!(gs.numobj > 0);
 
     loop {
-        objecton = numobj;
+        gs.objecton = gs.numobj;
         loop {
             memcpy(
-                &mut obj as *mut objtype as *mut libc::c_void,
-                &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
+                &mut gs.obj as *mut objtype as *mut libc::c_void,
+                &mut *gs.o.as_mut_ptr().offset(gs.objecton as isize) as *mut activeobj
                     as *const libc::c_void,
                 ::std::mem::size_of::<activeobj>() as u64,
             );
-            if obj.class as i32 != nothing as i32 {
+            if gs.obj.class as i32 != nothing as i32 {
                 memcpy(
-                    &mut obj.think as *mut u8 as *mut libc::c_void,
-                    &mut *gs.objdef.as_mut_ptr().offset(obj.class as isize) as *mut objdeftype
+                    &mut gs.obj.think as *mut u8 as *mut libc::c_void,
+                    &mut *gs.objdef.as_mut_ptr().offset(gs.obj.class as isize) as *mut objdeftype
                         as *const libc::c_void,
                     ::std::mem::size_of::<objdeftype>() as u64,
                 );
-                if obj.active != 0 {
+                if gs.obj.active != 0 {
                     doactive(gs);
                 } else {
                     doinactive(gs);
                 }
             }
-            if leveldone as i32 != 0 || playdone as i32 != 0 {
+            if gs.leveldone || gs.playdone {
                 return;
             }
-            objecton -= 1;
-            if !(objecton >= 0) {
+            gs.objecton -= 1;
+            if !(gs.objecton >= 0) {
                 break;
             }
         }
         refresh(gs);
-        frameon = frameon.wrapping_add(1);
-        if leveldone != 0 {
+        gs.frameon = gs.frameon.wrapping_add(1);
+        if gs.leveldone {
             return;
         }
-        if !(playdone == 0) {
+        if gs.playdone {
             break;
         }
     }
 }
-unsafe extern "C" fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
+
+unsafe fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
     let mut src: *mut u8 = (pics as *mut u8).offset((tile << 4) as isize);
     let mut r: u32 = 0;
     r = 0;
@@ -222,7 +217,8 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState) {
     }
     UpdateScreen(gs);
 }
-unsafe extern "C" fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
+
+unsafe fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
     let mut src: *mut u8 = (pics as *mut u8).offset((tile << 5) as isize);
     let mut r: u32 = 0;
     r = 0;

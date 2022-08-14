@@ -1,7 +1,7 @@
 // Constants hardcoded by the transpiler.
 
-pub(crate) const SDL_BUTTON_LEFT: u8 = 1;
-pub(crate) const SDL_BUTTON_RIGHT: u8 = 3;
+pub const SDL_BUTTON_LEFT: u8 = 1;
+pub const SDL_BUTTON_RIGHT: u8 = 3;
 
 pub const O_BINARY: i32 = 0;
 

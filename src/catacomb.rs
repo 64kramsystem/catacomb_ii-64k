@@ -11,7 +11,7 @@ use crate::{
     catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
     control_struct::ControlStruct,
-    cpanel::controlpanel,
+    cpanel::{controlpanel, installgrfile},
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
@@ -25,11 +25,13 @@ use crate::{
     obj_def_type::objdeftype,
     obj_type::objtype,
     objects::initobjects,
-    pcrlib_a::{drawchar, drawpic, WaitEndSound},
+    pcrlib_a::{drawchar, drawpic, rnd, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{
-        _checkhighscore, _setupgame, _showhighscores, bar, centerwindow, drawwindow, expwin, get,
-        print, printchartile, printint, UpdateScreen,
+        _checkhighscore, _setupgame, _showhighscores, bar, bioskey, bloadin, centerwindow,
+        clearkeys, drawwindow, expwin, get, print, printchartile, printint, ControlPlayer,
+        LoadDemo, LoadFile, UpdateScreen, _Verify, _quit,
     },
+    rleasm::RLEExpand,
     sdl_scan_codes::*,
     state_type::statetype,
     vec2::Vec2,
@@ -48,33 +50,19 @@ extern "C" {
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
-    fn RLEExpand(source: *mut i8, dest: *mut i8, origlen: i64);
-    fn bioskey(_: i32) -> i32;
-    fn _quit(_: *mut i8);
     static mut score: i32;
     static mut level: i16;
-    fn installgrfile(filename: *mut i8, inmem: *mut libc::c_void);
-    fn WaitVBL();
     static mut leftedge: i32;
     static mut sy: i32;
     static mut sx: i32;
     static mut grmode: grtype;
-    fn _Verify(filename: *mut i8) -> i64;
-    fn clearkeys();
-    fn rnd(_: u16) -> i32;
-    fn rndt() -> i32;
-    fn bloadin(filename: *mut i8) -> *mut libc::c_void;
-    fn LoadFile(filename: *mut i8, buffer: *mut i8) -> u64;
-    fn LoadDemo(demonum: i32);
-    fn ControlPlayer(player_0: i32) -> ControlStruct;
     static mut keydown: [boolean; 512];
-    fn PlaySound(sound: i32);
     static mut str: [i8; 80];
     static mut ch: i8;
 }
 
 #[inline]
-unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
+unsafe fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     if base == 16 {
         sprintf(str_0, b"%X\0" as *const u8 as *const i8, value);
     } else {
@@ -84,139 +72,9 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut boltsleft: i32 = 0;
-#[no_mangle]
-pub static mut o: [activeobj; 201] = [activeobj {
-    active: 0,
-    class: 0,
-    x: 0,
-    y: 0,
-    stage: 0,
-    delay: 0,
-    dir: 0,
-    hp: 0,
-    oldx: 0,
-    oldy: 0,
-    oldtile: 0,
-    filler: [0; 1],
-}; 201];
-#[no_mangle]
-pub static mut saveo: [activeobj; 1] = [activeobj {
-    active: 0,
-    class: 0,
-    x: 0,
-    y: 0,
-    stage: 0,
-    delay: 0,
-    dir: 0,
-    hp: 0,
-    oldx: 0,
-    oldy: 0,
-    oldtile: 0,
-    filler: [0; 1],
-}; 1];
-#[no_mangle]
-pub static mut obj: objtype = objtype {
-    active: 0,
-    class: 0,
-    x: 0,
-    y: 0,
-    stage: 0,
-    delay: 0,
-    dir: 0,
-    hp: 0,
-    oldx: 0,
-    oldy: 0,
-    oldtile: 0,
-    filler: [0; 1],
-    think: 0,
-    contact: 0,
-    solid: 0,
-    firstchar: 0,
-    size: 0,
-    stages: 0,
-    dirmask: 0,
-    speed: 0,
-    hitpoints: 0,
-    damage: 0,
-    points: 0,
-    filler2: [0; 2],
-};
-#[no_mangle]
-pub static mut altobj: objtype = objtype {
-    active: 0,
-    class: 0,
-    x: 0,
-    y: 0,
-    stage: 0,
-    delay: 0,
-    dir: 0,
-    hp: 0,
-    oldx: 0,
-    oldy: 0,
-    oldtile: 0,
-    filler: [0; 1],
-    think: 0,
-    contact: 0,
-    solid: 0,
-    firstchar: 0,
-    size: 0,
-    stages: 0,
-    dirmask: 0,
-    speed: 0,
-    hitpoints: 0,
-    damage: 0,
-    points: 0,
-    filler2: [0; 2],
-};
-#[no_mangle]
-pub static mut altnum: i32 = 0;
-#[no_mangle]
-pub static mut numobj: i32 = 0;
-#[no_mangle]
-pub static mut objecton: i32 = 0;
-#[no_mangle]
-pub static mut playdone: boolean = 0;
-#[no_mangle]
-pub static mut leveldone: boolean = 0;
-#[no_mangle]
-pub static mut tempb: boolean = 0;
-#[no_mangle]
-pub static mut tempp: *mut i8 = 0 as *const i8 as *mut i8;
-#[no_mangle]
-pub static mut chkx: i32 = 0;
-#[no_mangle]
-pub static mut chky: i32 = 0;
-#[no_mangle]
-pub static mut chkspot: i32 = 0;
-#[no_mangle]
-pub static mut frameon: u16 = 0;
-#[no_mangle]
-pub static mut grmem: *mut i8 = 0 as *const i8 as *mut i8;
-#[no_mangle]
-pub static mut VGAPAL: i32 = 0;
-#[no_mangle]
-pub static mut exitdemo: bool = false;
-#[no_mangle]
-pub static mut resetgame: boolean = 0;
-#[no_mangle]
-pub static mut gamestate: statetype = statetype::ingame;
-#[no_mangle]
-pub static mut ctrl: ControlStruct = ControlStruct {
-    dir: north,
-    button1: 0,
-    button2: 0,
-};
-#[no_mangle]
 pub static mut pics: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut picsexact: *mut i8 = 0 as *const i8 as *mut i8;
-#[no_mangle]
-pub static mut EGADATASTART: u32 = 0;
-#[no_mangle]
-pub static mut savescore: i32 = 0;
-#[no_mangle]
-pub static mut GODMODE: boolean = false as boolean;
 
 const demowin: [[i8; 16]; 5] = [
     [
@@ -332,8 +190,8 @@ unsafe fn simplerefresh(gs: &mut GlobalState) {
         egarefresh(gs);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn loadgrfiles() {
+
+pub unsafe fn loadgrfiles() {
     if !picsexact.is_null() {
         free(picsexact as *mut libc::c_void);
     }
@@ -577,7 +435,7 @@ unsafe fn reset(gs: &mut GlobalState) {
     ch = get(gs) as i8;
     if ch as i32 == 'y' as i32 {
         gs.gamexit = killed;
-        playdone = true as boolean;
+        gs.playdone = true;
     }
 }
 
@@ -603,15 +461,15 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
     strcat(filename.as_mut_ptr(), b".CA2\0" as *const u8 as *const i8);
     LoadFile(filename.as_mut_ptr(), rle.as_mut_ptr());
     RLEExpand(&mut *rle.as_mut_ptr().offset(4), sm.as_mut_ptr(), 4096);
-    numobj = 0;
-    o[0].x = 13;
-    o[0].y = 13;
-    o[0].stage = 0;
-    o[0].delay = 0;
-    o[0].dir = east as i32 as u16;
-    o[0].oldx = 0;
-    o[0].oldy = 0;
-    o[0].oldtile = -(1) as i16;
+    gs.numobj = 0;
+    gs.o[0].x = 13;
+    gs.o[0].y = 13;
+    gs.o[0].stage = 0;
+    gs.o[0].delay = 0;
+    gs.o[0].dir = east as i32 as u16;
+    gs.o[0].oldx = 0;
+    gs.o[0].oldy = 0;
+    gs.o[0].oldtile = -(1) as i16;
     yy = 0;
     while yy < 64 {
         xx = 0;
@@ -622,32 +480,32 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
             } else {
                 gs.background[(yy + 11) as usize][(xx + 11) as usize] = 128;
                 if tokens[(btile as i32 - 230) as usize] as u32 == player as i32 as u32 {
-                    o[0].x = (xx + 11) as u8;
-                    o[0].y = (yy + 11) as u8;
+                    gs.o[0].x = (xx + 11) as u8;
+                    gs.o[0].y = (yy + 11) as u8;
                 } else {
-                    numobj += 1;
-                    o[numobj as usize].active = false as boolean;
-                    o[numobj as usize].class = tokens[(btile as i32 - 230) as usize] as u16;
-                    o[numobj as usize].x = (xx + 11) as u8;
-                    o[numobj as usize].y = (yy + 11) as u8;
-                    o[numobj as usize].stage = 0;
-                    o[numobj as usize].delay = 0;
+                    gs.numobj += 1;
+                    gs.o[gs.numobj as usize].active = false as boolean;
+                    gs.o[gs.numobj as usize].class = tokens[(btile as i32 - 230) as usize];
+                    gs.o[gs.numobj as usize].x = (xx + 11) as u8;
+                    gs.o[gs.numobj as usize].y = (yy + 11) as u8;
+                    gs.o[gs.numobj as usize].stage = 0;
+                    gs.o[gs.numobj as usize].delay = 0;
                     // Ugly defensive typecast.
-                    o[numobj as usize].dir =
+                    gs.o[gs.numobj as usize].dir =
                         TryInto::<dirtype>::try_into(rndt() / 64).unwrap() as u16;
-                    o[numobj as usize].hp =
-                        gs.objdef[o[numobj as usize].class as usize].hitpoints as i8;
-                    o[numobj as usize].oldx = o[numobj as usize].x;
-                    o[numobj as usize].oldy = o[numobj as usize].y;
-                    o[numobj as usize].oldtile = -(1) as i16;
+                    gs.o[gs.numobj as usize].hp =
+                        gs.objdef[gs.o[gs.numobj as usize].class as usize].hitpoints as i8;
+                    gs.o[gs.numobj as usize].oldx = gs.o[gs.numobj as usize].x;
+                    gs.o[gs.numobj as usize].oldy = gs.o[gs.numobj as usize].y;
+                    gs.o[gs.numobj as usize].oldtile = -(1) as i16;
                 }
             }
             xx += 1;
         }
         yy += 1;
     }
-    gs.origin.x = o[0].x as i32 - 11;
-    gs.origin.y = o[0].y as i32 - 11;
+    gs.origin.x = gs.o[0].x as i32 - 11;
+    gs.origin.y = gs.o[0].y as i32 - 11;
     gs.shotpower = 0;
     y = 11 - 1;
     while y < 65 + 11 {
@@ -668,8 +526,8 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
         gs.saveitems[i as usize] = gs.items[i as usize];
         i += 1;
     }
-    savescore = score;
-    saveo[0] = o[0];
+    gs.savescore = score;
+    gs.saveo[0] = gs.o[0];
 }
 
 unsafe fn drawside(gs: &mut GlobalState) {
@@ -735,12 +593,12 @@ unsafe fn playsetup(gs: &mut GlobalState) {
         }
         score = 0;
         level = 1;
-        o[0].active = true as boolean;
-        o[0].class = player as i32 as u16;
-        o[0].hp = 13;
-        o[0].dir = west as i32 as u16;
-        o[0].stage = 0;
-        o[0].delay = 0;
+        gs.o[0].active = true as boolean;
+        gs.o[0].class = player;
+        gs.o[0].hp = 13;
+        gs.o[0].dir = west as i32 as u16;
+        gs.o[0].stage = 0;
+        gs.o[0].delay = 0;
         drawside(gs);
         givenuke(gs);
         givenuke(gs);
@@ -756,7 +614,7 @@ unsafe fn playsetup(gs: &mut GlobalState) {
 }
 
 pub unsafe fn repaintscreen(gs: &mut GlobalState) {
-    match gamestate {
+    match gs.gamestate {
         statetype::intitle => {
             drawpic(0, 0, 14, gs);
         }
@@ -805,7 +663,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8, gs);
             ch = toupper(get(gs)) as i8;
             if ch as i32 == 'Y' as i32 {
-                resetgame = true as boolean;
+                gs.resetgame = true;
             }
         }
         61 => {
@@ -860,7 +718,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                             );
                             write(
                                 handle,
-                                &mut savescore as *mut i32 as *const libc::c_void,
+                                &mut gs.savescore as *mut i32 as *const libc::c_void,
                                 ::std::mem::size_of::<i32>() as u64,
                             );
                             write(
@@ -870,7 +728,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                             );
                             write(
                                 handle,
-                                &mut *saveo.as_mut_ptr().offset(0) as *mut activeobj
+                                &mut *gs.saveo.as_mut_ptr().offset(0) as *mut activeobj
                                     as *const libc::c_void,
                                 ::std::mem::size_of::<activeobj>() as u64,
                             );
@@ -921,16 +779,16 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                     );
                     read(
                         handle,
-                        &mut *o.as_mut_ptr().offset(0) as *mut activeobj as *mut libc::c_void,
+                        &mut *gs.o.as_mut_ptr().offset(0) as *mut activeobj as *mut libc::c_void,
                         ::std::mem::size_of::<activeobj>() as u64,
                     );
                     close(handle);
-                    exitdemo = true;
+                    gs.exitdemo = true;
                     if indemo != demoenum::notdemo {
-                        playdone = true as boolean;
+                        gs.playdone = true;
                     }
                     drawside(gs);
-                    leveldone = true as boolean;
+                    gs.leveldone = true;
                 }
             }
         }
@@ -960,18 +818,18 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14, gs);
     UpdateScreen(gs);
-    gamestate = statetype::intitle;
+    gs.gamestate = statetype::intitle;
     i = 0;
     while i < 300 {
         WaitVBL();
         indemo = demoenum::notdemo;
-        ctrl = ControlPlayer(1);
-        if ctrl.button1 as i32 != 0
-            || ctrl.button2 as i32 != 0
+        gs.ctrl = ControlPlayer(1);
+        if gs.ctrl.button1 as i32 != 0
+            || gs.ctrl.button2 as i32 != 0
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             level = 0;
-            exitdemo = true;
+            gs.exitdemo = true;
             break;
         } else {
             indemo = demoenum::demoplay;
@@ -979,13 +837,13 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
                 dofkeys(gs);
                 UpdateScreen(gs);
             }
-            if exitdemo {
+            if gs.exitdemo {
                 break;
             }
             i += 1;
         }
     }
-    gamestate = statetype::ingame;
+    gs.gamestate = statetype::ingame;
 }
 
 unsafe fn doendpage(gs: &mut GlobalState) {
@@ -1022,9 +880,9 @@ unsafe fn doendpage(gs: &mut GlobalState) {
 
 unsafe fn dodemo(gs: &mut GlobalState) {
     let mut i: i32 = 0;
-    while !exitdemo {
+    while !gs.exitdemo {
         dotitlepage(gs);
-        if exitdemo {
+        if gs.exitdemo {
             break;
         }
         i = rnd(NUM_DEMOS - 1) + 1;
@@ -1032,11 +890,11 @@ unsafe fn dodemo(gs: &mut GlobalState) {
         level = 0;
         playsetup(gs);
         playloop(gs);
-        if exitdemo {
+        if gs.exitdemo {
             break;
         }
         level = 0;
-        gamestate = statetype::inscores;
+        gs.gamestate = statetype::inscores;
         indemo = demoenum::demoplay;
         _showhighscores(gs);
         UpdateScreen(gs);
@@ -1044,18 +902,18 @@ unsafe fn dodemo(gs: &mut GlobalState) {
         while i < 500 {
             WaitVBL();
             indemo = demoenum::notdemo;
-            ctrl = ControlPlayer(1);
-            if ctrl.button1 as i32 != 0
-                || ctrl.button2 as i32 != 0
+            gs.ctrl = ControlPlayer(1);
+            if gs.ctrl.button1 as i32 != 0
+                || gs.ctrl.button2 as i32 != 0
                 || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
-                exitdemo = true;
+                gs.exitdemo = true;
                 break;
             } else {
                 if bioskey(1) != 0 {
                     dofkeys(gs);
                 }
-                if exitdemo {
+                if gs.exitdemo {
                     break;
                 }
                 i += 1;
@@ -1075,15 +933,15 @@ unsafe fn gameover(gs: &mut GlobalState) {
         WaitVBL();
         i += 1;
     }
-    gamestate = statetype::inscores;
+    gs.gamestate = statetype::inscores;
     _checkhighscore(gs);
     level = 0;
     i = 0;
     while i < 500 {
         WaitVBL();
-        ctrl = ControlPlayer(1);
-        if ctrl.button1 as i32 != 0
-            || ctrl.button2 as i32 != 0
+        gs.ctrl = ControlPlayer(1);
+        if gs.ctrl.button1 as i32 != 0
+            || gs.ctrl.button2 as i32 != 0
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             break;
@@ -1091,7 +949,7 @@ unsafe fn gameover(gs: &mut GlobalState) {
         if bioskey(1) != 0 {
             dofkeys(gs);
         }
-        if exitdemo as i32 != 0 || indemo == demoenum::demoplay {
+        if gs.exitdemo as i32 != 0 || indemo == demoenum::demoplay {
             break;
         }
         i += 1;
@@ -1113,6 +971,89 @@ pub fn original_main() {
         [0; 6],
         [0; 6],
         0,
+        [activeobj {
+            active: 0,
+            class: nothing,
+            x: 0,
+            y: 0,
+            stage: 0,
+            delay: 0,
+            dir: 0,
+            hp: 0,
+            oldx: 0,
+            oldy: 0,
+            oldtile: 0,
+            filler: [0; 1],
+        }; 201],
+        [activeobj {
+            active: 0,
+            class: nothing,
+            x: 0,
+            y: 0,
+            stage: 0,
+            delay: 0,
+            dir: 0,
+            hp: 0,
+            oldx: 0,
+            oldy: 0,
+            oldtile: 0,
+            filler: [0; 1],
+        }; 1],
+        objtype {
+            active: 0,
+            class: nothing,
+            x: 0,
+            y: 0,
+            stage: 0,
+            delay: 0,
+            dir: 0,
+            hp: 0,
+            oldx: 0,
+            oldy: 0,
+            oldtile: 0,
+            filler: [0; 1],
+            think: 0,
+            contact: 0,
+            solid: 0,
+            firstchar: 0,
+            size: 0,
+            stages: 0,
+            dirmask: 0,
+            speed: 0,
+            hitpoints: 0,
+            damage: 0,
+            points: 0,
+            filler2: [0; 2],
+        },
+        objtype {
+            active: 0,
+            class: nothing,
+            x: 0,
+            y: 0,
+            stage: 0,
+            delay: 0,
+            dir: 0,
+            hp: 0,
+            oldx: 0,
+            oldy: 0,
+            oldtile: 0,
+            filler: [0; 1],
+            think: 0,
+            contact: 0,
+            solid: 0,
+            firstchar: 0,
+            size: 0,
+            stages: 0,
+            dirmask: 0,
+            speed: 0,
+            hitpoints: 0,
+            damage: 0,
+            points: 0,
+            filler2: [0; 2],
+        },
+        0,
+        0,
+        0,
         [objdeftype {
             think: 0,
             contact: 0,
@@ -1127,6 +1068,23 @@ pub fn original_main() {
             points: 0,
             filler: [0; 2],
         }; 23],
+        false,
+        false,
+        0,
+        0,
+        0,
+        0,
+        false,
+        false,
+        statetype::ingame,
+        ControlStruct {
+            dir: north,
+            button1: 0,
+            button2: 0,
+        },
+        0,
+        false,
+        0,
         0,
         [[0; 86]; 87],
         Vec2::new(19, 11),
@@ -1259,7 +1217,7 @@ pub fn original_main() {
         gs.screencenter.x = 11;
         gs.screencenter.y = 11;
 
-        exitdemo = false;
+        gs.exitdemo = false;
         level = 0;
 
         // go until quit () is called
@@ -1267,10 +1225,10 @@ pub fn original_main() {
             dodemo(&mut gs);
             playsetup(&mut gs);
             indemo = demoenum::notdemo;
-            gamestate = statetype::ingame;
+            gs.gamestate = statetype::ingame;
             playloop(&mut gs);
             if indemo == demoenum::notdemo {
-                exitdemo = false;
+                gs.exitdemo = false;
                 if level > numlevels {
                     doendpage(&mut gs); // finished all levels
                 }
