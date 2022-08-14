@@ -21,7 +21,6 @@ extern "C" {
     static mut opposite: [dirtype; 9];
     static mut originx: libc::c_int;
     static mut originy: libc::c_int;
-    static mut objdef: [objdeftype; 23];
     static mut gamexit: exittype;
     static mut altobj: objtype;
     static mut altnum: libc::c_int;
@@ -575,8 +574,8 @@ pub unsafe extern "C" fn tagobject() {
         }
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn intomonster() -> boolean {
+
+unsafe fn intomonster(objdef: &mut [objdeftype]) -> boolean {
     let mut gotit: boolean = 0;
     altnum = 0;
     gotit = false as boolean;
@@ -641,13 +640,13 @@ pub unsafe extern "C" fn intomonster() -> boolean {
     return false as boolean;
 }
 
-unsafe fn walkthrough(items: &mut [sword]) -> boolean {
+unsafe fn walkthrough(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean {
     let mut new: libc::c_int = 0;
     if chkspot == 128 {
         return true as boolean;
     }
     if chkspot >= 256 && chkspot <= 256 + 67 * 4 + 35 * 9 + 19 * 16 + 19 * 25 {
-        return intomonster();
+        return intomonster(objdef);
     }
     if chkspot >= 129 && chkspot <= 135 {
         if obj.contact as libc::c_int == pshot as libc::c_int
@@ -743,7 +742,7 @@ unsafe fn walkthrough(items: &mut [sword]) -> boolean {
     return false as boolean;
 }
 
-unsafe fn walk(items: &mut [sword]) -> boolean {
+unsafe fn walk(items: &mut [sword], objdef: &mut [objdeftype]) -> boolean {
     let mut i: libc::c_int = 0;
     let mut newx: libc::c_int = 0;
     let mut newy: libc::c_int = 0;
@@ -789,7 +788,7 @@ unsafe fn walk(items: &mut [sword]) -> boolean {
     while i <= obj.size as libc::c_int {
         chkspot = view[chky as usize][chkx as usize];
         if chkspot != 128 {
-            try_0 = walkthrough(items);
+            try_0 = walkthrough(items, objdef);
             if leveldone != 0 {
                 return true as boolean;
             }
@@ -810,7 +809,7 @@ unsafe fn walk(items: &mut [sword]) -> boolean {
     return true as boolean;
 }
 
-unsafe fn playercmdthink(items: &mut [sword]) {
+unsafe fn playercmdthink(items: &mut [sword], objdef: &mut [objdeftype]) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
         dir: north,
@@ -838,22 +837,22 @@ unsafe fn playercmdthink(items: &mut [sword]) {
                 match c.dir as libc::c_uint {
                     4 => {
                         obj.dir = east as libc::c_int as word;
-                        walk(items);
+                        walk(items, objdef);
                         c.dir = north;
                     }
                     5 => {
                         obj.dir = south as libc::c_int as word;
-                        walk(items);
+                        walk(items, objdef);
                         c.dir = east;
                     }
                     6 => {
                         obj.dir = west as libc::c_int as word;
-                        walk(items);
+                        walk(items, objdef);
                         c.dir = south;
                     }
                     7 => {
                         obj.dir = north as libc::c_int as word;
-                        walk(items);
+                        walk(items, objdef);
                         c.dir = west;
                     }
                     _ => {}
@@ -862,22 +861,22 @@ unsafe fn playercmdthink(items: &mut [sword]) {
                 match c.dir as libc::c_uint {
                     4 => {
                         obj.dir = north as libc::c_int as word;
-                        walk(items);
+                        walk(items, objdef);
                         c.dir = east;
                     }
                     5 => {
                         obj.dir = east as libc::c_int as word;
-                        walk(items);
+                        walk(items, objdef);
                         c.dir = south;
                     }
                     6 => {
                         obj.dir = south as libc::c_int as word;
-                        walk(items);
+                        walk(items, objdef);
                         c.dir = west;
                     }
                     7 => {
                         obj.dir = west as libc::c_int as word;
-                        walk(items);
+                        walk(items, objdef);
                         c.dir = north;
                     }
                     _ => {}
@@ -885,7 +884,7 @@ unsafe fn playercmdthink(items: &mut [sword]) {
             }
         }
         obj.dir = c.dir as word;
-        if walk(items) == 0 {
+        if walk(items, objdef) == 0 {
             PlaySound(1);
         }
         if c.button2 != 0 {
@@ -951,7 +950,7 @@ unsafe fn playercmdthink(items: &mut [sword]) {
             keydown[SDL_SCANCODE_RETURN as usize] = false as boolean;
         }
     }
-    dofkeys(items);
+    dofkeys(items, objdef);
     if resetgame != 0 {
         resetgame = false as boolean;
         playdone = true as boolean;
@@ -1017,7 +1016,7 @@ unsafe fn playercmdthink(items: &mut [sword]) {
     };
 }
 
-unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword]) {
+unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword], objdef: &mut [objdeftype]) {
     let mut deltax: libc::c_int = 0;
     let mut deltay: libc::c_int = 0;
     let mut d: [dirtype; 3] = [north; 3];
@@ -1057,32 +1056,32 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword]) {
     if diagonal != 0 {
         if d[1] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[1] as word;
-            if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
         if d[2] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[2] as word;
-            if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
     } else {
         if d[2] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[2] as word;
-            if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
         if d[1] as libc::c_uint != nodir as libc::c_int as libc::c_uint {
             obj.dir = d[1] as word;
-            if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+            if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                 return;
             }
         }
     }
     obj.dir = olddir as word;
-    if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+    if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
         return;
     }
     if rndt() > 128 {
@@ -1090,7 +1089,7 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword]) {
         while tdir <= west as libc::c_int {
             if tdir != turnaround {
                 obj.dir = tdir as word;
-                if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+                if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                     return;
                 }
             }
@@ -1101,7 +1100,7 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword]) {
         while tdir >= north as libc::c_int {
             if tdir != turnaround {
                 obj.dir = tdir as word;
-                if walk(items) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
+                if walk(items, objdef) as libc::c_int != 0 || obj.stage as libc::c_int == 3 {
                     return;
                 }
             }
@@ -1109,10 +1108,10 @@ unsafe fn chasethink(mut diagonal: boolean, items: &mut [sword]) {
         }
     }
     obj.dir = turnaround as word;
-    walk(items);
+    walk(items, objdef);
 }
 
-unsafe fn gargthink(items: &mut [sword]) {
+unsafe fn gargthink(items: &mut [sword], objdef: &mut [objdeftype]) {
     let mut n: libc::c_int = 0;
     if rndt() > 220 {
         obj.stage = 2;
@@ -1145,11 +1144,11 @@ unsafe fn gargthink(items: &mut [sword]) {
         }
         return;
     } else {
-        chasethink(false as boolean, items);
+        chasethink(false as boolean, items, objdef);
     };
 }
 
-unsafe fn dragonthink(items: &mut [sword]) {
+unsafe fn dragonthink(items: &mut [sword], objdef: &mut [objdeftype]) {
     let mut n: libc::c_int = 0;
     if rndt() > 220 {
         obj.stage = 2;
@@ -1182,7 +1181,7 @@ unsafe fn dragonthink(items: &mut [sword]) {
         }
         return;
     } else {
-        chasethink(false as boolean, items);
+        chasethink(false as boolean, items, objdef);
     };
 }
 #[no_mangle]
@@ -1200,12 +1199,12 @@ pub unsafe extern "C" fn gunthink(mut dir: libc::c_int) {
     o[n as usize].y = obj.y;
 }
 
-unsafe fn shooterthink(items: &mut [sword]) {
+unsafe fn shooterthink(items: &mut [sword], objdef: &mut [objdeftype]) {
     if (obj.x as libc::c_int) < originx - 1
         || (obj.y as libc::c_int) < originy - 1
         || obj.x as libc::c_int > originx + 22
         || obj.y as libc::c_int > originy + 22
-        || walk(items) == 0
+        || walk(items, objdef) == 0
         || obj.stage as libc::c_int == 2
     {
         obj.class = nothing as libc::c_int as word;
@@ -1264,28 +1263,28 @@ pub unsafe extern "C" fn explodethink() {
     }
 }
 
-unsafe fn think(items: &mut [sword]) {
+unsafe fn think(items: &mut [sword], objdef: &mut [objdeftype]) {
     if obj.delay as libc::c_int > 0 {
         obj.delay = (obj.delay).wrapping_sub(1);
     } else if rndt() < obj.speed as libc::c_int {
         match obj.think as libc::c_int {
             0 => {
-                playercmdthink(items);
+                playercmdthink(items, objdef);
             }
             3 => {
-                chasethink(false as boolean, items);
+                chasethink(false as boolean, items, objdef);
             }
             4 => {
-                chasethink(true as boolean, items);
+                chasethink(true as boolean, items, objdef);
             }
             1 => {
-                gargthink(items);
+                gargthink(items, objdef);
             }
             2 => {
-                dragonthink(items);
+                dragonthink(items, objdef);
             }
             5 => {
-                shooterthink(items);
+                shooterthink(items, objdef);
             }
             6 => {
                 idlethink();
@@ -1307,7 +1306,7 @@ unsafe fn think(items: &mut [sword]) {
     }
 }
 
-pub unsafe fn doactive(priority: &[byte], items: &mut [sword]) {
+pub unsafe fn doactive(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftype]) {
     if obj.class as libc::c_int != dead1 as libc::c_int
         && ((obj.x as libc::c_int) < originx - 10
             || obj.x as libc::c_int > originx + 34
@@ -1316,7 +1315,7 @@ pub unsafe fn doactive(priority: &[byte], items: &mut [sword]) {
     {
         o[objecton as usize].active = false as boolean;
     } else {
-        think(items);
+        think(items, objdef);
         eraseobj();
         if playdone != 0 {
             return;
@@ -1344,7 +1343,7 @@ pub unsafe extern "C" fn doinactive() {
     }
 }
 
-pub unsafe fn playloop(priority: &[byte], items: &mut [sword]) {
+pub unsafe fn playloop(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftype]) {
     screencenterx = 11;
     loop {
         if indemo == demoenum::notdemo {
@@ -1356,7 +1355,7 @@ pub unsafe fn playloop(priority: &[byte], items: &mut [sword]) {
             WaitEndSound();
         }
         clearold();
-        loadlevel(items);
+        loadlevel(items, objdef);
         leveldone = false as boolean;
         if keydown[SDL_SCANCODE_F7 as usize] as libc::c_int != 0
             && keydown[SDL_SCANCODE_D as usize] as libc::c_int != 0
@@ -1383,7 +1382,7 @@ pub unsafe fn playloop(priority: &[byte], items: &mut [sword]) {
         shotpower = 0;
         initrndt(false as boolean);
         printshotpower();
-        doall(priority, items);
+        doall(priority, items, objdef);
         if indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1);

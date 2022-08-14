@@ -14,7 +14,6 @@ extern "C" {
     static mut oldtiles: [libc::c_int; 576];
     static mut numobj: libc::c_int;
     static mut o: [activeobj; 201];
-    static mut objdef: [objdeftype; 23];
     static mut objecton: libc::c_int;
     static mut frameon: word;
     static mut leveldone: boolean;
@@ -185,7 +184,7 @@ pub unsafe extern "C" fn eraseobj() {
     }
 }
 
-pub unsafe fn doall(priority: &[byte], items: &mut [sword]) {
+pub unsafe fn doall(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftype]) {
     assert!(numobj > 0);
 
     loop {
@@ -205,7 +204,7 @@ pub unsafe fn doall(priority: &[byte], items: &mut [sword]) {
                     ::std::mem::size_of::<objdeftype>() as libc::c_ulong,
                 );
                 if obj.active != 0 {
-                    doactive(priority, items);
+                    doactive(priority, items, objdef);
                 } else {
                     doinactive();
                 }

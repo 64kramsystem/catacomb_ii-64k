@@ -378,21 +378,6 @@ pub static mut numobj: libc::c_int = 0;
 #[no_mangle]
 pub static mut objecton: libc::c_int = 0;
 #[no_mangle]
-pub static mut objdef: [objdeftype; 23] = [objdeftype {
-    think: 0,
-    contact: 0,
-    solid: 0,
-    firstchar: 0,
-    size: 0,
-    stages: 0,
-    dirmask: 0,
-    speed: 0,
-    hitpoints: 0,
-    damage: 0,
-    points: 0,
-    filler: [0; 2],
-}; 23];
-#[no_mangle]
 pub static mut playdone: boolean = 0;
 #[no_mangle]
 pub static mut leveldone: boolean = 0;
@@ -598,12 +583,13 @@ pub unsafe extern "C" fn wantmore() -> boolean {
     }
     return true as boolean;
 }
-unsafe extern "C" fn charpic(
+unsafe fn charpic(
     mut x: libc::c_int,
     mut y: libc::c_int,
     mut c: classtype,
     mut dir: dirtype,
     mut stage: libc::c_int,
+    objdef: &[objdeftype],
 ) {
     let mut xx: libc::c_int = 0;
     let mut yy: libc::c_int = 0;
@@ -630,7 +616,7 @@ unsafe extern "C" fn charpic(
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn help() {
+unsafe fn help(objdef: &[objdeftype]) {
     let mut x: libc::c_int = 0;
     let mut y: libc::c_int = 0;
     centerwindow(20, 20);
@@ -682,11 +668,11 @@ pub unsafe extern "C" fn help() {
         }
         y += 1;
     }
-    charpic(4, 14, player, east, 2);
-    charpic(19, 15, shot, east, 1);
-    charpic(17, 14, shot, east, 0);
-    charpic(15, 15, shot, east, 1);
-    charpic(8, 14, bigshot, east, 0);
+    charpic(4, 14, player, east, 2, objdef);
+    charpic(19, 15, shot, east, 1, objdef);
+    charpic(17, 14, shot, east, 0, objdef);
+    charpic(15, 15, shot, east, 1, objdef);
+    charpic(8, 14, bigshot, east, 0, objdef);
     if wantmore() == 0 {
         return;
     }
@@ -713,7 +699,7 @@ pub unsafe extern "C" fn help() {
         }
         y += 1;
     }
-    charpic(6, 13, player, south, 2);
+    charpic(6, 13, player, south, 2, objdef);
     sx = 6;
     sy = 15;
     print(b"\x1D\x1D\x1E\x1E\x1F\x1F\0" as *const u8 as *const libc::c_char);
@@ -770,7 +756,7 @@ pub unsafe extern "C" fn reset() {
     }
 }
 
-pub unsafe fn loadlevel(items: &mut [sword]) {
+pub unsafe fn loadlevel(items: &mut [sword], objdef: &[objdeftype]) {
     let mut i: libc::c_int = 0;
     let mut tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
@@ -972,7 +958,7 @@ pub unsafe fn repaintscreen(items: &mut [sword]) {
     };
 }
 
-pub unsafe fn dofkeys(items: &mut [sword]) {
+pub unsafe fn dofkeys(items: &mut [sword], objdef: &[objdeftype]) {
     let mut handle: libc::c_int = 0;
     let mut key: libc::c_int = bioskey(1);
     if key == SDL_SCANCODE_ESCAPE as libc::c_int {
@@ -985,7 +971,7 @@ pub unsafe fn dofkeys(items: &mut [sword]) {
     match key {
         58 => {
             clearkeys();
-            help();
+            help(objdef);
         }
         59 => {
             clearkeys();
@@ -1157,7 +1143,7 @@ pub unsafe fn dofkeys(items: &mut [sword]) {
     repaintscreen(items);
 }
 
-unsafe fn dotitlepage(items: &mut [sword]) {
+unsafe fn dotitlepage(items: &mut [sword], objdef: &[objdeftype]) {
     let mut i: libc::c_int = 0;
     drawpic(0, 0, 14);
     UpdateScreen();
@@ -1177,7 +1163,7 @@ unsafe fn dotitlepage(items: &mut [sword]) {
         } else {
             indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
-                dofkeys(items);
+                dofkeys(items, objdef);
                 UpdateScreen();
             }
             if exitdemo {
@@ -1221,10 +1207,10 @@ pub unsafe extern "C" fn doendpage() {
     get();
 }
 
-unsafe fn dodemo(priority: &[byte], items: &mut [sword]) {
+unsafe fn dodemo(priority: &[byte], items: &mut [sword], objdef: &mut [objdeftype]) {
     let mut i: libc::c_int = 0;
     while !exitdemo {
-        dotitlepage(items);
+        dotitlepage(items, objdef);
         if exitdemo {
             break;
         }
@@ -1232,7 +1218,7 @@ unsafe fn dodemo(priority: &[byte], items: &mut [sword]) {
         LoadDemo(i);
         level = 0;
         playsetup(items);
-        playloop(priority, items);
+        playloop(priority, items, objdef);
         if exitdemo {
             break;
         }
@@ -1254,7 +1240,7 @@ unsafe fn dodemo(priority: &[byte], items: &mut [sword]) {
                 break;
             } else {
                 if bioskey(1) != 0 {
-                    dofkeys(items);
+                    dofkeys(items, objdef);
                 }
                 if exitdemo {
                     break;
@@ -1265,7 +1251,7 @@ unsafe fn dodemo(priority: &[byte], items: &mut [sword]) {
     }
 }
 
-unsafe fn gameover(items: &mut [sword]) {
+unsafe fn gameover(items: &mut [sword], objdef: &[objdeftype]) {
     let mut i: libc::c_int = 0;
     expwin(11, 4);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const libc::c_char);
@@ -1290,7 +1276,7 @@ unsafe fn gameover(items: &mut [sword]) {
             break;
         }
         if bioskey(1) != 0 {
-            dofkeys(items);
+            dofkeys(items, objdef);
         }
         if exitdemo as libc::c_int != 0 || indemo == demoenum::demoplay {
             break;
@@ -1365,6 +1351,20 @@ pub fn original_main() {
 
     let mut priority: [byte; 2048] = [0; 2048];
     let mut items: [sword; 6] = [0; 6];
+    let mut objdef = [objdeftype {
+        think: 0,
+        contact: 0,
+        solid: 0,
+        firstchar: 0,
+        size: 0,
+        stages: 0,
+        dirmask: 0,
+        speed: 0,
+        hitpoints: 0,
+        damage: 0,
+        points: 0,
+        filler: [0; 2],
+    }; 23];
 
     /***************************************************************************/
 
@@ -1398,7 +1398,7 @@ pub fn original_main() {
             exit(0);
         }
 
-        initobjects();
+        initobjects(&mut objdef);
 
         priority.fill(99);
 
@@ -1484,17 +1484,17 @@ pub fn original_main() {
 
         // go until quit () is called
         loop {
-            dodemo(&priority, &mut items);
+            dodemo(&priority, &mut items, &mut objdef);
             playsetup(&mut items);
             indemo = demoenum::notdemo;
             gamestate = statetype::ingame;
-            playloop(&priority, &mut items);
+            playloop(&priority, &mut items, &mut objdef);
             if indemo == demoenum::notdemo {
                 exitdemo = false;
                 if level > numlevels {
                     doendpage(); // finished all levels
                 }
-                gameover(&mut items);
+                gameover(&mut items, &objdef);
             }
         }
     }
