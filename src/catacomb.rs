@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut exitdemo: bool = false;
-#[no_mangle]
 pub static mut resetgame: boolean = 0;
 #[no_mangle]
 pub static mut gamestate: statetype = statetype::ingame;
@@ -813,7 +811,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                         ::std::mem::size_of::<activeobj>() as u64,
                     );
                     close(handle);
-                    exitdemo = true;
+                    gs.exitdemo = true;
                     if indemo != demoenum::notdemo {
                         gs.playdone = true;
                     }
@@ -859,7 +857,7 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             level = 0;
-            exitdemo = true;
+            gs.exitdemo = true;
             break;
         } else {
             indemo = demoenum::demoplay;
@@ -867,7 +865,7 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
                 dofkeys(gs);
                 UpdateScreen(gs);
             }
-            if exitdemo {
+            if gs.exitdemo {
                 break;
             }
             i += 1;
@@ -910,9 +908,9 @@ unsafe fn doendpage(gs: &mut GlobalState) {
 
 unsafe fn dodemo(gs: &mut GlobalState) {
     let mut i: i32 = 0;
-    while !exitdemo {
+    while !gs.exitdemo {
         dotitlepage(gs);
-        if exitdemo {
+        if gs.exitdemo {
             break;
         }
         i = rnd(NUM_DEMOS - 1) + 1;
@@ -920,7 +918,7 @@ unsafe fn dodemo(gs: &mut GlobalState) {
         level = 0;
         playsetup(gs);
         playloop(gs);
-        if exitdemo {
+        if gs.exitdemo {
             break;
         }
         level = 0;
@@ -937,13 +935,13 @@ unsafe fn dodemo(gs: &mut GlobalState) {
                 || ctrl.button2 as i32 != 0
                 || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
-                exitdemo = true;
+                gs.exitdemo = true;
                 break;
             } else {
                 if bioskey(1) != 0 {
                     dofkeys(gs);
                 }
-                if exitdemo {
+                if gs.exitdemo {
                     break;
                 }
                 i += 1;
@@ -979,7 +977,7 @@ unsafe fn gameover(gs: &mut GlobalState) {
         if bioskey(1) != 0 {
             dofkeys(gs);
         }
-        if exitdemo as i32 != 0 || indemo == demoenum::demoplay {
+        if gs.exitdemo as i32 != 0 || indemo == demoenum::demoplay {
             break;
         }
         i += 1;
@@ -1104,6 +1102,7 @@ pub fn original_main() {
         0,
         0,
         0,
+        false,
         0,
         0,
         [[0; 86]; 87],
@@ -1237,7 +1236,7 @@ pub fn original_main() {
         gs.screencenter.x = 11;
         gs.screencenter.y = 11;
 
-        exitdemo = false;
+        gs.exitdemo = false;
         level = 0;
 
         // go until quit () is called
@@ -1248,7 +1247,7 @@ pub fn original_main() {
             gamestate = statetype::ingame;
             playloop(&mut gs);
             if indemo == demoenum::notdemo {
-                exitdemo = false;
+                gs.exitdemo = false;
                 if level > numlevels {
                     doendpage(&mut gs); // finished all levels
                 }
