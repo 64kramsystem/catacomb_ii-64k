@@ -27,5 +27,6 @@ mod pcrlib_a;
 mod pcrlib_c;
 mod rleasm;
 mod sdl_scan_codes;
+mod think_type;
 
 static mut indemo: demoenum = demoenum::notdemo;
