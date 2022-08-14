@@ -6,8 +6,7 @@ pub type __uint8_t = libc::c_uchar;
 pub type __uint16_t = libc::c_ushort;
 pub type uint8_t = __uint8_t;
 pub type uint16_t = __uint16_t;
-pub type byte = uint8_t;
-pub type word = uint16_t;
+
 pub type C2RustUnnamed_0 = libc::c_uint;
 pub const gunthinks: C2RustUnnamed_0 = 10;
 pub const gunthinke: C2RustUnnamed_0 = 9;
@@ -54,24 +53,24 @@ pub const nothing: C2RustUnnamed_2 = 0;
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct objdeftype {
-    pub think: byte,
-    pub contact: byte,
-    pub solid: byte,
-    pub firstchar: word,
-    pub size: byte,
-    pub stages: byte,
-    pub dirmask: byte,
-    pub speed: word,
-    pub hitpoints: byte,
-    pub damage: byte,
-    pub points: word,
-    pub filler: [byte; 2],
+    pub think: u8,
+    pub contact: u8,
+    pub solid: u8,
+    pub firstchar: u16,
+    pub size: u8,
+    pub stages: u8,
+    pub dirmask: u8,
+    pub speed: u16,
+    pub hitpoints: u8,
+    pub damage: u8,
+    pub points: u16,
+    pub filler: [u8; 2],
 }
 #[no_mangle]
 pub unsafe extern "C" fn initobjects() {
-    objdef[player as libc::c_int as usize].think = playercmd as libc::c_int as byte;
-    objdef[player as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[player as libc::c_int as usize].solid = true as byte;
+    objdef[player as libc::c_int as usize].think = playercmd as libc::c_int as u8;
+    objdef[player as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[player as libc::c_int as usize].solid = true as u8;
     objdef[player as libc::c_int as usize].firstchar = 256;
     objdef[player as libc::c_int as usize].size = 2;
     objdef[player as libc::c_int as usize].stages = 4;
@@ -80,10 +79,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[player as libc::c_int as usize].hitpoints = 12;
     objdef[player as libc::c_int as usize].damage = 0;
     objdef[player as libc::c_int as usize].points = 0;
-    objdef[goblin as libc::c_int as usize].think = ramstraight as libc::c_int as byte;
-    objdef[goblin as libc::c_int as usize].contact = monster as libc::c_int as byte;
-    objdef[goblin as libc::c_int as usize].solid = true as byte;
-    objdef[goblin as libc::c_int as usize].firstchar = (256 + 64) as word;
+    objdef[goblin as libc::c_int as usize].think = ramstraight as libc::c_int as u8;
+    objdef[goblin as libc::c_int as usize].contact = monster as libc::c_int as u8;
+    objdef[goblin as libc::c_int as usize].solid = true as u8;
+    objdef[goblin as libc::c_int as usize].firstchar = (256 + 64) as u16;
     objdef[goblin as libc::c_int as usize].size = 2;
     objdef[goblin as libc::c_int as usize].stages = 4;
     objdef[goblin as libc::c_int as usize].dirmask = 3;
@@ -91,10 +90,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[goblin as libc::c_int as usize].hitpoints = 1;
     objdef[goblin as libc::c_int as usize].damage = 1;
     objdef[goblin as libc::c_int as usize].points = 50;
-    objdef[skeleton as libc::c_int as usize].think = ramdiag as libc::c_int as byte;
-    objdef[skeleton as libc::c_int as usize].contact = monster as libc::c_int as byte;
-    objdef[skeleton as libc::c_int as usize].solid = true as byte;
-    objdef[skeleton as libc::c_int as usize].firstchar = (256 + 128) as word;
+    objdef[skeleton as libc::c_int as usize].think = ramdiag as libc::c_int as u8;
+    objdef[skeleton as libc::c_int as usize].contact = monster as libc::c_int as u8;
+    objdef[skeleton as libc::c_int as usize].solid = true as u8;
+    objdef[skeleton as libc::c_int as usize].firstchar = (256 + 128) as u16;
     objdef[skeleton as libc::c_int as usize].size = 2;
     objdef[skeleton as libc::c_int as usize].stages = 4;
     objdef[skeleton as libc::c_int as usize].dirmask = 3;
@@ -102,10 +101,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[skeleton as libc::c_int as usize].hitpoints = 1;
     objdef[skeleton as libc::c_int as usize].damage = 1;
     objdef[skeleton as libc::c_int as usize].points = 150;
-    objdef[ogre as libc::c_int as usize].think = ramstraight as libc::c_int as byte;
-    objdef[ogre as libc::c_int as usize].contact = monster as libc::c_int as byte;
-    objdef[ogre as libc::c_int as usize].solid = true as byte;
-    objdef[ogre as libc::c_int as usize].firstchar = (256 + 67 * 4) as word;
+    objdef[ogre as libc::c_int as usize].think = ramstraight as libc::c_int as u8;
+    objdef[ogre as libc::c_int as usize].contact = monster as libc::c_int as u8;
+    objdef[ogre as libc::c_int as usize].solid = true as u8;
+    objdef[ogre as libc::c_int as usize].firstchar = (256 + 67 * 4) as u16;
     objdef[ogre as libc::c_int as usize].size = 3;
     objdef[ogre as libc::c_int as usize].stages = 4;
     objdef[ogre as libc::c_int as usize].dirmask = 3;
@@ -113,10 +112,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[ogre as libc::c_int as usize].hitpoints = 5;
     objdef[ogre as libc::c_int as usize].damage = 2;
     objdef[ogre as libc::c_int as usize].points = 250;
-    objdef[gargoyle as libc::c_int as usize].think = gargcmd as libc::c_int as byte;
-    objdef[gargoyle as libc::c_int as usize].contact = monster as libc::c_int as byte;
-    objdef[gargoyle as libc::c_int as usize].solid = true as byte;
-    objdef[gargoyle as libc::c_int as usize].firstchar = (256 + 67 * 4 + 35 * 9) as word;
+    objdef[gargoyle as libc::c_int as usize].think = gargcmd as libc::c_int as u8;
+    objdef[gargoyle as libc::c_int as usize].contact = monster as libc::c_int as u8;
+    objdef[gargoyle as libc::c_int as usize].solid = true as u8;
+    objdef[gargoyle as libc::c_int as usize].firstchar = (256 + 67 * 4 + 35 * 9) as u16;
     objdef[gargoyle as libc::c_int as usize].size = 4;
     objdef[gargoyle as libc::c_int as usize].stages = 4;
     objdef[gargoyle as libc::c_int as usize].dirmask = 3;
@@ -124,10 +123,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[gargoyle as libc::c_int as usize].hitpoints = 10;
     objdef[gargoyle as libc::c_int as usize].damage = 3;
     objdef[gargoyle as libc::c_int as usize].points = 500;
-    objdef[dragon as libc::c_int as usize].think = dragoncmd as libc::c_int as byte;
-    objdef[dragon as libc::c_int as usize].contact = monster as libc::c_int as byte;
-    objdef[dragon as libc::c_int as usize].solid = true as byte;
-    objdef[dragon as libc::c_int as usize].firstchar = (256 + 67 * 4 + 35 * 9 + 19 * 16) as word;
+    objdef[dragon as libc::c_int as usize].think = dragoncmd as libc::c_int as u8;
+    objdef[dragon as libc::c_int as usize].contact = monster as libc::c_int as u8;
+    objdef[dragon as libc::c_int as usize].solid = true as u8;
+    objdef[dragon as libc::c_int as usize].firstchar = (256 + 67 * 4 + 35 * 9 + 19 * 16) as u16;
     objdef[dragon as libc::c_int as usize].size = 5;
     objdef[dragon as libc::c_int as usize].stages = 4;
     objdef[dragon as libc::c_int as usize].dirmask = 3;
@@ -135,10 +134,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[dragon as libc::c_int as usize].hitpoints = 75;
     objdef[dragon as libc::c_int as usize].damage = 5;
     objdef[dragon as libc::c_int as usize].points = 1000;
-    objdef[turbogre as libc::c_int as usize].think = ramstraight as libc::c_int as byte;
-    objdef[turbogre as libc::c_int as usize].contact = monster as libc::c_int as byte;
-    objdef[turbogre as libc::c_int as usize].solid = true as byte;
-    objdef[turbogre as libc::c_int as usize].firstchar = (256 + 67 * 4 + 19 * 9) as word;
+    objdef[turbogre as libc::c_int as usize].think = ramstraight as libc::c_int as u8;
+    objdef[turbogre as libc::c_int as usize].contact = monster as libc::c_int as u8;
+    objdef[turbogre as libc::c_int as usize].solid = true as u8;
+    objdef[turbogre as libc::c_int as usize].firstchar = (256 + 67 * 4 + 19 * 9) as u16;
     objdef[turbogre as libc::c_int as usize].size = 3;
     objdef[turbogre as libc::c_int as usize].stages = 4;
     objdef[turbogre as libc::c_int as usize].dirmask = 3;
@@ -146,9 +145,9 @@ pub unsafe extern "C" fn initobjects() {
     objdef[turbogre as libc::c_int as usize].hitpoints = 5;
     objdef[turbogre as libc::c_int as usize].damage = 2;
     objdef[turbogre as libc::c_int as usize].points = 500;
-    objdef[wallhit as libc::c_int as usize].think = fade as libc::c_int as byte;
-    objdef[wallhit as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[wallhit as libc::c_int as usize].solid = true as byte;
+    objdef[wallhit as libc::c_int as usize].think = fade as libc::c_int as u8;
+    objdef[wallhit as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[wallhit as libc::c_int as usize].solid = true as u8;
     objdef[wallhit as libc::c_int as usize].firstchar = 26;
     objdef[wallhit as libc::c_int as usize].size = 1;
     objdef[wallhit as libc::c_int as usize].stages = 3;
@@ -157,9 +156,9 @@ pub unsafe extern "C" fn initobjects() {
     objdef[wallhit as libc::c_int as usize].hitpoints = 0;
     objdef[wallhit as libc::c_int as usize].damage = 0;
     objdef[wallhit as libc::c_int as usize].points = 0;
-    objdef[dead1 as libc::c_int as usize].think = explode as libc::c_int as byte;
-    objdef[dead1 as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[dead1 as libc::c_int as usize].solid = false as byte;
+    objdef[dead1 as libc::c_int as usize].think = explode as libc::c_int as u8;
+    objdef[dead1 as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[dead1 as libc::c_int as usize].solid = false as u8;
     objdef[dead1 as libc::c_int as usize].firstchar = 29;
     objdef[dead1 as libc::c_int as usize].size = 1;
     objdef[dead1 as libc::c_int as usize].stages = 3;
@@ -168,10 +167,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[dead1 as libc::c_int as usize].hitpoints = 0;
     objdef[dead1 as libc::c_int as usize].damage = 0;
     objdef[dead1 as libc::c_int as usize].points = 0;
-    objdef[dead2 as libc::c_int as usize].think = fade as libc::c_int as byte;
-    objdef[dead2 as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[dead2 as libc::c_int as usize].solid = false as byte;
-    objdef[dead2 as libc::c_int as usize].firstchar = (256 + 224) as word;
+    objdef[dead2 as libc::c_int as usize].think = fade as libc::c_int as u8;
+    objdef[dead2 as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[dead2 as libc::c_int as usize].solid = false as u8;
+    objdef[dead2 as libc::c_int as usize].firstchar = (256 + 224) as u16;
     objdef[dead2 as libc::c_int as usize].size = 2;
     objdef[dead2 as libc::c_int as usize].stages = 3;
     objdef[dead2 as libc::c_int as usize].dirmask = 0;
@@ -179,10 +178,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[dead2 as libc::c_int as usize].hitpoints = 0;
     objdef[dead2 as libc::c_int as usize].damage = 0;
     objdef[dead2 as libc::c_int as usize].points = 0;
-    objdef[dead3 as libc::c_int as usize].think = fade as libc::c_int as byte;
-    objdef[dead3 as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[dead3 as libc::c_int as usize].solid = false as byte;
-    objdef[dead3 as libc::c_int as usize].firstchar = (256 + 67 * 4 + 9 * 16) as word;
+    objdef[dead3 as libc::c_int as usize].think = fade as libc::c_int as u8;
+    objdef[dead3 as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[dead3 as libc::c_int as usize].solid = false as u8;
+    objdef[dead3 as libc::c_int as usize].firstchar = (256 + 67 * 4 + 9 * 16) as u16;
     objdef[dead3 as libc::c_int as usize].size = 3;
     objdef[dead3 as libc::c_int as usize].stages = 3;
     objdef[dead3 as libc::c_int as usize].dirmask = 0;
@@ -190,10 +189,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[dead3 as libc::c_int as usize].hitpoints = 0;
     objdef[dead3 as libc::c_int as usize].damage = 0;
     objdef[dead3 as libc::c_int as usize].points = 0;
-    objdef[dead4 as libc::c_int as usize].think = fade as libc::c_int as byte;
-    objdef[dead4 as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[dead4 as libc::c_int as usize].solid = false as byte;
-    objdef[dead4 as libc::c_int as usize].firstchar = (256 + 67 * 4 + 35 * 9 + 16 * 16) as word;
+    objdef[dead4 as libc::c_int as usize].think = fade as libc::c_int as u8;
+    objdef[dead4 as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[dead4 as libc::c_int as usize].solid = false as u8;
+    objdef[dead4 as libc::c_int as usize].firstchar = (256 + 67 * 4 + 35 * 9 + 16 * 16) as u16;
     objdef[dead4 as libc::c_int as usize].size = 4;
     objdef[dead4 as libc::c_int as usize].stages = 3;
     objdef[dead4 as libc::c_int as usize].dirmask = 0;
@@ -201,11 +200,11 @@ pub unsafe extern "C" fn initobjects() {
     objdef[dead4 as libc::c_int as usize].hitpoints = 0;
     objdef[dead4 as libc::c_int as usize].damage = 0;
     objdef[dead4 as libc::c_int as usize].points = 0;
-    objdef[dead5 as libc::c_int as usize].think = fade as libc::c_int as byte;
-    objdef[dead5 as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[dead5 as libc::c_int as usize].solid = false as byte;
+    objdef[dead5 as libc::c_int as usize].think = fade as libc::c_int as u8;
+    objdef[dead5 as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[dead5 as libc::c_int as usize].solid = false as u8;
     objdef[dead5 as libc::c_int as usize].firstchar =
-        (256 + 67 * 4 + 35 * 9 + 19 * 16 + 25 * 16) as word;
+        (256 + 67 * 4 + 35 * 9 + 19 * 16 + 25 * 16) as u16;
     objdef[dead5 as libc::c_int as usize].size = 5;
     objdef[dead5 as libc::c_int as usize].stages = 3;
     objdef[dead5 as libc::c_int as usize].dirmask = 0;
@@ -213,9 +212,9 @@ pub unsafe extern "C" fn initobjects() {
     objdef[dead5 as libc::c_int as usize].hitpoints = 0;
     objdef[dead5 as libc::c_int as usize].damage = 0;
     objdef[dead5 as libc::c_int as usize].points = 0;
-    objdef[shot as libc::c_int as usize].think = straight as libc::c_int as byte;
-    objdef[shot as libc::c_int as usize].contact = pshot as libc::c_int as byte;
-    objdef[shot as libc::c_int as usize].solid = false as byte;
+    objdef[shot as libc::c_int as usize].think = straight as libc::c_int as u8;
+    objdef[shot as libc::c_int as usize].contact = pshot as libc::c_int as u8;
+    objdef[shot as libc::c_int as usize].solid = false as u8;
     objdef[shot as libc::c_int as usize].firstchar = 154;
     objdef[shot as libc::c_int as usize].size = 1;
     objdef[shot as libc::c_int as usize].stages = 2;
@@ -224,10 +223,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[shot as libc::c_int as usize].hitpoints = 0;
     objdef[shot as libc::c_int as usize].damage = 1;
     objdef[shot as libc::c_int as usize].points = 0;
-    objdef[guns as libc::c_int as usize].think = gunthinks as libc::c_int as byte;
-    objdef[guns as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[guns as libc::c_int as usize].solid = true as byte;
-    objdef[guns as libc::c_int as usize].firstchar = (256 + 67 * 4 - 8) as word;
+    objdef[guns as libc::c_int as usize].think = gunthinks as libc::c_int as u8;
+    objdef[guns as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[guns as libc::c_int as usize].solid = true as u8;
+    objdef[guns as libc::c_int as usize].firstchar = (256 + 67 * 4 - 8) as u16;
     objdef[guns as libc::c_int as usize].size = 2;
     objdef[guns as libc::c_int as usize].stages = 1;
     objdef[guns as libc::c_int as usize].dirmask = 0;
@@ -235,10 +234,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[guns as libc::c_int as usize].hitpoints = 255;
     objdef[guns as libc::c_int as usize].damage = 0;
     objdef[guns as libc::c_int as usize].points = 0;
-    objdef[gune as libc::c_int as usize].think = gunthinke as libc::c_int as byte;
-    objdef[gune as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[gune as libc::c_int as usize].solid = true as byte;
-    objdef[gune as libc::c_int as usize].firstchar = (256 + 67 * 4 - 4) as word;
+    objdef[gune as libc::c_int as usize].think = gunthinke as libc::c_int as u8;
+    objdef[gune as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[gune as libc::c_int as usize].solid = true as u8;
+    objdef[gune as libc::c_int as usize].firstchar = (256 + 67 * 4 - 4) as u16;
     objdef[gune as libc::c_int as usize].size = 2;
     objdef[gune as libc::c_int as usize].stages = 1;
     objdef[gune as libc::c_int as usize].dirmask = 0;
@@ -246,9 +245,9 @@ pub unsafe extern "C" fn initobjects() {
     objdef[gune as libc::c_int as usize].hitpoints = 255;
     objdef[gune as libc::c_int as usize].damage = 0;
     objdef[gune as libc::c_int as usize].points = 0;
-    objdef[rock as libc::c_int as usize].think = straight as libc::c_int as byte;
-    objdef[rock as libc::c_int as usize].contact = mshot as libc::c_int as byte;
-    objdef[rock as libc::c_int as usize].solid = false as byte;
+    objdef[rock as libc::c_int as usize].think = straight as libc::c_int as u8;
+    objdef[rock as libc::c_int as usize].contact = mshot as libc::c_int as u8;
+    objdef[rock as libc::c_int as usize].solid = false as u8;
     objdef[rock as libc::c_int as usize].firstchar = 153;
     objdef[rock as libc::c_int as usize].size = 1;
     objdef[rock as libc::c_int as usize].stages = 2;
@@ -257,10 +256,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[rock as libc::c_int as usize].hitpoints = 0;
     objdef[rock as libc::c_int as usize].damage = 1;
     objdef[rock as libc::c_int as usize].points = 0;
-    objdef[bigshot as libc::c_int as usize].think = straight as libc::c_int as byte;
-    objdef[bigshot as libc::c_int as usize].contact = nukeshot as libc::c_int as byte;
-    objdef[bigshot as libc::c_int as usize].solid = false as byte;
-    objdef[bigshot as libc::c_int as usize].firstchar = (256 + 192) as word;
+    objdef[bigshot as libc::c_int as usize].think = straight as libc::c_int as u8;
+    objdef[bigshot as libc::c_int as usize].contact = nukeshot as libc::c_int as u8;
+    objdef[bigshot as libc::c_int as usize].solid = false as u8;
+    objdef[bigshot as libc::c_int as usize].firstchar = (256 + 192) as u16;
     objdef[bigshot as libc::c_int as usize].size = 2;
     objdef[bigshot as libc::c_int as usize].stages = 2;
     objdef[bigshot as libc::c_int as usize].dirmask = 3;
@@ -268,10 +267,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[bigshot as libc::c_int as usize].hitpoints = 0;
     objdef[bigshot as libc::c_int as usize].damage = 1;
     objdef[bigshot as libc::c_int as usize].points = 0;
-    objdef[teleporter as libc::c_int as usize].think = idle as libc::c_int as byte;
-    objdef[teleporter as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[teleporter as libc::c_int as usize].solid = false as byte;
-    objdef[teleporter as libc::c_int as usize].firstchar = (256 + 236) as word;
+    objdef[teleporter as libc::c_int as usize].think = idle as libc::c_int as u8;
+    objdef[teleporter as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[teleporter as libc::c_int as usize].solid = false as u8;
+    objdef[teleporter as libc::c_int as usize].firstchar = (256 + 236) as u16;
     objdef[teleporter as libc::c_int as usize].size = 2;
     objdef[teleporter as libc::c_int as usize].stages = 5;
     objdef[teleporter as libc::c_int as usize].dirmask = 0;
@@ -279,10 +278,10 @@ pub unsafe extern "C" fn initobjects() {
     objdef[teleporter as libc::c_int as usize].hitpoints = 0;
     objdef[teleporter as libc::c_int as usize].damage = 0;
     objdef[teleporter as libc::c_int as usize].points = 0;
-    objdef[secretgate as libc::c_int as usize].think = idle as libc::c_int as byte;
-    objdef[secretgate as libc::c_int as usize].contact = benign as libc::c_int as byte;
-    objdef[secretgate as libc::c_int as usize].solid = false as byte;
-    objdef[secretgate as libc::c_int as usize].firstchar = (256 + 67 * 4 - 12) as word;
+    objdef[secretgate as libc::c_int as usize].think = idle as libc::c_int as u8;
+    objdef[secretgate as libc::c_int as usize].contact = benign as libc::c_int as u8;
+    objdef[secretgate as libc::c_int as usize].solid = false as u8;
+    objdef[secretgate as libc::c_int as usize].firstchar = (256 + 67 * 4 - 12) as u16;
     objdef[secretgate as libc::c_int as usize].size = 2;
     objdef[secretgate as libc::c_int as usize].stages = 1;
     objdef[secretgate as libc::c_int as usize].dirmask = 0;
