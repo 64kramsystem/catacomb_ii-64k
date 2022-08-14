@@ -1,4 +1,4 @@
-use crate::obj_def_type::objdeftype;
+use crate::{exit_type::exittype, obj_def_type::objdeftype};
 
 /// Includes most of the former globals.
 pub struct GlobalState {
@@ -9,6 +9,7 @@ pub struct GlobalState {
     pub view: [[i32; 86]; 87],
     pub screencenterx: i32,
     pub screencentery: i32,
+    pub gamexit: exittype,
 }
 
 impl GlobalState {
@@ -20,6 +21,7 @@ impl GlobalState {
         view: [[i32; 86]; 87],
         screencenterx: i32,
         screencentery: i32,
+        gamexit: exittype,
     ) -> Self {
         Self {
             priority,
@@ -29,6 +31,7 @@ impl GlobalState {
             view,
             screencenterx,
             screencentery,
+            gamexit,
         }
     }
 }

@@ -11,7 +11,7 @@ use crate::{
     cpanel::controlpanel,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
-    exit_type::exittype::{self, *},
+    exit_type::exittype::*,
     extra_constants::{
         blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
@@ -150,8 +150,6 @@ pub const meters: [[i8; 14]; 14] = [
 pub const opposite: [dirtype; 9] = [
     south, west, north, east, southwest, northwest, northeast, southeast, nodir,
 ];
-#[no_mangle]
-pub static mut gamexit: exittype = quited;
 #[no_mangle]
 pub static mut oldtiles: [i32; 576] = [0; 576];
 #[no_mangle]
@@ -624,12 +622,17 @@ unsafe fn help(objdef: &[objdeftype], screencenterx: &i32, screencentery: &i32) 
     wantmore();
 }
 
-unsafe fn reset(screencenterx: &i32, screencentery: &i32) {
-    centerwindow(18, 1, screencenterx, screencentery);
+unsafe fn reset(global_state: &mut GlobalState) {
+    centerwindow(
+        18,
+        1,
+        &global_state.screencenterx,
+        &global_state.screencentery,
+    );
     print(b"reset game (y/n)?\0" as *const u8 as *const i8);
     ch = get() as i8;
     if ch as i32 == 'y' as i32 {
-        gamexit = killed;
+        global_state.gamexit = killed;
         playdone = true as boolean;
     }
 }
@@ -1207,6 +1210,7 @@ pub fn original_main() {
         [[0; 86]; 87],
         19,
         11,
+        quited,
     );
 
     /***************************************************************************/

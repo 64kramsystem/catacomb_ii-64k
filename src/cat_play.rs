@@ -29,7 +29,6 @@ extern "C" {
     static mut exitdemo: boolean;
     static mut originx: i32;
     static mut originy: i32;
-    static mut gamexit: exittype;
     static mut altobj: objtype;
     static mut altnum: i32;
     static mut chkspot: i32;
@@ -143,8 +142,8 @@ pub unsafe extern "C" fn printbody() {
         print(altmeters[o[0].hp as usize].as_ptr());
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn levelcleared() {
+
+unsafe fn levelcleared(gamexit: &mut exittype) {
     let mut warp: [i8; 3] = [0; 3];
     let mut value: i32 = 0;
     leveldone = true as boolean;
@@ -167,7 +166,7 @@ pub unsafe extern "C" fn levelcleared() {
     }
     if level as i32 > 30 {
         playdone = true as boolean;
-        gamexit = victorious;
+        *gamexit = victorious;
     }
 }
 
@@ -412,8 +411,8 @@ unsafe fn opendoor(view: &mut [[i32; 86]]) {
         }
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn tagobject() {
+
+unsafe fn tagobject(gamexit: &mut exittype) {
     let mut i: i32 = altobj.hp as i32;
     if GODMODE as i32 != 0 && altobj.class as i32 == player as i32 {
         return;
@@ -426,7 +425,7 @@ pub unsafe extern "C" fn tagobject() {
             printbody();
             PlaySound(10);
             playdone = true as boolean;
-            gamexit = killed;
+            *gamexit = killed;
         } else {
             score = score + altobj.points as i32;
             printscore();
@@ -454,7 +453,7 @@ pub unsafe extern "C" fn tagobject() {
     };
 }
 
-unsafe fn intomonster(objdef: &mut [objdeftype]) -> boolean {
+unsafe fn intomonster(objdef: &mut [objdeftype], gamexit: &mut exittype) -> boolean {
     let mut gotit: boolean = 0;
     altnum = 0;
     gotit = false as boolean;
@@ -478,7 +477,7 @@ unsafe fn intomonster(objdef: &mut [objdeftype]) -> boolean {
                     && (altobj.class as i32 == teleporter as i32
                         || altobj.class as i32 == secretgate as i32)
                 {
-                    levelcleared();
+                    levelcleared(gamexit);
                 }
             }
         }
@@ -496,7 +495,7 @@ unsafe fn intomonster(objdef: &mut [objdeftype]) -> boolean {
         0 => return false as boolean,
         1 | 3 => {
             if altnum == 0 {
-                tagobject();
+                tagobject(gamexit);
                 obj.stage = 2;
                 obj.delay = 20;
             } else if altobj.class as i32 == shot as i32 {
@@ -506,12 +505,12 @@ unsafe fn intomonster(objdef: &mut [objdeftype]) -> boolean {
         }
         2 => {
             if altnum > 0 {
-                tagobject();
+                tagobject(gamexit);
             }
             return false as boolean;
         }
         4 => {
-            tagobject();
+            tagobject(gamexit);
             return true as boolean;
         }
         _ => {}
@@ -525,7 +524,7 @@ unsafe fn walkthrough(global_state: &mut GlobalState) -> boolean {
         return true as boolean;
     }
     if chkspot >= 256 && chkspot <= 256 + 67 * 4 + 35 * 9 + 19 * 16 + 19 * 25 {
-        return intomonster(&mut global_state.objdef);
+        return intomonster(&mut global_state.objdef, &mut global_state.gamexit);
     }
     if chkspot >= 129 && chkspot <= 135 {
         if obj.contact as i32 == pshot as i32
