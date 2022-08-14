@@ -15,7 +15,6 @@ extern "C" {
     ) -> !;
     static mut originy: i32;
     static mut originx: i32;
-    static mut oldtiles: [i32; 576];
     static mut numobj: i32;
     static mut o: [activeobj; 201];
     static mut objecton: i32;
@@ -152,7 +151,7 @@ pub unsafe fn doall(global_state: &mut GlobalState) {
                 break;
             }
         }
-        refresh(&mut global_state.view);
+        refresh(global_state);
         frameon = frameon.wrapping_add(1);
         if leveldone != 0 {
             return;
@@ -195,16 +194,16 @@ unsafe extern "C" fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
     }
 }
 
-pub unsafe fn cgarefresh(view: &mut [[i32; 86]]) {
+pub unsafe fn cgarefresh(global_state: &mut GlobalState) {
     let mut ofs: u32 = (originy * 86 + originx) as u32;
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
     let mut endofrow: u32 = ofs.wrapping_add(24);
     let mut vbuf: *mut u8 = screenseg.as_mut_ptr();
     loop {
-        tile = *(view.as_mut_ptr() as *mut i32).offset(ofs as isize);
-        if tile != oldtiles[i as usize] {
-            oldtiles[i as usize] = tile;
+        tile = *(global_state.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
+        if tile != global_state.oldtiles[i as usize] {
+            global_state.oldtiles[i as usize] = tile;
             drawcgachartile(vbuf, tile);
         }
         i = i.wrapping_add(1);
@@ -261,16 +260,16 @@ unsafe extern "C" fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
     }
 }
 
-pub unsafe fn egarefresh(view: &mut [[i32; 86]]) {
+pub unsafe fn egarefresh(global_state: &mut GlobalState) {
     let mut ofs: u32 = (originy * 86 + originx) as u32;
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
     let mut endofrow: u32 = ofs.wrapping_add(24);
     let mut vbuf: *mut u8 = screenseg.as_mut_ptr();
     loop {
-        tile = *(view.as_mut_ptr() as *mut i32).offset(ofs as isize);
-        if tile != oldtiles[i as usize] {
-            oldtiles[i as usize] = tile;
+        tile = *(global_state.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
+        if tile != global_state.oldtiles[i as usize] {
+            global_state.oldtiles[i as usize] = tile;
             drawegachartile(vbuf, tile);
         }
         i = i.wrapping_add(1);

@@ -4,7 +4,7 @@ use ::libc;
 
 use crate::{
     active_obj::activeobj,
-    catacomb::{altmeters, dofkeys, loadlevel, meters, opposite, refresh, restore},
+    catacomb::{altmeters, clearold, dofkeys, loadlevel, meters, opposite, refresh, restore},
     catasm::{doall, drawobj, eraseobj},
     class_type::classtype::*,
     control_struct::ControlStruct,
@@ -43,7 +43,6 @@ extern "C" {
     static mut frameon: u16;
     static mut boltsleft: i32;
     static mut shotpower: i32;
-    fn clearold();
     static mut playdone: boolean;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
@@ -851,7 +850,7 @@ unsafe fn playercmdthink(global_state: &mut GlobalState) {
                 if level as i32 > 30 {
                     level = 30;
                 }
-                restore(&mut global_state.view);
+                restore(global_state);
                 leveldone = true as boolean;
             }
             if keydown[SDL_SCANCODE_C as usize] as i32 != 0
@@ -882,7 +881,7 @@ unsafe fn playercmdthink(global_state: &mut GlobalState) {
                 while bioskey(0) == 0 {
                     WaitVBL();
                 }
-                restore(&mut global_state.view);
+                restore(global_state);
                 clearkeys();
             }
         }
@@ -1248,15 +1247,15 @@ pub unsafe fn playloop(global_state: &mut GlobalState) {
             PlaySound(17);
             WaitEndSound();
         }
-        clearold();
+        clearold(&mut global_state.oldtiles);
         loadlevel(global_state);
         leveldone = false as boolean;
         if keydown[SDL_SCANCODE_F7 as usize] as i32 != 0
             && keydown[SDL_SCANCODE_D as usize] as i32 != 0
         {
-            clearold();
-            refresh(&mut global_state.view);
-            refresh(&mut global_state.view);
+            clearold(&mut global_state.oldtiles);
+            refresh(global_state);
+            refresh(global_state);
             clearkeys();
             centerwindow(
                 12,
@@ -1272,7 +1271,7 @@ pub unsafe fn playloop(global_state: &mut GlobalState) {
                 }
             }
             RecordDemo();
-            clearold();
+            clearold(&mut global_state.oldtiles);
             clearkeys();
         }
         playdone = false as boolean;
@@ -1298,9 +1297,9 @@ pub unsafe fn playloop(global_state: &mut GlobalState) {
                 }
             }
             SaveDemo(ch as i32 - '0' as i32);
-            clearold();
-            refresh(&mut global_state.view);
-            refresh(&mut global_state.view);
+            clearold(&mut global_state.oldtiles);
+            refresh(global_state);
+            refresh(global_state);
         }
         if indemo != demoenum::notdemo {
             playdone = true as boolean;

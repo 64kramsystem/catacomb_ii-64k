@@ -994,7 +994,7 @@ pub unsafe fn controlpanel(global_state: &mut GlobalState) {
     global_state.screencenterx = oldcenterx;
     global_state.screencentery = oldcentery;
     soundmode = newsoundmode;
-    repaintscreen(&mut global_state.items, &mut global_state.view);
+    repaintscreen(global_state);
     ContinueSound();
 }
 #[no_mangle]

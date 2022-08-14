@@ -151,8 +151,6 @@ pub const opposite: [dirtype; 9] = [
     south, west, north, east, southwest, northwest, northeast, southeast, nodir,
 ];
 #[no_mangle]
-pub static mut oldtiles: [i32; 576] = [0; 576];
-#[no_mangle]
 pub static mut background: [[i32; 86]; 87] = [[0; 86]; 87];
 #[no_mangle]
 pub static mut originx: i32 = 0;
@@ -361,7 +359,7 @@ const demowin: [[i8; 16]; 5] = [
     ],
 ];
 
-pub unsafe fn refresh(view: &mut [[i32; 86]]) {
+pub unsafe fn refresh(global_state: &mut GlobalState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     let mut basex: i32 = 0;
@@ -375,8 +373,8 @@ pub unsafe fn refresh(view: &mut [[i32; 86]]) {
             x = 0;
             while x <= 15 {
                 underwin[y as usize][x as usize] =
-                    view[(y + basey) as usize][(x + basex) as usize] as u16;
-                view[(y + basey) as usize][(x + basex) as usize] =
+                    global_state.view[(y + basey) as usize][(x + basex) as usize] as u16;
+                global_state.view[(y + basey) as usize][(x + basex) as usize] =
                     demowin[y as usize][x as usize] as i32;
                 x += 1;
             }
@@ -385,16 +383,16 @@ pub unsafe fn refresh(view: &mut [[i32; 86]]) {
     }
     WaitVBL();
     if grmode as u32 == CGAgr as i32 as u32 {
-        cgarefresh(view);
+        cgarefresh(global_state);
     } else {
-        egarefresh(view);
+        egarefresh(global_state);
     }
     if indemo != demoenum::notdemo {
         y = 0;
         while y <= 4 {
             x = 0;
             while x <= 15 {
-                view[(y + basey) as usize][(x + basex) as usize] =
+                global_state.view[(y + basey) as usize][(x + basex) as usize] =
                     underwin[y as usize][x as usize] as i32;
                 x += 1;
             }
@@ -404,12 +402,12 @@ pub unsafe fn refresh(view: &mut [[i32; 86]]) {
     WaitVBL();
 }
 
-unsafe fn simplerefresh(view: &mut [[i32; 86]]) {
+unsafe fn simplerefresh(global_state: &mut GlobalState) {
     WaitVBL();
     if grmode as u32 == CGAgr as i32 as u32 {
-        cgarefresh(view);
+        cgarefresh(global_state);
     } else {
-        egarefresh(view);
+        egarefresh(global_state);
     };
 }
 #[no_mangle]
@@ -433,18 +431,18 @@ pub unsafe extern "C" fn loadgrfiles() {
         );
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn clearold() {
+
+pub unsafe fn clearold(oldtiles: &mut [i32; 576]) {
     memset(
-        &mut oldtiles as *mut [i32; 576] as *mut libc::c_void,
+        oldtiles as *mut [i32; 576] as *mut libc::c_void,
         0xff as i32,
         ::std::mem::size_of::<[i32; 576]>() as u64,
     );
 }
 
-pub unsafe fn restore(view: &mut [[i32; 86]]) {
-    clearold();
-    simplerefresh(view);
+pub unsafe fn restore(global_state: &mut GlobalState) {
+    clearold(&mut global_state.oldtiles);
+    simplerefresh(global_state);
 }
 #[no_mangle]
 pub unsafe extern "C" fn wantmore() -> boolean {
@@ -718,7 +716,7 @@ pub unsafe fn loadlevel(global_state: &mut GlobalState) {
     sy = 1;
     printint(level as i32);
     print(b" \0" as *const u8 as *const i8);
-    restore(&mut global_state.view);
+    restore(global_state);
     i = 0;
     while i < 6 {
         saveitems[i as usize] = global_state.items[i as usize];
@@ -805,22 +803,22 @@ unsafe fn playsetup(items: &mut [i16]) {
     };
 }
 
-pub unsafe fn repaintscreen(items: &mut [i16], view: &mut [[i32; 86]]) {
+pub unsafe fn repaintscreen(global_state: &mut GlobalState) {
     match gamestate {
         statetype::intitle => {
             drawpic(0, 0, 14);
         }
         statetype::ingame => {
-            restore(view);
-            drawside(items);
+            restore(global_state);
+            drawside(&mut global_state.items);
             printscore();
             sx = 33;
             sy = 1;
             printint(level as i32);
         }
         statetype::inscores => {
-            restore(view);
-            drawside(items);
+            restore(global_state);
+            drawside(&mut global_state.items);
             printscore();
             sx = 33;
             sy = 1;
@@ -1027,9 +1025,9 @@ pub unsafe fn dofkeys(global_state: &mut GlobalState) {
         }
         _ => return,
     }
-    clearold();
+    clearold(&mut global_state.oldtiles);
     clearkeys();
-    repaintscreen(&mut global_state.items, &mut global_state.view);
+    repaintscreen(global_state);
 }
 
 unsafe fn dotitlepage(global_state: &mut GlobalState) {
@@ -1211,6 +1209,7 @@ pub fn original_main() {
         19,
         11,
         quited,
+        [0; 576],
     );
 
     /***************************************************************************/
