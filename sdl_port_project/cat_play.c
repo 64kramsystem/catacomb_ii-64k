@@ -18,8 +18,8 @@
 
 #include <stdlib.h>
 
-#include "catdefs.h"
 #include "catacomb.h"
+#include "catdefs.h"
 #include "sounds.h"
 
 /*=====================================*/
@@ -29,26 +29,24 @@
 /*				       */
 /*=====================================*/
 
-int newobject()
-{
+int newobject() {
   int i;
 
-  for (i=1; i<= numobj; i++)
-    if (o[i].class==nothing)
-	goto gotit;
-  if (numobj<maxobj)
+  for (i = 1; i <= numobj; i++)
+    if (o[i].class == nothing)
+      goto gotit;
+  if (numobj < maxobj)
     numobj++;
-  i=numobj;
+  i = numobj;
 
 gotit:
 
-  o[i].oldtile=-1;
-  o[i].oldx=0;
-  o[i].oldy=0;
+  o[i].oldtile = -1;
+  o[i].oldx = 0;
+  o[i].oldy = 0;
 
   return i;
 }
-
 
 /*=================================*/
 /*				   */
@@ -57,20 +55,17 @@ gotit:
 /*				   */
 /*=================================*/
 
-void printscore()
-{
-  sx=31;
-  sy=3;
-  printlong (score);
+void printscore() {
+  sx = 31;
+  sy = 3;
+  printlong(score);
 }
 
-void printhighscore ()
-{
-  sx=31;
-  sy=5;
-  printlong (highscores[1].score);
+void printhighscore() {
+  sx = 31;
+  sy = 5;
+  printlong(highscores[1].score);
 }
-
 
 /*======================================*/
 /*				        */
@@ -80,27 +75,23 @@ void printhighscore ()
 /*				        */
 /*======================================*/
 
-void printshotpower()
-{
-  sx=25;
-  sy=13;
+void printshotpower() {
+  sx = 25;
+  sy = 13;
   if (shotpower == 13)
-    print (altmeters[13]);
+    print(altmeters[13]);
   else
-    print (meters[shotpower]);
+    print(meters[shotpower]);
 }
 
-
-void printbody()
-{
-  sx=25;
-  sy=16;
-  if (o[0].hp>6)
-    print (meters[o[0].hp]);
+void printbody() {
+  sx = 25;
+  sy = 16;
+  if (o[0].hp > 6)
+    print(meters[o[0].hp]);
   else
-    print (altmeters[o[0].hp]);
+    print(altmeters[o[0].hp]);
 }
-
 
 /*=============================*/
 /*			       */
@@ -111,34 +102,32 @@ void printbody()
 /*			       */
 /*=============================*/
 
-void levelcleared()
-{
+void levelcleared() {
   char warp[3];
   int value;
 
-  leveldone=true;
+  leveldone = true;
 
-  warp[0]=(char) background[altobj.y+2][altobj.x]-161;
-  if ( (warp[0]<'0') || (warp[0]>'9') )
-    warp[0]='0';
-  warp[1]=(char) background[altobj.y+2][altobj.x+1]-161;
-  if ( (warp[1]<'0') || (warp[1]>'9') )
-    warp[2]=' ';
- value = atoi (warp);
+  warp[0] = (char)background[altobj.y + 2][altobj.x] - 161;
+  if ((warp[0] < '0') || (warp[0] > '9'))
+    warp[0] = '0';
+  warp[1] = (char)background[altobj.y + 2][altobj.x + 1] - 161;
+  if ((warp[1] < '0') || (warp[1] > '9'))
+    warp[2] = ' ';
+  value = atoi(warp);
 
-  if (value>0)
-    level=value;
+  if (value > 0)
+    level = value;
   else
     level++;
 
-  if (level>numlevels)
-/*all levels have been completed*/
-    {
-      playdone=true;
-      gamexit=victorious;
-    }
+  if (level > numlevels)
+  /*all levels have been completed*/
+  {
+    playdone = true;
+    gamexit = victorious;
+  }
 }
-
 
 /*==================================*/
 /*				    */
@@ -149,176 +138,148 @@ void levelcleared()
 /*				    */
 /*==================================*/
 
-void givekey()
-{
+void givekey() {
   int i;
 
-  i=items[1]+1;
-  items[1]=i;
-  if (i<11)
-    drawchar (26+i,7,31);  /*key icon*/
+  i = items[1] + 1;
+  items[1] = i;
+  if (i < 11)
+    drawchar(26 + i, 7, 31); /*key icon*/
 }
 
-
-void givepotion()
-{
+void givepotion() {
   int i;
 
-  i=items[2]+1;
-  items[2]=i;
-  if (i<11)
-    drawchar (26+i,8,29);  /*potion icon*/
+  i = items[2] + 1;
+  items[2] = i;
+  if (i < 11)
+    drawchar(26 + i, 8, 29); /*potion icon*/
 }
 
-
-void givebolt()
-{
+void givebolt() {
   int i;
 
-  i=items[3]+1;
-  items[3]=i;
-  if (i<11)
-    drawchar (26+i,9,30);  /*scroll icon*/
+  i = items[3] + 1;
+  items[3] = i;
+  if (i < 11)
+    drawchar(26 + i, 9, 30); /*scroll icon*/
 }
 
-
-
-void givenuke()
-{
+void givenuke() {
   int i;
 
-  i=items[5]+1;
-  items[5]=i;
-  if (i<11)
-    drawchar (26+i,10,30);  /*scroll icon*/
+  i = items[5] + 1;
+  items[5] = i;
+  if (i < 11)
+    drawchar(26 + i, 10, 30); /*scroll icon*/
 }
-
 
 /*	   */
 /* takekey */
 /*	   */
-boolean takekey()
-{
+boolean takekey() {
   int i;
 
-  if (items[1]>0)
-    {
-      i=items[1]-1;
-      items[1]=i;
-      if (i<10)
-	drawchar (27+i,7,32);
-      PlaySound (OPENDOORSND);
-      return true;
-    }
-  else
-    {
-      PlaySound (NOITEMSND);
-      return false;
-    }
+  if (items[1] > 0) {
+    i = items[1] - 1;
+    items[1] = i;
+    if (i < 10)
+      drawchar(27 + i, 7, 32);
+    PlaySound(OPENDOORSND);
+    return true;
+  } else {
+    PlaySound(NOITEMSND);
+    return false;
+  }
 }
-
 
 /*	      */
 /* takepotion */
 /*	      */
-void takepotion()
-{
+void takepotion() {
   int i;
 
-  if (items[2]>0)
-    {
-      i=items[2]-1;
-      items[2]=i;
-      if (i<11)
-	drawchar (27+i,8,32);
-      PlaySound(POTIONSND);
-      o[0].hp=13;
-      obj.hp=13;
-      printbody();           /*update the body meter*/
-    }
-  else
+  if (items[2] > 0) {
+    i = items[2] - 1;
+    items[2] = i;
+    if (i < 11)
+      drawchar(27 + i, 8, 32);
+    PlaySound(POTIONSND);
+    o[0].hp = 13;
+    obj.hp = 13;
+    printbody(); /*update the body meter*/
+  } else
     PlaySound(NOITEMSND);
 }
-
 
 /*	    */
 /* castbolt */
 /*	    */
-void castbolt()
-{
+void castbolt() {
   int i;
 
-  if (items[3]>0)
-    {
-      i=items[3]-1;
-      items[3]=i;
-      if (i<11)
-	drawchar (27+i,9,32);
-      boltsleft=8;
+  if (items[3] > 0) {
+    i = items[3] - 1;
+    items[3] = i;
+    if (i < 11)
+      drawchar(27 + i, 9, 32);
+    boltsleft = 8;
 
-      PlaySound(SPELLSND);
-    }
-  else
+    PlaySound(SPELLSND);
+  } else
     PlaySound(NOITEMSND);
 }
-
-
 
 /*	    */
 /* castnuke */
 /*	    */
-void castnuke()
-{
-  int i,x,n;
+void castnuke() {
+  int i, x, n;
   activeobj base;
 
-  if (items[5]==0)
-  {
+  if (items[5] == 0) {
     PlaySound(NOITEMSND);
     return;
   }
 
-  i=items[5]-1;
-  items[5]=i;
-  if (i<11)
-    drawchar (27+i,10,32);
+  i = items[5] - 1;
+  items[5] = i;
+  if (i < 11)
+    drawchar(27 + i, 10, 32);
 
-  base.delay=0;
-  base.stage=0;
-  base.active=true;
-  base.x=obj.x;
-  base.y=obj.y;      /*start bigshot at same coordinate at player*/
-  base.oldx=base.x;
-  base.oldy=base.y;
-  base.oldtile=-1;
-  base.class=bigshot;
+  base.delay = 0;
+  base.stage = 0;
+  base.active = true;
+  base.x = obj.x;
+  base.y = obj.y; /*start bigshot at same coordinate at player*/
+  base.oldx = base.x;
+  base.oldy = base.y;
+  base.oldtile = -1;
+  base.class = bigshot;
 
-  for (x=-1; x<=1; x++)
-    {	    /*make a whole buch of bigshots*/
-      n=newobject();
-      o[n]=base;
-      o[n].x=o[n].x+x*2;
-      o[n].dir=north;
-      n=newobject();
-      o[n]=base;
-      o[n].x=o[n].x+x*2;
-      o[n].dir=south;
-      n=newobject();
-      o[n]=base;
-      o[n].y=o[n].y+x*2;
-      o[n].dir=east;
-      n=newobject();
-      o[n]=base;
-      o[n].y=o[n].y+x*2;
-      o[n].dir=west;
-    }
+  for (x = -1; x <= 1; x++) { /*make a whole buch of bigshots*/
+    n = newobject();
+    o[n] = base;
+    o[n].x = o[n].x + x * 2;
+    o[n].dir = north;
+    n = newobject();
+    o[n] = base;
+    o[n].x = o[n].x + x * 2;
+    o[n].dir = south;
+    n = newobject();
+    o[n] = base;
+    o[n].y = o[n].y + x * 2;
+    o[n].dir = east;
+    n = newobject();
+    o[n] = base;
+    o[n].y = o[n].y + x * 2;
+    o[n].dir = west;
+  }
 
   PlaySound(SPELLSND);
-  obj.stage=2;
-  obj.delay=4;
+  obj.stage = 2;
+  obj.delay = 4;
 }
-
-
 
 /*=======================================*/
 /*				         */
@@ -329,63 +290,57 @@ void castnuke()
 /*				         */
 /*=======================================*/
 
-void playshoot()
-{
+void playshoot() {
   int new;
 
-  obj.stage=2;
-  obj.delay=4;
-  PlaySound (SHOTSND);
+  obj.stage = 2;
+  obj.delay = 4;
+  PlaySound(SHOTSND);
 
-  new=newobject();
+  new = newobject();
 
-  o[new].class=shot;
-  side^=1;
-  o[new].delay=0;
-  o[new].stage=0;
-  o[new].active=true;
-  o[new].dir=obj.dir;  /*missile is allways facing same way as thrower*/
-  switch ( o[new].dir )
-  {
-    case north:
-	     o[new].x=obj.x+side;
-	     o[new].y=obj.y;
-	     break;
-    case east:
-	     o[new].x=obj.x+1;
-	     o[new].y=obj.y+side;
-	     break;
-    case south:
-	     o[new].x=obj.x+side;
-	     o[new].y=obj.y+1;
-	     break;
-    case west:
-	     o[new].x=obj.x;
-	     o[new].y=obj.y+side;
-	     break;
+  o[new].class = shot;
+  side ^= 1;
+  o[new].delay = 0;
+  o[new].stage = 0;
+  o[new].active = true;
+  o[new].dir = obj.dir; /*missile is allways facing same way as thrower*/
+  switch (o[new].dir) {
+  case north:
+    o[new].x = obj.x + side;
+    o[new].y = obj.y;
+    break;
+  case east:
+    o[new].x = obj.x + 1;
+    o[new].y = obj.y + side;
+    break;
+  case south:
+    o[new].x = obj.x + side;
+    o[new].y = obj.y + 1;
+    break;
+  case west:
+    o[new].x = obj.x;
+    o[new].y = obj.y + side;
+    break;
   }
 }
 
-
-
-void playbigshoot()
-{
+void playbigshoot() {
   int new;
 
-  obj.stage=2;
-  if (boltsleft==0)
-    obj.delay=4;
-  PlaySound (BIGSHOTSND);
-  new=newobject();
-  o[new].delay=0;
-  o[new].stage=0;
-  o[new].active=true;
-  o[new].dir=obj.dir;  /*missile is allways facing same way as thrower*/
-  o[new].x=obj.x;
-  o[new].y=obj.y;      /*start bigshot at same coordinate at player*/
-  o[new].class=bigshot;
+  obj.stage = 2;
+  if (boltsleft == 0)
+    obj.delay = 4;
+  PlaySound(BIGSHOTSND);
+  new = newobject();
+  o[new].delay = 0;
+  o[new].stage = 0;
+  o[new].active = true;
+  o[new].dir = obj.dir; /*missile is allways facing same way as thrower*/
+  o[new].x = obj.x;
+  o[new].y = obj.y; /*start bigshot at same coordinate at player*/
+  o[new].class = bigshot;
 }
-
 
 /*============================*/
 /*			      */
@@ -394,14 +349,12 @@ void playbigshoot()
 /*			      */
 /*============================*/
 
-void givescroll()
-{
-  if (rndt()<128)
-    givebolt ();
+void givescroll() {
+  if (rndt() < 128)
+    givebolt();
   else
-    givenuke ();
+    givenuke();
 }
-
 
 /*=========================================*/
 /*					   */
@@ -410,53 +363,41 @@ void givescroll()
 /*				           */
 /*=========================================*/
 
-void opendoor()
-{
-  int x,y;
+void opendoor() {
+  int x, y;
 
-/*clears door icons both ways from the point contacted*/
- PlaySound (OPENDOORSND);
- x=chkx;
- y=chky;
- if (chkspot==165)
-   {		      /*vertical doors*/
-     do
-     {
-       view[y][x]=blankfloor;
-       background[y][x]=blankfloor;
-       y--;
-     } while (view[y][x]==165);
-     y=chky+1;
-     while (view[y][x]==165)
-     {
-       view[y][x]=blankfloor;
-       background[y][x]=blankfloor;
-       y++;
-     }
-   }
- else
-   {		     /*horizontal doors*/
-     do
-     {
-       view[y][x]=blankfloor;
-       background[y][x]=blankfloor;
-       x--;
-     } while (view[y][x]==166);
-     x=chkx+1;
-     while (view[y][x]==166)
-     {
-       view[y][x]=blankfloor;
-       background[y][x]=blankfloor;
-       x++;
-     };
-   }
-
+  /*clears door icons both ways from the point contacted*/
+  PlaySound(OPENDOORSND);
+  x = chkx;
+  y = chky;
+  if (chkspot == 165) { /*vertical doors*/
+    do {
+      view[y][x] = blankfloor;
+      background[y][x] = blankfloor;
+      y--;
+    } while (view[y][x] == 165);
+    y = chky + 1;
+    while (view[y][x] == 165) {
+      view[y][x] = blankfloor;
+      background[y][x] = blankfloor;
+      y++;
+    }
+  } else { /*horizontal doors*/
+    do {
+      view[y][x] = blankfloor;
+      background[y][x] = blankfloor;
+      x--;
+    } while (view[y][x] == 166);
+    x = chkx + 1;
+    while (view[y][x] == 166) {
+      view[y][x] = blankfloor;
+      background[y][x] = blankfloor;
+      x++;
+    };
+  }
 }
 
-
-
 /****************************************************************************/
-
 
 /*======================================*/
 /*				        */
@@ -465,67 +406,62 @@ void opendoor()
 /*				        */
 /*======================================*/
 
-void tagobject ()
+void tagobject()
 
 {
-  int i=altobj.hp;
+  int i = altobj.hp;
 
   if ((GODMODE) && (altobj.class == player))
-		return;
+    return;
 
   altobj.hp -= obj.damage;
-  if (i<=obj.damage)
+  if (i <= obj.damage)
 
-/*it died*/
+  /*it died*/
 
-	 {
-/*      erasealtobj;		*/	/*because dead has lower priority*/
+  {
+    /*      erasealtobj;		*/ /*because dead has lower priority*/
 
-		if (altobj.class == player)
-	{
-	  altobj.hp = o[0].hp = 0;
-	  printbody();
-	  PlaySound (KILLPLAYERSND);
-	  playdone=true;               /*gameover by way of death*/
-	  gamexit=killed;
-	}
-
-      else
-
-	{
-	  score=score+altobj.points; /*give player points for a kill*/
-	  printscore();
-	  PlaySound (KILLMONSND);
-	}
-      /*change class to a deadthing of same size*/
-      o[altnum].class=(classtype)(dead1-1+altobj.size);
-      o[altnum].delay=2;
-      o[altnum].stage=0; /*start of fade*/
+    if (altobj.class == player) {
+      altobj.hp = o[0].hp = 0;
+      printbody();
+      PlaySound(KILLPLAYERSND);
+      playdone = true; /*gameover by way of death*/
+      gamexit = killed;
     }
+
+    else
+
+    {
+      score = score + altobj.points; /*give player points for a kill*/
+      printscore();
+      PlaySound(KILLMONSND);
+    }
+    /*change class to a deadthing of same size*/
+    o[altnum].class = (classtype)(dead1 - 1 + altobj.size);
+    o[altnum].delay = 2;
+    o[altnum].stage = 0; /*start of fade*/
+  }
 
   else
 
-/*wasn't killed*/
+  /*wasn't killed*/
 
-    {
-      if ( o[altnum].class == guns || o[altnum].class == gune )
-	return;
-      o[altnum].hp=altobj.hp;	/*save the new hp status*/
-      o[altnum].stage=3;	/*set it to ouch stage*/
-      if (altnum==0)
-	{
-	  o[0].delay=2;
-	  printbody();     /*update body bar on screen*/
-	  PlaySound (TAGPLAYERSND);
-	}
-      else
-	{
-	  o[altnum].delay=4;      /*four frames for monsters*/
-	  PlaySound (TAGMONSND);
-	}
+  {
+    if (o[altnum].class == guns || o[altnum].class == gune)
+      return;
+    o[altnum].hp = altobj.hp; /*save the new hp status*/
+    o[altnum].stage = 3;      /*set it to ouch stage*/
+    if (altnum == 0) {
+      o[0].delay = 2;
+      printbody(); /*update body bar on screen*/
+      PlaySound(TAGPLAYERSND);
+    } else {
+      o[altnum].delay = 4; /*four frames for monsters*/
+      PlaySound(TAGMONSND);
     }
+  }
 }
-
 
 /*==============================*/
 /*			        */
@@ -534,76 +470,67 @@ void tagobject ()
 /*			        */
 /*==============================*/
 
-boolean intomonster()
-{
+boolean intomonster() {
   boolean gotit;
 
-/*figure out which object got hit*/
+  /*figure out which object got hit*/
 
-  altnum=0;
-  gotit=false;
-  do
-  {
-  /* make a copy of the objects info into a global varriable */
+  altnum = 0;
+  gotit = false;
+  do {
+    /* make a copy of the objects info into a global varriable */
 
-    memcpy (&altobj.active,&o[altnum],sizeof(o[altnum]) );
-    if ( (altobj.class>nothing) && (altnum!=objecton) )
-	{
-		memcpy (&altobj.think,&objdef[altobj.class],sizeof(objdef[altobj.class]) );
-		if ( (chkx>=altobj.x) && (chkx-altobj.x<altobj.size)
-		&& (chky>=altobj.y) && (chky-altobj.y<altobj.size) )
-		{
-			if (altobj.solid)
-				gotit=true;
-			else
-			{
-				if ( (objecton==0) && (altobj.class==teleporter || altobj.class==secretgate) )
-				/*player got to the teleporter*/
-					levelcleared();
-			}
-		}
-	}
+    memcpy(&altobj.active, &o[altnum], sizeof(o[altnum]));
+    if ((altobj.class > nothing) && (altnum != objecton)) {
+      memcpy(&altobj.think, &objdef[altobj.class],
+             sizeof(objdef[altobj.class]));
+      if ((chkx >= altobj.x) && (chkx - altobj.x < altobj.size) &&
+          (chky >= altobj.y) && (chky - altobj.y < altobj.size)) {
+        if (altobj.solid)
+          gotit = true;
+        else {
+          if ((objecton == 0) &&
+              (altobj.class == teleporter || altobj.class == secretgate))
+            /*player got to the teleporter*/
+            levelcleared();
+        }
+      }
+    }
     if (!gotit)
       altnum++;
-  } while (!(gotit || altnum>numobj) );
-
+  } while (!(gotit || altnum > numobj));
 
   if (!gotit)
     return true;
 
-/*resolve contact based on attacker and target*/
+  /*resolve contact based on attacker and target*/
 
-  switch (obj.contact)
-  {
+  switch (obj.contact) {
 
-    case benign:
-      return false;	/*benign objects just don't move through others*/
+  case benign:
+    return false; /*benign objects just don't move through others*/
 
-    case monster:
-    case mshot:
-      if (altnum==0)
-	{
-	  tagobject();
-	  obj.stage=2;   /*set it to attack stage*/
-	  obj.delay=20;   /*delay for several frames*/
-	}
-      else
-	if (altobj.class==shot)  /*they can walk into shots*/
-	  return true;
-      return false;
-
-    case pshot:
-      if (altnum>0)
-	tagobject();
-      return false;
-
-    case nukeshot:
+  case monster:
+  case mshot:
+    if (altnum == 0) {
       tagobject();
-      return true;   /*nuke shots keep going*/
+      obj.stage = 2;                 /*set it to attack stage*/
+      obj.delay = 20;                /*delay for several frames*/
+    } else if (altobj.class == shot) /*they can walk into shots*/
+      return true;
+    return false;
+
+  case pshot:
+    if (altnum > 0)
+      tagobject();
+    return false;
+
+  case nukeshot:
+    tagobject();
+    return true; /*nuke shots keep going*/
   }
   return false;
 }
-
 
 /*=======================================*/
 /*  			   	         */
@@ -613,145 +540,129 @@ boolean intomonster()
 /*				         */
 /*=======================================*/
 
-boolean walkthrough()
-{
+boolean walkthrough() {
   int new;
 
-  if (chkspot ==blankfloor)
+  if (chkspot == blankfloor)
     return true;
 
-/* big object */
+  /* big object */
 
-  if (chkspot>=tile2s && chkspot<=lasttile)
+  if (chkspot >= tile2s && chkspot <= lasttile)
     return intomonster();
 
-/* walls */
+  /* walls */
 
-  if (chkspot>=129 && chkspot<=135)
-  {
-    if ( (obj.contact==pshot) || (obj.contact==nukeshot) || (obj.contact==mshot) )
-  /*make an explosion over the wall*/
+  if (chkspot >= 129 && chkspot <= 135) {
+    if ((obj.contact == pshot) || (obj.contact == nukeshot) ||
+        (obj.contact == mshot))
+    /*make an explosion over the wall*/
     {
       new = newobject();
-      o[new].active=true;
-      o[new].x=chkx;
-      o[new].y=chky;
-      o[new].stage=0;
-      o[new].delay=2;
-      o[new].class=wallhit;
-      PlaySound (TAGWALLSND);
+      o[new].active = true;
+      o[new].x = chkx;
+      o[new].y = chky;
+      o[new].stage = 0;
+      o[new].delay = 2;
+      o[new].class = wallhit;
+      PlaySound(TAGWALLSND);
     }
     return false;
   }
 
-/* exploding walls */
+  /* exploding walls */
 
-  if (chkspot>=136 && chkspot<=145)
-  {
-    if ((obj.contact==pshot) || (obj.contact==nukeshot))
-    {
-     PlaySound (TAGWALLSND);
-     if (chkspot<143)
-       background[chky][chkx]=blankfloor;
-     else
-       background[chky][chkx]=chkspot+19;
-       /*hidden potion,scroll,key*/
+  if (chkspot >= 136 && chkspot <= 145) {
+    if ((obj.contact == pshot) || (obj.contact == nukeshot)) {
+      PlaySound(TAGWALLSND);
+      if (chkspot < 143)
+        background[chky][chkx] = blankfloor;
+      else
+        background[chky][chkx] = chkspot + 19;
+      /*hidden potion,scroll,key*/
 
-     /*make an explosion over the wall*/
-     new = newobject();
-     o[new].active=true;
-     o[new].x=chkx;
-     o[new].y=chky;
-     o[new].stage=0;
-     o[new].delay=2;
-     o[new].class=dead1;
-     if (obj.contact==pshot)
-       return false;
-     else
-       return true;             /*nuke shots keep going after blowing up one*/
+      /*make an explosion over the wall*/
+      new = newobject();
+      o[new].active = true;
+      o[new].x = chkx;
+      o[new].y = chky;
+      o[new].stage = 0;
+      o[new].delay = 2;
+      o[new].class = dead1;
+      if (obj.contact == pshot)
+        return false;
+      else
+        return true; /*nuke shots keep going after blowing up one*/
     }
 
-   else
-     return false;	/*nothing else goes through exploding walls*/
+    else
+      return false; /*nothing else goes through exploding walls*/
   }
 
-/* potion bottle */
-  if (chkspot==162)
-  {
-    if (obj.class==player)
-    {
+  /* potion bottle */
+  if (chkspot == 162) {
+    if (obj.class == player) {
       givepotion();
-      view[chky][chkx]=blankfloor;  /*erase icon*/
-      background[chky][chkx]=blankfloor;
+      view[chky][chkx] = blankfloor; /*erase icon*/
+      background[chky][chkx] = blankfloor;
       PlaySound(ITEMSND);
     }
-    return true;       /*everything but player just walks over it*/
+    return true; /*everything but player just walks over it*/
   }
 
-/*scroll*/
-  if (chkspot==163)
-  {
-    if (obj.class==player)
-    {
+  /*scroll*/
+  if (chkspot == 163) {
+    if (obj.class == player) {
       givescroll();
-      view[chky][chkx]=blankfloor;  /*erase icon*/
-      background[chky][chkx]=blankfloor;
+      view[chky][chkx] = blankfloor; /*erase icon*/
+      background[chky][chkx] = blankfloor;
       PlaySound(ITEMSND);
     }
-    return true;       /*everything but player just walks over it*/
+    return true; /*everything but player just walks over it*/
   }
 
-/* key */
-  if (chkspot==164)
-  {
-    if (obj.class==player)
-    {
+  /* key */
+  if (chkspot == 164) {
+    if (obj.class == player) {
       givekey();
-      view[chky][chkx]=blankfloor;  /*erase icon*/
-      background[chky][chkx]=blankfloor;
+      view[chky][chkx] = blankfloor; /*erase icon*/
+      background[chky][chkx] = blankfloor;
       PlaySound(ITEMSND);
     }
-    return true;       /*everything but player just walks over it*/
+    return true; /*everything but player just walks over it*/
   }
 
-
-/* doors */
-   if (chkspot==165 || chkspot==166)
-   {
-    if (obj.class==player)
-      {
-	if (takekey())
-	{
-	  opendoor();
-	  return true;
-	}
+  /* doors */
+  if (chkspot == 165 || chkspot == 166) {
+    if (obj.class == player) {
+      if (takekey()) {
+        opendoor();
+        return true;
       }
-     return false;       /*blocks everything else*/
-   }
+    }
+    return false; /*blocks everything else*/
+  }
 
-/* treasure chest */
+  /* treasure chest */
 
-   if (chkspot==167)
-   {
-     if (obj.class==player)
-     {
-       score+=500;
-       printscore();
-       background[chky][chkx]=blankfloor;
-       view[chky][chkx]=blankfloor;
-       PlaySound(TREASURESND);
-     }
-     return true;       /*everything but player just walks over it*/
-   }
+  if (chkspot == 167) {
+    if (obj.class == player) {
+      score += 500;
+      printscore();
+      background[chky][chkx] = blankfloor;
+      view[chky][chkx] = blankfloor;
+      PlaySound(TREASURESND);
+    }
+    return true; /*everything but player just walks over it*/
+  }
 
-/* blowing up walls */
+  /* blowing up walls */
 
-  if (chkspot>=29 && chkspot<=31)
+  if (chkspot >= 29 && chkspot <= 31)
     return true;
 
   return false;
 }
-
 
 /*==========================================*/
 /*                                          */
@@ -763,77 +674,73 @@ boolean walkthrough()
 /*                                          */
 /*==========================================*/
 
-boolean walk (void)
+boolean walk(void)
 
 {
-  int i,newx,newy,deltay,deltax;
+  int i, newx, newy, deltay, deltax;
   boolean try;
 
-
-  switch (obj.dir)
-    {
-    case north: {
-	     newx=obj.x;
-	     newy=obj.y-1;
-	     chkx=newx;
-	     chky=newy;
-	     deltax=1;
-	     deltay=0;
-       break;
-	   }
-    case east : {
-	     newx=obj.x+1;
-	     newy=obj.y;
-	     chkx=obj.x+obj.size;
-	     chky=newy;
-	     deltax=0;
-	     deltay=1;
-       break;
-	   }
-    case south: {
-	     newx=obj.x;
-	     newy=obj.y+1;
-	     chkx=newx;
-	     chky=obj.y+obj.size;
-	     deltax=1;
-	     deltay=0;
-       break;
-	   }
-    case west : {
-	     newx=obj.x-1;
-	     newy=obj.y;
-	     chkx=newx;
-	     chky=newy;
-	     deltax=0;
-	     deltay=1;
-       break;
-	   }
-    default: return (false);   /*should never happen*/
+  switch (obj.dir) {
+  case north: {
+    newx = obj.x;
+    newy = obj.y - 1;
+    chkx = newx;
+    chky = newy;
+    deltax = 1;
+    deltay = 0;
+    break;
+  }
+  case east: {
+    newx = obj.x + 1;
+    newy = obj.y;
+    chkx = obj.x + obj.size;
+    chky = newy;
+    deltax = 0;
+    deltay = 1;
+    break;
+  }
+  case south: {
+    newx = obj.x;
+    newy = obj.y + 1;
+    chkx = newx;
+    chky = obj.y + obj.size;
+    deltax = 1;
+    deltay = 0;
+    break;
+  }
+  case west: {
+    newx = obj.x - 1;
+    newy = obj.y;
+    chkx = newx;
+    chky = newy;
+    deltax = 0;
+    deltay = 1;
+    break;
+  }
+  default:
+    return (false); /*should never happen*/
   }
 
-  for (i=1;i<=obj.size;i++)
-    {
-      chkspot=view[chky][chkx];
-      if (chkspot!=blankfloor)
-      {
-	try=walkthrough();
-        if (leveldone)      /*player hit the teleporter*/
-	  return(true);
-	if (obj.stage==2)    /*if they attacked something, its good*/
-	  return(true);
-	if (!try)    /*ran into something that's not ok*/
-	  return(false);
-      }
-      chkx=chkx+deltax;
-      chky=chky+deltay;
+  for (i = 1; i <= obj.size; i++) {
+    chkspot = view[chky][chkx];
+    if (chkspot != blankfloor) {
+      try = walkthrough();
+      if (leveldone) /*player hit the teleporter*/
+        return (true);
+      if (obj.stage == 2) /*if they attacked something, its good*/
+        return (true);
+      if (!try) /*ran into something that's not ok*/
+        return (false);
     }
+    chkx = chkx + deltax;
+    chky = chky + deltay;
+  }
 
-  obj.x=newx;
-  obj.y=newy;
-  obj.stage ^= 1;       /*toggle walking frame*/
+  obj.x = newx;
+  obj.y = newy;
+  obj.stage ^= 1; /*toggle walking frame*/
   return (true);
 }
-
 
 /****************************************************************************/
 
@@ -849,259 +756,237 @@ void playercmdthink(void)
   dirtype olddir;
   ControlStruct c;
 
-  c=ControlPlayer (1);	/*see what the input device is doing*/
-  obj.stage=obj.stage & 1;   /*cancle attack or damaged stage*/
+  c = ControlPlayer(1);      /*see what the input device is doing*/
+  obj.stage = obj.stage & 1; /*cancle attack or damaged stage*/
 
+  /* cheat key... */
 
-/* cheat key... */
-
-  if (c.button1 && c.button2 && keydown[SDL_SCANCODE_Q])   /*'q' + b1 + b2*/
-    {
-      givepotion();
-      givescroll();
-      givekey();
-    }
-
-
-/*                      */
-/* carry out the action */
-/*                      */
-
-  if (c.dir<nodir && frameon%2)
+  if (c.button1 && c.button2 && keydown[SDL_SCANCODE_Q]) /*'q' + b1 + b2*/
   {
-    if (c.button2)       /*if button 2 is down, the move will not*/
-      olddir=obj.dir;   /*change the direction of the figure (strafe)*/
-
-    if (c.dir>west)
-    {
-      if ((frameon/2)%2)
-	switch (c.dir)
-	{
-	  case northeast:
-	    obj.dir = east;
-	    walk();
-	    c.dir = north;
-	    break;
-	  case southeast:
-		 obj.dir = south;
-	    walk();
-	    c.dir = east;
-	    break;
-	  case southwest:
-		 obj.dir = west;
-	    walk();
-	    c.dir = south;
-	    break;
-	  case northwest:
-	    obj.dir = north;
-	    walk();
-	    c.dir = west;
-	    break;
-	  default:
-	    break;
-	}
-      else
-	switch (c.dir)
-	{
-	  case northeast:
-	    obj.dir = north;
-	    walk();
-	    c.dir = east;
-	    break;
-	  case southeast:
-	    obj.dir = east;
-	    walk();
-	    c.dir = south;
-	    break;
-	  case southwest:
-	    obj.dir = south;
-	    walk();
-	    c.dir = west;
-	    break;
-	  case northwest:
-	    obj.dir = west;
-		 walk();
-	    c.dir = north;
-	    break;
-	  default:
-	    break;
-	}
-    }
-
-    obj.dir=c.dir;        /*set new direction*/
-    if (!walk())
-      PlaySound (BLOCKEDSND);
-    if (c.button2)
-      obj.dir=olddir;   /*restore original direction*/
+    givepotion();
+    givescroll();
+    givekey();
   }
-  else
-    if (!c.button2)
-      switch (c.dir)
-      {
-	case northwest:
-	case north:
-	  obj.dir = north;
-	  break;
-	case northeast:
-	case east:
-	  obj.dir = east;
-	  break;
-	case southeast:
-	case south:
-	  obj.dir = south;
-	  break;
-	case southwest:
-	case west:
-	  obj.dir = west;
-	  break;
-	case nodir:
-	  break;
-      }
 
-/* move screen origin */
+  /*                      */
+  /* carry out the action */
+  /*                      */
 
-  originx = obj.x-11;
-  originy = obj.y-11;
+  if (c.dir < nodir && frameon % 2) {
+    if (c.button2)      /*if button 2 is down, the move will not*/
+      olddir = obj.dir; /*change the direction of the figure (strafe)*/
 
-/* a bolt spell is still going off */
+    if (c.dir > west) {
+      if ((frameon / 2) % 2)
+        switch (c.dir) {
+        case northeast:
+          obj.dir = east;
+          walk();
+          c.dir = north;
+          break;
+        case southeast:
+          obj.dir = south;
+          walk();
+          c.dir = east;
+          break;
+        case southwest:
+          obj.dir = west;
+          walk();
+          c.dir = south;
+          break;
+        case northwest:
+          obj.dir = north;
+          walk();
+          c.dir = west;
+          break;
+        default:
+          break;
+        }
+      else
+        switch (c.dir) {
+        case northeast:
+          obj.dir = north;
+          walk();
+          c.dir = east;
+          break;
+        case southeast:
+          obj.dir = east;
+          walk();
+          c.dir = south;
+          break;
+        case southwest:
+          obj.dir = south;
+          walk();
+          c.dir = west;
+          break;
+        case northwest:
+          obj.dir = west;
+          walk();
+          c.dir = north;
+          break;
+        default:
+          break;
+        }
+    }
 
-  if (boltsleft>0)
-  {
-    if (frameon % 3==0)
-    {
-      playbigshoot();   /*let off a bigshot*/
+    obj.dir = c.dir; /*set new direction*/
+    if (!walk())
+      PlaySound(BLOCKEDSND);
+    if (c.button2)
+      obj.dir = olddir; /*restore original direction*/
+  } else if (!c.button2)
+    switch (c.dir) {
+    case northwest:
+    case north:
+      obj.dir = north;
+      break;
+    case northeast:
+    case east:
+      obj.dir = east;
+      break;
+    case southeast:
+    case south:
+      obj.dir = south;
+      break;
+    case southwest:
+    case west:
+      obj.dir = west;
+      break;
+    case nodir:
+      break;
+    }
+
+  /* move screen origin */
+
+  originx = obj.x - 11;
+  originy = obj.y - 11;
+
+  /* a bolt spell is still going off */
+
+  if (boltsleft > 0) {
+    if (frameon % 3 == 0) {
+      playbigshoot(); /*let off a bigshot*/
       boltsleft--;
     }
-  }
-  else
+  } else
 
-/* button 1 builds shot power / shoots */
+  /* button 1 builds shot power / shoots */
 
   {
-    if (c.button1)
-	 {
-      if (shotpower==0)
-	shotpower=1;     /*give power one immediately*/
-      else if (shotpower<13 && frameon%2)  /*give extra's only 2 frames*/
-	shotpower++;
+    if (c.button1) {
+      if (shotpower == 0)
+        shotpower = 1;                        /*give power one immediately*/
+      else if (shotpower < 13 && frameon % 2) /*give extra's only 2 frames*/
+        shotpower++;
+      printshotpower();
+    } else if (shotpower > 0) /*player just released the fire button*/
+    {
+      if (shotpower == 13)
+        playbigshoot();
+      else
+        playshoot();
+      shotpower = 0;
       printshotpower();
     }
-    else if (shotpower>0)    /*player just released the fire button*/
-	  {
-      if (shotpower==13)
-	playbigshoot();
-	    else
-	      playshoot();
-	    shotpower=0;
-	    printshotpower();
-	  }
-
   }
 
-/*                                       */
-/* keys to cast spells and drink potions */
-/*                                       */
+  /*                                       */
+  /* keys to cast spells and drink potions */
+  /*                                       */
 
-  if (!indemo)
-  {
-    if (keydown [SDL_SCANCODE_P] || keydown [SDL_SCANCODE_SPACE])     /*'p' or ' ' keys*/
+  if (!indemo) {
+    if (keydown[SDL_SCANCODE_P] ||
+        keydown[SDL_SCANCODE_SPACE]) /*'p' or ' ' keys*/
     {
-      if (obj.hp<13)  /*don't take a potion if not needed*/
+      if (obj.hp < 13) /*don't take a potion if not needed*/
       {
-	takepotion();
-	keydown [SDL_SCANCODE_Q]=false;
-	keydown [SDL_SCANCODE_SPACE]=false;
+        takepotion();
+        keydown[SDL_SCANCODE_Q] = false;
+        keydown[SDL_SCANCODE_SPACE] = false;
       }
-    }
-    else if (keydown [SDL_SCANCODE_B])        /*'b' key*/
-	  {
-	    castbolt();
-	    keydown [SDL_SCANCODE_B]=false;
-	  }
-    else if (keydown [SDL_SCANCODE_N] || keydown [SDL_SCANCODE_RETURN])   /*'n' or ret keys*/
+    } else if (keydown[SDL_SCANCODE_B]) /*'b' key*/
+    {
+      castbolt();
+      keydown[SDL_SCANCODE_B] = false;
+    } else if (keydown[SDL_SCANCODE_N] ||
+               keydown[SDL_SCANCODE_RETURN]) /*'n' or ret keys*/
     {
       castnuke();
-      keydown [SDL_SCANCODE_N]=false;
-      keydown [SDL_SCANCODE_RETURN]=false;
+      keydown[SDL_SCANCODE_N] = false;
+      keydown[SDL_SCANCODE_RETURN] = false;
     }
   }
 
-  dofkeys ();
-  if (resetgame)
-  {
-	 resetgame = false;
+  dofkeys();
+  if (resetgame) {
+    resetgame = false;
     playdone = true;
     return;
   }
 
-  switch (indemo)
-  {
-	 case notdemo:
-		if (keydown[SDL_SCANCODE_C] && keydown[SDL_SCANCODE_T] && keydown[SDL_SCANCODE_SPACE])	//'C-T-SPC'
-		{
-	centerwindow (16,2);
-	print ("warp to which\nlevel (1-99)?");
-	clearkeys ();
-	level =_inputint ();
-	if (level<1)
-	  level=1;
-	if (level>30)
-	  level=30;
-	restore();
-	leveldone = true;
-		}
+  switch (indemo) {
+  case notdemo:
+    if (keydown[SDL_SCANCODE_C] && keydown[SDL_SCANCODE_T] &&
+        keydown[SDL_SCANCODE_SPACE]) //'C-T-SPC'
+    {
+      centerwindow(16, 2);
+      print("warp to which\nlevel (1-99)?");
+      clearkeys();
+      level = _inputint();
+      if (level < 1)
+        level = 1;
+      if (level > 30)
+        level = 30;
+      restore();
+      leveldone = true;
+    }
 
+    // NOLAN ADDED
+    if (keydown[SDL_SCANCODE_C] && keydown[SDL_SCANCODE_T] &&
+        keydown[SDL_SCANCODE_TAB]) // c-t-TAB == GODMODE
+    {
+      if (GODMODE) {
+        centerwindow(13, 1);
+        print("God Mode Off");
+        GODMODE = false;
+      } else {
+        centerwindow(12, 1);
+        print("God Mode On");
+        GODMODE = true;
+      }
 
-//NOLAN ADDED
-	if (keydown[SDL_SCANCODE_C] && keydown[SDL_SCANCODE_T] && keydown[SDL_SCANCODE_TAB])	// c-t-TAB == GODMODE
-	{
-		if (GODMODE)
-		{
-			centerwindow (13,1);
-			print("God Mode Off");
-			GODMODE = false;
-		}
-		else
-		{
-			centerwindow (12,1);
-			print("God Mode On");
-			GODMODE = true;
-		}
+      UpdateScreen();
+      clearkeys();
+      while (bioskey(0) == 0)
+        WaitVBL();
 
-		UpdateScreen();
-		clearkeys();
-		while(bioskey(0) == 0)
-			WaitVBL();
+      restore();
+      clearkeys();
+    }
+    // NOLAN END
 
-		restore();
-		clearkeys();
-	}
-//NOLAN END
+    break;
 
-		break;
-
-    case demoplay:
+  case demoplay:
     //
     // check for player really hitting a button or space to start a game
     //
-      indemo = notdemo;
-      ctrl = ControlPlayer (1);
-      if (ctrl.button1 || ctrl.button2 || keydown[SDL_SCANCODE_SPACE])
-      {
-	indemo = demoplay;
-	exitdemo = true;
-	leveldone = true;
-	level = 0;
-	return;
-      }
+    indemo = notdemo;
+    ctrl = ControlPlayer(1);
+    if (ctrl.button1 || ctrl.button2 || keydown[SDL_SCANCODE_SPACE]) {
       indemo = demoplay;
-      break;
+      exitdemo = true;
+      leveldone = true;
+      level = 0;
+      return;
+    }
+    indemo = demoplay;
+    break;
 
-	default:
-	  break;
+  default:
+    break;
   }
 }
-
 
 /*===============================================*/
 /*					         */
@@ -1111,114 +996,98 @@ void playercmdthink(void)
 /*					         */
 /*===============================================*/
 
-void chasethink (boolean diagonal)
+void chasethink(boolean diagonal)
 
 {
-  int deltax,deltay;
+  int deltax, deltay;
   dirtype d[3];
   int tdir, olddir, turnaround;
 
-  obj.stage=obj.stage & 1;   /*cancle attack or damaged stage*/
-  olddir=obj.dir;
-  turnaround=opposite[olddir];
+  obj.stage = obj.stage & 1; /*cancle attack or damaged stage*/
+  olddir = obj.dir;
+  turnaround = opposite[olddir];
 
-  deltax=o[0].x-obj.x;
-  deltay=o[0].y-obj.y;
+  deltax = o[0].x - obj.x;
+  deltay = o[0].y - obj.y;
 
-    d[1]=nodir;
-    d[2]=nodir;
+  d[1] = nodir;
+  d[2] = nodir;
 
-  if (deltax>0)
-    d[1]= east;
-  if (deltax<0)
-    d[1]= west;
-  if (deltay>0)
-    d[2]=south;
-  if (deltay<0)
-    d[2]=north;
+  if (deltax > 0)
+    d[1] = east;
+  if (deltax < 0)
+    d[1] = west;
+  if (deltay > 0)
+    d[2] = south;
+  if (deltay < 0)
+    d[2] = north;
 
-  if (abs(deltay)>abs(deltax))
-    {
-      tdir=d[1];
-      d[1]=d[2];
-      d[2]=tdir;
-    }
-
-  if (d[1]==turnaround)
-    d[1]=nodir;
-  if (d[2]==turnaround)
-    d[2]=nodir;
-
-
-  if (diagonal)
-  {                           /*ramdiagonals try the best dir first*/
-    if (d[1]!=nodir)
-      {
-        obj.dir=d[1];
-	if (walk() || (obj.stage==3))
-          return;     /*either moved forward or attacked*/
-      }
-
-  if (d[2]!=nodir)
-    {
-      obj.dir=d[2];
-      if (walk() || (obj.stage==3))
-        return;
-    }
+  if (abs(deltay) > abs(deltax)) {
+    tdir = d[1];
+    d[1] = d[2];
+    d[2] = tdir;
   }
-  else
-  {                  /*ramstraights try the second best dir first*/
 
-  if (d[2]!=nodir)
-    {
-      obj.dir=d[2];
-      if (walk() || (obj.stage==3))
+  if (d[1] == turnaround)
+    d[1] = nodir;
+  if (d[2] == turnaround)
+    d[2] = nodir;
+
+  if (diagonal) { /*ramdiagonals try the best dir first*/
+    if (d[1] != nodir) {
+      obj.dir = d[1];
+      if (walk() || (obj.stage == 3))
+        return; /*either moved forward or attacked*/
+    }
+
+    if (d[2] != nodir) {
+      obj.dir = d[2];
+      if (walk() || (obj.stage == 3))
+        return;
+    }
+  } else { /*ramstraights try the second best dir first*/
+
+    if (d[2] != nodir) {
+      obj.dir = d[2];
+      if (walk() || (obj.stage == 3))
         return;
     }
 
-  if (d[1]!=nodir)
-    {
-      obj.dir=d[1];
-      if (walk() || (obj.stage==3))
+    if (d[1] != nodir) {
+      obj.dir = d[1];
+      if (walk() || (obj.stage == 3))
         return;
     }
   }
 
-/* there is no direct path to the player, so pick another direction */
+  /* there is no direct path to the player, so pick another direction */
 
-  obj.dir=olddir;
-  if (walk() || (obj.stage==3))
+  obj.dir = olddir;
+  if (walk() || (obj.stage == 3))
     return;
 
-  if (rndt()>128) 	/*randomly determine direction of search*/
-    {
-      for (tdir=north;tdir<=west;tdir++)
-      {
-        if (tdir!=turnaround)
-        {
-          obj.dir=tdir;
-	  if (walk() || (obj.stage==3))
-            return;
-        }
+  if (rndt() > 128) /*randomly determine direction of search*/
+  {
+    for (tdir = north; tdir <= west; tdir++) {
+      if (tdir != turnaround) {
+        obj.dir = tdir;
+        if (walk() || (obj.stage == 3))
+          return;
       }
     }
-    else
-    {
-      for (tdir=west;tdir>=north;tdir--)
-      {
-        if (tdir!=turnaround)
-        {
-          obj.dir=tdir;
-	  if (walk() || (obj.stage==3))
-            return;
-        }
+  } else {
+    for (tdir = west; tdir >= north; tdir--) {
+      if (tdir != turnaround) {
+        obj.dir = tdir;
+        if (walk() || (obj.stage == 3))
+          return;
       }
     }
+  }
 
-  obj.dir=turnaround;
-  walk();		/*last chance, don't worry about returned value*/
+  obj.dir = turnaround;
+  walk(); /*last chance, don't worry about returned value*/
 }
-
 
 /*===========*/
 /*           */
@@ -1231,53 +1100,50 @@ void gargthink(void)
 {
   int n;
 
-  if (rndt ()>220)   /*only shoot once in a while*/
+  if (rndt() > 220) /*only shoot once in a while*/
   {
-    obj.stage=2;
-    obj.delay=6;
+    obj.stage = 2;
+    obj.delay = 6;
 
-/*soundon=false;*/
+    /*soundon=false;*/
 
-    PlaySound (SHOTSND);
-    n=newobject();
+    PlaySound(SHOTSND);
+    n = newobject();
 
-// with o[n] do  /*get a free spot*/
+    // with o[n] do  /*get a free spot*/
 
-    o[n].class=rock;
-    o[n].delay=0;
-    o[n].stage=0;
-    o[n].active=true;
-    o[n].dir=obj.dir;  /*missile is allways facing same way as thrower*/
+    o[n].class = rock;
+    o[n].delay = 0;
+    o[n].stage = 0;
+    o[n].active = true;
+    o[n].dir = obj.dir; /*missile is allways facing same way as thrower*/
 
-    switch (obj.dir)
-    {
-      case north: {
-         o[n].x=obj.x+1+side;
-         o[n].y=obj.y;
-         break;
-		   }
-      case east:  {
-         o[n].x=obj.x+3;
-         o[n].y=obj.y+1+side;
-         break;
-		   }
-      case south: {
-         o[n].x=obj.x+1+side;
-         o[n].y=obj.y+3;
-         break;
-		   }
-      case west:  {
-         o[n].x=obj.x;
-         o[n].y=obj.y+1+side;
-         break;
-		   }
+    switch (obj.dir) {
+    case north: {
+      o[n].x = obj.x + 1 + side;
+      o[n].y = obj.y;
+      break;
+    }
+    case east: {
+      o[n].x = obj.x + 3;
+      o[n].y = obj.y + 1 + side;
+      break;
+    }
+    case south: {
+      o[n].x = obj.x + 1 + side;
+      o[n].y = obj.y + 3;
+      break;
+    }
+    case west: {
+      o[n].x = obj.x;
+      o[n].y = obj.y + 1 + side;
+      break;
+    }
     }
     return;
-  }
-  else
-    chasethink (false);   /*otherwise chase straight*/
+  } else
+    chasethink(false); /*otherwise chase straight*/
 }
-
 
 /*=============*/
 /*             */
@@ -1290,53 +1156,50 @@ void dragonthink(void)
 {
   int n;
 
-  if (rndt()>220) 	/*only shoot once in a while*/
-    {
-      obj.stage=2;
-      obj.delay=6;
+  if (rndt() > 220) /*only shoot once in a while*/
+  {
+    obj.stage = 2;
+    obj.delay = 6;
 
-/*soundon=false;*/
+    /*soundon=false;*/
 
-      PlaySound (SHOTSND);
-      n=newobject();
+    PlaySound(SHOTSND);
+    n = newobject();
 
-// with o[n]. do  /*get a free spot*/
+    // with o[n]. do  /*get a free spot*/
 
-    o[n].class=bigshot;
-    o[n].delay=0;
-    o[n].stage=0;
-    o[n].active=true;
-    o[n].dir=obj.dir;  /*missile is allways facing same way as thrower*/
+    o[n].class = bigshot;
+    o[n].delay = 0;
+    o[n].stage = 0;
+    o[n].active = true;
+    o[n].dir = obj.dir; /*missile is allways facing same way as thrower*/
 
-    switch (o[n].dir)
-    {
-      case north: {
-         o[n].x=obj.x+1+side;
-         o[n].y=obj.y;
-         break;
-		   }
-      case east:  {
-         o[n].x=obj.x+3;
-         o[n].y=obj.y+1+side;
-         break;
-		   }
-      case south: {
-         o[n].x=obj.x+1+side;
-         o[n].y=obj.y+3;
-         break;
-		   }
-      case west:  {
-         o[n].x=obj.x;
-         o[n].y=obj.y+1+side;
-         break;
-		   }
-	  }
+    switch (o[n].dir) {
+    case north: {
+      o[n].x = obj.x + 1 + side;
+      o[n].y = obj.y;
+      break;
+    }
+    case east: {
+      o[n].x = obj.x + 3;
+      o[n].y = obj.y + 1 + side;
+      break;
+    }
+    case south: {
+      o[n].x = obj.x + 1 + side;
+      o[n].y = obj.y + 3;
+      break;
+    }
+    case west: {
+      o[n].x = obj.x;
+      o[n].y = obj.y + 1 + side;
+      break;
+    }
+    }
     return;
-  }
-  else
-    chasethink (false);   /*otherwise chase straight*/
+  } else
+    chasethink(false); /*otherwise chase straight*/
 }
-
 
 /*==========*/
 /*          */
@@ -1344,27 +1207,24 @@ void dragonthink(void)
 /*          */
 /*==========*/
 
-void gunthink(int dir)
-{
+void gunthink(int dir) {
   int n;
 
-  PlaySound (SHOTSND);
-  obj.stage=0;
+  PlaySound(SHOTSND);
+  obj.stage = 0;
 
-  n=newobject();
+  n = newobject();
 
-// with o[n]. do  /*get a free spot*/
+  // with o[n]. do  /*get a free spot*/
 
-  o[n].class=bigshot;
-  o[n].delay=0;
-  o[n].stage=0;
-  o[n].active=true;
-  o[n].dir=dir;  /*missile is allways facing same way as thrower*/
-  o[n].x=obj.x;
-  o[n].y=obj.y;
+  o[n].class = bigshot;
+  o[n].delay = 0;
+  o[n].stage = 0;
+  o[n].active = true;
+  o[n].dir = dir; /*missile is allways facing same way as thrower*/
+  o[n].x = obj.x;
+  o[n].y = obj.y;
 }
-
-
 
 /*==============*/
 /*              */
@@ -1375,14 +1235,12 @@ void gunthink(int dir)
 void shooterthink(void)
 
 {
-  if ((obj.x<originx-1) || (obj.y<originy-1)
-  || (obj.x>originx+22) || (obj.y>originy+22)
-  || !walk() || (obj.stage==2))
-    {
-      obj.class=nothing;
-    }
+  if ((obj.x < originx - 1) || (obj.y < originy - 1) ||
+      (obj.x > originx + 22) || (obj.y > originy + 22) || !walk() ||
+      (obj.stage == 2)) {
+    obj.class = nothing;
+  }
 }
-
 
 /*===========*/
 /*           */
@@ -1394,11 +1252,10 @@ void idlethink(void)
 
 {
   obj.stage++;
-  obj.delay=2;
-  if (obj.stage==obj.stages)
-    obj.stage=0;
+  obj.delay = 2;
+  if (obj.stage == obj.stages)
+    obj.stage = 0;
 }
-
 
 /*===========*/
 /*           */
@@ -1410,13 +1267,11 @@ void fadethink(void)
 
 {
   obj.stage++;
-  obj.delay=2;
-  if (obj.stage==obj.stages)
-    {
-      obj.class=nothing;
-    }
+  obj.delay = 2;
+  if (obj.stage == obj.stages) {
+    obj.class = nothing;
+  }
 }
-
 
 /*==============*/
 /*              */
@@ -1424,55 +1279,52 @@ void fadethink(void)
 /*              */
 /*==============*/
 
-void killnear(int chkx,int chky)
+void killnear(int chkx, int chky)
 
 {
-  int spot,new;
+  int spot, new;
 
-  spot=background[chky][chkx];
+  spot = background[chky][chkx];
 
-  if (spot<136 || spot>145)     /* not an exploding wall */
+  if (spot < 136 || spot > 145) /* not an exploding wall */
     return;
 
-  PlaySound (TAGWALLSND);
-  if (spot<143)
-    background[chky][chkx]=blankfloor;
+  PlaySound(TAGWALLSND);
+  if (spot < 143)
+    background[chky][chkx] = blankfloor;
   else
-    background[chky][chkx]=spot+19;  /*hidden potion,scroll,key*/
+    background[chky][chkx] = spot + 19; /*hidden potion,scroll,key*/
 
   /*make an explosion over the wall*/
 
-// with o[newobject]. do
+  // with o[newobject]. do
 
-  new = newobject ();
+  new = newobject();
 
-  o[new].active=true;
-  o[new].x=chkx;
-  o[new].y=chky;
-  o[new].stage=0;
-  o[new].delay=2;
-  o[new].class=dead1;
+  o[new].active = true;
+  o[new].x = chkx;
+  o[new].y = chky;
+  o[new].stage = 0;
+  o[new].delay = 2;
+  o[new].class = dead1;
 }
-
 
 void explodethink(void)
 
 {
   obj.stage++;
-  if (obj.stage==1)    /*on first stage do a recursive flood explosion*/
+  if (obj.stage == 1) /*on first stage do a recursive flood explosion*/
   {
-    killnear(obj.x-1,obj.y);
-    killnear(obj.x,obj.y-1);
-    killnear(obj.x+1,obj.y);
-    killnear(obj.x,obj.y+1);
+    killnear(obj.x - 1, obj.y);
+    killnear(obj.x, obj.y - 1);
+    killnear(obj.x + 1, obj.y);
+    killnear(obj.x, obj.y + 1);
   }
-  obj.delay=2;
-  if (obj.stage==obj.stages)
-    {
-      obj.class=nothing;
-    }
+  obj.delay = 2;
+  if (obj.stage == obj.stages) {
+    obj.class = nothing;
+  }
 }
-
 
 /*========================================*/
 /*                                        */
@@ -1486,30 +1338,48 @@ void explodethink(void)
 void think(void)
 
 {
-  if (obj.delay>0)
-    obj.delay--;      /*if the object has a delay, it will do nothing*/
-  else
-    {
-      if (rndt () < obj.speed)
-      {
-        switch (obj.think)
-        {
-	  case playercmd : playercmdthink(); break;
-	  case ramstraight : chasethink (false); break;
-	  case ramdiag : chasethink (true); break;
-	  case gargcmd: gargthink(); break;
-	  case dragoncmd: dragonthink(); break;
-	  case straight : shooterthink(); break;
-	  case idle : idlethink(); break;
-	  case fade : fadethink(); break;
-	  case explode : explodethink(); break;
-	  case gunthinke : gunthink(west); break;
-	  case gunthinks : gunthink(north); break;
-        }
+  if (obj.delay > 0)
+    obj.delay--; /*if the object has a delay, it will do nothing*/
+  else {
+    if (rndt() < obj.speed) {
+      switch (obj.think) {
+      case playercmd:
+        playercmdthink();
+        break;
+      case ramstraight:
+        chasethink(false);
+        break;
+      case ramdiag:
+        chasethink(true);
+        break;
+      case gargcmd:
+        gargthink();
+        break;
+      case dragoncmd:
+        dragonthink();
+        break;
+      case straight:
+        shooterthink();
+        break;
+      case idle:
+        idlethink();
+        break;
+      case fade:
+        fadethink();
+        break;
+      case explode:
+        explodethink();
+        break;
+      case gunthinke:
+        gunthink(west);
+        break;
+      case gunthinks:
+        gunthink(north);
+        break;
       }
     }
+  }
 }
-
 
 /*==========*/
 /*          */
@@ -1520,29 +1390,27 @@ void think(void)
 void doactive(void)
 
 {
-/*see if it is way off screen, so deactivate*/
+  /*see if it is way off screen, so deactivate*/
 
-  if ((obj.class!=dead1) && ( (obj.x<originx-10) || (obj.x>originx+34)
-  || (obj.y<originy-10) || (obj.y>originy+34)))
-    {
-      o[objecton].active=false;
-    }
-  else
-    {
-      think();
-      eraseobj();
-      if (playdone)
-        return;
+  if ((obj.class != dead1) &&
+      ((obj.x < originx - 10) || (obj.x > originx + 34) ||
+       (obj.y < originy - 10) || (obj.y > originy + 34))) {
+    o[objecton].active = false;
+  } else {
+    think();
+    eraseobj();
+    if (playdone)
+      return;
 
-   /*redraw it even if it hasn't moved, in case it was hit*/
+    /*redraw it even if it hasn't moved, in case it was hit*/
 
-      if (obj.class>nothing)
-	drawobj();
+    if (obj.class > nothing)
+      drawobj();
 
-      /*write the temporary info back into the array*/
+    /*write the temporary info back into the array*/
 
-      memcpy(&o[objecton],&obj,sizeof(o[objecton]) );
-    }
+    memcpy(&o[objecton], &obj, sizeof(o[objecton]));
+  }
 }
 
 /*============*/
@@ -1551,22 +1419,19 @@ void doactive(void)
 /*            */
 /*============*/
 
-void doinactive()
-{
+void doinactive() {
   /*if the object just became visable, make it active*/
 
-  if ((obj.x+obj.size>=originx) && (obj.x<originx+24)
-   && (obj.y+obj.size>=originy) && (obj.y<originy+24))
-    {
-      obj.active=true;
-      obj.dir=north;
+  if ((obj.x + obj.size >= originx) && (obj.x < originx + 24) &&
+      (obj.y + obj.size >= originy) && (obj.y < originy + 24)) {
+    obj.active = true;
+    obj.dir = north;
 
-      /*write the temporary info back into the array*/
+    /*write the temporary info back into the array*/
 
-      memcpy (&o[objecton],&obj.active,sizeof(o[objecton]) );
-    }
+    memcpy(&o[objecton], &obj.active, sizeof(o[objecton]));
+  }
 }
-
 
 /*======================================*/
 /*				      */
@@ -1580,69 +1445,63 @@ void playloop(void)
 {
   screencenterx = 11;
 
-  do {   /*until playdone*/
+  do { /*until playdone*/
 
-    if (!indemo)
-    {
-      centerwindow (11,2);
-      print (" Entering\nlevel ");
-      printint (level);
-      print ("...");
-      PlaySound (LEVELDONESND);
-      WaitEndSound ();
+    if (!indemo) {
+      centerwindow(11, 2);
+      print(" Entering\nlevel ");
+      printint(level);
+      print("...");
+      PlaySound(LEVELDONESND);
+      WaitEndSound();
     }
 
-    clearold();    /*don't refresh the window yet*/
+    clearold(); /*don't refresh the window yet*/
 
     loadlevel(); /*load the level to play*/
-    leveldone= false;
+    leveldone = false;
 
-    if (keydown[SDL_SCANCODE_F7] && keydown[SDL_SCANCODE_D]) // 'D+F7' to record a demo
+    if (keydown[SDL_SCANCODE_F7] &&
+        keydown[SDL_SCANCODE_D]) // 'D+F7' to record a demo
     {
-      clearold ();
-      refresh ();
-      refresh ();
-      clearkeys ();
-      centerwindow (12,1);
-      print ("RECORD DEMO");
-      do
-      {
-	ch=get ();
-      } while (ch!=13);
-      RecordDemo ();
-      clearold ();
-      clearkeys ();
+      clearold();
+      refresh();
+      refresh();
+      clearkeys();
+      centerwindow(12, 1);
+      print("RECORD DEMO");
+      do {
+        ch = get();
+      } while (ch != 13);
+      RecordDemo();
+      clearold();
+      clearkeys();
     }
 
-    playdone=false;
-    frameon=0;
-    boltsleft=0;
-    shotpower=0;
-    initrndt (false);
+    playdone = false;
+    frameon = 0;
+    boltsleft = 0;
+    shotpower = 0;
+    initrndt(false);
     printshotpower();
-
 
     doall();
 
-    if (indemo == recording)
-    {
-      clearkeys ();
-      centerwindow (15,1);
-      print ("SAVE AS DEMO#:");
-      do
-      {
-	ch = get ();
-      } while (ch<'0' || ch>'9');
-      SaveDemo (ch-'0');
-      clearold ();
-      refresh ();
-      refresh ();
+    if (indemo == recording) {
+      clearkeys();
+      centerwindow(15, 1);
+      print("SAVE AS DEMO#:");
+      do {
+        ch = get();
+      } while (ch < '0' || ch > '9');
+      SaveDemo(ch - '0');
+      clearold();
+      refresh();
+      refresh();
     }
 
-
     if (indemo)
-      playdone=true;
+      playdone = true;
 
   } while (!playdone);
-
 }
