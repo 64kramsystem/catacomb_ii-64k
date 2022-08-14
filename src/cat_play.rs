@@ -41,7 +41,6 @@ extern "C" {
     static mut leveldone: boolean;
     static mut frameon: u16;
     static mut boltsleft: i32;
-    static mut shotpower: i32;
     static mut playdone: boolean;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
@@ -170,10 +169,13 @@ pub unsafe fn printhighscore(global_state: &mut GlobalState) {
 pub unsafe fn printshotpower(global_state: &mut GlobalState) {
     sx = 25;
     sy = 13;
-    if shotpower == 13 {
+    if global_state.shotpower == 13 {
         print(altmeters[13].as_ptr(), global_state);
     } else {
-        print(meters[shotpower as usize].as_ptr(), global_state);
+        print(
+            meters[global_state.shotpower as usize].as_ptr(),
+            global_state,
+        );
     };
 }
 
@@ -837,19 +839,19 @@ unsafe fn playercmdthink(global_state: &mut GlobalState) {
             boltsleft -= 1;
         }
     } else if c.button1 != 0 {
-        if shotpower == 0 {
-            shotpower = 1;
-        } else if shotpower < 13 && frameon as i32 % 2 != 0 {
-            shotpower += 1;
+        if global_state.shotpower == 0 {
+            global_state.shotpower = 1;
+        } else if global_state.shotpower < 13 && frameon as i32 % 2 != 0 {
+            global_state.shotpower += 1;
         }
         printshotpower(global_state);
-    } else if shotpower > 0 {
-        if shotpower == 13 {
+    } else if global_state.shotpower > 0 {
+        if global_state.shotpower == 13 {
             playbigshoot();
         } else {
             playshoot(&mut global_state.side);
         }
-        shotpower = 0;
+        global_state.shotpower = 0;
         printshotpower(global_state);
     }
     if indemo == demoenum::notdemo {
@@ -1307,7 +1309,7 @@ pub unsafe fn playloop(global_state: &mut GlobalState) {
         playdone = false as boolean;
         frameon = 0;
         boltsleft = 0;
-        shotpower = 0;
+        global_state.shotpower = 0;
         initrndt(false as boolean);
         printshotpower(global_state);
         doall(global_state);

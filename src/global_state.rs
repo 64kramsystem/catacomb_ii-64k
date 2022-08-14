@@ -12,8 +12,8 @@ pub struct GlobalState {
 
     pub items: [i16; 6],
     pub saveitems: [i16; 6],
-    //     int shotpower; /*0-13 characters in power meter*/
-    pub side: i32, /*which side shots come from*/
+    pub shotpower: i32, /*0-13 characters in power meter*/
+    pub side: i32,      /*which side shots come from*/
     //     int boltsleft; /*number of shots left in a bolt*/
 
     //     activeobj o[maxobj + 1], saveo[1]; /*everything that moves is here*/
@@ -64,6 +64,7 @@ impl GlobalState {
         priority: [u8; 2048],
         items: [i16; 6],
         saveitems: [i16; 6],
+        shotpower: i32,
         objdef: [objdeftype; 23],
         side: i32,
         view: [[i32; 86]; 87],
@@ -78,6 +79,7 @@ impl GlobalState {
             priority,
             items,
             saveitems,
+            shotpower,
             objdef,
             side,
             view,

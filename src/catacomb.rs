@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut shotpower: i32 = 0;
-#[no_mangle]
 pub static mut boltsleft: i32 = 0;
 #[no_mangle]
 pub static mut o: [activeobj; 201] = [activeobj {
@@ -827,7 +825,7 @@ pub unsafe fn loadlevel(global_state: &mut GlobalState) {
     }
     global_state.origin.x = o[0].x as i32 - 11;
     global_state.origin.y = o[0].y as i32 - 11;
-    shotpower = 0;
+    global_state.shotpower = 0;
     y = 11 - 1;
     while y < 65 + 11 {
         x = 11 - 1;
@@ -905,7 +903,7 @@ unsafe fn drawside(global_state: &mut GlobalState) {
 
 unsafe fn playsetup(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
-    shotpower = 0;
+    global_state.shotpower = 0;
     bar(0, 0, 23, 23, 0, global_state);
     if level as i32 == 0 {
         i = 1;
@@ -1361,6 +1359,7 @@ pub fn original_main() {
         [0; 2048],
         [0; 6],
         [0; 6],
+        0,
         [objdeftype {
             think: 0,
             contact: 0,
