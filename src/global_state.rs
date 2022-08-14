@@ -59,8 +59,8 @@ pub struct GlobalState {
      */
     pub savescore: i32,
 
-    //     // NOLAN ADDED
-    //     boolean GODMODE = false;
+    // NOLAN ADDED
+    pub GODMODE: bool,
 
     // loaded into ES in the draw routines
     // should be adjusted after grmode
@@ -95,6 +95,7 @@ impl GlobalState {
         gamestate: statetype,
         ctrl: ControlStruct,
         savescore: i32,
+        GODMODE: bool,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -129,6 +130,7 @@ impl GlobalState {
             gamestate,
             ctrl,
             savescore,
+            GODMODE,
             side,
             boltsleft,
             view,

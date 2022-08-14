@@ -87,8 +87,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 pub static mut pics: *mut i8 = 0 as *const i8 as *mut i8;
 #[no_mangle]
 pub static mut picsexact: *mut i8 = 0 as *const i8 as *mut i8;
-#[no_mangle]
-pub static mut GODMODE: boolean = false as boolean;
 
 const demowin: [[i8; 16]; 5] = [
     [
@@ -1097,6 +1095,7 @@ pub fn original_main() {
             button2: 0,
         },
         0,
+        false,
         0,
         0,
         [[0; 86]; 87],

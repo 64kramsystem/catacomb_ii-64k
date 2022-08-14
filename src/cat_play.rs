@@ -26,7 +26,6 @@ extern "C" {
     fn atoi(__nptr: *const i8) -> i32;
     fn abs(_: i32) -> i32;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
     static mut highscores: [scores; 5];
     static mut level: i16;
@@ -440,7 +439,7 @@ unsafe fn opendoor(gs: &mut GlobalState) {
 
 unsafe fn tagobject(gs: &mut GlobalState) {
     let mut i: i32 = gs.altobj.hp as i32;
-    if GODMODE as i32 != 0 && gs.altobj.class as i32 == player as i32 {
+    if gs.GODMODE && gs.altobj.class as i32 == player as i32 {
         return;
     }
     gs.altobj.hp = (gs.altobj.hp as i32 - gs.obj.damage as i32) as i8;
@@ -882,14 +881,14 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
                 && keydown[SDL_SCANCODE_T as usize] as i32 != 0
                 && keydown[SDL_SCANCODE_TAB as usize] as i32 != 0
             {
-                if GODMODE != 0 {
+                if gs.GODMODE {
                     centerwindow(13, 1, gs);
                     print(b"God Mode Off\0" as *const u8 as *const i8, gs);
-                    GODMODE = false as boolean;
+                    gs.GODMODE = false;
                 } else {
                     centerwindow(12, 1, gs);
                     print(b"God Mode On\0" as *const u8 as *const i8, gs);
-                    GODMODE = true as boolean;
+                    gs.GODMODE = true;
                 }
                 UpdateScreen(gs);
                 clearkeys();
