@@ -1348,44 +1348,38 @@ pub static mut win_xh: i32 = 0;
 #[no_mangle]
 pub static mut win_yh: i32 = 0;
 
-pub unsafe fn drawwindow(
-    mut xl: i32,
-    mut yl: i32,
-    mut xh: i32,
-    mut yh: i32,
-    global_state: &mut GlobalState,
-) {
+pub unsafe fn drawwindow(mut xl: i32, mut yl: i32, mut xh: i32, mut yh: i32, gs: &mut GlobalState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     win_xl = xl;
     win_yl = yl;
     win_xh = xh;
     win_yh = yh;
-    drawchar(xl, yl, 1, global_state);
+    drawchar(xl, yl, 1, gs);
     x = xl + 1;
     while x < xh {
-        drawchar(x, yl, 2, global_state);
+        drawchar(x, yl, 2, gs);
         x += 1;
     }
-    drawchar(xh, yl, 3, global_state);
+    drawchar(xh, yl, 3, gs);
     y = yl + 1;
     while y < yh {
-        drawchar(xl, y, 4, global_state);
+        drawchar(xl, y, 4, gs);
         x = xl + 1;
         while x < xh {
-            drawchar(x, y, ' ' as i32, global_state);
+            drawchar(x, y, ' ' as i32, gs);
             x += 1;
         }
-        drawchar(xh, y, 5, global_state);
+        drawchar(xh, y, 5, gs);
         y += 1;
     }
-    drawchar(xl, yh, 6, global_state);
+    drawchar(xl, yh, 6, gs);
     x = xl + 1;
     while x < xh {
-        drawchar(x, yh, 7, global_state);
+        drawchar(x, yh, 7, gs);
         x += 1;
     }
-    drawchar(xh, yh, 8, global_state);
+    drawchar(xh, yh, 8, gs);
     leftedge = xl + 1;
     sx = leftedge;
     sy = yl + 1;
@@ -1397,7 +1391,7 @@ pub unsafe fn bar(
     mut xh: i32,
     mut yh: i32,
     mut ch_0: i32,
-    global_state: &mut GlobalState,
+    gs: &mut GlobalState,
 ) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
@@ -1405,54 +1399,54 @@ pub unsafe fn bar(
     while y <= yh {
         x = xl;
         while x <= xh {
-            drawchar(x, y, ch_0, global_state);
+            drawchar(x, y, ch_0, gs);
             x += 1;
         }
         y += 1;
     }
 }
 
-pub unsafe fn erasewindow(global_state: &mut GlobalState) {
-    bar(win_xl, win_yl, win_xh, win_yh, ' ' as i32, global_state);
+pub unsafe fn erasewindow(gs: &mut GlobalState) {
+    bar(win_xl, win_yl, win_xh, win_yh, ' ' as i32, gs);
 }
 
-pub unsafe fn centerwindow(mut width: i32, mut height: i32, global_state: &mut GlobalState) {
-    let mut xl: i32 = global_state.screencenter.x - width / 2;
-    let mut yl: i32 = global_state.screencenter.y - height / 2;
-    drawwindow(xl, yl, xl + width + 1, yl + height + 1, global_state);
+pub unsafe fn centerwindow(mut width: i32, mut height: i32, gs: &mut GlobalState) {
+    let mut xl: i32 = gs.screencenter.x - width / 2;
+    let mut yl: i32 = gs.screencenter.y - height / 2;
+    drawwindow(xl, yl, xl + width + 1, yl + height + 1, gs);
 }
 
-pub unsafe fn expwin(mut width: i32, mut height: i32, global_state: &mut GlobalState) {
+pub unsafe fn expwin(mut width: i32, mut height: i32, gs: &mut GlobalState) {
     if width > 2 {
         if height > 2 {
-            expwin(width - 2, height - 2, global_state);
+            expwin(width - 2, height - 2, gs);
         } else {
-            expwinh(width - 2, height, global_state);
+            expwinh(width - 2, height, gs);
         }
     } else if height > 2 {
-        expwinv(width, height - 2, global_state);
+        expwinv(width, height - 2, gs);
     }
-    UpdateScreen(global_state);
+    UpdateScreen(gs);
     WaitVBL();
-    centerwindow(width, height, global_state);
+    centerwindow(width, height, gs);
 }
 
-unsafe fn expwinh(mut width: i32, mut height: i32, global_state: &mut GlobalState) {
+unsafe fn expwinh(mut width: i32, mut height: i32, gs: &mut GlobalState) {
     if width > 2 {
-        expwinh(width - 2, height, global_state);
+        expwinh(width - 2, height, gs);
     }
-    UpdateScreen(global_state);
+    UpdateScreen(gs);
     WaitVBL();
-    centerwindow(width, height, global_state);
+    centerwindow(width, height, gs);
 }
 
-unsafe fn expwinv(mut width: i32, mut height: i32, global_state: &mut GlobalState) {
+unsafe fn expwinv(mut width: i32, mut height: i32, gs: &mut GlobalState) {
     if height > 2 {
-        expwinv(width, height - 2, global_state);
+        expwinv(width, height - 2, gs);
     }
-    UpdateScreen(global_state);
+    UpdateScreen(gs);
     WaitVBL();
-    centerwindow(width, height, global_state);
+    centerwindow(width, height, gs);
 }
 #[no_mangle]
 pub unsafe extern "C" fn bioskey(mut cmd: i32) -> i32 {
@@ -1476,7 +1470,7 @@ pub unsafe extern "C" fn bioskey(mut cmd: i32) -> i32 {
     return lastkey as i32;
 }
 #[no_mangle]
-pub unsafe extern "C" fn UpdateScreen(global_state: &mut GlobalState) {
+pub unsafe extern "C" fn UpdateScreen(gs: &mut GlobalState) {
     static mut EGAPalette: [u32; 16] = [
         0, 0xaa, 0xaa00, 0xaaaa, 0xaa0000, 0xaa00aa, 0xaa5500, 0xaaaaaa, 0x555555, 0x5555ff,
         0x55ff55, 0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff,
@@ -1486,12 +1480,12 @@ pub unsafe extern "C" fn UpdateScreen(global_state: &mut GlobalState) {
     let mut i: u64 = 0;
     if grmode as u32 == EGAgr as i32 as u32 {
         while i < ::std::mem::size_of::<[u8; 64000]>() as u64 {
-            conv[i as usize] = EGAPalette[global_state.screenseg[i as usize] as usize];
+            conv[i as usize] = EGAPalette[gs.screenseg[i as usize] as usize];
             i = i.wrapping_add(1);
         }
     } else if grmode as u32 == CGAgr as i32 as u32 {
         while i < ::std::mem::size_of::<[u8; 64000]>() as u64 {
-            conv[i as usize] = CGAPalette[global_state.screenseg[i as usize] as usize];
+            conv[i as usize] = CGAPalette[gs.screenseg[i as usize] as usize];
             i = i.wrapping_add(1);
         }
     } else {
@@ -1508,7 +1502,7 @@ pub unsafe extern "C" fn UpdateScreen(global_state: &mut GlobalState) {
     SDL_RenderPresent(renderer);
 }
 #[no_mangle]
-pub unsafe extern "C" fn get(global_state: &mut GlobalState) -> i32 {
+pub unsafe extern "C" fn get(gs: &mut GlobalState) -> i32 {
     let mut cycle: i32 = 0;
     let mut key_0: i32 = 0;
     loop {
@@ -1520,8 +1514,8 @@ pub unsafe extern "C" fn get(global_state: &mut GlobalState) -> i32 {
             }
             let fresh2 = cycle;
             cycle = cycle + 1;
-            drawchar(sx, sy, fresh2, global_state);
-            UpdateScreen(global_state);
+            drawchar(sx, sy, fresh2, gs);
+            UpdateScreen(gs);
             WaitVBL();
             WaitVBL();
             WaitVBL();
@@ -1532,12 +1526,12 @@ pub unsafe extern "C" fn get(global_state: &mut GlobalState) -> i32 {
             break;
         }
     }
-    drawchar(sx, sy, ' ' as i32, global_state);
-    UpdateScreen(global_state);
+    drawchar(sx, sy, ' ' as i32, gs);
+    UpdateScreen(gs);
     return SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
 }
 
-pub unsafe fn print(mut str_0: *const i8, global_state: &mut GlobalState) {
+pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState) {
     let mut ch_0: i8 = 0;
     loop {
         let fresh3 = str_0;
@@ -1554,12 +1548,12 @@ pub unsafe fn print(mut str_0: *const i8, global_state: &mut GlobalState) {
         } else {
             let fresh4 = sx;
             sx = sx + 1;
-            drawchar(fresh4, sy, ch_0 as u8 as i32, global_state);
+            drawchar(fresh4, sy, ch_0 as u8 as i32, gs);
         }
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn printchartile(mut str_0: *const i8, global_state: &mut GlobalState) {
+pub unsafe extern "C" fn printchartile(mut str_0: *const i8, gs: &mut GlobalState) {
     let mut ch_0: i8 = 0;
     loop {
         let fresh5 = str_0;
@@ -1576,19 +1570,19 @@ pub unsafe extern "C" fn printchartile(mut str_0: *const i8, global_state: &mut 
         } else {
             let fresh6 = sx;
             sx = sx + 1;
-            drawchartile(fresh6, sy, ch_0 as u8 as i32, global_state);
+            drawchartile(fresh6, sy, ch_0 as u8 as i32, gs);
         }
     }
 }
 
-pub unsafe fn printint(mut val: i32, global_state: &mut GlobalState) {
+pub unsafe fn printint(mut val: i32, gs: &mut GlobalState) {
     itoa(val, str.as_mut_ptr(), 10);
-    print(str.as_mut_ptr(), global_state);
+    print(str.as_mut_ptr(), gs);
 }
 
-pub unsafe fn printlong(mut val: i64, global_state: &mut GlobalState) {
+pub unsafe fn printlong(mut val: i64, gs: &mut GlobalState) {
     ltoa(val as i32, str.as_mut_ptr(), 10);
-    print(str.as_mut_ptr(), global_state);
+    print(str.as_mut_ptr(), gs);
 }
 #[no_mangle]
 pub unsafe extern "C" fn _Verify(mut filename: *mut i8) -> i64 {
@@ -1603,7 +1597,7 @@ pub unsafe extern "C" fn _Verify(mut filename: *mut i8) -> i64 {
     return size;
 }
 
-unsafe fn _printhexb(mut value: libc::c_uchar, global_state: &mut GlobalState) {
+unsafe fn _printhexb(mut value: libc::c_uchar, gs: &mut GlobalState) {
     let mut loop_0: i32 = 0;
     let mut hexstr: [i8; 16] =
         *::std::mem::transmute::<&[u8; 16], &mut [i8; 16]>(b"0123456789ABCDEF");
@@ -1611,37 +1605,37 @@ unsafe fn _printhexb(mut value: libc::c_uchar, global_state: &mut GlobalState) {
     loop_0 = 0;
     while loop_0 < 2 {
         str_0[0] = hexstr[(value as i32 >> (1 - loop_0) * 4 & 15) as usize];
-        print(str_0.as_mut_ptr(), global_state);
+        print(str_0.as_mut_ptr(), gs);
         loop_0 += 1;
     }
 }
 
-unsafe fn _printhex(mut value: u32, global_state: &mut GlobalState) {
-    print(b"$\0" as *const u8 as *const i8, global_state);
-    _printhexb((value >> 8) as libc::c_uchar, global_state);
-    _printhexb((value & 0xff as i32 as u32) as libc::c_uchar, global_state);
+unsafe fn _printhex(mut value: u32, gs: &mut GlobalState) {
+    print(b"$\0" as *const u8 as *const i8, gs);
+    _printhexb((value >> 8) as libc::c_uchar, gs);
+    _printhexb((value & 0xff as i32 as u32) as libc::c_uchar, gs);
 }
 
-unsafe fn _printbin(mut value: u32, global_state: &mut GlobalState) {
+unsafe fn _printbin(mut value: u32, gs: &mut GlobalState) {
     let mut loop_0: i32 = 0;
-    print(b"%\0" as *const u8 as *const i8, global_state);
+    print(b"%\0" as *const u8 as *const i8, gs);
     loop_0 = 0;
     while loop_0 < 16 {
         if value >> 15 - loop_0 & 1 != 0 {
-            print(b"1\0" as *const u8 as *const i8, global_state);
+            print(b"1\0" as *const u8 as *const i8, gs);
         } else {
-            print(b"0\0" as *const u8 as *const i8, global_state);
+            print(b"0\0" as *const u8 as *const i8, gs);
         }
         loop_0 += 1;
     }
 }
 
-unsafe fn _printc(mut string: *mut i8, global_state: &mut GlobalState) {
-    sx = 1 + global_state.screencenter.x - (strlen(string)).wrapping_div(2) as i32;
-    print(string, global_state);
+unsafe fn _printc(mut string: *mut i8, gs: &mut GlobalState) {
+    sx = 1 + gs.screencenter.x - (strlen(string)).wrapping_div(2) as i32;
+    print(string, gs);
 }
 #[no_mangle]
-pub unsafe extern "C" fn _inputint(global_state: &mut GlobalState) -> u32 {
+pub unsafe extern "C" fn _inputint(gs: &mut GlobalState) -> u32 {
     let mut string: [i8; 18] =
         *::std::mem::transmute::<&[u8; 18], &mut [i8; 18]>(b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
     let mut digit: i8 = 0;
@@ -1650,7 +1644,7 @@ pub unsafe extern "C" fn _inputint(global_state: &mut GlobalState) -> u32 {
     let mut value: u32 = 0;
     let mut loop_0: u32 = 0;
     let mut loop1: u32 = 0;
-    _input(string.as_mut_ptr(), 17, global_state);
+    _input(string.as_mut_ptr(), 17, gs);
     if string[0] as i32 == '$' as i32 {
         let mut digits: i64 = 0;
         digits = (strlen(string.as_mut_ptr())).wrapping_sub(2) as i64;
@@ -1696,15 +1690,15 @@ pub unsafe extern "C" fn _inputint(global_state: &mut GlobalState) -> u32 {
     return value;
 }
 
-unsafe fn _input(mut string: *mut i8, mut max: i32, global_state: &mut GlobalState) -> i32 {
+unsafe fn _input(mut string: *mut i8, mut max: i32, gs: &mut GlobalState) -> i32 {
     let mut key_0: i8 = 0;
     let mut count: i32 = 0;
     let mut loop_0: i32 = 0;
     loop {
-        key_0 = toupper(get(global_state) & 0xff as i32) as i8;
+        key_0 = toupper(get(gs) & 0xff as i32) as i8;
         if (key_0 as i32 == 127 || key_0 as i32 == 8) && count > 0 {
             count -= 1;
-            drawchar(sx, sy, ' ' as i32, global_state);
+            drawchar(sx, sy, ' ' as i32, gs);
             sx -= 1;
         }
         if key_0 as i32 >= ' ' as i32 && key_0 as i32 <= 'z' as i32 && count < max {
@@ -1713,7 +1707,7 @@ unsafe fn _input(mut string: *mut i8, mut max: i32, global_state: &mut GlobalSta
             *string.offset(fresh7 as isize) = key_0;
             let fresh8 = sx;
             sx = sx + 1;
-            drawchar(fresh8, sy, key_0 as i32, global_state);
+            drawchar(fresh8, sy, key_0 as i32, gs);
         }
         if !(key_0 as i32 != 27 && key_0 as i32 != 13) {
             break;
@@ -2082,27 +2076,18 @@ pub unsafe extern "C" fn _savehighscores() {
     );
 }
 
-pub unsafe fn _showhighscores(global_state: &mut GlobalState) {
+pub unsafe fn _showhighscores(gs: &mut GlobalState) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
     let mut st2: [i8; 10] = [0; 10];
-    centerwindow(17, 17, global_state);
-    print(
-        b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8,
-        global_state,
-    );
-    print(
-        b" #  SCORE LV  BY\n\0" as *const u8 as *const i8,
-        global_state,
-    );
-    print(
-        b" - ------ -- ---\n\0" as *const u8 as *const i8,
-        global_state,
-    );
+    centerwindow(17, 17, gs);
+    print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8, gs);
+    print(b" #  SCORE LV  BY\n\0" as *const u8 as *const i8, gs);
+    print(b" - ------ -- ---\n\0" as *const u8 as *const i8, gs);
     i = 0;
     while i < 5 {
         sx += 1;
-        drawchar(sx, sy, '1' as i32 + i, global_state);
+        drawchar(sx, sy, '1' as i32 + i, gs);
         sx += 2;
         h = highscores[i as usize].score as i64;
         if h < 100000 {
@@ -2121,25 +2106,25 @@ pub unsafe fn _showhighscores(global_state: &mut GlobalState) {
             sx += 1;
         }
         ltoa(h as i32, str.as_mut_ptr(), 10);
-        print(str.as_mut_ptr(), global_state);
+        print(str.as_mut_ptr(), gs);
         sx += 1;
         if (highscores[i as usize].level as i32) < 10 {
             sx += 1;
         }
         itoa(highscores[i as usize].level as i32, str.as_mut_ptr(), 10);
-        print(str.as_mut_ptr(), global_state);
+        print(str.as_mut_ptr(), gs);
         sx += 1;
-        print((highscores[i as usize].initials).as_mut_ptr(), global_state);
-        print(b"\n\n\0" as *const u8 as *const i8, global_state);
+        print((highscores[i as usize].initials).as_mut_ptr(), gs);
+        print(b"\n\n\0" as *const u8 as *const i8, gs);
         i += 1;
     }
     strcpy(str.as_mut_ptr(), b"SCORE:\0" as *const u8 as *const i8);
     ltoa(score, st2.as_mut_ptr(), 10);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
-    _printc(str.as_mut_ptr(), global_state);
+    _printc(str.as_mut_ptr(), gs);
 }
 
-pub unsafe fn _checkhighscore(global_state: &mut GlobalState) {
+pub unsafe fn _checkhighscore(gs: &mut GlobalState) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
     let mut k: i32 = 0;
@@ -2163,19 +2148,19 @@ pub unsafe fn _checkhighscore(global_state: &mut GlobalState) {
             i += 1;
         }
     }
-    _showhighscores(global_state);
-    UpdateScreen(global_state);
+    _showhighscores(gs);
+    UpdateScreen(gs);
     if i < 5 {
         PlaySound(16);
         clearkeys();
-        sx = global_state.screencenter.x - 17 / 2 + 14;
-        sy = global_state.screencenter.y - 17 / 2 + 6 + i * 2;
+        sx = gs.screencenter.x - 17 / 2 + 14;
+        sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
-            k = get(global_state);
+            k = get(gs);
             ch = k as i8;
             if ch as i32 >= ' ' as i32 && j < 3 {
-                drawchar(sx, sy, ch as i32, global_state);
+                drawchar(sx, sy, ch as i32, gs);
                 sx += 1;
                 highscores[i as usize].initials[j as usize] = ch;
                 j += 1;
@@ -2196,7 +2181,7 @@ pub unsafe fn _checkhighscore(global_state: &mut GlobalState) {
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
-pub unsafe fn _setupgame(global_state: &mut GlobalState) {
+pub unsafe fn _setupgame(gs: &mut GlobalState) {
     if SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
         fprintf(
             stderr,
@@ -2319,7 +2304,7 @@ pub unsafe fn _setupgame(global_state: &mut GlobalState) {
         updateRect.y = 0;
     }
     memset(
-        global_state.screenseg.as_mut_ptr() as *mut libc::c_void,
+        gs.screenseg.as_mut_ptr() as *mut libc::c_void,
         0,
         ::std::mem::size_of::<[u8; 64000]>() as u64,
     );

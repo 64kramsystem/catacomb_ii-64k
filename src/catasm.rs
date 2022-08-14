@@ -89,7 +89,7 @@ pub unsafe fn drawobj(priority: &[u8], view: &mut [[i32; 86]]) {
     }
 }
 
-pub unsafe fn eraseobj(global_state: &mut GlobalState) {
+pub unsafe fn eraseobj(gs: &mut GlobalState) {
     let mut tilenum: i32 = obj.oldtile as i32;
     let mut ofs: u32 = (table86[obj.oldy as usize] as i32 + obj.oldx as i32) as u32;
     let mut x: u32 = 0;
@@ -108,9 +108,9 @@ pub unsafe fn eraseobj(global_state: &mut GlobalState) {
             if !(fresh3 > 0) {
                 break;
             }
-            if *(global_state.view.as_mut_ptr() as *mut i32).offset(ofs as isize) == tilenum {
-                *(global_state.view.as_mut_ptr() as *mut i32).offset(ofs as isize) =
-                    *(global_state.background.as_mut_ptr() as *mut i32).offset(ofs as isize);
+            if *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) == tilenum {
+                *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) =
+                    *(gs.background.as_mut_ptr() as *mut i32).offset(ofs as isize);
             }
             tilenum += 1;
             ofs = ofs.wrapping_add(1);
@@ -119,7 +119,7 @@ pub unsafe fn eraseobj(global_state: &mut GlobalState) {
     }
 }
 
-pub unsafe fn doall(global_state: &mut GlobalState) {
+pub unsafe fn doall(gs: &mut GlobalState) {
     assert!(numobj > 0);
 
     loop {
@@ -134,14 +134,14 @@ pub unsafe fn doall(global_state: &mut GlobalState) {
             if obj.class as i32 != nothing as i32 {
                 memcpy(
                     &mut obj.think as *mut u8 as *mut libc::c_void,
-                    &mut *global_state.objdef.as_mut_ptr().offset(obj.class as isize)
-                        as *mut objdeftype as *const libc::c_void,
+                    &mut *gs.objdef.as_mut_ptr().offset(obj.class as isize) as *mut objdeftype
+                        as *const libc::c_void,
                     ::std::mem::size_of::<objdeftype>() as u64,
                 );
                 if obj.active != 0 {
-                    doactive(global_state);
+                    doactive(gs);
                 } else {
-                    doinactive(global_state);
+                    doinactive(gs);
                 }
             }
             if leveldone as i32 != 0 || playdone as i32 != 0 {
@@ -152,7 +152,7 @@ pub unsafe fn doall(global_state: &mut GlobalState) {
                 break;
             }
         }
-        refresh(global_state);
+        refresh(gs);
         frameon = frameon.wrapping_add(1);
         if leveldone != 0 {
             return;
@@ -195,16 +195,16 @@ unsafe extern "C" fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
     }
 }
 
-pub unsafe fn cgarefresh(global_state: &mut GlobalState) {
-    let mut ofs: u32 = (global_state.origin.y * 86 + global_state.origin.x) as u32;
+pub unsafe fn cgarefresh(gs: &mut GlobalState) {
+    let mut ofs: u32 = (gs.origin.y * 86 + gs.origin.x) as u32;
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
     let mut endofrow: u32 = ofs.wrapping_add(24);
-    let mut vbuf: *mut u8 = global_state.screenseg.as_mut_ptr();
+    let mut vbuf: *mut u8 = gs.screenseg.as_mut_ptr();
     loop {
-        tile = *(global_state.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
-        if tile != global_state.oldtiles[i as usize] {
-            global_state.oldtiles[i as usize] = tile;
+        tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
+        if tile != gs.oldtiles[i as usize] {
+            gs.oldtiles[i as usize] = tile;
             drawcgachartile(vbuf, tile);
         }
         i = i.wrapping_add(1);
@@ -220,7 +220,7 @@ pub unsafe fn cgarefresh(global_state: &mut GlobalState) {
         endofrow = endofrow.wrapping_add(86);
         vbuf = vbuf.offset((screenpitch as i32 * 8 - 24 * 8) as isize);
     }
-    UpdateScreen(global_state);
+    UpdateScreen(gs);
 }
 unsafe extern "C" fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
     let mut src: *mut u8 = (pics as *mut u8).offset((tile << 5) as isize);
@@ -261,16 +261,16 @@ unsafe extern "C" fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
     }
 }
 
-pub unsafe fn egarefresh(global_state: &mut GlobalState) {
-    let mut ofs: u32 = (global_state.origin.y * 86 + global_state.origin.x) as u32;
+pub unsafe fn egarefresh(gs: &mut GlobalState) {
+    let mut ofs: u32 = (gs.origin.y * 86 + gs.origin.x) as u32;
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
     let mut endofrow: u32 = ofs.wrapping_add(24);
-    let mut vbuf: *mut u8 = global_state.screenseg.as_mut_ptr();
+    let mut vbuf: *mut u8 = gs.screenseg.as_mut_ptr();
     loop {
-        tile = *(global_state.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
-        if tile != global_state.oldtiles[i as usize] {
-            global_state.oldtiles[i as usize] = tile;
+        tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
+        if tile != gs.oldtiles[i as usize] {
+            gs.oldtiles[i as usize] = tile;
             drawegachartile(vbuf, tile);
         }
         i = i.wrapping_add(1);
@@ -286,15 +286,14 @@ pub unsafe fn egarefresh(global_state: &mut GlobalState) {
         endofrow = endofrow.wrapping_add(86);
         vbuf = vbuf.offset((screenpitch as i32 * 8 - 24 * 8) as isize);
     }
-    UpdateScreen(global_state);
+    UpdateScreen(gs);
 }
 
-pub unsafe fn drawchartile(mut x: i32, mut y: i32, mut tile: i32, global_state: &mut GlobalState) {
+pub unsafe fn drawchartile(mut x: i32, mut y: i32, mut tile: i32, gs: &mut GlobalState) {
     match grmode as u32 {
         1 => {
             drawcgachartile(
-                global_state
-                    .screenseg
+                gs.screenseg
                     .as_mut_ptr()
                     .offset(((y << 3) * screenpitch as i32) as isize)
                     .offset((x << 3) as isize),
@@ -303,8 +302,7 @@ pub unsafe fn drawchartile(mut x: i32, mut y: i32, mut tile: i32, global_state: 
         }
         2 | _ => {
             drawegachartile(
-                global_state
-                    .screenseg
+                gs.screenseg
                     .as_mut_ptr()
                     .offset(((y << 3) * screenpitch as i32) as isize)
                     .offset((x << 3) as isize),

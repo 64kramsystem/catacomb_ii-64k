@@ -356,11 +356,11 @@ pub unsafe extern "C" fn ContinueSound() {
     pcSound = SavedSound.pcSound;
 }
 
-pub unsafe fn WaitEndSound(global_state: &mut GlobalState) {
+pub unsafe fn WaitEndSound(gs: &mut GlobalState) {
     if _dontplay != 0 {
         return;
     }
-    UpdateScreen(global_state);
+    UpdateScreen(gs);
     while !pcSound.is_null() {
         WaitVBL();
     }
@@ -484,8 +484,8 @@ pub unsafe extern "C" fn WaitVBL() {
     }
 }
 
-pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, global_state: &mut GlobalState) {
-    let mut vbuf: *mut u8 = global_state
+pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, gs: &mut GlobalState) {
+    let mut vbuf: *mut u8 = gs
         .screenseg
         .as_mut_ptr()
         .offset(((y << 3) * screenpitch as i32) as isize)
@@ -574,13 +574,8 @@ pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, global_state: &
     };
 }
 #[no_mangle]
-pub unsafe extern "C" fn drawpic(
-    mut x: i32,
-    mut y: i32,
-    mut picnum: i32,
-    global_state: &mut GlobalState,
-) {
-    let mut vbuf: *mut u8 = global_state
+pub unsafe extern "C" fn drawpic(mut x: i32, mut y: i32, mut picnum: i32, gs: &mut GlobalState) {
+    let mut vbuf: *mut u8 = gs
         .screenseg
         .as_mut_ptr()
         .offset((y * screenpitch as i32) as isize)
