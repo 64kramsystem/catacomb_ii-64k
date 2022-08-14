@@ -175,9 +175,8 @@ static mut pcLengthLeft: libc::c_uint = 0;
 static mut pcSound: *mut word = 0 as *const word as *mut word;
 #[inline]
 unsafe extern "C" fn _SDL_turnOnPCSpeaker(mut pcSample: word) {
-    // The transpiler break the correctness here; in the sdl port project, `AudioSpec.freq` is a long
-    // int (__syscall_slong_t), but it's translated as c_int, which doesn't accommodate the multiplication
-    // result range (u32).
+    // There is a bug in the SDL port; the data types used don't cover the range of values.
+    // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
     pcPhaseLength = pcSample as libc::c_uint * AudioSpec.freq as libc::c_uint / (2 * PC_BASE_TIMER);
     pcActive = true as boolean;
