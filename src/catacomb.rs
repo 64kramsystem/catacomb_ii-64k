@@ -41,7 +41,6 @@ extern "C" {
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn RLEExpand(source: *mut i8, dest: *mut i8, origlen: i64);
     fn bioskey(_: i32) -> i32;
     fn _quit(_: *mut i8);
@@ -372,12 +371,8 @@ pub unsafe extern "C" fn loadgrfiles() {
     };
 }
 
-pub unsafe fn clearold(oldtiles: &mut [i32; 576]) {
-    memset(
-        oldtiles as *mut [i32; 576] as *mut libc::c_void,
-        0xff as i32,
-        ::std::mem::size_of::<[i32; 576]>() as u64,
-    );
+pub fn clearold(oldtiles: &mut [i32; 576]) {
+    oldtiles.fill(0xff);
 }
 
 pub unsafe fn restore(global_state: &mut GlobalState) {
