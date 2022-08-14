@@ -25,8 +25,9 @@ extern "C" {
 
 pub type C2RustUnnamed_0 = u32;
 pub const screenpitch: C2RustUnnamed_0 = 320;
+
 #[inline]
-unsafe extern "C" fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
+unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
     return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
         | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
         | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
@@ -155,7 +156,8 @@ pub unsafe fn doall(gs: &mut GlobalState) {
         }
     }
 }
-unsafe extern "C" fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
+
+unsafe fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
     let mut src: *mut u8 = (pics as *mut u8).offset((tile << 4) as isize);
     let mut r: u32 = 0;
     r = 0;
@@ -215,7 +217,8 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState) {
     }
     UpdateScreen(gs);
 }
-unsafe extern "C" fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
+
+unsafe fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
     let mut src: *mut u8 = (pics as *mut u8).offset((tile << 5) as isize);
     let mut r: u32 = 0;
     r = 0;

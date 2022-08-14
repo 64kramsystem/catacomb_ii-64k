@@ -4,6 +4,7 @@ use ::libc;
 use libc::O_RDONLY;
 
 use crate::{
+    catacomb::loadgrfiles,
     catasm::drawchartile,
     control_struct::ControlStruct,
     demo_enum::demoenum,
@@ -50,7 +51,6 @@ extern "C" {
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
-    fn loadgrfiles();
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
     static mut SoundData: *mut SPKRtable;
     static mut soundmode: soundtype;
@@ -799,7 +799,9 @@ pub unsafe fn ProcessEvents() {
         }
     }
 }
+
 static mut hasFocus: boolean = true as boolean;
+
 unsafe extern "C" fn WatchUIEvents(
     mut _userdata: *mut libc::c_void,
     mut event: *mut SDL_Event,
@@ -956,7 +958,8 @@ pub unsafe fn ControlMouse() -> ControlStruct {
     }
     return action;
 }
-unsafe extern "C" fn ShutdownJoysticks() {
+
+unsafe fn ShutdownJoysticks() {
     let mut j: u32 = 0;
     j = 1;
     while j < 3 {
@@ -1180,7 +1183,8 @@ pub unsafe fn clearkeys() {
         i += 1;
     }
 }
-unsafe extern "C" fn filelength(mut fd: i32) -> i64 {
+
+unsafe fn filelength(mut fd: i32) -> i64 {
     let mut s: stat = stat {
         st_dev: 0,
         st_ino: 0,

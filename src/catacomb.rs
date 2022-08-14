@@ -11,7 +11,7 @@ use crate::{
     catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
     control_struct::ControlStruct,
-    cpanel::controlpanel,
+    cpanel::{controlpanel, installgrfile},
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
@@ -31,6 +31,7 @@ use crate::{
         clearkeys, drawwindow, expwin, get, print, printchartile, printint, ControlPlayer,
         LoadDemo, LoadFile, UpdateScreen, _Verify, _quit,
     },
+    rleasm::RLEExpand,
     sdl_scan_codes::*,
     state_type::statetype,
     vec2::Vec2,
@@ -49,10 +50,8 @@ extern "C" {
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
-    fn RLEExpand(source: *mut i8, dest: *mut i8, origlen: i64);
     static mut score: i32;
     static mut level: i16;
-    fn installgrfile(filename: *mut i8, inmem: *mut libc::c_void);
     static mut leftedge: i32;
     static mut sy: i32;
     static mut sx: i32;
@@ -63,7 +62,7 @@ extern "C" {
 }
 
 #[inline]
-unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
+unsafe fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     if base == 16 {
         sprintf(str_0, b"%X\0" as *const u8 as *const i8, value);
     } else {
@@ -191,8 +190,8 @@ unsafe fn simplerefresh(gs: &mut GlobalState) {
         egarefresh(gs);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn loadgrfiles() {
+
+pub unsafe fn loadgrfiles() {
     if !picsexact.is_null() {
         free(picsexact as *mut libc::c_void);
     }

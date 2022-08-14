@@ -123,21 +123,24 @@ static mut pcNumReadySamples: u32 = 0;
 static mut pcLastSample: u16 = 0;
 static mut pcLengthLeft: u32 = 0;
 static mut pcSound: *mut u16 = 0 as *const u16 as *mut u16;
+
 #[inline]
-unsafe extern "C" fn _SDL_turnOnPCSpeaker(mut pcSample: u16) {
+unsafe fn _SDL_turnOnPCSpeaker(mut pcSample: u16) {
     // There is a bug in the SDL port; the data types used don't cover the range of values.
     // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
     pcPhaseLength = pcSample as u32 * AudioSpec.freq as u32 / (2 * PC_BASE_TIMER);
     pcActive = true as boolean;
 }
+
 #[inline]
-unsafe extern "C" fn _SDL_turnOffPCSpeaker() {
+unsafe fn _SDL_turnOffPCSpeaker() {
     pcActive = false as boolean;
     pcPhaseTick = 0;
 }
+
 #[inline]
-unsafe extern "C" fn _SDL_PCService() {
+unsafe fn _SDL_PCService() {
     if !pcSound.is_null() {
         if *pcSound as i32 != pcLastSample as i32 {
             pcLastSample = *pcSound;
@@ -156,7 +159,8 @@ unsafe extern "C" fn _SDL_PCService() {
         }
     }
 }
-unsafe extern "C" fn _SDL_PCPlaySound(mut sound: i32) {
+
+unsafe fn _SDL_PCPlaySound(mut sound: i32) {
     safe_SDL_LockMutex(AudioMutex);
     pcPhaseTick = 0;
     pcLastSample = 0;
@@ -172,15 +176,18 @@ unsafe extern "C" fn _SDL_PCPlaySound(mut sound: i32) {
         as u32;
     safe_SDL_UnlockMutex(AudioMutex);
 }
-unsafe extern "C" fn _SDL_PCStopSound() {
+
+unsafe fn _SDL_PCStopSound() {
     safe_SDL_LockMutex(AudioMutex);
     pcSound = 0 as *mut u16;
     _SDL_turnOffPCSpeaker();
     safe_SDL_UnlockMutex(AudioMutex);
 }
-unsafe extern "C" fn _SDL_ShutPC() {
+
+unsafe fn _SDL_ShutPC() {
     _SDL_PCStopSound();
 }
+
 unsafe extern "C" fn UpdateSPKR(
     mut _userdata: *mut libc::c_void,
     mut stream: *mut u8,
