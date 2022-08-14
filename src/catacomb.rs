@@ -12,6 +12,7 @@ use crate::{
     extra_constants::{
         blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
+    gr_type::grtype::{self, *},
     indemo,
     obj_def_type::objdeftype,
     objects::initobjects,
@@ -133,11 +134,6 @@ pub struct ControlStruct {
     pub button2: boolean,
 }
 
-pub type grtype = u32;
-pub const VGAgr: grtype = 3;
-pub const EGAgr: grtype = 2;
-pub const CGAgr: grtype = 1;
-pub const text: grtype = 0;
 pub type exittype = u32;
 pub const victorious: exittype = 3;
 pub const reseted: exittype = 2;

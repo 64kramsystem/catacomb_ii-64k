@@ -24,6 +24,7 @@ mod demo_enum;
 mod dir_type;
 mod extra_constants;
 mod extra_macros;
+mod gr_type;
 mod obj_def_type;
 mod objects;
 mod pcrlib_a;

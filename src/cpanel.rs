@@ -1,8 +1,11 @@
+use std::convert::TryInto;
+
 use ::libc;
 
 use crate::{
     catacomb::repaintscreen,
     dir_type::dirtype::{self, *},
+    gr_type::grtype::{self, *},
     pcrlib_c::{drawwindow, erasewindow, expwin},
     sdl_scan_codes::*,
 };
@@ -319,11 +322,7 @@ pub const joystick2: inputtype = 3;
 pub const joystick1: inputtype = 2;
 pub const mouse: inputtype = 1;
 pub const keyboard: inputtype = 0;
-pub type grtype = u32;
-pub const VGAgr: grtype = 3;
-pub const EGAgr: grtype = 2;
-pub const CGAgr: grtype = 1;
-pub const text: grtype = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct spritetype {
@@ -955,7 +954,7 @@ pub unsafe fn controlpanel(
                             rowy[row as usize] + 3,
                             32,
                         );
-                        newgrmode = (collumn as grtype as u32).wrapping_add(1) as grtype;
+                        newgrmode = (collumn + 1).try_into().unwrap();
                         grmode = newgrmode;
                         loadgrfiles();
                         drawwindow(0, 0, 39, 24);

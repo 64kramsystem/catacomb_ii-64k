@@ -1,6 +1,6 @@
 use ::libc;
 
-use crate::extra_constants::PC_BASE_TIMER;
+use crate::{extra_constants::PC_BASE_TIMER, gr_type::grtype};
 extern "C" {
     pub type SDL_mutex;
     pub type SDL_semaphore;
@@ -97,11 +97,7 @@ pub struct C2RustUnnamed_0 {
     pub pcLengthLeft: u32,
     pub pcSound: *mut u16,
 }
-pub type grtype = u32;
-pub const VGAgr: grtype = 3;
-pub const EGAgr: grtype = 2;
-pub const CGAgr: grtype = 1;
-pub const text: grtype = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct pictype {

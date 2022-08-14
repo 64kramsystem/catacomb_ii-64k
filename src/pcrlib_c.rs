@@ -9,6 +9,7 @@ use crate::{
     dir_type::dirtype::{self, *},
     extra_constants::{_extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
+    gr_type::grtype::{self, *},
     indemo,
     sdl_scan_codes::*,
 };
@@ -750,11 +751,7 @@ pub union C2RustUnnamed_5 {
     pub controller: *mut SDL_GameController,
     pub joy: *mut SDL_Joystick,
 }
-pub type grtype = u32;
-pub const VGAgr: grtype = 3;
-pub const EGAgr: grtype = 2;
-pub const CGAgr: grtype = 1;
-pub const text: grtype = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct scores {
@@ -765,7 +762,7 @@ pub struct scores {
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct ctlpaneltype {
-    pub grmode: u16,
+    pub grmode: grtype,
     pub soundmode: u16,
     pub playermode: [u16; 3],
     pub JoyXlow: [i16; 3],
@@ -1952,7 +1949,7 @@ pub unsafe extern "C" fn _loadctrls() {
         keyB2 = SDL_SCANCODE_LALT as i32;
     } else {
         let mut ctlpanel: ctlpaneltype = ctlpaneltype {
-            grmode: 0,
+            grmode: text,
             soundmode: 0,
             playermode: [0; 3],
             JoyXlow: [0; 3],
@@ -2011,7 +2008,7 @@ pub unsafe extern "C" fn _loadctrls() {
 pub unsafe extern "C" fn _savectrls() {
     let mut handle: i32 = 0;
     let mut ctlpanel: ctlpaneltype = ctlpaneltype {
-        grmode: 0,
+        grmode: text,
         soundmode: 0,
         playermode: [0; 3],
         JoyXlow: [0; 3],
@@ -2033,7 +2030,7 @@ pub unsafe extern "C" fn _savectrls() {
     if handle == -(1) {
         return;
     }
-    ctlpanel.grmode = grmode as u16;
+    ctlpanel.grmode = grmode;
     ctlpanel.soundmode = soundmode as u16;
     let mut i = 0;
     while i < 3 {

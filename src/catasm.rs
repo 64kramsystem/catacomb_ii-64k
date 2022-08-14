@@ -1,7 +1,8 @@
 use ::libc;
 
 use crate::{
-    cat_play::doactive, catacomb::refresh, class_type::classtype::*, obj_def_type::objdeftype,
+    cat_play::doactive, catacomb::refresh, class_type::classtype::*, gr_type::grtype,
+    obj_def_type::objdeftype,
 };
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
@@ -75,11 +76,6 @@ pub struct objtype {
     pub points: u16,
     pub filler2: [u8; 2],
 }
-pub type grtype = u32;
-pub const VGAgr: grtype = 3;
-pub const EGAgr: grtype = 2;
-pub const CGAgr: grtype = 1;
-pub const text: grtype = 0;
 pub type C2RustUnnamed_0 = u32;
 pub const screenpitch: C2RustUnnamed_0 = 320;
 #[inline]
