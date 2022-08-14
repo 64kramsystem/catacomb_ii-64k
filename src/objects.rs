@@ -2,10 +2,6 @@ use ::libc;
 extern "C" {
     static mut objdef: [objdeftype; 23];
 }
-pub type __uint8_t = libc::c_uchar;
-pub type __uint16_t = libc::c_ushort;
-pub type uint8_t = __uint8_t;
-pub type uint16_t = __uint16_t;
 
 pub type C2RustUnnamed_0 = libc::c_uint;
 pub const gunthinks: C2RustUnnamed_0 = 10;
