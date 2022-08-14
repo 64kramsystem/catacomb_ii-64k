@@ -1,4 +1,6 @@
 use ::libc;
+
+use crate::cat_play::doactive;
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
     fn __assert_fail(
@@ -17,13 +19,11 @@ extern "C" {
     static mut frameon: word;
     static mut leveldone: boolean;
     static mut playdone: boolean;
-    static mut priority: [byte; 2048];
     static mut view: [[libc::c_int; 86]; 87];
     static mut background: [[libc::c_int; 86]; 87];
     static mut obj: objtype;
     static mut pics: *mut libc::c_char;
     fn doinactive();
-    fn doactive();
     fn refresh();
     static mut grmode: grtype;
     fn UpdateScreen();
@@ -152,8 +152,8 @@ pub static mut table86: [word; 87] = [
     5676, 5762, 5848, 5934, 6020, 6106, 6192, 6278, 6364, 6450, 6536, 6622, 6708, 6794, 6880, 6966,
     7052, 7138, 7224, 7310, 7396,
 ];
-#[no_mangle]
-pub unsafe extern "C" fn drawobj() {
+
+pub unsafe fn drawobj(priority: &[byte]) {
     let mut tilenum: libc::c_int = obj.firstchar as libc::c_int
         + squares[obj.size as usize] as libc::c_int
             * ((obj.dir as libc::c_int & obj.dirmask as libc::c_int) * obj.stages as libc::c_int
@@ -223,8 +223,8 @@ pub unsafe extern "C" fn eraseobj() {
         ofs = ofs.wrapping_add((86 - obj.size as libc::c_int) as libc::c_uint);
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn doall() {
+
+pub unsafe fn doall(priority: &[byte], items: &mut [sword]) {
     assert!(numobj > 0);
 
     loop {
@@ -244,7 +244,7 @@ pub unsafe extern "C" fn doall() {
                     ::std::mem::size_of::<objdeftype>() as libc::c_ulong,
                 );
                 if obj.active != 0 {
-                    doactive();
+                    doactive(priority, items);
                 } else {
                     doinactive();
                 }

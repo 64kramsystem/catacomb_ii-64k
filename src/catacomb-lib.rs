@@ -12,13 +12,20 @@
 #![feature(register_tool)]
 #![register_tool(c2rust)]
 
+use demo_enum::demoenum;
+
 extern crate libc;
 pub mod cat_play;
+pub mod catacomb;
 pub mod catasm;
 pub mod cpanel;
+pub mod demo_enum;
 pub mod extra_constants;
 mod extra_macros;
 pub mod objects;
 pub mod pcrlib_a;
 pub mod pcrlib_c;
 pub mod rleasm;
+pub mod sdl_scan_codes;
+
+pub static mut indemo: demoenum = demoenum::notdemo;

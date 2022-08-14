@@ -9,7 +9,7 @@ path = "src/catacomb-lib.rs"
 crate-type = ["staticlib", "rlib"]
 
 [[bin]]
-path = "src/catacomb.rs"
+path = "src/main.rs"
 name = "catacomb"
 
 [dependencies]

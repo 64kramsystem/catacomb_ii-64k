@@ -1,23 +1,16 @@
-#![allow(clippy::all)]
-#![deny(clippy::correctness)]
-#![allow(
-    dead_code,
-    mutable_transmutes,
-    non_camel_case_types,
-    non_snake_case,
-    non_upper_case_globals,
-    unused_assignments,
-    unused_mut
-)]
-#![register_tool(c2rust)]
-#![feature(register_tool)]
-#[allow(unused_imports)] // the import is actually used!
-use ::catacomb_lib::*;
-use catacomb_lib::{
-    extra_constants::{NUM_DEMOS, O_BINARY},
-    pcrlib_c::_setupgame,
-};
 use libc::O_RDONLY;
+
+use crate::{
+    cat_play::{givebolt, givenuke, givepotion, playloop},
+    cpanel::controlpanel,
+    demo_enum::demoenum,
+    extra_constants::{
+        blankfloor, leftoff, maxpics, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
+    },
+    indemo,
+    pcrlib_c::_setupgame,
+    sdl_scan_codes::*,
+};
 extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
     fn read(__fd: libc::c_int, __buf: *mut libc::c_void, __nbytes: size_t) -> ssize_t;
@@ -33,11 +26,7 @@ extern "C" {
     fn strcat(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn open(__file: *const libc::c_char, __oflag: libc::c_int, _: ...) -> libc::c_int;
-    fn givenuke();
-    fn givebolt();
-    fn givepotion();
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-    fn playloop();
     fn initobjects();
     fn RLEExpand(source: *mut libc::c_char, dest: *mut libc::c_char, origlen: libc::c_long);
     fn bioskey(_: libc::c_int) -> libc::c_int;
@@ -61,7 +50,6 @@ extern "C" {
     fn printchartile(str_0: *const libc::c_char);
     fn print(str_0: *const libc::c_char);
     fn get() -> libc::c_int;
-    fn controlpanel();
     static mut screencentery: libc::c_int;
     static mut screencenterx: libc::c_int;
     fn drawchartile(x: libc::c_int, y: libc::c_int, tile: libc::c_int);
@@ -82,7 +70,6 @@ extern "C" {
     fn LoadFile(filename: *mut libc::c_char, buffer: *mut libc::c_char) -> libc::c_ulong;
     fn LoadDemo(demonum: libc::c_int);
     fn ControlPlayer(player_0: libc::c_int) -> ControlStruct;
-    static mut indemo: demoenum;
     static mut keydown: [boolean; 512];
     fn WaitEndSound();
     fn PlaySound(sound: libc::c_int);
@@ -158,10 +145,13 @@ pub const skeleton: classtype = 3;
 pub const goblin: classtype = 2;
 pub const player: classtype = 1;
 pub const nothing: classtype = 0;
-pub type statetype = libc::c_uint;
-pub const inscores: statetype = 2;
-pub const intitle: statetype = 1;
-pub const ingame: statetype = 0;
+
+pub enum statetype {
+    inscores, // 2
+    intitle,  // 1
+    ingame,   // 0
+}
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct activeobj {
@@ -222,251 +212,7 @@ pub struct objtype {
     pub points: word,
     pub filler2: [byte; 2],
 }
-pub type C2RustUnnamed_1 = libc::c_uint;
-pub const SDL_NUM_SCANCODES: C2RustUnnamed_1 = 512;
-pub const SDL_SCANCODE_AUDIOFASTFORWARD: C2RustUnnamed_1 = 286;
-pub const SDL_SCANCODE_AUDIOREWIND: C2RustUnnamed_1 = 285;
-pub const SDL_SCANCODE_APP2: C2RustUnnamed_1 = 284;
-pub const SDL_SCANCODE_APP1: C2RustUnnamed_1 = 283;
-pub const SDL_SCANCODE_SLEEP: C2RustUnnamed_1 = 282;
-pub const SDL_SCANCODE_EJECT: C2RustUnnamed_1 = 281;
-pub const SDL_SCANCODE_KBDILLUMUP: C2RustUnnamed_1 = 280;
-pub const SDL_SCANCODE_KBDILLUMDOWN: C2RustUnnamed_1 = 279;
-pub const SDL_SCANCODE_KBDILLUMTOGGLE: C2RustUnnamed_1 = 278;
-pub const SDL_SCANCODE_DISPLAYSWITCH: C2RustUnnamed_1 = 277;
-pub const SDL_SCANCODE_BRIGHTNESSUP: C2RustUnnamed_1 = 276;
-pub const SDL_SCANCODE_BRIGHTNESSDOWN: C2RustUnnamed_1 = 275;
-pub const SDL_SCANCODE_AC_BOOKMARKS: C2RustUnnamed_1 = 274;
-pub const SDL_SCANCODE_AC_REFRESH: C2RustUnnamed_1 = 273;
-pub const SDL_SCANCODE_AC_STOP: C2RustUnnamed_1 = 272;
-pub const SDL_SCANCODE_AC_FORWARD: C2RustUnnamed_1 = 271;
-pub const SDL_SCANCODE_AC_BACK: C2RustUnnamed_1 = 270;
-pub const SDL_SCANCODE_AC_HOME: C2RustUnnamed_1 = 269;
-pub const SDL_SCANCODE_AC_SEARCH: C2RustUnnamed_1 = 268;
-pub const SDL_SCANCODE_COMPUTER: C2RustUnnamed_1 = 267;
-pub const SDL_SCANCODE_CALCULATOR: C2RustUnnamed_1 = 266;
-pub const SDL_SCANCODE_MAIL: C2RustUnnamed_1 = 265;
-pub const SDL_SCANCODE_WWW: C2RustUnnamed_1 = 264;
-pub const SDL_SCANCODE_MEDIASELECT: C2RustUnnamed_1 = 263;
-pub const SDL_SCANCODE_AUDIOMUTE: C2RustUnnamed_1 = 262;
-pub const SDL_SCANCODE_AUDIOPLAY: C2RustUnnamed_1 = 261;
-pub const SDL_SCANCODE_AUDIOSTOP: C2RustUnnamed_1 = 260;
-pub const SDL_SCANCODE_AUDIOPREV: C2RustUnnamed_1 = 259;
-pub const SDL_SCANCODE_AUDIONEXT: C2RustUnnamed_1 = 258;
-pub const SDL_SCANCODE_MODE: C2RustUnnamed_1 = 257;
-pub const SDL_SCANCODE_RGUI: C2RustUnnamed_1 = 231;
-pub const SDL_SCANCODE_RALT: C2RustUnnamed_1 = 230;
-pub const SDL_SCANCODE_RSHIFT: C2RustUnnamed_1 = 229;
-pub const SDL_SCANCODE_RCTRL: C2RustUnnamed_1 = 228;
-pub const SDL_SCANCODE_LGUI: C2RustUnnamed_1 = 227;
-pub const SDL_SCANCODE_LALT: C2RustUnnamed_1 = 226;
-pub const SDL_SCANCODE_LSHIFT: C2RustUnnamed_1 = 225;
-pub const SDL_SCANCODE_LCTRL: C2RustUnnamed_1 = 224;
-pub const SDL_SCANCODE_KP_HEXADECIMAL: C2RustUnnamed_1 = 221;
-pub const SDL_SCANCODE_KP_DECIMAL: C2RustUnnamed_1 = 220;
-pub const SDL_SCANCODE_KP_OCTAL: C2RustUnnamed_1 = 219;
-pub const SDL_SCANCODE_KP_BINARY: C2RustUnnamed_1 = 218;
-pub const SDL_SCANCODE_KP_CLEARENTRY: C2RustUnnamed_1 = 217;
-pub const SDL_SCANCODE_KP_CLEAR: C2RustUnnamed_1 = 216;
-pub const SDL_SCANCODE_KP_PLUSMINUS: C2RustUnnamed_1 = 215;
-pub const SDL_SCANCODE_KP_MEMDIVIDE: C2RustUnnamed_1 = 214;
-pub const SDL_SCANCODE_KP_MEMMULTIPLY: C2RustUnnamed_1 = 213;
-pub const SDL_SCANCODE_KP_MEMSUBTRACT: C2RustUnnamed_1 = 212;
-pub const SDL_SCANCODE_KP_MEMADD: C2RustUnnamed_1 = 211;
-pub const SDL_SCANCODE_KP_MEMCLEAR: C2RustUnnamed_1 = 210;
-pub const SDL_SCANCODE_KP_MEMRECALL: C2RustUnnamed_1 = 209;
-pub const SDL_SCANCODE_KP_MEMSTORE: C2RustUnnamed_1 = 208;
-pub const SDL_SCANCODE_KP_EXCLAM: C2RustUnnamed_1 = 207;
-pub const SDL_SCANCODE_KP_AT: C2RustUnnamed_1 = 206;
-pub const SDL_SCANCODE_KP_SPACE: C2RustUnnamed_1 = 205;
-pub const SDL_SCANCODE_KP_HASH: C2RustUnnamed_1 = 204;
-pub const SDL_SCANCODE_KP_COLON: C2RustUnnamed_1 = 203;
-pub const SDL_SCANCODE_KP_DBLVERTICALBAR: C2RustUnnamed_1 = 202;
-pub const SDL_SCANCODE_KP_VERTICALBAR: C2RustUnnamed_1 = 201;
-pub const SDL_SCANCODE_KP_DBLAMPERSAND: C2RustUnnamed_1 = 200;
-pub const SDL_SCANCODE_KP_AMPERSAND: C2RustUnnamed_1 = 199;
-pub const SDL_SCANCODE_KP_GREATER: C2RustUnnamed_1 = 198;
-pub const SDL_SCANCODE_KP_LESS: C2RustUnnamed_1 = 197;
-pub const SDL_SCANCODE_KP_PERCENT: C2RustUnnamed_1 = 196;
-pub const SDL_SCANCODE_KP_POWER: C2RustUnnamed_1 = 195;
-pub const SDL_SCANCODE_KP_XOR: C2RustUnnamed_1 = 194;
-pub const SDL_SCANCODE_KP_F: C2RustUnnamed_1 = 193;
-pub const SDL_SCANCODE_KP_E: C2RustUnnamed_1 = 192;
-pub const SDL_SCANCODE_KP_D: C2RustUnnamed_1 = 191;
-pub const SDL_SCANCODE_KP_C: C2RustUnnamed_1 = 190;
-pub const SDL_SCANCODE_KP_B: C2RustUnnamed_1 = 189;
-pub const SDL_SCANCODE_KP_A: C2RustUnnamed_1 = 188;
-pub const SDL_SCANCODE_KP_BACKSPACE: C2RustUnnamed_1 = 187;
-pub const SDL_SCANCODE_KP_TAB: C2RustUnnamed_1 = 186;
-pub const SDL_SCANCODE_KP_RIGHTBRACE: C2RustUnnamed_1 = 185;
-pub const SDL_SCANCODE_KP_LEFTBRACE: C2RustUnnamed_1 = 184;
-pub const SDL_SCANCODE_KP_RIGHTPAREN: C2RustUnnamed_1 = 183;
-pub const SDL_SCANCODE_KP_LEFTPAREN: C2RustUnnamed_1 = 182;
-pub const SDL_SCANCODE_CURRENCYSUBUNIT: C2RustUnnamed_1 = 181;
-pub const SDL_SCANCODE_CURRENCYUNIT: C2RustUnnamed_1 = 180;
-pub const SDL_SCANCODE_DECIMALSEPARATOR: C2RustUnnamed_1 = 179;
-pub const SDL_SCANCODE_THOUSANDSSEPARATOR: C2RustUnnamed_1 = 178;
-pub const SDL_SCANCODE_KP_000: C2RustUnnamed_1 = 177;
-pub const SDL_SCANCODE_KP_00: C2RustUnnamed_1 = 176;
-pub const SDL_SCANCODE_EXSEL: C2RustUnnamed_1 = 164;
-pub const SDL_SCANCODE_CRSEL: C2RustUnnamed_1 = 163;
-pub const SDL_SCANCODE_CLEARAGAIN: C2RustUnnamed_1 = 162;
-pub const SDL_SCANCODE_OPER: C2RustUnnamed_1 = 161;
-pub const SDL_SCANCODE_OUT: C2RustUnnamed_1 = 160;
-pub const SDL_SCANCODE_SEPARATOR: C2RustUnnamed_1 = 159;
-pub const SDL_SCANCODE_RETURN2: C2RustUnnamed_1 = 158;
-pub const SDL_SCANCODE_PRIOR: C2RustUnnamed_1 = 157;
-pub const SDL_SCANCODE_CLEAR: C2RustUnnamed_1 = 156;
-pub const SDL_SCANCODE_CANCEL: C2RustUnnamed_1 = 155;
-pub const SDL_SCANCODE_SYSREQ: C2RustUnnamed_1 = 154;
-pub const SDL_SCANCODE_ALTERASE: C2RustUnnamed_1 = 153;
-pub const SDL_SCANCODE_LANG9: C2RustUnnamed_1 = 152;
-pub const SDL_SCANCODE_LANG8: C2RustUnnamed_1 = 151;
-pub const SDL_SCANCODE_LANG7: C2RustUnnamed_1 = 150;
-pub const SDL_SCANCODE_LANG6: C2RustUnnamed_1 = 149;
-pub const SDL_SCANCODE_LANG5: C2RustUnnamed_1 = 148;
-pub const SDL_SCANCODE_LANG4: C2RustUnnamed_1 = 147;
-pub const SDL_SCANCODE_LANG3: C2RustUnnamed_1 = 146;
-pub const SDL_SCANCODE_LANG2: C2RustUnnamed_1 = 145;
-pub const SDL_SCANCODE_LANG1: C2RustUnnamed_1 = 144;
-pub const SDL_SCANCODE_INTERNATIONAL9: C2RustUnnamed_1 = 143;
-pub const SDL_SCANCODE_INTERNATIONAL8: C2RustUnnamed_1 = 142;
-pub const SDL_SCANCODE_INTERNATIONAL7: C2RustUnnamed_1 = 141;
-pub const SDL_SCANCODE_INTERNATIONAL6: C2RustUnnamed_1 = 140;
-pub const SDL_SCANCODE_INTERNATIONAL5: C2RustUnnamed_1 = 139;
-pub const SDL_SCANCODE_INTERNATIONAL4: C2RustUnnamed_1 = 138;
-pub const SDL_SCANCODE_INTERNATIONAL3: C2RustUnnamed_1 = 137;
-pub const SDL_SCANCODE_INTERNATIONAL2: C2RustUnnamed_1 = 136;
-pub const SDL_SCANCODE_INTERNATIONAL1: C2RustUnnamed_1 = 135;
-pub const SDL_SCANCODE_KP_EQUALSAS400: C2RustUnnamed_1 = 134;
-pub const SDL_SCANCODE_KP_COMMA: C2RustUnnamed_1 = 133;
-pub const SDL_SCANCODE_VOLUMEDOWN: C2RustUnnamed_1 = 129;
-pub const SDL_SCANCODE_VOLUMEUP: C2RustUnnamed_1 = 128;
-pub const SDL_SCANCODE_MUTE: C2RustUnnamed_1 = 127;
-pub const SDL_SCANCODE_FIND: C2RustUnnamed_1 = 126;
-pub const SDL_SCANCODE_PASTE: C2RustUnnamed_1 = 125;
-pub const SDL_SCANCODE_COPY: C2RustUnnamed_1 = 124;
-pub const SDL_SCANCODE_CUT: C2RustUnnamed_1 = 123;
-pub const SDL_SCANCODE_UNDO: C2RustUnnamed_1 = 122;
-pub const SDL_SCANCODE_AGAIN: C2RustUnnamed_1 = 121;
-pub const SDL_SCANCODE_STOP: C2RustUnnamed_1 = 120;
-pub const SDL_SCANCODE_SELECT: C2RustUnnamed_1 = 119;
-pub const SDL_SCANCODE_MENU: C2RustUnnamed_1 = 118;
-pub const SDL_SCANCODE_HELP: C2RustUnnamed_1 = 117;
-pub const SDL_SCANCODE_EXECUTE: C2RustUnnamed_1 = 116;
-pub const SDL_SCANCODE_F24: C2RustUnnamed_1 = 115;
-pub const SDL_SCANCODE_F23: C2RustUnnamed_1 = 114;
-pub const SDL_SCANCODE_F22: C2RustUnnamed_1 = 113;
-pub const SDL_SCANCODE_F21: C2RustUnnamed_1 = 112;
-pub const SDL_SCANCODE_F20: C2RustUnnamed_1 = 111;
-pub const SDL_SCANCODE_F19: C2RustUnnamed_1 = 110;
-pub const SDL_SCANCODE_F18: C2RustUnnamed_1 = 109;
-pub const SDL_SCANCODE_F17: C2RustUnnamed_1 = 108;
-pub const SDL_SCANCODE_F16: C2RustUnnamed_1 = 107;
-pub const SDL_SCANCODE_F15: C2RustUnnamed_1 = 106;
-pub const SDL_SCANCODE_F14: C2RustUnnamed_1 = 105;
-pub const SDL_SCANCODE_F13: C2RustUnnamed_1 = 104;
-pub const SDL_SCANCODE_KP_EQUALS: C2RustUnnamed_1 = 103;
-pub const SDL_SCANCODE_POWER: C2RustUnnamed_1 = 102;
-pub const SDL_SCANCODE_APPLICATION: C2RustUnnamed_1 = 101;
-pub const SDL_SCANCODE_NONUSBACKSLASH: C2RustUnnamed_1 = 100;
-pub const SDL_SCANCODE_KP_PERIOD: C2RustUnnamed_1 = 99;
-pub const SDL_SCANCODE_KP_0: C2RustUnnamed_1 = 98;
-pub const SDL_SCANCODE_KP_9: C2RustUnnamed_1 = 97;
-pub const SDL_SCANCODE_KP_8: C2RustUnnamed_1 = 96;
-pub const SDL_SCANCODE_KP_7: C2RustUnnamed_1 = 95;
-pub const SDL_SCANCODE_KP_6: C2RustUnnamed_1 = 94;
-pub const SDL_SCANCODE_KP_5: C2RustUnnamed_1 = 93;
-pub const SDL_SCANCODE_KP_4: C2RustUnnamed_1 = 92;
-pub const SDL_SCANCODE_KP_3: C2RustUnnamed_1 = 91;
-pub const SDL_SCANCODE_KP_2: C2RustUnnamed_1 = 90;
-pub const SDL_SCANCODE_KP_1: C2RustUnnamed_1 = 89;
-pub const SDL_SCANCODE_KP_ENTER: C2RustUnnamed_1 = 88;
-pub const SDL_SCANCODE_KP_PLUS: C2RustUnnamed_1 = 87;
-pub const SDL_SCANCODE_KP_MINUS: C2RustUnnamed_1 = 86;
-pub const SDL_SCANCODE_KP_MULTIPLY: C2RustUnnamed_1 = 85;
-pub const SDL_SCANCODE_KP_DIVIDE: C2RustUnnamed_1 = 84;
-pub const SDL_SCANCODE_NUMLOCKCLEAR: C2RustUnnamed_1 = 83;
-pub const SDL_SCANCODE_UP: C2RustUnnamed_1 = 82;
-pub const SDL_SCANCODE_DOWN: C2RustUnnamed_1 = 81;
-pub const SDL_SCANCODE_LEFT: C2RustUnnamed_1 = 80;
-pub const SDL_SCANCODE_RIGHT: C2RustUnnamed_1 = 79;
-pub const SDL_SCANCODE_PAGEDOWN: C2RustUnnamed_1 = 78;
-pub const SDL_SCANCODE_END: C2RustUnnamed_1 = 77;
-pub const SDL_SCANCODE_DELETE: C2RustUnnamed_1 = 76;
-pub const SDL_SCANCODE_PAGEUP: C2RustUnnamed_1 = 75;
-pub const SDL_SCANCODE_HOME: C2RustUnnamed_1 = 74;
-pub const SDL_SCANCODE_INSERT: C2RustUnnamed_1 = 73;
-pub const SDL_SCANCODE_PAUSE: C2RustUnnamed_1 = 72;
-pub const SDL_SCANCODE_SCROLLLOCK: C2RustUnnamed_1 = 71;
-pub const SDL_SCANCODE_PRINTSCREEN: C2RustUnnamed_1 = 70;
-pub const SDL_SCANCODE_F12: C2RustUnnamed_1 = 69;
-pub const SDL_SCANCODE_F11: C2RustUnnamed_1 = 68;
-pub const SDL_SCANCODE_F10: C2RustUnnamed_1 = 67;
-pub const SDL_SCANCODE_F9: C2RustUnnamed_1 = 66;
-pub const SDL_SCANCODE_F8: C2RustUnnamed_1 = 65;
-pub const SDL_SCANCODE_F7: C2RustUnnamed_1 = 64;
-pub const SDL_SCANCODE_F6: C2RustUnnamed_1 = 63;
-pub const SDL_SCANCODE_F5: C2RustUnnamed_1 = 62;
-pub const SDL_SCANCODE_F4: C2RustUnnamed_1 = 61;
-pub const SDL_SCANCODE_F3: C2RustUnnamed_1 = 60;
-pub const SDL_SCANCODE_F2: C2RustUnnamed_1 = 59;
-pub const SDL_SCANCODE_F1: C2RustUnnamed_1 = 58;
-pub const SDL_SCANCODE_CAPSLOCK: C2RustUnnamed_1 = 57;
-pub const SDL_SCANCODE_SLASH: C2RustUnnamed_1 = 56;
-pub const SDL_SCANCODE_PERIOD: C2RustUnnamed_1 = 55;
-pub const SDL_SCANCODE_COMMA: C2RustUnnamed_1 = 54;
-pub const SDL_SCANCODE_GRAVE: C2RustUnnamed_1 = 53;
-pub const SDL_SCANCODE_APOSTROPHE: C2RustUnnamed_1 = 52;
-pub const SDL_SCANCODE_SEMICOLON: C2RustUnnamed_1 = 51;
-pub const SDL_SCANCODE_NONUSHASH: C2RustUnnamed_1 = 50;
-pub const SDL_SCANCODE_BACKSLASH: C2RustUnnamed_1 = 49;
-pub const SDL_SCANCODE_RIGHTBRACKET: C2RustUnnamed_1 = 48;
-pub const SDL_SCANCODE_LEFTBRACKET: C2RustUnnamed_1 = 47;
-pub const SDL_SCANCODE_EQUALS: C2RustUnnamed_1 = 46;
-pub const SDL_SCANCODE_MINUS: C2RustUnnamed_1 = 45;
-pub const SDL_SCANCODE_SPACE: C2RustUnnamed_1 = 44;
-pub const SDL_SCANCODE_TAB: C2RustUnnamed_1 = 43;
-pub const SDL_SCANCODE_BACKSPACE: C2RustUnnamed_1 = 42;
-pub const SDL_SCANCODE_ESCAPE: C2RustUnnamed_1 = 41;
-pub const SDL_SCANCODE_RETURN: C2RustUnnamed_1 = 40;
-pub const SDL_SCANCODE_0: C2RustUnnamed_1 = 39;
-pub const SDL_SCANCODE_9: C2RustUnnamed_1 = 38;
-pub const SDL_SCANCODE_8: C2RustUnnamed_1 = 37;
-pub const SDL_SCANCODE_7: C2RustUnnamed_1 = 36;
-pub const SDL_SCANCODE_6: C2RustUnnamed_1 = 35;
-pub const SDL_SCANCODE_5: C2RustUnnamed_1 = 34;
-pub const SDL_SCANCODE_4: C2RustUnnamed_1 = 33;
-pub const SDL_SCANCODE_3: C2RustUnnamed_1 = 32;
-pub const SDL_SCANCODE_2: C2RustUnnamed_1 = 31;
-pub const SDL_SCANCODE_1: C2RustUnnamed_1 = 30;
-pub const SDL_SCANCODE_Z: C2RustUnnamed_1 = 29;
-pub const SDL_SCANCODE_Y: C2RustUnnamed_1 = 28;
-pub const SDL_SCANCODE_X: C2RustUnnamed_1 = 27;
-pub const SDL_SCANCODE_W: C2RustUnnamed_1 = 26;
-pub const SDL_SCANCODE_V: C2RustUnnamed_1 = 25;
-pub const SDL_SCANCODE_U: C2RustUnnamed_1 = 24;
-pub const SDL_SCANCODE_T: C2RustUnnamed_1 = 23;
-pub const SDL_SCANCODE_S: C2RustUnnamed_1 = 22;
-pub const SDL_SCANCODE_R: C2RustUnnamed_1 = 21;
-pub const SDL_SCANCODE_Q: C2RustUnnamed_1 = 20;
-pub const SDL_SCANCODE_P: C2RustUnnamed_1 = 19;
-pub const SDL_SCANCODE_O: C2RustUnnamed_1 = 18;
-pub const SDL_SCANCODE_N: C2RustUnnamed_1 = 17;
-pub const SDL_SCANCODE_M: C2RustUnnamed_1 = 16;
-pub const SDL_SCANCODE_L: C2RustUnnamed_1 = 15;
-pub const SDL_SCANCODE_K: C2RustUnnamed_1 = 14;
-pub const SDL_SCANCODE_J: C2RustUnnamed_1 = 13;
-pub const SDL_SCANCODE_I: C2RustUnnamed_1 = 12;
-pub const SDL_SCANCODE_H: C2RustUnnamed_1 = 11;
-pub const SDL_SCANCODE_G: C2RustUnnamed_1 = 10;
-pub const SDL_SCANCODE_F: C2RustUnnamed_1 = 9;
-pub const SDL_SCANCODE_E: C2RustUnnamed_1 = 8;
-pub const SDL_SCANCODE_D: C2RustUnnamed_1 = 7;
-pub const SDL_SCANCODE_C: C2RustUnnamed_1 = 6;
-pub const SDL_SCANCODE_B: C2RustUnnamed_1 = 5;
-pub const SDL_SCANCODE_A: C2RustUnnamed_1 = 4;
-pub const SDL_SCANCODE_UNKNOWN: C2RustUnnamed_1 = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct ControlStruct {
@@ -474,10 +220,7 @@ pub struct ControlStruct {
     pub button1: boolean,
     pub button2: boolean,
 }
-pub type demoenum = libc::c_uint;
-pub const recording: demoenum = 2;
-pub const demoplay: demoenum = 1;
-pub const notdemo: demoenum = 0;
+
 pub type grtype = libc::c_uint;
 pub const VGAgr: grtype = 3;
 pub const EGAgr: grtype = 2;
@@ -575,10 +318,7 @@ pub static mut view: [[libc::c_int; 86]; 87] = [[0; 86]; 87];
 pub static mut originx: libc::c_int = 0;
 #[no_mangle]
 pub static mut originy: libc::c_int = 0;
-#[no_mangle]
-pub static mut priority: [byte; 2048] = [0; 2048];
-#[no_mangle]
-pub static mut items: [sword; 6] = [0; 6];
+
 #[no_mangle]
 pub static mut saveitems: [sword; 6] = [0; 6];
 #[no_mangle]
@@ -711,15 +451,13 @@ pub static mut frameon: word = 0;
 #[no_mangle]
 pub static mut grmem: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
 #[no_mangle]
-pub static mut clvar: classtype = nothing;
-#[no_mangle]
 pub static mut VGAPAL: libc::c_int = 0;
 #[no_mangle]
-pub static mut exitdemo: boolean = 0;
+pub static mut exitdemo: bool = false;
 #[no_mangle]
 pub static mut resetgame: boolean = 0;
 #[no_mangle]
-pub static mut gamestate: statetype = ingame;
+pub static mut gamestate: statetype = statetype::ingame;
 #[no_mangle]
 pub static mut ctrl: ControlStruct = ControlStruct {
     dir: north,
@@ -808,7 +546,7 @@ pub unsafe extern "C" fn refresh() {
     let mut underwin: [[word; 16]; 5] = [[0; 16]; 5];
     basex = originx + 4;
     basey = originy + 17;
-    if indemo as u64 != 0 {
+    if indemo != demoenum::notdemo {
         y = 0;
         while y <= 4 {
             x = 0;
@@ -828,7 +566,7 @@ pub unsafe extern "C" fn refresh() {
     } else {
         egarefresh();
     }
-    if indemo as u64 != 0 {
+    if indemo != demoenum::notdemo {
         y = 0;
         while y <= 4 {
             x = 0;
@@ -1071,8 +809,8 @@ pub unsafe extern "C" fn reset() {
         playdone = true as boolean;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn loadlevel() {
+
+pub unsafe fn loadlevel(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     let mut tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
@@ -1169,8 +907,8 @@ pub unsafe extern "C" fn loadlevel() {
     savescore = score;
     saveo[0] = o[0];
 }
-#[no_mangle]
-pub unsafe extern "C" fn drawside() {
+
+unsafe fn drawside(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     sx = 0;
     while sx < 40 {
@@ -1216,8 +954,8 @@ pub unsafe extern "C" fn drawside() {
         i += 1;
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn playsetup() {
+
+unsafe fn playsetup(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     shotpower = 0;
     bar(0, 0, 23, 23, 0);
@@ -1235,53 +973,46 @@ pub unsafe extern "C" fn playsetup() {
         o[0].dir = west as libc::c_int as word;
         o[0].stage = 0;
         o[0].delay = 0;
-        drawside();
-        givenuke();
-        givenuke();
-        givebolt();
-        givebolt();
-        givebolt();
-        givepotion();
-        givepotion();
-        givepotion();
+        drawside(items);
+        givenuke(items);
+        givenuke(items);
+        givebolt(items);
+        givebolt(items);
+        givebolt(items);
+        givepotion(items);
+        givepotion(items);
+        givepotion(items);
     } else {
-        drawside();
+        drawside(items);
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn repaintscreen() {
-    match gamestate as libc::c_uint {
-        1 => {
+
+pub unsafe fn repaintscreen(items: &mut [sword]) {
+    match gamestate {
+        statetype::intitle => {
             drawpic(0, 0, 14);
         }
-        0 => {
+        statetype::ingame => {
             restore();
-            drawside();
+            drawside(items);
             printscore();
             sx = 33;
             sy = 1;
             printint(level as libc::c_int);
         }
-        2 => {
+        statetype::inscores => {
             restore();
-            drawside();
+            drawside(items);
             printscore();
             sx = 33;
             sy = 1;
             printint(level as libc::c_int);
-            indemo = demoplay;
-        }
-        _ => {
-            sy = 10;
-            sx = sy;
-            print(b"Bad gamestate!\0" as *const u8 as *const libc::c_char);
-            clearkeys();
-            get();
+            indemo = demoenum::demoplay;
         }
     };
 }
-#[no_mangle]
-pub unsafe extern "C" fn dofkeys() {
+
+pub unsafe fn dofkeys(items: &mut [sword]) {
     let mut handle: libc::c_int = 0;
     let mut key: libc::c_int = bioskey(1);
     if key == SDL_SCANCODE_ESCAPE as libc::c_int {
@@ -1298,7 +1029,7 @@ pub unsafe extern "C" fn dofkeys() {
         }
         59 => {
             clearkeys();
-            controlpanel();
+            controlpanel(items);
         }
         60 => {
             clearkeys();
@@ -1312,7 +1043,7 @@ pub unsafe extern "C" fn dofkeys() {
         61 => {
             clearkeys();
             expwin(22, 4);
-            if indemo as libc::c_uint != notdemo as libc::c_int as libc::c_uint {
+            if indemo != demoenum::notdemo {
                 print(b"Can't save game here!\0" as *const u8 as *const libc::c_char);
                 get();
             } else {
@@ -1416,7 +1147,7 @@ pub unsafe extern "C" fn dofkeys() {
                 } else {
                     read(
                         handle,
-                        &mut items as *mut [sword; 6] as *mut libc::c_void,
+                        items as *mut _ as *mut libc::c_void,
                         ::std::mem::size_of::<[sword; 6]>() as libc::c_ulong,
                     );
                     read(
@@ -1435,11 +1166,11 @@ pub unsafe extern "C" fn dofkeys() {
                         ::std::mem::size_of::<activeobj>() as libc::c_ulong,
                     );
                     close(handle);
-                    exitdemo = true as boolean;
-                    if indemo as libc::c_uint != notdemo as libc::c_int as libc::c_uint {
+                    exitdemo = true;
+                    if indemo != demoenum::notdemo {
                         playdone = true as boolean;
                     }
-                    drawside();
+                    drawside(items);
                     leveldone = true as boolean;
                 }
             }
@@ -1463,39 +1194,39 @@ pub unsafe extern "C" fn dofkeys() {
     }
     clearold();
     clearkeys();
-    repaintscreen();
+    repaintscreen(items);
 }
-#[no_mangle]
-pub unsafe extern "C" fn dotitlepage() {
+
+unsafe fn dotitlepage(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     drawpic(0, 0, 14);
     UpdateScreen();
-    gamestate = intitle;
+    gamestate = statetype::intitle;
     i = 0;
     while i < 300 {
         WaitVBL();
-        indemo = notdemo;
+        indemo = demoenum::notdemo;
         ctrl = ControlPlayer(1);
         if ctrl.button1 as libc::c_int != 0
             || ctrl.button2 as libc::c_int != 0
-            || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
+            || keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
         {
             level = 0;
-            exitdemo = true as boolean;
+            exitdemo = true;
             break;
         } else {
-            indemo = demoplay;
+            indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
-                dofkeys();
+                dofkeys(items);
                 UpdateScreen();
             }
-            if exitdemo != 0 {
+            if exitdemo {
                 break;
             }
             i += 1;
         }
     }
-    gamestate = ingame;
+    gamestate = statetype::ingame;
 }
 #[no_mangle]
 pub unsafe extern "C" fn doendpage() {
@@ -1529,43 +1260,43 @@ pub unsafe extern "C" fn doendpage() {
     print(b"playing!\0" as *const u8 as *const libc::c_char);
     get();
 }
-#[no_mangle]
-pub unsafe extern "C" fn dodemo() {
+
+unsafe fn dodemo(priority: &[byte], items: &mut [sword]) {
     let mut i: libc::c_int = 0;
-    while exitdemo == 0 {
-        dotitlepage();
-        if exitdemo != 0 {
+    while !exitdemo {
+        dotitlepage(items);
+        if exitdemo {
             break;
         }
         i = rnd(NUM_DEMOS - 1) + 1;
         LoadDemo(i);
         level = 0;
-        playsetup();
-        playloop();
-        if exitdemo != 0 {
+        playsetup(items);
+        playloop(priority, items);
+        if exitdemo {
             break;
         }
         level = 0;
-        gamestate = inscores;
-        indemo = demoplay;
+        gamestate = statetype::inscores;
+        indemo = demoenum::demoplay;
         _showhighscores();
         UpdateScreen();
         i = 0;
         while i < 500 {
             WaitVBL();
-            indemo = notdemo;
+            indemo = demoenum::notdemo;
             ctrl = ControlPlayer(1);
             if ctrl.button1 as libc::c_int != 0
                 || ctrl.button2 as libc::c_int != 0
-                || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
+                || keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
             {
-                exitdemo = true as boolean;
+                exitdemo = true;
                 break;
             } else {
                 if bioskey(1) != 0 {
-                    dofkeys();
+                    dofkeys(items);
                 }
-                if exitdemo != 0 {
+                if exitdemo {
                     break;
                 }
                 i += 1;
@@ -1573,8 +1304,8 @@ pub unsafe extern "C" fn dodemo() {
         }
     }
 }
-#[no_mangle]
-pub unsafe extern "C" fn gameover() {
+
+unsafe fn gameover(items: &mut [sword]) {
     let mut i: libc::c_int = 0;
     expwin(11, 4);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const libc::c_char);
@@ -1585,7 +1316,7 @@ pub unsafe extern "C" fn gameover() {
         WaitVBL();
         i += 1;
     }
-    gamestate = inscores;
+    gamestate = statetype::inscores;
     _checkhighscore();
     level = 0;
     i = 0;
@@ -1594,16 +1325,14 @@ pub unsafe extern "C" fn gameover() {
         ctrl = ControlPlayer(1);
         if ctrl.button1 as libc::c_int != 0
             || ctrl.button2 as libc::c_int != 0
-            || keydown[SDL_SCANCODE_SPACE as libc::c_int as usize] as libc::c_int != 0
+            || keydown[SDL_SCANCODE_SPACE as usize] as libc::c_int != 0
         {
             break;
         }
         if bioskey(1) != 0 {
-            dofkeys();
+            dofkeys(items);
         }
-        if exitdemo as libc::c_int != 0
-            || indemo as libc::c_uint == demoplay as libc::c_int as libc::c_uint
-        {
+        if exitdemo as libc::c_int != 0 || indemo == demoenum::demoplay {
             break;
         }
         i += 1;
@@ -1670,7 +1399,15 @@ pub unsafe extern "C" fn US_CheckParm(
 /*			   */
 /*=========================*/
 
-pub fn main() {
+pub fn original_main() {
+    /***************************************************************************/
+    // Ex-globals
+
+    let mut priority: [byte; 2048] = [0; 2048];
+    let mut items: [sword; 6] = [0; 6];
+
+    /***************************************************************************/
+
     let mut args: Vec<*mut libc::c_char> = Vec::new();
 
     for arg in ::std::env::args() {
@@ -1682,8 +1419,6 @@ pub fn main() {
     }
 
     unsafe {
-        let mut i: libc::c_int = 0;
-
         if args.len() > 1 && strcasecmp(args[1], b"/VER\0" as *const u8 as *const libc::c_char) == 0
         {
             print!(
@@ -1707,84 +1442,58 @@ pub fn main() {
 
         priority.fill(99);
 
-        priority[128] = 0;
-        i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
-        while i <= objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int + 20 {
-            priority[i as usize] = 0; /*deadthing*/
-            i += 1;
+        priority[blankfloor] = 0;
+        for i in objdef[teleporter as usize].firstchar..=objdef[teleporter as usize].firstchar + 20
+        {
+            priority[i as usize] = 0;
         }
-        clvar = dead2;
-        while clvar as libc::c_uint <= dead5 as libc::c_int as libc::c_uint {
-            i = objdef[clvar as usize].firstchar as libc::c_int;
-            while i
-                <= objdef[clvar as usize].firstchar as libc::c_int
-                    + objdef[clvar as usize].size as libc::c_int
-                        * objdef[clvar as usize].size as libc::c_int
+        for clvar in dead2..=dead5 {
+            for i in objdef[clvar as usize].firstchar
+                ..=(objdef[clvar as usize].firstchar
+                    + objdef[clvar as usize].size as u16 * objdef[clvar as usize].size as u16)
             {
-                priority[i as usize] = 0;
-                i += 1;
+                priority[i as usize] = 0; /*deadthing*/
             }
-            clvar += 1;
         }
-        i = 152;
-        while i <= 161 {
-            priority[i as usize] = 2; /*shots*/
-            i += 1;
+        for i in 152..=161 {
+            priority[i] = 2; /*shots*/
         }
-        i = objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int;
-        while i <= objdef[bigshot as libc::c_int as usize].firstchar as libc::c_int + 31 {
+        for i in objdef[bigshot as usize].firstchar..=(objdef[bigshot as usize].firstchar + 31) {
             priority[i as usize] = 2; /*bigshot*/
-            i += 1;
         }
-        i = 0;
-        while i <= 256 - 1 {
-            if priority[i as usize] as libc::c_int == 99 {
-                priority[i as usize] = 3; /*most 1*1 tiles are walls, etc*/
+        for i in 0..=(tile2s - 1) {
+            if priority[i] == 99 {
+                priority[i] = 3; /*most 1*1 tiles are walls, etc*/
             }
-            i += 1;
         }
         priority[167] = 1; // chest
-        i = 256;
-        while i <= 2047 {
-            if priority[i as usize] as libc::c_int == 99 {
-                priority[i as usize] = 4; /*most bigger tiles are monsters*/
+        for i in tile2s..=maxpics {
+            if priority[i] as libc::c_int == 99 {
+                priority[i] = 4; /*most bigger tiles are monsters*/
             }
-            i += 1;
         }
-        i = objdef[player as libc::c_int as usize].firstchar as libc::c_int;
-        while i <= objdef[player as libc::c_int as usize].firstchar as libc::c_int + 63 {
+        for i in objdef[player as usize].firstchar..=(objdef[player as usize].firstchar + 63) {
             priority[i as usize] = 5; /*player*/
-            i += 1;
         }
 
         side = 0;
 
-        let mut x: libc::c_int = 0;
-        let mut y: libc::c_int = 0;
-        x = 0;
-        while x <= 85 {
-            y = 0;
-            while y <= 11 - 1 {
-                view[x as usize][y as usize] = 129;
-                view[x as usize][(85 - y) as usize] = 129;
-                background[x as usize][y as usize] = 129;
-                background[x as usize][(85 - y) as usize] = 129;
-                y += 1;
+        for x in 0..=85 {
+            for y in 0..=(topoff - 1) {
+                view[x][y] = solidwall;
+                view[x][(85 - y)] = solidwall;
+                background[x][y] = solidwall;
+                background[x][(85 - y)] = solidwall;
             }
-            view[86][x as usize] = 129;
-            x += 1;
+            view[86][x] = solidwall;
         }
-        y = 11;
-        while y <= 74 {
-            x = 0;
-            while x <= 11 - 1 {
-                view[x as usize][y as usize] = 129;
-                view[(85 - x) as usize][y as usize] = 129;
-                background[x as usize][y as usize] = 129;
-                background[(85 - x) as usize][y as usize] = 129;
-                x += 1;
+        for y in 11..=74 {
+            for x in 0..=(leftoff - 1) {
+                view[x][y] = solidwall;
+                view[(85 - x)][y] = solidwall;
+                background[x][y] = solidwall;
+                background[(85 - x)][y] = solidwall;
             }
-            y += 1;
         }
 
         //   puts ("CATACOMB II is executing");
@@ -1814,22 +1523,22 @@ pub fn main() {
         screencentery = 11;
         screencenterx = 11;
 
-        exitdemo = false as boolean;
+        exitdemo = false;
         level = 0;
 
         // go until quit () is called
         loop {
-            dodemo();
-            playsetup();
-            indemo = notdemo;
-            gamestate = ingame;
-            playloop();
-            if indemo as u64 == 0 {
-                exitdemo = false as boolean;
-                if level as libc::c_int > 30 {
+            dodemo(&priority, &mut items);
+            playsetup(&mut items);
+            indemo = demoenum::notdemo;
+            gamestate = statetype::ingame;
+            playloop(&priority, &mut items);
+            if indemo == demoenum::notdemo {
+                exitdemo = false;
+                if level > 30 {
                     doendpage(); // finished all levels
                 }
-                gameover();
+                gameover(&mut items);
             }
         }
     }
