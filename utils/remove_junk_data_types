@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -o pipefail
+set -o errexit
+set -o nounset
+set -o errtrace
+shopt -s inherit_errexit
+
+# Remove junk "intermediate" typedefs like
+#
+#     pub type uint8_t = __uint8_t;
+#
+# and change the associated variable types.
+#
+# WATCH OUT! This is a simple textual search/replace, so it needs to be inspected that there haven't
+# been unexpected changes.
+
+# Example parameter: libc::c_char=i8,boolean=u16
+
+for type_mapping in ${1/,/ /}; do
+  source_type=${type_mapping%=*}
+  dest_type=${type_mapping#*=}
+
+  perl -i -pe "s/pub type $source_type = \S+;\n//" ./*.rs
+  perl -i -pe "s/\b$source_type\b/$dest_type/g" ./*.rs
+done
+
+cargo fmt
