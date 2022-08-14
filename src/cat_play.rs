@@ -6,6 +6,7 @@ use crate::{
     demo_enum::demoenum,
     indemo,
     sdl_scan_codes::*,
+    tag_type::tagtype::*,
 };
 extern "C" {
     fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
@@ -96,12 +97,6 @@ pub const west: dirtype = 3;
 pub const south: dirtype = 2;
 pub const east: dirtype = 1;
 pub const north: dirtype = 0;
-pub type C2RustUnnamed_1 = libc::c_uint;
-pub const nukeshot: C2RustUnnamed_1 = 4;
-pub const mshot: C2RustUnnamed_1 = 3;
-pub const pshot: C2RustUnnamed_1 = 2;
-pub const monster: C2RustUnnamed_1 = 1;
-pub const benign: C2RustUnnamed_1 = 0;
 pub type classtype = libc::c_uint;
 pub const lastclass: classtype = 23;
 pub const guns: classtype = 22;
