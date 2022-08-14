@@ -1,6 +1,6 @@
 use ::libc;
 
-use crate::{cat_play::doactive, class_type::classtype::*};
+use crate::{cat_play::doactive, class_type::classtype::*, obj_def_type::objdeftype};
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
     fn __assert_fail(
@@ -59,22 +59,7 @@ pub struct activeobj {
     pub oldtile: sword,
     pub filler: [byte; 1],
 }
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct objdeftype {
-    pub think: byte,
-    pub contact: byte,
-    pub solid: byte,
-    pub firstchar: word,
-    pub size: byte,
-    pub stages: byte,
-    pub dirmask: byte,
-    pub speed: word,
-    pub hitpoints: byte,
-    pub damage: byte,
-    pub points: word,
-    pub filler: [byte; 2],
-}
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct objtype {

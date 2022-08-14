@@ -23,6 +23,7 @@ mod cpanel;
 mod demo_enum;
 mod extra_constants;
 mod extra_macros;
+mod obj_def_type;
 mod objects;
 mod pcrlib_a;
 mod pcrlib_c;

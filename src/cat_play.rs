@@ -6,6 +6,7 @@ use crate::{
     class_type::classtype::*,
     demo_enum::demoenum,
     indemo,
+    obj_def_type::objdeftype,
     sdl_scan_codes::*,
     tag_type::tagtype::*,
 };
@@ -135,22 +136,6 @@ impl From<objtype> for activeobj {
     }
 }
 
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct objdeftype {
-    pub think: byte,
-    pub contact: byte,
-    pub solid: byte,
-    pub firstchar: word,
-    pub size: byte,
-    pub stages: byte,
-    pub dirmask: byte,
-    pub speed: word,
-    pub hitpoints: byte,
-    pub damage: byte,
-    pub points: word,
-    pub filler: [byte; 2],
-}
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct objtype {
