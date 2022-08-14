@@ -2,7 +2,8 @@ use ::libc;
 
 use crate::{
     active_obj::activeobj, cat_play::doactive, catacomb::refresh, class_type::classtype::*,
-    extra_types::boolean, gr_type::grtype, obj_def_type::objdeftype, obj_type::objtype,
+    extra_types::boolean, global_state::GlobalState, gr_type::grtype, obj_def_type::objdeftype,
+    obj_type::objtype,
 };
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
@@ -118,15 +119,7 @@ pub unsafe fn eraseobj(view: &mut [[i32; 86]]) {
     }
 }
 
-pub unsafe fn doall(
-    priority: &[u8],
-    items: &mut [i16],
-    objdef: &mut [objdeftype],
-    side: &mut i32,
-    view: &mut [[i32; 86]],
-    screencenterx: &mut i32,
-    screencentery: &mut i32,
-) {
+pub unsafe fn doall(global_state: &mut GlobalState) {
     assert!(numobj > 0);
 
     loop {
@@ -141,20 +134,12 @@ pub unsafe fn doall(
             if obj.class as i32 != nothing as i32 {
                 memcpy(
                     &mut obj.think as *mut u8 as *mut libc::c_void,
-                    &mut *objdef.as_mut_ptr().offset(obj.class as isize) as *mut objdeftype
-                        as *const libc::c_void,
+                    &mut *global_state.objdef.as_mut_ptr().offset(obj.class as isize)
+                        as *mut objdeftype as *const libc::c_void,
                     ::std::mem::size_of::<objdeftype>() as u64,
                 );
                 if obj.active != 0 {
-                    doactive(
-                        priority,
-                        items,
-                        objdef,
-                        side,
-                        view,
-                        screencenterx,
-                        screencentery,
-                    );
+                    doactive(global_state);
                 } else {
                     doinactive();
                 }
@@ -167,7 +152,7 @@ pub unsafe fn doall(
                 break;
             }
         }
-        refresh(view);
+        refresh(&mut global_state.view);
         frameon = frameon.wrapping_add(1);
         if leveldone != 0 {
             return;

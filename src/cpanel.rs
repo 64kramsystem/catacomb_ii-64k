@@ -6,6 +6,7 @@ use crate::{
     catacomb::repaintscreen,
     dir_type::dirtype::{self, *},
     extra_types::boolean,
+    global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_c::{drawwindow, erasewindow, expwin},
     sdl_scan_codes::*,
@@ -877,12 +878,7 @@ pub unsafe extern "C" fn drawpanel() {
     print(b"       ESC to return to your game     \n\r\0" as *const u8 as *const i8);
 }
 
-pub unsafe fn controlpanel(
-    items: &mut [i16],
-    view: &mut [[i32; 86]],
-    screencenterx: &mut i32,
-    screencentery: &mut i32,
-) {
+pub unsafe fn controlpanel(global_state: &mut GlobalState) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
     let mut oldcentery: i32 = 0;
@@ -897,10 +893,10 @@ pub unsafe fn controlpanel(
     newplayermode[1] = oldplayermode[1];
     oldplayermode[2] = playermode[2];
     newplayermode[2] = oldplayermode[2];
-    oldcenterx = *screencenterx;
-    oldcentery = *screencentery;
-    *screencenterx = 19;
-    *screencentery = 11;
+    oldcenterx = global_state.screencenterx;
+    oldcentery = global_state.screencentery;
+    global_state.screencenterx = 19;
+    global_state.screencentery = 11;
     drawwindow(0, 0, 39, 24);
     drawpanel();
     row = 0;
@@ -978,13 +974,13 @@ pub unsafe fn controlpanel(
                     );
                     newplayermode[1] = collumn as inputtype;
                     if newplayermode[1] as u32 == keyboard as i32 as u32 {
-                        calibratekeys(screencenterx, screencentery);
+                        calibratekeys(&global_state.screencenterx, &global_state.screencentery);
                     } else if newplayermode[1] as u32 == mouse as i32 as u32 {
-                        calibratemouse(screencenterx, screencentery);
+                        calibratemouse(&global_state.screencenterx, &global_state.screencentery);
                     } else if newplayermode[1] as u32 == joystick1 as i32 as u32 {
-                        calibratejoy(1, screencenterx, screencentery);
+                        calibratejoy(1, &global_state.screencenterx, &global_state.screencentery);
                     } else if newplayermode[1] as u32 == joystick2 as i32 as u32 {
-                        calibratejoy(2, screencenterx, screencentery);
+                        calibratejoy(2, &global_state.screencenterx, &global_state.screencentery);
                     }
                     drawpanel();
                 }
@@ -1000,10 +996,10 @@ pub unsafe fn controlpanel(
     playermode[2] = newplayermode[2];
     CheckMouseMode();
     grmode = newgrmode;
-    *screencenterx = oldcenterx;
-    *screencentery = oldcentery;
+    global_state.screencenterx = oldcenterx;
+    global_state.screencentery = oldcentery;
     soundmode = newsoundmode;
-    repaintscreen(items, view);
+    repaintscreen(&mut global_state.items, &mut global_state.view);
     ContinueSound();
 }
 #[no_mangle]

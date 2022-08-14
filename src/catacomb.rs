@@ -14,6 +14,7 @@ use crate::{
         blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
     extra_types::boolean,
+    global_state::GlobalState,
     gr_type::grtype::{self, *},
     indemo,
     obj_def_type::objdeftype,
@@ -649,7 +650,7 @@ unsafe fn reset(screencenterx: &i32, screencentery: &i32) {
     }
 }
 
-pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i32; 86]]) {
+pub unsafe fn loadlevel(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
     let mut tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
@@ -704,7 +705,7 @@ pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i
                     o[numobj as usize].dir =
                         TryInto::<dirtype>::try_into(rndt() / 64).unwrap() as u16;
                     o[numobj as usize].hp =
-                        objdef[o[numobj as usize].class as usize].hitpoints as i8;
+                        global_state.objdef[o[numobj as usize].class as usize].hitpoints as i8;
                     o[numobj as usize].oldx = o[numobj as usize].x;
                     o[numobj as usize].oldy = o[numobj as usize].y;
                     o[numobj as usize].oldtile = -(1) as i16;
@@ -721,7 +722,7 @@ pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i
     while y < 65 + 11 {
         x = 11 - 1;
         while x < 64 + 11 {
-            view[y as usize][x as usize] = background[y as usize][x as usize];
+            global_state.view[y as usize][x as usize] = background[y as usize][x as usize];
             x += 1;
         }
         y += 1;
@@ -730,10 +731,10 @@ pub unsafe fn loadlevel(items: &mut [i16], objdef: &[objdeftype], view: &mut [[i
     sy = 1;
     printint(level as i32);
     print(b" \0" as *const u8 as *const i8);
-    restore(view);
+    restore(&mut global_state.view);
     i = 0;
     while i < 6 {
-        saveitems[i as usize] = items[i as usize];
+        saveitems[i as usize] = global_state.items[i as usize];
         i += 1;
     }
     savescore = score;
@@ -842,13 +843,7 @@ pub unsafe fn repaintscreen(items: &mut [i16], view: &mut [[i32; 86]]) {
     };
 }
 
-pub unsafe fn dofkeys(
-    items: &mut [i16],
-    objdef: &[objdeftype],
-    view: &mut [[i32; 86]],
-    screencenterx: &mut i32,
-    screencentery: &mut i32,
-) {
+pub unsafe fn dofkeys(global_state: &mut GlobalState) {
     let mut handle: i32 = 0;
     let mut key: i32 = bioskey(1);
     if key == SDL_SCANCODE_ESCAPE as i32 {
@@ -861,15 +856,24 @@ pub unsafe fn dofkeys(
     match key {
         58 => {
             clearkeys();
-            help(objdef, screencenterx, screencentery);
+            help(
+                &global_state.objdef,
+                &global_state.screencenterx,
+                &global_state.screencentery,
+            );
         }
         59 => {
             clearkeys();
-            controlpanel(items, view, screencenterx, screencentery);
+            controlpanel(global_state);
         }
         60 => {
             clearkeys();
-            expwin(18, 1, screencenterx, screencentery);
+            expwin(
+                18,
+                1,
+                &global_state.screencenterx,
+                &global_state.screencentery,
+            );
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8);
             ch = toupper(get()) as i8;
             if ch as i32 == 'Y' as i32 {
@@ -878,7 +882,12 @@ pub unsafe fn dofkeys(
         }
         61 => {
             clearkeys();
-            expwin(22, 4, screencenterx, screencentery);
+            expwin(
+                22,
+                4,
+                &global_state.screencenterx,
+                &global_state.screencentery,
+            );
             if indemo != demoenum::notdemo {
                 print(b"Can't save game here!\0" as *const u8 as *const i8);
                 get();
@@ -951,7 +960,12 @@ pub unsafe fn dofkeys(
         }
         62 => {
             clearkeys();
-            expwin(22, 4, screencenterx, screencentery);
+            expwin(
+                22,
+                4,
+                &global_state.screencenterx,
+                &global_state.screencentery,
+            );
             print(b"Load game #(1-9):\0" as *const u8 as *const i8);
             ch = toupper(get()) as i8;
             drawchar(sx, sy, ch as i32);
@@ -971,7 +985,7 @@ pub unsafe fn dofkeys(
                 } else {
                     read(
                         handle,
-                        items as *mut _ as *mut libc::c_void,
+                        &mut global_state.items as *mut _ as *mut libc::c_void,
                         ::std::mem::size_of::<[i16; 6]>() as u64,
                     );
                     read(
@@ -994,20 +1008,30 @@ pub unsafe fn dofkeys(
                     if indemo != demoenum::notdemo {
                         playdone = true as boolean;
                     }
-                    drawside(items);
+                    drawside(&mut global_state.items);
                     leveldone = true as boolean;
                 }
             }
         }
         66 => {
             clearkeys();
-            expwin(7, 1, screencenterx, screencentery);
+            expwin(
+                7,
+                1,
+                &global_state.screencenterx,
+                &global_state.screencentery,
+            );
             print(b"PAUSED\0" as *const u8 as *const i8);
             get();
         }
         67 => {
             clearkeys();
-            expwin(12, 1, screencenterx, screencentery);
+            expwin(
+                12,
+                1,
+                &global_state.screencenterx,
+                &global_state.screencentery,
+            );
             print(b"QUIT (Y/N)?\0" as *const u8 as *const i8);
             ch = toupper(get()) as i8;
             if ch as i32 == 'Y' as i32 {
@@ -1018,16 +1042,10 @@ pub unsafe fn dofkeys(
     }
     clearold();
     clearkeys();
-    repaintscreen(items, view);
+    repaintscreen(&mut global_state.items, &mut global_state.view);
 }
 
-unsafe fn dotitlepage(
-    items: &mut [i16],
-    objdef: &[objdeftype],
-    view: &mut [[i32; 86]],
-    screencenterx: &mut i32,
-    screencentery: &mut i32,
-) {
+unsafe fn dotitlepage(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14);
     UpdateScreen();
@@ -1047,7 +1065,7 @@ unsafe fn dotitlepage(
         } else {
             indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
-                dofkeys(items, objdef, view, screencenterx, screencentery);
+                dofkeys(global_state);
                 UpdateScreen();
             }
             if exitdemo {
@@ -1091,41 +1109,25 @@ pub unsafe extern "C" fn doendpage() {
     get();
 }
 
-unsafe fn dodemo(
-    priority: &[u8],
-    items: &mut [i16],
-    objdef: &mut [objdeftype],
-    side: &mut i32,
-    view: &mut [[i32; 86]],
-    screencenterx: &mut i32,
-    screencentery: &mut i32,
-) {
+unsafe fn dodemo(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
     while !exitdemo {
-        dotitlepage(items, objdef, view, screencenterx, screencentery);
+        dotitlepage(global_state);
         if exitdemo {
             break;
         }
         i = rnd(NUM_DEMOS - 1) + 1;
         LoadDemo(i);
         level = 0;
-        playsetup(items);
-        playloop(
-            priority,
-            items,
-            objdef,
-            side,
-            view,
-            screencenterx,
-            screencentery,
-        );
+        playsetup(&mut global_state.items);
+        playloop(global_state);
         if exitdemo {
             break;
         }
         level = 0;
         gamestate = statetype::inscores;
         indemo = demoenum::demoplay;
-        _showhighscores(screencenterx, screencentery);
+        _showhighscores(&global_state.screencenterx, &global_state.screencentery);
         UpdateScreen();
         i = 0;
         while i < 500 {
@@ -1140,7 +1142,7 @@ unsafe fn dodemo(
                 break;
             } else {
                 if bioskey(1) != 0 {
-                    dofkeys(items, objdef, view, screencenterx, screencentery);
+                    dofkeys(global_state);
                 }
                 if exitdemo {
                     break;
@@ -1151,15 +1153,14 @@ unsafe fn dodemo(
     }
 }
 
-unsafe fn gameover(
-    items: &mut [i16],
-    objdef: &[objdeftype],
-    view: &mut [[i32; 86]],
-    screencenterx: &mut i32,
-    screencentery: &mut i32,
-) {
+unsafe fn gameover(global_state: &mut GlobalState) {
     let mut i: i32 = 0;
-    expwin(11, 4, screencenterx, screencentery);
+    expwin(
+        11,
+        4,
+        &global_state.screencenterx,
+        &global_state.screencentery,
+    );
     print(b"\n GAME OVER\n     \0" as *const u8 as *const i8);
     UpdateScreen();
     WaitEndSound();
@@ -1169,7 +1170,7 @@ unsafe fn gameover(
         i += 1;
     }
     gamestate = statetype::inscores;
-    _checkhighscore(screencenterx, screencentery);
+    _checkhighscore(&global_state.screencenterx, &global_state.screencentery);
     level = 0;
     i = 0;
     while i < 500 {
@@ -1182,7 +1183,7 @@ unsafe fn gameover(
             break;
         }
         if bioskey(1) != 0 {
-            dofkeys(items, objdef, view, screencenterx, screencentery);
+            dofkeys(global_state);
         }
         if exitdemo as i32 != 0 || indemo == demoenum::demoplay {
             break;
@@ -1201,29 +1202,28 @@ unsafe fn gameover(
 /*=========================*/
 
 pub fn original_main() {
-    /***************************************************************************/
-    // Ex-globals
-
-    let mut priority: [u8; 2048] = [0; 2048];
-    let mut items: [i16; 6] = [0; 6];
-    let mut objdef = [objdeftype {
-        think: 0,
-        contact: 0,
-        solid: 0,
-        firstchar: 0,
-        size: 0,
-        stages: 0,
-        dirmask: 0,
-        speed: 0,
-        hitpoints: 0,
-        damage: 0,
-        points: 0,
-        filler: [0; 2],
-    }; 23];
-    let mut side = 0;
-    let mut view: [[i32; 86]; 87] = [[0; 86]; 87];
-    let mut screencentery: i32 = 11;
-    let mut screencenterx: i32 = 19;
+    let mut global_state = GlobalState::new(
+        [0; 2048],
+        [0; 6],
+        [objdeftype {
+            think: 0,
+            contact: 0,
+            solid: 0,
+            firstchar: 0,
+            size: 0,
+            stages: 0,
+            dirmask: 0,
+            speed: 0,
+            hitpoints: 0,
+            damage: 0,
+            points: 0,
+            filler: [0; 2],
+        }; 23],
+        0,
+        [[0; 86]; 87],
+        19,
+        11,
+    );
 
     /***************************************************************************/
 
@@ -1247,58 +1247,65 @@ pub fn original_main() {
         std::process::exit(0);
     }
 
-    initobjects(&mut objdef);
+    initobjects(&mut global_state.objdef);
 
-    priority.fill(99);
+    global_state.priority.fill(99);
 
-    priority[blankfloor] = 0;
-    for i in objdef[teleporter as usize].firstchar..=objdef[teleporter as usize].firstchar + 20 {
-        priority[i as usize] = 0;
+    global_state.priority[blankfloor] = 0;
+    for i in global_state.objdef[teleporter as usize].firstchar
+        ..=global_state.objdef[teleporter as usize].firstchar + 20
+    {
+        global_state.priority[i as usize] = 0;
     }
     for clvar in (dead2 as usize)..=(dead5 as usize) {
-        for i in objdef[clvar].firstchar
-            ..=(objdef[clvar].firstchar + objdef[clvar].size as u16 * objdef[clvar].size as u16)
+        for i in global_state.objdef[clvar].firstchar
+            ..=(global_state.objdef[clvar].firstchar
+                + global_state.objdef[clvar].size as u16 * global_state.objdef[clvar].size as u16)
         {
-            priority[i as usize] = 0; /*deadthing*/
+            global_state.priority[i as usize] = 0; /*deadthing*/
         }
     }
     for i in 152..=161 {
-        priority[i] = 2; /*shots*/
+        global_state.priority[i] = 2; /*shots*/
     }
-    for i in objdef[bigshot as usize].firstchar..=(objdef[bigshot as usize].firstchar + 31) {
-        priority[i as usize] = 2; /*bigshot*/
+    for i in global_state.objdef[bigshot as usize].firstchar
+        ..=(global_state.objdef[bigshot as usize].firstchar + 31)
+    {
+        global_state.priority[i as usize] = 2; /*bigshot*/
     }
     for i in 0..=(tile2s - 1) {
-        if priority[i] == 99 {
-            priority[i] = 3; /*most 1*1 tiles are walls, etc*/
+        if global_state.priority[i] == 99 {
+            global_state.priority[i] = 3; /*most 1*1 tiles are walls, etc*/
         }
     }
-    priority[167] = 1; // chest
+    global_state.priority[167] = 1; // chest
     for i in tile2s..=maxpics {
-        if priority[i] as i32 == 99 {
-            priority[i] = 4; /*most bigger tiles are monsters*/
+        if global_state.priority[i] as i32 == 99 {
+            global_state.priority[i] = 4; /*most bigger tiles are monsters*/
         }
     }
-    for i in objdef[player as usize].firstchar..=(objdef[player as usize].firstchar + 63) {
-        priority[i as usize] = 5; /*player*/
+    for i in global_state.objdef[player as usize].firstchar
+        ..=(global_state.objdef[player as usize].firstchar + 63)
+    {
+        global_state.priority[i as usize] = 5; /*player*/
     }
 
     unsafe {
-        side = 0;
+        global_state.side = 0;
 
         for x in 0..=85 {
             for y in 0..=(topoff - 1) {
-                view[x][y] = solidwall;
-                view[x][(85 - y)] = solidwall;
+                global_state.view[x][y] = solidwall;
+                global_state.view[x][(85 - y)] = solidwall;
                 background[x][y] = solidwall;
                 background[x][(85 - y)] = solidwall;
             }
-            view[86][x] = solidwall;
+            global_state.view[86][x] = solidwall;
         }
         for y in 11..=74 {
             for x in 0..=(leftoff - 1) {
-                view[x][y] = solidwall;
-                view[(85 - x)][y] = solidwall;
+                global_state.view[x][y] = solidwall;
+                global_state.view[(85 - x)][y] = solidwall;
                 background[x][y] = solidwall;
                 background[(85 - x)][y] = solidwall;
             }
@@ -1310,7 +1317,12 @@ pub fn original_main() {
 
         _setupgame();
 
-        expwin(33, 13, &screencenterx, &screencentery);
+        expwin(
+            33,
+            13,
+            &global_state.screencenterx,
+            &global_state.screencentery,
+        );
         print(b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const i8);
         print(b"          The Catacomb\n\n\0" as *const u8 as *const i8);
         print(b"        By John Carmack\n\n\0" as *const u8 as *const i8);
@@ -1323,47 +1335,25 @@ pub fn original_main() {
 
         clearkeys();
 
-        screencentery = 11;
-        screencenterx = 11;
+        global_state.screencentery = 11;
+        global_state.screencenterx = 11;
 
         exitdemo = false;
         level = 0;
 
         // go until quit () is called
         loop {
-            dodemo(
-                &priority,
-                &mut items,
-                &mut objdef,
-                &mut side,
-                &mut view,
-                &mut screencenterx,
-                &mut screencentery,
-            );
-            playsetup(&mut items);
+            dodemo(&mut global_state);
+            playsetup(&mut global_state.items);
             indemo = demoenum::notdemo;
             gamestate = statetype::ingame;
-            playloop(
-                &priority,
-                &mut items,
-                &mut objdef,
-                &mut side,
-                &mut view,
-                &mut screencenterx,
-                &mut screencentery,
-            );
+            playloop(&mut global_state);
             if indemo == demoenum::notdemo {
                 exitdemo = false;
                 if level > numlevels {
                     doendpage(); // finished all levels
                 }
-                gameover(
-                    &mut items,
-                    &objdef,
-                    &mut view,
-                    &mut screencenterx,
-                    &mut screencentery,
-                );
+                gameover(&mut global_state);
             }
         }
     }
