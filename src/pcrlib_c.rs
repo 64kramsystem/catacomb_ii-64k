@@ -16,12 +16,13 @@ use crate::{
     gr_type::grtype::{self, *},
     indemo,
     pcrlib_a::{
-        drawchar, initrnd, initrndt, PlaySound, SetupEmulatedVBL, ShutdownSound, StartupSound,
-        WaitVBL,
+        drawchar, initrnd, initrndt, soundmode, PlaySound, SetupEmulatedVBL, ShutdownSound,
+        SoundData, StartupSound, WaitVBL,
     },
     safe_sdl::*,
     scores::scores,
     sdl_scan_codes::*,
+    spkr_table::SPKRtable,
 };
 extern "C" {
     pub type _IO_wide_data;
@@ -51,8 +52,6 @@ extern "C" {
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
-    static mut SoundData: *mut SPKRtable;
-    static mut soundmode: soundtype;
 }
 pub type __dev_t = u64;
 pub type __uid_t = u32;
@@ -693,49 +692,28 @@ unsafe fn ltoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
     return itoa(value, str_0, base);
 }
 
-#[no_mangle]
 pub static mut ch: i8 = 0;
-#[no_mangle]
 pub static mut str: [i8; 80] = [0; 80];
-#[no_mangle]
 pub static mut playermode: [inputtype; 3] = [keyboard, keyboard, joystick1];
-#[no_mangle]
 pub static mut keydown: [boolean; 512] = [0; 512];
-#[no_mangle]
 pub static mut JoyXlow: [i32; 3] = [0; 3];
-#[no_mangle]
 pub static mut JoyXhigh: [i32; 3] = [0; 3];
-#[no_mangle]
 pub static mut JoyYlow: [i32; 3] = [0; 3];
-#[no_mangle]
 pub static mut JoyYhigh: [i32; 3] = [0; 3];
-#[no_mangle]
 pub static mut MouseSensitivity: i32 = 0;
-#[no_mangle]
-pub static mut mouseEvent: boolean = 0;
-#[no_mangle]
+static mut mouseEvent: boolean = 0;
 pub static mut key: [i32; 8] = [0; 8];
-#[no_mangle]
 pub static mut keyB1: i32 = 0;
-#[no_mangle]
 pub static mut keyB2: i32 = 0;
-#[no_mangle]
-pub static mut demobuffer: [i8; 5000] = [0; 5000];
-#[no_mangle]
-pub static mut demoptr: *mut i8 = 0 as *const i8 as *mut i8;
-#[no_mangle]
-pub static mut democount: i32 = 0;
-#[no_mangle]
-pub static mut lastdemoval: i32 = 0;
+static mut demobuffer: [i8; 5000] = [0; 5000];
+static mut demoptr: *mut i8 = 0 as *const i8 as *mut i8;
+static mut democount: i32 = 0;
+static mut lastdemoval: i32 = 0;
 static mut lastkey: SDL_Scancode = SDL_SCANCODE_UNKNOWN;
-#[no_mangle]
-pub static mut window: *mut SDL_Window = 0 as *const SDL_Window as *mut SDL_Window;
-#[no_mangle]
-pub static mut renderer: *mut SDL_Renderer = 0 as *const SDL_Renderer as *mut SDL_Renderer;
-#[no_mangle]
-pub static mut sdltexture: *mut SDL_Texture = 0 as *const SDL_Texture as *mut SDL_Texture;
-#[no_mangle]
-pub static mut updateRect: SDL_Rect = SDL_Rect {
+static mut window: *mut SDL_Window = 0 as *const SDL_Window as *mut SDL_Window;
+static mut renderer: *mut SDL_Renderer = 0 as *const SDL_Renderer as *mut SDL_Renderer;
+static mut sdltexture: *mut SDL_Texture = 0 as *const SDL_Texture as *mut SDL_Texture;
+static mut updateRect: SDL_Rect = SDL_Rect {
     x: 0,
     y: 0,
     w: 0,
@@ -1240,32 +1218,19 @@ pub unsafe fn bloadin(mut filename: *mut i8) -> *mut libc::c_void {
         return 0 as *mut libc::c_void;
     };
 }
-#[no_mangle]
 pub static mut grmode: grtype = text;
-#[no_mangle]
 pub static mut charptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-#[no_mangle]
 pub static mut tileptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-#[no_mangle]
 pub static mut picptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-#[no_mangle]
 pub static mut spriteptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-#[no_mangle]
 pub static mut egaplaneofs: [u32; 4] = [0; 4];
-#[no_mangle]
 pub static mut sx: i32 = 0;
-#[no_mangle]
 pub static mut sy: i32 = 0;
-#[no_mangle]
 pub static mut leftedge: i32 = 0;
-#[no_mangle]
-pub static mut win_xl: i32 = 0;
-#[no_mangle]
-pub static mut win_yl: i32 = 0;
-#[no_mangle]
-pub static mut win_xh: i32 = 0;
-#[no_mangle]
-pub static mut win_yh: i32 = 0;
+static mut win_xl: i32 = 0;
+static mut win_yl: i32 = 0;
+static mut win_xh: i32 = 0;
+static mut win_yh: i32 = 0;
 
 pub unsafe fn drawwindow(mut xl: i32, mut yl: i32, mut xh: i32, mut yh: i32, gs: &mut GlobalState) {
     let mut x: i32 = 0;

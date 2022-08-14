@@ -1,8 +1,13 @@
 use ::libc;
 
 use crate::{
-    extra_constants::PC_BASE_TIMER, extra_types::boolean, global_state::GlobalState,
-    gr_type::grtype, pcrlib_c::UpdateScreen, safe_sdl::*,
+    cpanel::pictable,
+    extra_constants::PC_BASE_TIMER,
+    extra_types::boolean,
+    global_state::GlobalState,
+    pcrlib_c::{charptr, egaplaneofs, grmode, picptr, UpdateScreen},
+    safe_sdl::*,
+    spkr_table::SPKRtable,
 };
 extern "C" {
     fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
@@ -10,11 +15,6 @@ extern "C" {
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
     fn printf(_: *const i8, _: ...) -> i32;
-    static mut egaplaneofs: [u32; 4];
-    static mut picptr: *mut libc::c_void;
-    static mut charptr: *mut libc::c_void;
-    static mut pictable: [pictype; 64];
-    static mut grmode: grtype;
 }
 type __time_t = i64;
 type time_t = __time_t;
@@ -76,14 +76,10 @@ unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
         | *chan.offset(0) as i32 >> ofs as i32 & 1) as u8;
 }
 
-#[no_mangle]
-static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
-#[no_mangle]
-static mut soundmode: soundtype = spkr;
+pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
+pub static mut soundmode: soundtype = spkr;
 static mut SndPriority: u8 = 0;
-#[no_mangle]
-static mut xormask: i32 = 0;
-#[no_mangle]
+pub static mut xormask: i32 = 0;
 static mut _dontplay: i32 = 0;
 static mut AudioMutex: *mut SDL_mutex = 0 as *const SDL_mutex as *mut SDL_mutex;
 static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {

@@ -6,13 +6,15 @@ use crate::{
     catacomb::{loadgrfiles, repaintscreen},
     control_struct::ControlStruct,
     dir_type::dirtype::*,
-    extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    pcrlib_a::{drawchar, drawpic, ContinueSound, PauseSound, WaitVBL},
+    pcrlib_a::{drawchar, drawpic, soundmode, xormask, ContinueSound, PauseSound, WaitVBL},
     pcrlib_c::{
-        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, print, CheckMouseMode,
-        ControlJoystick, ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen,
+        MouseSensitivity, ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen,
+        _egaok, _vgaok, bioskey, bloadin, charptr, clearkeys, drawwindow, egaplaneofs, erasewindow,
+        expwin, get, grmode, key, keyB1, keyB2, keydown, leftedge, picptr, playermode, print,
+        spriteptr, sx, sy, tileptr, CheckMouseMode, ControlJoystick, JoyXhigh, JoyXlow, JoyYhigh,
+        JoyYlow,
     },
     sdl_scan_codes::*,
 };
@@ -20,29 +22,6 @@ use crate::{
 extern "C" {
     fn free(_: *mut libc::c_void);
     fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
-    static mut _vgaok: boolean;
-    static mut _egaok: boolean;
-    static mut egaplaneofs: [u32; 4];
-    static mut spriteptr: *mut libc::c_void;
-    static mut picptr: *mut libc::c_void;
-    static mut tileptr: *mut libc::c_void;
-    static mut charptr: *mut libc::c_void;
-    static mut xormask: i32;
-    static mut leftedge: i32;
-    static mut sy: i32;
-    static mut sx: i32;
-    static mut grmode: grtype;
-    static mut keyB2: i32;
-    static mut keyB1: i32;
-    static mut key: [i32; 8];
-    static mut MouseSensitivity: i32;
-    static mut JoyYhigh: [i32; 3];
-    static mut JoyYlow: [i32; 3];
-    static mut JoyXhigh: [i32; 3];
-    static mut JoyXlow: [i32; 3];
-    static mut keydown: [boolean; 512];
-    static mut playermode: [inputtype; 3];
-    static mut soundmode: soundtype;
     fn SDL_NumJoysticks() -> i32;
 }
 

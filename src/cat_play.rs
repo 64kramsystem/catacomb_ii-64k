@@ -19,9 +19,8 @@ use crate::{
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{
         centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
-        bioskey, clearkeys, RecordDemo, SaveDemo,
+        bioskey, ch, clearkeys, highscores, keydown, level, score, sx, sy, RecordDemo, SaveDemo,
     },
-    scores::scores,
     sdl_scan_codes::*,
     tag_type::tagtype::*,
 };
@@ -29,13 +28,6 @@ extern "C" {
     fn atoi(__nptr: *const i8) -> i32;
     fn abs(_: i32) -> i32;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    static mut highscores: [scores; 5];
-    static mut level: i16;
-    static mut score: i32;
-    static mut sy: i32;
-    static mut sx: i32;
-    static mut keydown: [boolean; 512];
-    static mut ch: i8;
 }
 
 const altmeters: [[i8; 14]; 14] = [
