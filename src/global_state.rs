@@ -27,9 +27,9 @@ pub struct GlobalState {
     pub numobj: i32,           /*number of objects in o now*/
     pub objecton: i32,         // ^^
 
-    //
     pub objdef: [objdeftype; 23],
 
+    pub playdone: bool,
     //     boolean playdone, leveldone;
     //
     //     boolean tempb;
@@ -79,6 +79,7 @@ impl GlobalState {
         numobj: i32,
         objecton: i32,
         objdef: [objdeftype; 23],
+        playdone: bool,
         side: i32,
         boltsleft: i32,
         view: [[i32; 86]; 87],
@@ -102,6 +103,7 @@ impl GlobalState {
             objecton,
             numobj,
             objdef,
+            playdone,
             side,
             boltsleft,
             view,

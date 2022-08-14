@@ -84,8 +84,6 @@ unsafe extern "C" fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> 
 }
 
 #[no_mangle]
-pub static mut playdone: boolean = 0;
-#[no_mangle]
 pub static mut leveldone: boolean = 0;
 #[no_mangle]
 pub static mut tempb: boolean = 0;
@@ -485,7 +483,7 @@ unsafe fn reset(gs: &mut GlobalState) {
     ch = get(gs) as i8;
     if ch as i32 == 'y' as i32 {
         gs.gamexit = killed;
-        playdone = true as boolean;
+        gs.playdone = true;
     }
 }
 
@@ -835,7 +833,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                     close(handle);
                     exitdemo = true;
                     if indemo != demoenum::notdemo {
-                        playdone = true as boolean;
+                        gs.playdone = true;
                     }
                     drawside(gs);
                     leveldone = true as boolean;
@@ -1118,6 +1116,7 @@ pub fn original_main() {
             points: 0,
             filler: [0; 2],
         }; 23],
+        false,
         0,
         0,
         [[0; 86]; 87],

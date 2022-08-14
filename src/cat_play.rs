@@ -34,7 +34,6 @@ extern "C" {
     static mut chky: i32;
     static mut leveldone: boolean;
     static mut frameon: u16;
-    static mut playdone: boolean;
     static mut GODMODE: boolean;
     fn bioskey(_: i32) -> i32;
     static mut highscores: [scores; 5];
@@ -200,7 +199,7 @@ unsafe fn levelcleared(gs: &mut GlobalState) {
         level += 1;
     }
     if level as i32 > 30 {
-        playdone = true as boolean;
+        gs.playdone = true;
         gs.gamexit = victorious;
     }
 }
@@ -459,7 +458,7 @@ unsafe fn tagobject(gs: &mut GlobalState) {
             gs.altobj.hp = gs.o[0].hp;
             printbody(gs);
             PlaySound(10);
-            playdone = true as boolean;
+            gs.playdone = true;
             gs.gamexit = killed;
         } else {
             score = score + gs.altobj.points as i32;
@@ -862,7 +861,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
     dofkeys(gs);
     if resetgame != 0 {
         resetgame = false as boolean;
-        playdone = true as boolean;
+        gs.playdone = true;
         return;
     }
     match indemo {
@@ -1229,7 +1228,7 @@ pub unsafe fn doactive(gs: &mut GlobalState) {
     } else {
         think(gs);
         eraseobj(gs);
-        if playdone != 0 {
+        if gs.playdone {
             return;
         }
         if gs.obj.class as i32 > nothing as i32 {
@@ -1289,7 +1288,7 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
             clearold(&mut gs.oldtiles);
             clearkeys();
         }
-        playdone = false as boolean;
+        gs.playdone = false;
         frameon = 0;
         gs.boltsleft = 0;
         gs.shotpower = 0;
@@ -1312,9 +1311,9 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
             refresh(gs);
         }
         if indemo != demoenum::notdemo {
-            playdone = true as boolean;
+            gs.playdone = true;
         }
-        if !(playdone == 0) {
+        if gs.playdone {
             break;
         }
     }

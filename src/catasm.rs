@@ -22,7 +22,6 @@ extern "C" {
     ) -> !;
     static mut frameon: u16;
     static mut leveldone: boolean;
-    static mut playdone: boolean;
     static mut pics: *mut i8;
     static mut grmode: grtype;
 }
@@ -141,7 +140,7 @@ pub unsafe fn doall(gs: &mut GlobalState) {
                     doinactive(gs);
                 }
             }
-            if leveldone as i32 != 0 || playdone as i32 != 0 {
+            if leveldone as i32 != 0 || gs.playdone {
                 return;
             }
             gs.objecton -= 1;
@@ -154,7 +153,7 @@ pub unsafe fn doall(gs: &mut GlobalState) {
         if leveldone != 0 {
             return;
         }
-        if !(playdone == 0) {
+        if gs.playdone {
             break;
         }
     }
