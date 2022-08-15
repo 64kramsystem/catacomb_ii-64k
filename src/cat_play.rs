@@ -23,7 +23,6 @@ use crate::{
     tag_type::tagtype::*,
 };
 extern "C" {
-    fn abs(_: i32) -> i32;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
 }
 
@@ -963,7 +962,7 @@ unsafe fn chasethink(mut diagonal: boolean, gs: &mut GlobalState) {
     if deltay < 0 {
         d[2] = north;
     }
-    if abs(deltay) > abs(deltax) {
+    if deltay.abs() > deltax.abs() {
         tdir = d[1] as i32;
         d[1] = d[2];
         d[2] = tdir.into();
