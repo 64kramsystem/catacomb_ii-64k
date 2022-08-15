@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use libc::O_RDONLY;
 
 use crate::{
@@ -481,9 +479,8 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
                     gs.o[gs.numobj as usize].y = (yy + 11) as u8;
                     gs.o[gs.numobj as usize].stage = 0;
                     gs.o[gs.numobj as usize].delay = 0;
-                    // Ugly defensive typecast.
-                    gs.o[gs.numobj as usize].dir =
-                        TryInto::<dirtype>::try_into(rndt() / 64).unwrap() as u16;
+                    // Defensive typecast.
+                    gs.o[gs.numobj as usize].dir = Into::<dirtype>::into(rndt() / 64) as u16;
                     gs.o[gs.numobj as usize].hp =
                         gs.objdef[gs.o[gs.numobj as usize].class as usize].hitpoints as i8;
                     gs.o[gs.numobj as usize].oldx = gs.o[gs.numobj as usize].x;

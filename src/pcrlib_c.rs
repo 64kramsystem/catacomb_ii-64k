@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use ::libc;
 use libc::O_RDONLY;
 
@@ -1091,7 +1089,7 @@ pub unsafe fn ControlPlayer(mut player: i32) -> ControlStruct {
         val = *fresh1 as i32;
         ret.button1 = (val & 1) as boolean;
         ret.button2 = ((val & 2) >> 1) as boolean;
-        ret.dir = ((val & 4 + 8 + 16 + 32) >> 2).try_into().unwrap();
+        ret.dir = ((val & 4 + 8 + 16 + 32) >> 2).into();
     }
     return ret;
 }

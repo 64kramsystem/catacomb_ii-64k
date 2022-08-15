@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use ::libc;
 
 use crate::{
@@ -964,7 +962,7 @@ pub unsafe fn controlpanel(gs: &mut GlobalState) {
                             32,
                             gs,
                         );
-                        newgrmode = (collumn + 1).try_into().unwrap();
+                        newgrmode = (collumn + 1).into();
                         grmode = newgrmode;
                         loadgrfiles();
                         drawwindow(0, 0, 39, 24, gs);

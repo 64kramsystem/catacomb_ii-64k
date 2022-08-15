@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use ::libc;
 
 use crate::{
@@ -456,9 +454,7 @@ unsafe fn tagobject(gs: &mut GlobalState) {
             printscore(gs);
             PlaySound(9);
         }
-        gs.o[gs.altnum as usize].class = (dead1 as u16 - 1 + gs.altobj.size as u16)
-            .try_into()
-            .unwrap();
+        gs.o[gs.altnum as usize].class = (dead1 as u16 - 1 + gs.altobj.size as u16).into();
         gs.o[gs.altnum as usize].delay = 2;
         gs.o[gs.altnum as usize].stage = 0;
     } else {
@@ -731,7 +727,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
     }
     if (c.dir as u32) < nodir as i32 as u32 && gs.frameon as i32 % 2 != 0 {
         if c.button2 != 0 {
-            olddir = gs.obj.dir.try_into().unwrap();
+            olddir = gs.obj.dir.into();
         }
         if c.dir as u32 > west as i32 as u32 {
             if gs.frameon as i32 / 2 % 2 != 0 {
@@ -949,7 +945,7 @@ unsafe fn chasethink(mut diagonal: boolean, gs: &mut GlobalState) {
     if abs(deltay) > abs(deltax) {
         tdir = d[1] as i32;
         d[1] = d[2];
-        d[2] = tdir.try_into().unwrap();
+        d[2] = tdir.into();
     }
     if d[1] as u32 == turnaround as u32 {
         d[1] = nodir;

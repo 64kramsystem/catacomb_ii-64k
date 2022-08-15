@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use num::FromPrimitive;
 use num_derive::FromPrimitive;
 
@@ -33,10 +31,8 @@ pub enum classtype {
     nothing = 0,
 }
 
-impl TryFrom<u16> for classtype {
-    type Error = ();
-
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        FromPrimitive::from_u16(value).ok_or(())
+impl From<u16> for classtype {
+    fn from(value: u16) -> Self {
+        FromPrimitive::from_u16(value).unwrap()
     }
 }

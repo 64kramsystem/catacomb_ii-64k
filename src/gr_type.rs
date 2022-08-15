@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use num::FromPrimitive;
 use num_derive::FromPrimitive;
 
@@ -13,10 +11,8 @@ pub enum grtype {
     text = 0,
 }
 
-impl TryFrom<i32> for grtype {
-    type Error = ();
-
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        FromPrimitive::from_i32(value).ok_or(())
+impl From<i32> for grtype {
+    fn from(value: i32) -> Self {
+        FromPrimitive::from_i32(value).unwrap()
     }
 }
