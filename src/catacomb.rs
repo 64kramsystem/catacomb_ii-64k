@@ -11,7 +11,7 @@ use crate::{
     catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
     control_struct::ControlStruct,
-    cpanel::{controlpanel, installgrfile},
+    cpanel::{controlpanel, installgrfile, pictype, spritetype},
     cpanel_state::CpanelState,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
@@ -162,7 +162,7 @@ unsafe fn simplerefresh(gs: &mut GlobalState) {
     };
 }
 
-pub unsafe fn loadgrfiles(gs: &mut GlobalState) {
+pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState) {
     if !gs.picsexact.is_null() {
         free(gs.picsexact as *mut libc::c_void);
     }
@@ -172,6 +172,7 @@ pub unsafe fn loadgrfiles(gs: &mut GlobalState) {
         installgrfile(
             b"CGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
+            cps,
         );
     } else {
         gs.pics = bloadin("EGACHARS.CA2") as *mut i8;
@@ -179,6 +180,7 @@ pub unsafe fn loadgrfiles(gs: &mut GlobalState) {
         installgrfile(
             b"EGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
+            cps,
         );
     };
 }
@@ -495,7 +497,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
     gs.saveo[0] = gs.o[0];
 }
 
-unsafe fn drawside(gs: &mut GlobalState) {
+unsafe fn drawside(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut i: i32 = 0;
     sx = 0;
     while sx < 40 {
@@ -523,7 +525,7 @@ unsafe fn drawside(gs: &mut GlobalState) {
     sx = 33;
     sy = 1;
     printint(level as i32, gs);
-    drawpic(25 * 8, 17 * 8, 13, gs);
+    drawpic(25 * 8, 17 * 8, 13, gs, cps);
     i = 1;
     while i <= gs.items[1] as i32 && i < 11 {
         drawchar(26 + i, 7, 31, gs);
@@ -546,7 +548,7 @@ unsafe fn drawside(gs: &mut GlobalState) {
     }
 }
 
-unsafe fn playsetup(gs: &mut GlobalState) {
+unsafe fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut i: i32 = 0;
     gs.shotpower = 0;
     bar(0, 0, 23, 23, 0, gs);
@@ -564,7 +566,7 @@ unsafe fn playsetup(gs: &mut GlobalState) {
         gs.o[0].dir = west as i32 as u16;
         gs.o[0].stage = 0;
         gs.o[0].delay = 0;
-        drawside(gs);
+        drawside(gs, cps);
         givenuke(gs);
         givenuke(gs);
         givebolt(gs);
@@ -574,18 +576,18 @@ unsafe fn playsetup(gs: &mut GlobalState) {
         givepotion(gs);
         givepotion(gs);
     } else {
-        drawside(gs);
+        drawside(gs, cps);
     };
 }
 
-pub unsafe fn repaintscreen(gs: &mut GlobalState) {
+pub unsafe fn repaintscreen(gs: &mut GlobalState, cps: &mut CpanelState) {
     match gs.gamestate {
         statetype::intitle => {
-            drawpic(0, 0, 14, gs);
+            drawpic(0, 0, 14, gs, cps);
         }
         statetype::ingame => {
             restore(gs);
-            drawside(gs);
+            drawside(gs, cps);
             printscore(gs);
             sx = 33;
             sy = 1;
@@ -593,7 +595,7 @@ pub unsafe fn repaintscreen(gs: &mut GlobalState) {
         }
         statetype::inscores => {
             restore(gs);
-            drawside(gs);
+            drawside(gs, cps);
             printscore(gs);
             sx = 33;
             sy = 1;
@@ -750,7 +752,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState) {
                     if gs.indemo != demoenum::notdemo {
                         gs.playdone = true;
                     }
-                    drawside(gs);
+                    drawside(gs, cps);
                     gs.leveldone = true;
                 }
             }
@@ -774,12 +776,12 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState) {
     }
     clearold(&mut gs.oldtiles);
     clearkeys();
-    repaintscreen(gs);
+    repaintscreen(gs, cps);
 }
 
 unsafe fn dotitlepage(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut i: i32 = 0;
-    drawpic(0, 0, 14, gs);
+    drawpic(0, 0, 14, gs, cps);
     UpdateScreen(gs);
     gs.gamestate = statetype::intitle;
     i = 0;
@@ -809,9 +811,9 @@ unsafe fn dotitlepage(gs: &mut GlobalState, cps: &mut CpanelState) {
     gs.gamestate = statetype::ingame;
 }
 
-unsafe fn doendpage(gs: &mut GlobalState) {
+unsafe fn doendpage(gs: &mut GlobalState, cps: &mut CpanelState) {
     WaitEndSound(gs);
-    drawpic(0, 0, 15, gs);
+    drawpic(0, 0, 15, gs, cps);
     PlaySound(3);
     WaitEndSound(gs);
     PlaySound(3);
@@ -851,7 +853,7 @@ unsafe fn dodemo(gs: &mut GlobalState, cps: &mut CpanelState) {
         i = rnd(NUM_DEMOS - 1) + 1;
         LoadDemo(i, gs);
         level = 0;
-        playsetup(gs);
+        playsetup(gs, cps);
         playloop(gs, cps);
         if gs.exitdemo {
             break;
@@ -1074,6 +1076,40 @@ pub fn original_main() {
         0,
         0,
         0,
+        [0; 4],
+        spritetype {
+            width: 0,
+            height: 0,
+            shapeptr: 0,
+            maskptr: 0,
+            xl: 0,
+            yl: 0,
+            xh: 0,
+            yh: 0,
+            name: [0; 12],
+        },
+        [spritetype {
+            width: 0,
+            height: 0,
+            shapeptr: 0,
+            maskptr: 0,
+            xl: 0,
+            yl: 0,
+            xh: 0,
+            yh: 0,
+            name: [0; 12],
+        }; 10],
+        ptr::null_mut(),
+        0,
+        0,
+        0,
+        0,
+        [pictype {
+            width: 0,
+            height: 0,
+            shapeptr: 0,
+            name: [0; 8],
+        }; 64],
     );
 
     /***************************************************************************/
@@ -1161,7 +1197,7 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
-    _setupgame(&mut gs);
+    _setupgame(&mut gs, &mut cps);
 
     unsafe {
         expwin(33, 13, &mut gs);
@@ -1204,14 +1240,14 @@ pub fn original_main() {
         // go until quit () is called
         loop {
             dodemo(&mut gs, &mut cps);
-            playsetup(&mut gs);
+            playsetup(&mut gs, &mut cps);
             gs.indemo = demoenum::notdemo;
             gs.gamestate = statetype::ingame;
             playloop(&mut gs, &mut cps);
             if gs.indemo == demoenum::notdemo {
                 gs.exitdemo = false;
                 if level > numlevels {
-                    doendpage(&mut gs); // finished all levels
+                    doendpage(&mut gs, &mut cps); // finished all levels
                 }
                 gameover(&mut gs, &mut cps);
             }

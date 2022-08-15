@@ -6,6 +6,7 @@ use std::{fs, mem, ptr};
 use ::libc;
 use libc::O_RDONLY;
 
+use crate::cpanel_state::CpanelState;
 use crate::input_type::inputtype::{self, *};
 use crate::sound_type::soundtype::{self, *};
 use crate::{
@@ -1447,7 +1448,6 @@ unsafe fn _input(string: &mut [u8], max: usize, gs: &mut GlobalState) -> i32 {
     0
 }
 
-
 pub static mut scoreswap: scores = scores {
     score: 0,
     level: 0,
@@ -1469,7 +1469,6 @@ pub static mut level: i16 = 0;
 //     char *_extension = "PCR";
 //
 // which is overwritten with "CA2" in `CATACOMB.C`.
-
 
 pub static mut _cgaok: boolean = true as boolean;
 
@@ -1899,7 +1898,7 @@ pub unsafe fn _checkhighscore(gs: &mut GlobalState) {
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
-pub fn _setupgame(gs: &mut GlobalState) {
+pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState) {
     if safe_SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
         eprintln!("Failed to initialize SDL: {}", safe_SDL_GetError());
         std::process::exit(1);
@@ -2025,7 +2024,7 @@ pub fn _setupgame(gs: &mut GlobalState) {
         initrndt(1);
         initrnd(1);
         _loadhighscores();
-        loadgrfiles(gs);
+        loadgrfiles(gs, cps);
         SetupEmulatedVBL();
     }
 }

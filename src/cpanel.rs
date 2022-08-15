@@ -423,35 +423,35 @@ unsafe fn drawpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
     sy = rowy[0] + 2;
     sx = 2;
     print(b"VIDEO:\0" as *const u8 as *const i8, gs);
-    drawpic(collumnx[0] * 8, rowy[0] * 8, 0, gs);
+    drawpic(collumnx[0] * 8, rowy[0] * 8, 0, gs, cps);
     if _egaok != 0 {
-        drawpic(collumnx[1] * 8, rowy[0] * 8, 1, gs);
+        drawpic(collumnx[1] * 8, rowy[0] * 8, 1, gs, cps);
     } else {
-        drawpic(collumnx[1] * 8, rowy[0] * 8, 3, gs);
+        drawpic(collumnx[1] * 8, rowy[0] * 8, 3, gs, cps);
     }
     sy = rowy[1] + 2;
     sx = 2;
     print(b"SOUND:\0" as *const u8 as *const i8, gs);
-    drawpic(collumnx[0] * 8, rowy[1] * 8, 5, gs);
-    drawpic(collumnx[1] * 8, rowy[1] * 8, 6, gs);
+    drawpic(collumnx[0] * 8, rowy[1] * 8, 5, gs, cps);
+    drawpic(collumnx[1] * 8, rowy[1] * 8, 6, gs, cps);
     sy = rowy[2] + 2;
     sx = 2;
     print(b"CONTROL:\0" as *const u8 as *const i8, gs);
-    drawpic(collumnx[0] * 8, rowy[2] * 8, 7, gs);
+    drawpic(collumnx[0] * 8, rowy[2] * 8, 7, gs, cps);
     if cps.mouseok != 0 {
-        drawpic(collumnx[1] * 8, rowy[2] * 8, 10, gs);
+        drawpic(collumnx[1] * 8, rowy[2] * 8, 10, gs, cps);
     } else {
-        drawpic(collumnx[1] * 8, rowy[2] * 8, 12, gs);
+        drawpic(collumnx[1] * 8, rowy[2] * 8, 12, gs, cps);
     }
     if cps.joy1ok != 0 {
-        drawpic(collumnx[2] * 8, rowy[2] * 8, 8, gs);
+        drawpic(collumnx[2] * 8, rowy[2] * 8, 8, gs, cps);
     } else {
-        drawpic(collumnx[2] * 8, rowy[2] * 8, 11, gs);
+        drawpic(collumnx[2] * 8, rowy[2] * 8, 11, gs, cps);
     }
     if cps.joy2ok != 0 {
-        drawpic(collumnx[3] * 8, rowy[2] * 8, 9, gs);
+        drawpic(collumnx[3] * 8, rowy[2] * 8, 9, gs, cps);
     } else {
-        drawpic(collumnx[3] * 8, rowy[2] * 8, 11, gs);
+        drawpic(collumnx[3] * 8, rowy[2] * 8, 11, gs, cps);
     }
     drawchar(
         collumnx[(cps.newgrmode as i32 - 1) as usize] + 1,
@@ -563,7 +563,7 @@ pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
                         );
                         cps.newgrmode = (cps.collumn + 1).into();
                         grmode = cps.newgrmode;
-                        loadgrfiles(gs);
+                        loadgrfiles(gs, cps);
                         drawwindow(0, 0, 39, 24, gs);
                         drawpanel(gs, cps);
                     }
@@ -616,50 +616,15 @@ pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
     gs.screencenter.x = oldcenterx;
     gs.screencenter.y = oldcentery;
     soundmode = cps.newsoundmode;
-    repaintscreen(gs);
+    repaintscreen(gs, cps);
     ContinueSound();
 }
 
-pub static mut egaplane: [u32; 4] = [0; 4];
-
-pub static mut image: spritetype = spritetype {
-    width: 0,
-    height: 0,
-    shapeptr: 0,
-    maskptr: 0,
-    xl: 0,
-    yl: 0,
-    xh: 0,
-    yh: 0,
-    name: [0; 12],
-};
-
-pub static mut spritetable: [spritetype; 10] = [spritetype {
-    width: 0,
-    height: 0,
-    shapeptr: 0,
-    maskptr: 0,
-    xl: 0,
-    yl: 0,
-    xh: 0,
-    yh: 0,
-    name: [0; 12],
-}; 10];
-
-pub static mut pictable: [pictype; 64] = [pictype {
-    width: 0,
-    height: 0,
-    shapeptr: 0,
-    name: [0; 8],
-}; 64];
-
-pub static mut lastgrpic: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-pub static mut numchars: i32 = 0;
-pub static mut numtiles: i32 = 0;
-pub static mut numpics: i32 = 0;
-pub static mut numsprites: i32 = 0;
-
-pub unsafe fn installgrfile(mut filename: *const i8, mut inmem: *mut libc::c_void) {
+pub unsafe fn installgrfile(
+    mut filename: *const i8,
+    mut inmem: *mut libc::c_void,
+    cps: &mut CpanelState,
+) {
     let mut i: i32 = 0;
     let mut picfile: *mut picfiletype = 0 as *mut picfiletype;
     let mut spriteinfile: *mut stype = 0 as *mut stype;
@@ -667,17 +632,17 @@ pub unsafe fn installgrfile(mut filename: *const i8, mut inmem: *mut libc::c_voi
     if *filename.offset(0) == 0 {
         picfile = inmem as *mut picfiletype;
     } else {
-        if lastgrpic as i64 != 0 {
-            free(lastgrpic);
+        if cps.lastgrpic as i64 != 0 {
+            free(cps.lastgrpic);
         }
         let filename = CStr::from_ptr(filename).to_string_lossy().to_string();
         picfile = bloadin(&filename) as *mut picfiletype;
-        lastgrpic = picfile as *mut libc::c_void;
+        cps.lastgrpic = picfile as *mut libc::c_void;
     }
-    numchars = (*picfile).numchars as i32;
-    numtiles = (*picfile).numtiles as i32;
-    numpics = (*picfile).numpics as i32;
-    numsprites = (*picfile).numsprites as i32;
+    cps.numchars = (*picfile).numchars as i32;
+    cps.numtiles = (*picfile).numtiles as i32;
+    cps.numpics = (*picfile).numpics as i32;
+    cps.numsprites = (*picfile).numsprites as i32;
     charptr =
         (picfile as *mut u8).offset(flatptr((*picfile).charptr) as isize) as *mut libc::c_void;
     tileptr =
@@ -694,12 +659,12 @@ pub unsafe fn installgrfile(mut filename: *const i8, mut inmem: *mut libc::c_voi
         (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr) as isize) as *mut stype;
     i = 0;
     while i < 64 {
-        pictable[i as usize] = (*picinfile)[i as usize];
+        cps.pictable[i as usize] = (*picinfile)[i as usize];
         i += 1;
     }
     i = 0;
     while i < 10 {
-        spritetable[i as usize] = (*spriteinfile)[i as usize];
+        cps.spritetable[i as usize] = (*spriteinfile)[i as usize];
         i += 1;
     }
 }

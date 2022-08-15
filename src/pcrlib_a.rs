@@ -3,7 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use ::libc;
 
 use crate::{
-    cpanel::pictable,
+    cpanel_state::CpanelState,
     extra_constants::PC_BASE_TIMER,
     extra_types::boolean,
     global_state::GlobalState,
@@ -529,7 +529,13 @@ pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, gs: &mut Global
     };
 }
 
-pub unsafe fn drawpic(mut x: i32, mut y: i32, mut picnum: i32, gs: &mut GlobalState) {
+pub unsafe fn drawpic(
+    mut x: i32,
+    mut y: i32,
+    mut picnum: i32,
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+) {
     let mut vbuf: *mut u8 = gs
         .screenseg
         .as_mut_ptr()
@@ -537,9 +543,9 @@ pub unsafe fn drawpic(mut x: i32, mut y: i32, mut picnum: i32, gs: &mut GlobalSt
         .offset(x as isize);
     let mut src: *mut u8 = 0 as *mut u8;
     let mut i: u32 = 0;
-    let mut picwidth: u32 = pictable[picnum as usize].width as u32;
-    let mut picheight: u32 = pictable[picnum as usize].height as u32;
-    src = (picptr as *mut u8).offset(pictable[picnum as usize].shapeptr as isize);
+    let mut picwidth: u32 = cps.pictable[picnum as usize].width as u32;
+    let mut picheight: u32 = cps.pictable[picnum as usize].height as u32;
+    src = (picptr as *mut u8).offset(cps.pictable[picnum as usize].shapeptr as isize);
     match grmode as u32 {
         1 => loop {
             i = picwidth;
