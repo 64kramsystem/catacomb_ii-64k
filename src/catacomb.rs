@@ -25,12 +25,12 @@ use crate::{
     objects::initobjects,
     pcrlib_a::{drawchar, drawpic, rnd, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{
-        ControlPlayer, LoadDemo, LoadFile, UpdateScreen, _Verify, _checkhighscore, _quit,
-        _setupgame, _showhighscores, bar, bioskey, bloadin, centerwindow, ch, clearkeys,
-        drawwindow, expwin, get, grmode, keydown, leftedge, level, print, printchartile, printint,
+        ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
+        _showhighscores, bar, bioskey, bloadin, centerwindow, ch, clearkeys, drawwindow, expwin,
+        get, grmode, keydown, leftedge, level, port_temp_LoadFile, print, printchartile, printint,
         score, str, sx, sy,
     },
-    rleasm::RLEExpand,
+    rleasm::port_temp_RLEExpand,
     sdl_scan_codes::*,
     state_type::statetype,
     vec2::Vec2,
@@ -40,7 +40,6 @@ extern "C" {
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn free(_: *mut libc::c_void);
-    fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
     fn __ctype_b_loc() -> *mut *const libc::c_ushort;
     fn tolower(_: i32) -> i32;
     fn toupper(_: i32) -> i32;
@@ -48,16 +47,6 @@ extern "C" {
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
-}
-
-#[inline]
-unsafe fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
-    if base == 16 {
-        sprintf(str_0, b"%X\0" as *const u8 as *const i8, value);
-    } else {
-        sprintf(str_0, b"%d\0" as *const u8 as *const i8, value);
-    }
-    return str_0;
 }
 
 #[no_mangle]
@@ -435,21 +424,16 @@ pub unsafe fn loadlevel(gs: &mut GlobalState) {
         secretgate, nothing, nothing, nothing, nothing, nothing, nothing, nothing, nothing,
         nothing, nothing, nothing, nothing, nothing, nothing, nothing,
     ];
-    let mut filename: [i8; 64] = [0; 64];
-    let mut st: [i8; 64] = [0; 64];
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     let mut xx: i32 = 0;
     let mut yy: i32 = 0;
     let mut btile: u8 = 0;
-    let mut sm: [i8; 4096] = [0; 4096];
-    let mut rle: [i8; 4096] = [0; 4096];
-    strcpy(filename.as_mut_ptr(), b"LEVEL\0" as *const u8 as *const i8);
-    itoa(level as i32, st.as_mut_ptr(), 10);
-    strcat(filename.as_mut_ptr(), st.as_mut_ptr());
-    strcat(filename.as_mut_ptr(), b".CA2\0" as *const u8 as *const i8);
-    LoadFile(filename.as_mut_ptr(), rle.as_mut_ptr());
-    RLEExpand(&mut *rle.as_mut_ptr().offset(4), sm.as_mut_ptr(), 4096);
+    let mut sm = [0; 4096];
+    let mut rle = [0; 4096];
+    let mut filename = format!("LEVEL{level}.CA2");
+    port_temp_LoadFile(&filename, &mut rle);
+    port_temp_RLEExpand(&mut rle[4..], &mut sm);
     gs.numobj = 0;
     gs.o[0].x = 13;
     gs.o[0].y = 13;
