@@ -388,7 +388,6 @@ unsafe fn calibratekeys(gs: &mut GlobalState) {
     erasewindow(gs);
 }
 
-#[no_mangle]
 pub unsafe fn getconfig(cps: &mut CpanelState) {
     cps.spotok[0][0] = 1;
     cps.spotok[0][1] = _egaok as i32;
@@ -620,9 +619,9 @@ pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
     repaintscreen(gs);
     ContinueSound();
 }
-#[no_mangle]
+
 pub static mut egaplane: [u32; 4] = [0; 4];
-#[no_mangle]
+
 pub static mut image: spritetype = spritetype {
     width: 0,
     height: 0,
@@ -634,7 +633,7 @@ pub static mut image: spritetype = spritetype {
     yh: 0,
     name: [0; 12],
 };
-#[no_mangle]
+
 pub static mut spritetable: [spritetype; 10] = [spritetype {
     width: 0,
     height: 0,
@@ -646,7 +645,7 @@ pub static mut spritetable: [spritetype; 10] = [spritetype {
     yh: 0,
     name: [0; 12],
 }; 10];
-#[no_mangle]
+
 pub static mut pictable: [pictype; 64] = [pictype {
     width: 0,
     height: 0,

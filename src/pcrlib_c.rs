@@ -548,7 +548,7 @@ static mut updateRect: SDL_Rect = SDL_Rect {
     w: 0,
     h: 0,
 };
-#[no_mangle]
+
 pub static mut mode: SDL_DisplayMode = SDL_DisplayMode {
     format: 0,
     w: 0,
@@ -556,7 +556,7 @@ pub static mut mode: SDL_DisplayMode = SDL_DisplayMode {
     refresh_rate: 0,
     driverdata: 0 as *const libc::c_void as *mut libc::c_void,
 };
-#[no_mangle]
+
 pub static mut joystick: [joyinfo_t; 3] = [joyinfo_t {
     c2rust_unnamed: C2RustUnnamed_5 {
         controller: 0 as *const SDL_GameController as *mut SDL_GameController,
@@ -1447,21 +1447,21 @@ unsafe fn _input(string: &mut [u8], max: usize, gs: &mut GlobalState) -> i32 {
     0
 }
 
-#[no_mangle]
+
 pub static mut scoreswap: scores = scores {
     score: 0,
     level: 0,
     initials: [0; 4],
 };
-#[no_mangle]
+
 pub static mut highscores: [scores; 5] = [scores {
     score: 0,
     level: 0,
     initials: [0; 4],
 }; 5];
-#[no_mangle]
+
 pub static mut score: i32 = 0;
-#[no_mangle]
+
 pub static mut level: i16 = 0;
 
 // There seems to be a (harmless) wrong definition in the original project:
@@ -1470,11 +1470,11 @@ pub static mut level: i16 = 0;
 //
 // which is overwritten with "CA2" in `CATACOMB.C`.
 
-#[no_mangle]
+
 pub static mut _cgaok: boolean = true as boolean;
-#[no_mangle]
+
 pub static mut _egaok: boolean = true as boolean;
-#[no_mangle]
+
 pub static mut _vgaok: boolean = false as boolean;
 static mut DOSScanCodeMap: [SDL_Scancode; 128] = [
     SDL_SCANCODE_UNKNOWN,

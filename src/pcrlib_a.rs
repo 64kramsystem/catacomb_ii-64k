@@ -405,9 +405,9 @@ pub unsafe fn rndt() -> i32 {
     rndindex = (rndindex as i32 + 1 & 0xff as i32) as u16;
     return rndtable[rndindex as usize] as i32;
 }
-#[no_mangle]
+
 static mut vblsem: *mut SDL_sem = 0 as *const SDL_sem as *mut SDL_sem;
-#[no_mangle]
+
 static mut vbltimer: SDL_TimerID = 0;
 
 unsafe extern "C" fn VBLCallback(mut _interval: u32, mut _param: *mut libc::c_void) -> u32 {
