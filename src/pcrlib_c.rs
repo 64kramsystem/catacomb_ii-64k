@@ -1,3 +1,6 @@
+use std::fs::File;
+use std::io::Read;
+
 use ::libc;
 use libc::O_RDONLY;
 
@@ -1183,6 +1186,20 @@ pub unsafe fn LoadFile(mut filename: *mut i8, mut buffer: *mut i8) -> u64 {
     let mut bytesRead: i64 = read(fd, buffer as *mut libc::c_void, len as u64);
     close(fd);
     return bytesRead as u64;
+}
+
+/// Using a Vec as dest buffer would be more convenient and idiomatic, however, routines may rely on
+/// a certain buffer length.
+/// An alternative is to pass the intended destination length, but there isn't a significant difference.
+pub fn port_temp_LoadFile(filename: &str, dest: &mut [u8]) -> usize {
+    if let Ok(mut file) = File::open(filename) {
+        let mut buffer = Vec::new();
+        let bytes_read = file.read_to_end(&mut buffer).unwrap();
+        dest[..bytes_read].copy_from_slice(&buffer[..bytes_read]);
+        bytes_read
+    } else {
+        0
+    }
 }
 
 pub unsafe fn SaveFile(mut filename: *mut i8, mut buffer: *mut i8, mut size: i64) {
