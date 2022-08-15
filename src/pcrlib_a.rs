@@ -322,7 +322,7 @@ pub unsafe fn WaitEndSound(gs: &mut GlobalState) {
     }
 }
 static mut rndindex: u16 = 0;
-static mut rndtable: [u8; 256] = [
+const rndtable: [u8; 256] = [
     0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66, 74, 21, 211, 47, 80, 242, 154,
     27, 205, 128, 161, 89, 77, 36, 95, 110, 85, 48, 212, 140, 211, 249, 22, 79, 200, 50, 28, 188,
     52, 140, 202, 120, 68, 145, 62, 70, 184, 190, 91, 197, 152, 224, 149, 104, 25, 178, 252, 182,
@@ -342,7 +342,7 @@ static mut indexi: u16 = 0;
 static mut indexj: u16 = 0;
 static mut LastRnd: u16 = 0;
 static mut RndArray: [u16; 17] = [0; 17];
-static mut baseRndArray: [u16; 17] = [
+const baseRndArray: [u16; 17] = [
     1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
 
