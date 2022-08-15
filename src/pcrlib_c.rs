@@ -162,91 +162,26 @@ pub struct SDL_Keysym {
     pub mod_0: u16,
     pub unused: u32,
 }
+
 pub type SDL_Joystick = _SDL_Joystick;
 pub type SDL_JoystickID = i32;
 pub type SDL_GameController = _SDL_GameController;
 pub type SDL_GameControllerAxis = i32;
-pub const SDL_CONTROLLER_AXIS_MAX: SDL_GameControllerAxis = 6;
-pub const SDL_CONTROLLER_AXIS_TRIGGERRIGHT: SDL_GameControllerAxis = 5;
-pub const SDL_CONTROLLER_AXIS_TRIGGERLEFT: SDL_GameControllerAxis = 4;
-pub const SDL_CONTROLLER_AXIS_RIGHTY: SDL_GameControllerAxis = 3;
-pub const SDL_CONTROLLER_AXIS_RIGHTX: SDL_GameControllerAxis = 2;
 pub const SDL_CONTROLLER_AXIS_LEFTY: SDL_GameControllerAxis = 1;
 pub const SDL_CONTROLLER_AXIS_LEFTX: SDL_GameControllerAxis = 0;
-pub const SDL_CONTROLLER_AXIS_INVALID: SDL_GameControllerAxis = -1;
 pub type SDL_GameControllerButton = i32;
-pub const SDL_CONTROLLER_BUTTON_MAX: SDL_GameControllerButton = 15;
-pub const SDL_CONTROLLER_BUTTON_DPAD_RIGHT: SDL_GameControllerButton = 14;
-pub const SDL_CONTROLLER_BUTTON_DPAD_LEFT: SDL_GameControllerButton = 13;
-pub const SDL_CONTROLLER_BUTTON_DPAD_DOWN: SDL_GameControllerButton = 12;
-pub const SDL_CONTROLLER_BUTTON_DPAD_UP: SDL_GameControllerButton = 11;
-pub const SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: SDL_GameControllerButton = 10;
-pub const SDL_CONTROLLER_BUTTON_LEFTSHOULDER: SDL_GameControllerButton = 9;
-pub const SDL_CONTROLLER_BUTTON_RIGHTSTICK: SDL_GameControllerButton = 8;
-pub const SDL_CONTROLLER_BUTTON_LEFTSTICK: SDL_GameControllerButton = 7;
-pub const SDL_CONTROLLER_BUTTON_START: SDL_GameControllerButton = 6;
-pub const SDL_CONTROLLER_BUTTON_GUIDE: SDL_GameControllerButton = 5;
-pub const SDL_CONTROLLER_BUTTON_BACK: SDL_GameControllerButton = 4;
-pub const SDL_CONTROLLER_BUTTON_Y: SDL_GameControllerButton = 3;
-pub const SDL_CONTROLLER_BUTTON_X: SDL_GameControllerButton = 2;
 pub const SDL_CONTROLLER_BUTTON_B: SDL_GameControllerButton = 1;
 pub const SDL_CONTROLLER_BUTTON_A: SDL_GameControllerButton = 0;
-pub const SDL_CONTROLLER_BUTTON_INVALID: SDL_GameControllerButton = -1;
 pub type SDL_TouchID = i64;
 pub type SDL_FingerID = i64;
 pub type SDL_GestureID = i64;
 pub type C2RustUnnamed_3 = u32;
-pub const SDL_LASTEVENT: C2RustUnnamed_3 = 65535;
-pub const SDL_USEREVENT: C2RustUnnamed_3 = 32768;
-pub const SDL_RENDER_DEVICE_RESET: C2RustUnnamed_3 = 8193;
-pub const SDL_RENDER_TARGETS_RESET: C2RustUnnamed_3 = 8192;
-pub const SDL_SENSORUPDATE: C2RustUnnamed_3 = 4608;
-pub const SDL_AUDIODEVICEREMOVED: C2RustUnnamed_3 = 4353;
-pub const SDL_AUDIODEVICEADDED: C2RustUnnamed_3 = 4352;
-pub const SDL_DROPCOMPLETE: C2RustUnnamed_3 = 4099;
-pub const SDL_DROPBEGIN: C2RustUnnamed_3 = 4098;
-pub const SDL_DROPTEXT: C2RustUnnamed_3 = 4097;
-pub const SDL_DROPFILE: C2RustUnnamed_3 = 4096;
-pub const SDL_CLIPBOARDUPDATE: C2RustUnnamed_3 = 2304;
-pub const SDL_MULTIGESTURE: C2RustUnnamed_3 = 2050;
-pub const SDL_DOLLARRECORD: C2RustUnnamed_3 = 2049;
-pub const SDL_DOLLARGESTURE: C2RustUnnamed_3 = 2048;
-pub const SDL_FINGERMOTION: C2RustUnnamed_3 = 1794;
-pub const SDL_FINGERUP: C2RustUnnamed_3 = 1793;
-pub const SDL_FINGERDOWN: C2RustUnnamed_3 = 1792;
-pub const SDL_CONTROLLERDEVICEREMAPPED: C2RustUnnamed_3 = 1621;
-pub const SDL_CONTROLLERDEVICEREMOVED: C2RustUnnamed_3 = 1620;
-pub const SDL_CONTROLLERDEVICEADDED: C2RustUnnamed_3 = 1619;
-pub const SDL_CONTROLLERBUTTONUP: C2RustUnnamed_3 = 1618;
-pub const SDL_CONTROLLERBUTTONDOWN: C2RustUnnamed_3 = 1617;
-pub const SDL_CONTROLLERAXISMOTION: C2RustUnnamed_3 = 1616;
-pub const SDL_JOYDEVICEREMOVED: C2RustUnnamed_3 = 1542;
-pub const SDL_JOYDEVICEADDED: C2RustUnnamed_3 = 1541;
-pub const SDL_JOYBUTTONUP: C2RustUnnamed_3 = 1540;
-pub const SDL_JOYBUTTONDOWN: C2RustUnnamed_3 = 1539;
-pub const SDL_JOYHATMOTION: C2RustUnnamed_3 = 1538;
-pub const SDL_JOYBALLMOTION: C2RustUnnamed_3 = 1537;
-pub const SDL_JOYAXISMOTION: C2RustUnnamed_3 = 1536;
-pub const SDL_MOUSEWHEEL: C2RustUnnamed_3 = 1027;
-pub const SDL_MOUSEBUTTONUP: C2RustUnnamed_3 = 1026;
-pub const SDL_MOUSEBUTTONDOWN: C2RustUnnamed_3 = 1025;
 pub const SDL_MOUSEMOTION: C2RustUnnamed_3 = 1024;
-pub const SDL_KEYMAPCHANGED: C2RustUnnamed_3 = 772;
-pub const SDL_TEXTINPUT: C2RustUnnamed_3 = 771;
-pub const SDL_TEXTEDITING: C2RustUnnamed_3 = 770;
 pub const SDL_KEYUP: C2RustUnnamed_3 = 769;
 pub const SDL_KEYDOWN: C2RustUnnamed_3 = 768;
-pub const SDL_SYSWMEVENT: C2RustUnnamed_3 = 513;
 pub const SDL_WINDOWEVENT: C2RustUnnamed_3 = 512;
-pub const SDL_DISPLAYEVENT: C2RustUnnamed_3 = 336;
-pub const SDL_APP_DIDENTERFOREGROUND: C2RustUnnamed_3 = 262;
-pub const SDL_APP_WILLENTERFOREGROUND: C2RustUnnamed_3 = 261;
-pub const SDL_APP_DIDENTERBACKGROUND: C2RustUnnamed_3 = 260;
-pub const SDL_APP_WILLENTERBACKGROUND: C2RustUnnamed_3 = 259;
-pub const SDL_APP_LOWMEMORY: C2RustUnnamed_3 = 258;
-pub const SDL_APP_TERMINATING: C2RustUnnamed_3 = 257;
 pub const SDL_QUIT: C2RustUnnamed_3 = 256;
-pub const SDL_FIRSTEVENT: C2RustUnnamed_3 = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SDL_CommonEvent {
