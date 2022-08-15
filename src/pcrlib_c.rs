@@ -2035,7 +2035,7 @@ pub fn _setupgame(gs: &mut GlobalState) {
         initrndt(1);
         initrnd(1);
         _loadhighscores();
-        loadgrfiles();
+        loadgrfiles(gs);
         SetupEmulatedVBL();
     }
 }

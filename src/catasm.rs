@@ -1,6 +1,6 @@
 use crate::{
     cat_play::{doactive, doinactive},
-    catacomb::{pics, refresh},
+    catacomb::refresh,
     class_type::classtype::*,
     global_state::GlobalState,
     pcrlib_c::{grmode, UpdateScreen},
@@ -131,8 +131,8 @@ pub unsafe fn doall(gs: &mut GlobalState) {
     }
 }
 
-unsafe fn drawcgachartile(mut dest: *mut u8, mut tile: i32) {
-    let mut src: *mut u8 = (pics as *mut u8).offset((tile << 4) as isize);
+unsafe fn drawcgachartile(mut dest: *mut u8, mut tile: i32, gs: &mut GlobalState) {
+    let mut src: *mut u8 = (gs.pics as *mut u8).offset((tile << 4) as isize);
     let mut r: u32 = 0;
     r = 0;
     while r < 8 {
@@ -174,7 +174,7 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState) {
         tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
         if tile != gs.oldtiles[i as usize] {
             gs.oldtiles[i as usize] = tile;
-            drawcgachartile(vbuf, tile);
+            drawcgachartile(vbuf, tile, gs);
         }
         i = i.wrapping_add(1);
         ofs = ofs.wrapping_add(1);
@@ -192,8 +192,8 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState) {
     UpdateScreen(gs);
 }
 
-unsafe fn drawegachartile(mut dest: *mut u8, mut tile: i32) {
-    let mut src: *mut u8 = (pics as *mut u8).offset((tile << 5) as isize);
+unsafe fn drawegachartile(mut dest: *mut u8, mut tile: i32, gs: &mut GlobalState) {
+    let mut src: *mut u8 = (gs.pics as *mut u8).offset((tile << 5) as isize);
     let mut r: u32 = 0;
     r = 0;
     while r < 8 {
@@ -241,7 +241,7 @@ pub unsafe fn egarefresh(gs: &mut GlobalState) {
         tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
         if tile != gs.oldtiles[i as usize] {
             gs.oldtiles[i as usize] = tile;
-            drawegachartile(vbuf, tile);
+            drawegachartile(vbuf, tile, gs);
         }
         i = i.wrapping_add(1);
         ofs = ofs.wrapping_add(1);
@@ -268,6 +268,7 @@ pub unsafe fn drawchartile(mut x: i32, mut y: i32, mut tile: i32, gs: &mut Globa
                     .offset(((y << 3) * screenpitch as i32) as isize)
                     .offset((x << 3) as isize),
                 tile,
+                gs,
             );
         }
         2 | _ => {
@@ -277,6 +278,7 @@ pub unsafe fn drawchartile(mut x: i32, mut y: i32, mut tile: i32, gs: &mut Globa
                     .offset(((y << 3) * screenpitch as i32) as isize)
                     .offset((x << 3) as isize),
                 tile,
+                gs,
             );
         }
     };

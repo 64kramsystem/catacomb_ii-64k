@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::{ffi::CString, ptr};
 
 use libc::O_RDONLY;
 
@@ -44,11 +44,6 @@ extern "C" {
     fn free(_: *mut libc::c_void);
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
-
-#[no_mangle]
-pub static mut pics: *mut i8 = 0 as *const i8 as *mut i8;
-#[no_mangle]
-pub static mut picsexact: *mut i8 = 0 as *const i8 as *mut i8;
 
 const demowin: [[i8; 16]; 5] = [
     [
@@ -165,20 +160,20 @@ unsafe fn simplerefresh(gs: &mut GlobalState) {
     };
 }
 
-pub unsafe fn loadgrfiles() {
-    if !picsexact.is_null() {
-        free(picsexact as *mut libc::c_void);
+pub unsafe fn loadgrfiles(gs: &mut GlobalState) {
+    if !gs.picsexact.is_null() {
+        free(gs.picsexact as *mut libc::c_void);
     }
     if grmode as u32 == CGAgr as i32 as u32 {
-        pics = bloadin("CGACHARS.CA2") as *mut i8;
-        picsexact = pics;
+        gs.pics = bloadin("CGACHARS.CA2") as *mut i8;
+        gs.picsexact = gs.pics;
         installgrfile(
             b"CGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
         );
     } else {
-        pics = bloadin("EGACHARS.CA2") as *mut i8;
-        picsexact = pics;
+        gs.pics = bloadin("EGACHARS.CA2") as *mut i8;
+        gs.picsexact = gs.pics;
         installgrfile(
             b"EGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
@@ -1048,6 +1043,8 @@ pub fn original_main() {
             button1: 0,
             button2: 0,
         },
+        ptr::null_mut(),
+        ptr::null_mut(),
         0,
         false,
         0,

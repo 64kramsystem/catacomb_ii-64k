@@ -52,7 +52,8 @@ pub struct GlobalState {
 
     pub ctrl: ControlStruct,
 
-    //     char *pics, *picsexact;
+    pub pics: *mut i8,
+    pub picsexact: *mut i8,
 
     /* Rust port: unused
     EGADATASTART: u32,
@@ -94,6 +95,8 @@ impl GlobalState {
         resetgame: bool,
         gamestate: statetype,
         ctrl: ControlStruct,
+        pics: *mut i8,
+        picsexact: *mut i8,
         savescore: i32,
         GODMODE: bool,
         side: i32,
@@ -129,6 +132,8 @@ impl GlobalState {
             resetgame,
             gamestate,
             ctrl,
+            pics,
+            picsexact,
             savescore,
             GODMODE,
             side,

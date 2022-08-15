@@ -835,7 +835,7 @@ pub unsafe fn controlpanel(gs: &mut GlobalState) {
                         );
                         newgrmode = (collumn + 1).into();
                         grmode = newgrmode;
-                        loadgrfiles();
+                        loadgrfiles(gs);
                         drawwindow(0, 0, 39, 24, gs);
                         drawpanel(gs);
                     }
