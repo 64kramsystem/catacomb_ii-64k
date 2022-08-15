@@ -30,7 +30,7 @@ pub struct objtype {
 }
 
 impl objtype {
-    pub fn update_from_active(&mut self, active_o: activeobj) {
+    pub fn update_from_active(&mut self, active_o: &activeobj) {
         self.active = active_o.active;
         self.class = active_o.class;
         self.x = active_o.x;

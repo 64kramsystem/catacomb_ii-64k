@@ -501,7 +501,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     gs.altnum = 0;
     gotit = false as boolean;
     loop {
-        gs.altobj.update_from_active(gs.o[gs.altnum as usize]);
+        gs.altobj.update_from_active(&gs.o[gs.altnum as usize]);
         if gs.altobj.class as i32 > nothing as i32 && gs.altnum != gs.objecton {
             memcpy(
                 &mut gs.altobj.think as *mut u8 as *mut libc::c_void,
