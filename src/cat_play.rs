@@ -23,7 +23,6 @@ use crate::{
     tag_type::tagtype::*,
 };
 extern "C" {
-    fn atoi(__nptr: *const i8) -> i32;
     fn abs(_: i32) -> i32;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
 }
@@ -152,6 +151,15 @@ pub unsafe fn printbody(gs: &mut GlobalState) {
     };
 }
 
+/*=============================*/
+/*			       */
+/* levelcleared                */
+/* goes to the next level, or  */
+/* }s game if all levels done  */
+/* checks for warp teleporters */
+/*			       */
+/*=============================*/
+
 // Rust port: this routine seems to have had two bugs - one in the original, and the other in the SDL
 // port.
 //
@@ -167,27 +175,40 @@ pub unsafe fn printbody(gs: &mut GlobalState) {
 // API ignores trailing junk (🤦).
 //
 unsafe fn levelcleared(gs: &mut GlobalState) {
-    let mut warp: [i8; 2] = [0; 2];
-    let mut value: i32 = 0;
+    let mut warp: Vec<u8> = vec![0; 2];
+
     gs.leveldone = true;
-    warp[0] = (gs.background[(gs.altobj.y as i32 + 2) as usize][gs.altobj.x as usize] as i8 as i32
-        - 161) as i8;
-    if (warp[0] as i32) < '0' as i32 || warp[0] as i32 > '9' as i32 {
-        warp[0] = '0' as i32 as i8;
+
+    // Rust port: for convenience
+    let altobj_y = gs.altobj.y as usize;
+    let altobj_x = gs.altobj.x as usize;
+
+    warp[0] = (gs.background[altobj_y + 2][altobj_x] - 161) as u8;
+
+    if (warp[0]) < b'0' || warp[0] > b'9' {
+        warp[0] = b'0';
     }
-    warp[1] = (gs.background[(gs.altobj.y as i32 + 2) as usize][(gs.altobj.x as i32 + 1) as usize]
-        as i8 as i32
-        - 161) as i8;
-    if (warp[1] as i32) < '0' as i32 || warp[1] as i32 > '9' as i32 {
-        warp[1] = ' ' as i32 as i8;
+
+    warp[1] = (gs.background[altobj_y + 2][altobj_x + 1] - 161) as u8;
+
+    if (warp[1]) < b'0' || warp[1] > b'9' {
+        warp[1] = b' ';
     }
-    value = atoi(warp.as_mut_ptr());
+
+    let value = String::from_utf8(warp)
+        .unwrap()
+        .trim()
+        .parse::<i16>()
+        .unwrap();
+
     if value > 0 {
-        level = value as i16;
+        level = value;
     } else {
         level += 1;
     }
-    if level as i32 > 30 {
+
+    if level > 30 {
+        /*all levels have been completed*/
         gs.playdone = true;
         gs.gamexit = victorious;
     }
