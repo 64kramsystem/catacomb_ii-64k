@@ -10,7 +10,9 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::*,
-    extra_constants::{_extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
+    extra_constants::{
+        _extension, port_temp__extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT,
+    },
     extra_macros::SDL_BUTTON,
     extra_types::boolean,
     global_state::GlobalState,
@@ -1104,13 +1106,10 @@ pub unsafe fn RecordDemo() {
 }
 
 pub unsafe fn LoadDemo(mut demonum: i32) {
-    let mut st2: [i8; 5] = [0; 5];
-    strcpy(str.as_mut_ptr(), b"DEMO\0" as *const u8 as *const i8);
-    itoa(demonum, st2.as_mut_ptr(), 10);
-    strcat(str.as_mut_ptr(), st2.as_mut_ptr());
-    strcat(str.as_mut_ptr(), b".\0" as *const u8 as *const i8);
-    strcat(str.as_mut_ptr(), _extension);
-    LoadFile(str.as_mut_ptr(), demobuffer.as_mut_ptr());
+    let filename = format!("DEMO{demonum}.{port_temp__extension}");
+    let mut temp_port_demobuffer = [0; 5000];
+    port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
+    demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as i8));
     level = demobuffer[0] as i16;
     demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
     indemo = demoenum::demoplay;
