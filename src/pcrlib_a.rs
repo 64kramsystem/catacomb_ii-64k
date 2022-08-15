@@ -40,7 +40,7 @@ pub type SDL_TimerID = i32;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
-struct C2RustUnnamed_0 {
+pub struct SavedSoundStruct {
     pub SndPriority: u8,
     pub pcSamplesPerTick: u32,
     pub pcLengthLeft: u32,
@@ -271,7 +271,7 @@ unsafe fn StopSound() {
     }
     _SDL_PCStopSound();
 }
-static mut SavedSound: C2RustUnnamed_0 = C2RustUnnamed_0 {
+static mut SavedSound: SavedSoundStruct = SavedSoundStruct {
     SndPriority: 0,
     pcSamplesPerTick: 0,
     pcLengthLeft: 0,
