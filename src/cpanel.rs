@@ -329,15 +329,6 @@ unsafe fn flatptr(mut ptr: farptr) -> u32 {
     return (((ptr.seg as i32) << 4) + ptr.ofs as i32) as u32;
 }
 
-#[inline]
-unsafe fn itoa(mut value: i32, mut str: *mut i8, mut base: i32) -> *const i8 {
-    if base == 16 {
-        sprintf(str, b"%X\0" as *const u8 as *const i8, value);
-    } else {
-        sprintf(str, b"%d\0" as *const u8 as *const i8, value);
-    }
-    return str;
-}
 #[no_mangle]
 pub static mut rowy: [i32; 4] = [4, 9, 14, 19];
 #[no_mangle]

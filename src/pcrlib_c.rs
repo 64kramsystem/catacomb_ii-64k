@@ -533,21 +533,6 @@ pub struct ctlpaneltype {
     pub keyB2: u8,
 }
 
-#[inline]
-unsafe fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *const i8 {
-    if base == 16 {
-        sprintf(str_0, b"%X\0" as *const u8 as *const i8, value);
-    } else {
-        sprintf(str_0, b"%d\0" as *const u8 as *const i8, value);
-    }
-    return str_0;
-}
-
-#[inline]
-unsafe fn ltoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *const i8 {
-    return itoa(value, str_0, base);
-}
-
 pub static mut ch: i8 = 0;
 pub static mut playermode: [inputtype; 3] = [keyboard, keyboard, joystick1];
 pub static mut keydown: [boolean; 512] = [0; 512];
