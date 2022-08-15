@@ -1128,33 +1128,33 @@ pub fn original_main() {
         gs.priority[i as usize] = 5; /*player*/
     }
 
+    gs.side = 0;
+
+    for x in 0..=85 {
+        for y in 0..=(topoff - 1) {
+            gs.view[x][y] = solidwall;
+            gs.view[x][(85 - y)] = solidwall;
+            gs.background[x][y] = solidwall;
+            gs.background[x][(85 - y)] = solidwall;
+        }
+        gs.view[86][x] = solidwall;
+    }
+    for y in 11..=74 {
+        for x in 0..=(leftoff - 1) {
+            gs.view[x][y] = solidwall;
+            gs.view[(85 - x)][y] = solidwall;
+            gs.background[x][y] = solidwall;
+            gs.background[(85 - x)][y] = solidwall;
+        }
+    }
+
+    //   puts ("CATACOMB II is executing");
+
+    //  _dontplay = 1;	// no sounds for debugging and profiling
+
+    _setupgame(&mut gs);
+
     unsafe {
-        gs.side = 0;
-
-        for x in 0..=85 {
-            for y in 0..=(topoff - 1) {
-                gs.view[x][y] = solidwall;
-                gs.view[x][(85 - y)] = solidwall;
-                gs.background[x][y] = solidwall;
-                gs.background[x][(85 - y)] = solidwall;
-            }
-            gs.view[86][x] = solidwall;
-        }
-        for y in 11..=74 {
-            for x in 0..=(leftoff - 1) {
-                gs.view[x][y] = solidwall;
-                gs.view[(85 - x)][y] = solidwall;
-                gs.background[x][y] = solidwall;
-                gs.background[(85 - x)][y] = solidwall;
-            }
-        }
-
-        //   puts ("CATACOMB II is executing");
-
-        //  _dontplay = 1;	// no sounds for debugging and profiling
-
-        _setupgame(&mut gs);
-
         expwin(33, 13, &mut gs);
         print(
             b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const i8,
