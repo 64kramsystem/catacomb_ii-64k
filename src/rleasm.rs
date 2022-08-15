@@ -5,7 +5,7 @@ extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
 }
 
-pub unsafe fn RLEExpand(mut source: *mut i8, mut dest: *mut i8, mut origlen: i64) {
+pub unsafe fn RLEExpand(mut source: *mut i8, mut dest: *const i8, mut origlen: i64) {
     let end: *const i8 = dest.offset(origlen as isize);
     while dest < end as *mut i8 {
         let fresh0 = source;

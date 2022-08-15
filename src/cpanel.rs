@@ -330,7 +330,7 @@ unsafe fn flatptr(mut ptr: farptr) -> u32 {
 }
 
 #[inline]
-unsafe fn itoa(mut value: i32, mut str: *mut i8, mut base: i32) -> *mut i8 {
+unsafe fn itoa(mut value: i32, mut str: *mut i8, mut base: i32) -> *const i8 {
     if base == 16 {
         sprintf(str, b"%X\0" as *const u8 as *const i8, value);
     } else {
@@ -1062,7 +1062,7 @@ pub static mut numtiles: i32 = 0;
 pub static mut numpics: i32 = 0;
 pub static mut numsprites: i32 = 0;
 
-pub unsafe fn installgrfile(mut filename: *mut i8, mut inmem: *mut libc::c_void) {
+pub unsafe fn installgrfile(mut filename: *const i8, mut inmem: *mut libc::c_void) {
     let mut i: i32 = 0;
     let mut picfile: *mut picfiletype = 0 as *mut picfiletype;
     let mut spriteinfile: *mut stype = 0 as *mut stype;

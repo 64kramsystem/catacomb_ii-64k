@@ -535,7 +535,7 @@ pub struct ctlpaneltype {
 }
 
 #[inline]
-unsafe fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
+unsafe fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *const i8 {
     if base == 16 {
         sprintf(str_0, b"%X\0" as *const u8 as *const i8, value);
     } else {
@@ -545,7 +545,7 @@ unsafe fn itoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
 }
 
 #[inline]
-unsafe fn ltoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *mut i8 {
+unsafe fn ltoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *const i8 {
     return itoa(value, str_0, base);
 }
 
@@ -1033,7 +1033,7 @@ unsafe fn filelength(mut fd: i32) -> i64 {
     return s.st_size;
 }
 
-pub unsafe fn LoadFile(mut filename: *const i8, mut buffer: *mut i8) -> u64 {
+pub unsafe fn LoadFile(mut filename: *const i8, mut buffer: *const i8) -> u64 {
     let mut fd: i32 = 0;
     fd = open(filename, 0o400 as i32);
     if fd < 0 {
@@ -1059,7 +1059,7 @@ pub fn port_temp_LoadFile(filename: &str, dest: &mut [u8]) -> usize {
     }
 }
 
-pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *mut i8, mut size: i64) {
+pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *const i8, mut size: i64) {
     let mut fd: i32 = 0;
     fd = open(
         filename,
@@ -1073,7 +1073,7 @@ pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *mut i8, mut size: i
     close(fd);
 }
 
-pub fn bloadin(filename: &str) -> *mut u8 {
+pub fn bloadin(filename: &str) -> *const u8 {
     let file_meta = fs::metadata(filename);
 
     if let Ok(file_meta) = file_meta {
@@ -1342,7 +1342,7 @@ pub unsafe fn printlong(mut val: i64, gs: &mut GlobalState) {
     print(str.as_mut_ptr(), gs);
 }
 
-pub unsafe fn _Verify(mut filename: *mut i8) -> i64 {
+pub unsafe fn _Verify(mut filename: *const i8) -> i64 {
     let mut handle: i32 = 0;
     let mut size: i64 = 0;
     handle = open(filename, 0);
@@ -1387,7 +1387,7 @@ unsafe fn _printbin(mut value: u32, gs: &mut GlobalState) {
     }
 }
 
-unsafe fn _printc(mut string: *mut i8, gs: &mut GlobalState) {
+unsafe fn _printc(mut string: *const i8, gs: &mut GlobalState) {
     sx = 1 + gs.screencenter.x - (strlen(string)).wrapping_div(2) as i32;
     print(string, gs);
 }
@@ -2069,7 +2069,7 @@ pub fn _setupgame(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn _quit(mut error: *mut i8) {
+pub unsafe fn _quit(mut error: *const i8) {
     if *error == 0 {
         _savehighscores();
         _savectrls();
