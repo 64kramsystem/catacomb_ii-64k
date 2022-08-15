@@ -506,7 +506,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     loop {
         /* make a copy of the objects info into a global varriable */
 
-        gs.altobj.update_from_active(&gs.o[gs.altnum as usize]);
+        gs.altobj.update_from_activeobj(&gs.o[gs.altnum as usize]);
         if gs.altobj.class as i32 > nothing as i32 && gs.altnum != gs.objecton {
             gs.altobj
                 .update_from_objdeftype(&gs.objdef[gs.altobj.class as usize]);

@@ -32,7 +32,7 @@ pub struct objtype {
 }
 
 impl objtype {
-    pub fn update_from_active(&mut self, active_o: &activeobj) {
+    pub fn update_from_activeobj(&mut self, active_o: &activeobj) {
         self.active = active_o.active;
         self.class = active_o.class;
         self.x = active_o.x;
@@ -47,6 +47,8 @@ impl objtype {
         self.filler = active_o.filler;
     }
 
+    // Updates fields from `think` onwards
+    //
     pub fn update_from_objdeftype(&mut self, o: &objdeftype) {
         self.think = o.think;
         self.contact = o.contact;
