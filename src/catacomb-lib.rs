@@ -12,8 +12,6 @@
 #![feature(register_tool)]
 #![register_tool(c2rust)]
 
-use demo_enum::demoenum;
-
 extern crate libc;
 mod active_obj;
 mod cat_play;
@@ -45,5 +43,3 @@ mod state_type;
 mod tag_type;
 mod think_type;
 mod vec2;
-
-static mut indemo: demoenum = demoenum::notdemo;

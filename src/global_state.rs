@@ -1,5 +1,5 @@
 use crate::{
-    active_obj::activeobj, control_struct::ControlStruct, exit_type::exittype,
+    active_obj::activeobj, control_struct::ControlStruct, demo_enum::demoenum, exit_type::exittype,
     obj_def_type::objdeftype, obj_type::objtype, state_type::statetype, vec2::Vec2,
 };
 
@@ -69,6 +69,8 @@ pub struct GlobalState {
     pub screenseg: [u8; 64000],
 
     pub screencenter: Vec2,
+
+    pub indemo: demoenum,
 }
 
 impl GlobalState {
@@ -108,6 +110,7 @@ impl GlobalState {
         screenseg: [u8; 64000],
         background: [[i32; 86]; 87],
         origin: Vec2,
+        indemo: demoenum,
     ) -> Self {
         Self {
             priority,
@@ -145,6 +148,7 @@ impl GlobalState {
             screenseg,
             background,
             origin,
+            indemo,
         }
     }
 }

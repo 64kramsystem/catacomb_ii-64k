@@ -9,7 +9,6 @@ use crate::{
     exit_type::exittype::*,
     extra_types::boolean,
     global_state::GlobalState,
-    indemo,
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{
         centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
@@ -742,7 +741,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         button1: 0,
         button2: 0,
     };
-    c = ControlPlayer(1);
+    c = ControlPlayer(1, gs);
     gs.obj.stage = (gs.obj.stage as i32 & 1) as u8;
     if c.button1 as i32 != 0
         && c.button2 as i32 != 0
@@ -854,7 +853,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         gs.shotpower = 0;
         printshotpower(gs);
     }
-    if indemo == demoenum::notdemo {
+    if gs.indemo == demoenum::notdemo {
         if keydown[SDL_SCANCODE_P as usize] as i32 != 0
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
@@ -880,7 +879,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
         gs.playdone = true;
         return;
     }
-    match indemo {
+    match gs.indemo {
         demoenum::notdemo => {
             if keydown[SDL_SCANCODE_C as usize] as i32 != 0
                 && keydown[SDL_SCANCODE_T as usize] as i32 != 0
@@ -925,19 +924,19 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
             }
         }
         demoenum::demoplay => {
-            indemo = demoenum::notdemo;
-            gs.ctrl = ControlPlayer(1);
+            gs.indemo = demoenum::notdemo;
+            gs.ctrl = ControlPlayer(1, gs);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
                 || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
-                indemo = demoenum::demoplay;
+                gs.indemo = demoenum::demoplay;
                 gs.exitdemo = true;
                 gs.leveldone = true;
                 level = 0;
                 return;
             }
-            indemo = demoenum::demoplay;
+            gs.indemo = demoenum::demoplay;
         }
         _ => {}
     };
@@ -1269,7 +1268,7 @@ pub unsafe fn doinactive(gs: &mut GlobalState) {
 pub unsafe fn playloop(gs: &mut GlobalState) {
     gs.screencenter.x = 11;
     loop {
-        if indemo == demoenum::notdemo {
+        if gs.indemo == demoenum::notdemo {
             centerwindow(11, 2, gs);
             print(b" Entering\nlevel \0" as *const u8 as *const i8, gs);
             printint(level as i32, gs);
@@ -1295,7 +1294,7 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
                     break;
                 }
             }
-            RecordDemo();
+            RecordDemo(gs);
             clearold(&mut gs.oldtiles);
             clearkeys();
         }
@@ -1306,7 +1305,7 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
         initrndt(false as boolean);
         printshotpower(gs);
         doall(gs);
-        if indemo == demoenum::recording {
+        if gs.indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1, gs);
             print(b"SAVE AS DEMO#:\0" as *const u8 as *const i8, gs);
@@ -1316,12 +1315,12 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
                     break;
                 }
             }
-            SaveDemo(ch as i32 - '0' as i32);
+            SaveDemo(ch as i32 - '0' as i32, gs);
             clearold(&mut gs.oldtiles);
             refresh(gs);
             refresh(gs);
         }
-        if indemo != demoenum::notdemo {
+        if gs.indemo != demoenum::notdemo {
             gs.playdone = true;
         }
         if gs.playdone {

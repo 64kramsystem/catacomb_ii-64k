@@ -17,7 +17,6 @@ use crate::{
     extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    indemo,
     pcrlib_a::{
         drawchar, initrnd, initrndt, soundmode, PlaySound, SetupEmulatedVBL, ShutdownSound,
         SoundData, StartupSound, WaitVBL,
@@ -896,7 +895,7 @@ pub unsafe fn ControlJoystick(mut joynum: i32) -> ControlStruct {
     return action;
 }
 
-pub unsafe fn ControlPlayer(mut player: i32) -> ControlStruct {
+pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
         button1: 0,
@@ -904,7 +903,7 @@ pub unsafe fn ControlPlayer(mut player: i32) -> ControlStruct {
     };
     let mut val: i32 = 0;
     ProcessEvents();
-    if indemo == demoenum::notdemo || indemo == demoenum::recording {
+    if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
         match playermode[player as usize] as u32 {
             1 => {
                 ret = ControlMouse();
@@ -919,7 +918,7 @@ pub unsafe fn ControlPlayer(mut player: i32) -> ControlStruct {
                 ret = ControlKBD();
             }
         }
-        if indemo == demoenum::recording {
+        if gs.indemo == demoenum::recording {
             val = ((ret.dir as u32) << 2 | ((ret.button2 as i32) << 1) as u32 | ret.button1 as u32)
                 as i32;
             let fresh0 = demoptr;
@@ -937,13 +936,13 @@ pub unsafe fn ControlPlayer(mut player: i32) -> ControlStruct {
     return ret;
 }
 
-pub unsafe fn RecordDemo() {
+pub unsafe fn RecordDemo(gs: &mut GlobalState) {
     demobuffer[0] = level as i8;
     demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
-    indemo = demoenum::recording;
+    gs.indemo = demoenum::recording;
 }
 
-pub fn LoadDemo(mut demonum: i32) {
+pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
     port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
@@ -951,11 +950,11 @@ pub fn LoadDemo(mut demonum: i32) {
         demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as i8));
         level = demobuffer[0] as i16;
         demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
-        indemo = demoenum::demoplay;
+        gs.indemo = demoenum::demoplay;
     }
 }
 
-pub unsafe fn SaveDemo(mut demonum: i32) {
+pub unsafe fn SaveDemo(mut demonum: i32, gs: &mut GlobalState) {
     let str = CString::new(format!("DEMO{demonum}.{port_temp__extension}")).unwrap();
 
     SaveFile(
@@ -963,7 +962,7 @@ pub unsafe fn SaveDemo(mut demonum: i32) {
         demobuffer.as_mut_ptr(),
         demoptr.offset_from(&mut *demobuffer.as_mut_ptr().offset(0) as *mut i8) as i64,
     );
-    indemo = demoenum::notdemo;
+    gs.indemo = demoenum::notdemo;
 }
 
 pub unsafe fn clearkeys() {

@@ -21,7 +21,6 @@ use crate::{
     extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::*,
-    indemo,
     obj_def_type::objdeftype,
     obj_type::objtype,
     objects::initobjects,
@@ -116,7 +115,7 @@ pub unsafe fn refresh(gs: &mut GlobalState) {
     let mut underwin: [[u16; 16]; 5] = [[0; 16]; 5];
     basex = gs.origin.x + 4;
     basey = gs.origin.y + 17;
-    if indemo != demoenum::notdemo {
+    if gs.indemo != demoenum::notdemo {
         y = 0;
         while y <= 4 {
             x = 0;
@@ -136,7 +135,7 @@ pub unsafe fn refresh(gs: &mut GlobalState) {
     } else {
         egarefresh(gs);
     }
-    if indemo != demoenum::notdemo {
+    if gs.indemo != demoenum::notdemo {
         y = 0;
         while y <= 4 {
             x = 0;
@@ -596,7 +595,7 @@ pub unsafe fn repaintscreen(gs: &mut GlobalState) {
             sx = 33;
             sy = 1;
             printint(level as i32, gs);
-            indemo = demoenum::demoplay;
+            gs.indemo = demoenum::demoplay;
         }
     };
 }
@@ -632,7 +631,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
         61 => {
             clearkeys();
             expwin(22, 4, gs);
-            if indemo != demoenum::notdemo {
+            if gs.indemo != demoenum::notdemo {
                 print(b"Can't save game here!\0" as *const u8 as *const i8, gs);
                 get(gs);
             } else {
@@ -745,7 +744,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                     );
                     close(handle);
                     gs.exitdemo = true;
-                    if indemo != demoenum::notdemo {
+                    if gs.indemo != demoenum::notdemo {
                         gs.playdone = true;
                     }
                     drawside(gs);
@@ -783,8 +782,8 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
     i = 0;
     while i < 300 {
         WaitVBL();
-        indemo = demoenum::notdemo;
-        gs.ctrl = ControlPlayer(1);
+        gs.indemo = demoenum::notdemo;
+        gs.ctrl = ControlPlayer(1, gs);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -793,7 +792,7 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
             gs.exitdemo = true;
             break;
         } else {
-            indemo = demoenum::demoplay;
+            gs.indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
                 dofkeys(gs);
                 UpdateScreen(gs);
@@ -847,7 +846,7 @@ unsafe fn dodemo(gs: &mut GlobalState) {
             break;
         }
         i = rnd(NUM_DEMOS - 1) + 1;
-        LoadDemo(i);
+        LoadDemo(i, gs);
         level = 0;
         playsetup(gs);
         playloop(gs);
@@ -856,14 +855,14 @@ unsafe fn dodemo(gs: &mut GlobalState) {
         }
         level = 0;
         gs.gamestate = statetype::inscores;
-        indemo = demoenum::demoplay;
+        gs.indemo = demoenum::demoplay;
         _showhighscores(gs);
         UpdateScreen(gs);
         i = 0;
         while i < 500 {
             WaitVBL();
-            indemo = demoenum::notdemo;
-            gs.ctrl = ControlPlayer(1);
+            gs.indemo = demoenum::notdemo;
+            gs.ctrl = ControlPlayer(1, gs);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
                 || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -900,7 +899,7 @@ unsafe fn gameover(gs: &mut GlobalState) {
     i = 0;
     while i < 500 {
         WaitVBL();
-        gs.ctrl = ControlPlayer(1);
+        gs.ctrl = ControlPlayer(1, gs);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
             || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -910,7 +909,7 @@ unsafe fn gameover(gs: &mut GlobalState) {
         if bioskey(1) != 0 {
             dofkeys(gs);
         }
-        if gs.exitdemo as i32 != 0 || indemo == demoenum::demoplay {
+        if gs.exitdemo as i32 != 0 || gs.indemo == demoenum::demoplay {
             break;
         }
         i += 1;
@@ -1056,6 +1055,7 @@ pub fn original_main() {
         [8; 64000],
         [[0; 86]; 87],
         Vec2::new(0, 0),
+        demoenum::notdemo,
     );
 
     /***************************************************************************/
@@ -1187,10 +1187,10 @@ pub fn original_main() {
         loop {
             dodemo(&mut gs);
             playsetup(&mut gs);
-            indemo = demoenum::notdemo;
+            gs.indemo = demoenum::notdemo;
             gs.gamestate = statetype::ingame;
             playloop(&mut gs);
-            if indemo == demoenum::notdemo {
+            if gs.indemo == demoenum::notdemo {
                 gs.exitdemo = false;
                 if level > numlevels {
                     doendpage(&mut gs); // finished all levels
