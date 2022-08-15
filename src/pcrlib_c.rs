@@ -150,46 +150,8 @@ pub struct SDL_DisplayMode {
     pub refresh_rate: i32,
     pub driverdata: *mut libc::c_void,
 }
-pub type C2RustUnnamed_1 = u32;
-pub const SDL_WINDOW_VULKAN: C2RustUnnamed_1 = 268435456;
-pub const SDL_WINDOW_POPUP_MENU: C2RustUnnamed_1 = 524288;
-pub const SDL_WINDOW_TOOLTIP: C2RustUnnamed_1 = 262144;
-pub const SDL_WINDOW_UTILITY: C2RustUnnamed_1 = 131072;
-pub const SDL_WINDOW_SKIP_TASKBAR: C2RustUnnamed_1 = 65536;
-pub const SDL_WINDOW_ALWAYS_ON_TOP: C2RustUnnamed_1 = 32768;
-pub const SDL_WINDOW_MOUSE_CAPTURE: C2RustUnnamed_1 = 16384;
-pub const SDL_WINDOW_ALLOW_HIGHDPI: C2RustUnnamed_1 = 8192;
-pub const SDL_WINDOW_FOREIGN: C2RustUnnamed_1 = 2048;
-pub const SDL_WINDOW_FULLSCREEN_DESKTOP: C2RustUnnamed_1 = 4097;
-pub const SDL_WINDOW_MOUSE_FOCUS: C2RustUnnamed_1 = 1024;
-pub const SDL_WINDOW_INPUT_FOCUS: C2RustUnnamed_1 = 512;
-pub const SDL_WINDOW_INPUT_GRABBED: C2RustUnnamed_1 = 256;
-pub const SDL_WINDOW_MAXIMIZED: C2RustUnnamed_1 = 128;
-pub const SDL_WINDOW_MINIMIZED: C2RustUnnamed_1 = 64;
-pub const SDL_WINDOW_RESIZABLE: C2RustUnnamed_1 = 32;
-pub const SDL_WINDOW_BORDERLESS: C2RustUnnamed_1 = 16;
-pub const SDL_WINDOW_HIDDEN: C2RustUnnamed_1 = 8;
-pub const SDL_WINDOW_SHOWN: C2RustUnnamed_1 = 4;
-pub const SDL_WINDOW_OPENGL: C2RustUnnamed_1 = 2;
-pub const SDL_WINDOW_FULLSCREEN: C2RustUnnamed_1 = 1;
-pub type C2RustUnnamed_2 = u32;
-pub const SDL_WINDOWEVENT_HIT_TEST: C2RustUnnamed_2 = 16;
-pub const SDL_WINDOWEVENT_TAKE_FOCUS: C2RustUnnamed_2 = 15;
-pub const SDL_WINDOWEVENT_CLOSE: C2RustUnnamed_2 = 14;
-pub const SDL_WINDOWEVENT_FOCUS_LOST: C2RustUnnamed_2 = 13;
-pub const SDL_WINDOWEVENT_FOCUS_GAINED: C2RustUnnamed_2 = 12;
-pub const SDL_WINDOWEVENT_LEAVE: C2RustUnnamed_2 = 11;
-pub const SDL_WINDOWEVENT_ENTER: C2RustUnnamed_2 = 10;
-pub const SDL_WINDOWEVENT_RESTORED: C2RustUnnamed_2 = 9;
-pub const SDL_WINDOWEVENT_MAXIMIZED: C2RustUnnamed_2 = 8;
-pub const SDL_WINDOWEVENT_MINIMIZED: C2RustUnnamed_2 = 7;
-pub const SDL_WINDOWEVENT_SIZE_CHANGED: C2RustUnnamed_2 = 6;
-pub const SDL_WINDOWEVENT_RESIZED: C2RustUnnamed_2 = 5;
-pub const SDL_WINDOWEVENT_MOVED: C2RustUnnamed_2 = 4;
-pub const SDL_WINDOWEVENT_EXPOSED: C2RustUnnamed_2 = 3;
-pub const SDL_WINDOWEVENT_HIDDEN: C2RustUnnamed_2 = 2;
-pub const SDL_WINDOWEVENT_SHOWN: C2RustUnnamed_2 = 1;
-pub const SDL_WINDOWEVENT_NONE: C2RustUnnamed_2 = 0;
+
+pub const SDL_WINDOW_FULLSCREEN_DESKTOP: u32 = 4097;
 
 pub type SDL_Keycode = i32;
 #[derive(Copy, Clone)]
