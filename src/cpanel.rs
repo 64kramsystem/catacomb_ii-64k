@@ -22,7 +22,6 @@ use crate::{
 
 extern "C" {
     fn free(_: *mut libc::c_void);
-    fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
 }
 
 pub type C2RustUnnamed = u32;

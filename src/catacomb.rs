@@ -42,10 +42,6 @@ extern "C" {
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn free(_: *mut libc::c_void);
-    fn __ctype_b_loc() -> *mut *const libc::c_ushort;
-    fn strcasecmp(_: *const i8, _: *const i8) -> i32;
-    fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
-    fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
 
