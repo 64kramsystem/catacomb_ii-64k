@@ -1,5 +1,8 @@
-use std::fs::File;
 use std::io::Read;
+use std::{
+    alloc::{alloc, Layout},
+    fs::File,
+};
 
 use ::libc;
 use libc::O_RDONLY;
@@ -37,7 +40,6 @@ extern "C" {
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn fstat(__fd: i32, __buf: *mut stat) -> i32;
     fn atoi(__nptr: *const i8) -> i32;
-    fn malloc(_: u64) -> *mut libc::c_void;
     fn toupper(_: i32) -> i32;
     static mut stderr: *mut FILE;
     fn fprintf(_: *mut FILE, _: *const i8, _: ...) -> i32;
@@ -1074,15 +1076,14 @@ pub unsafe fn SaveFile(mut filename: *mut i8, mut buffer: *mut i8, mut size: i64
 }
 
 pub unsafe fn bloadin(mut filename: *mut i8) -> *mut libc::c_void {
-    let mut handle: i32 = 0;
-    let mut length: i64 = 0;
-    let mut location: *mut i8 = 0 as *mut i8;
-    handle = open(filename, 0);
+    let handle = open(filename, 0);
+    let length = filelength(handle) as usize;
     if handle != -(1) {
-        length = filelength(handle);
-        location = malloc(length as u64) as *mut i8;
+        let layout = Layout::array::<u8>(length).unwrap();
+        let location = alloc(layout);
+
         close(handle);
-        LoadFile(filename, location);
+        LoadFile(filename, location as *mut i8);
         return location as *mut libc::c_void;
     } else {
         return 0 as *mut libc::c_void;
