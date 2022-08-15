@@ -1,3 +1,4 @@
+use std::ffi::CString;
 use std::fs::File;
 use std::io::Read;
 use std::{fs, mem, ptr};
@@ -11,9 +12,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::*,
-    extra_constants::{
-        _extension, port_temp__extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT,
-    },
+    extra_constants::{port_temp__extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
     extra_types::boolean,
     global_state::GlobalState,
@@ -550,7 +549,6 @@ unsafe fn ltoa(mut value: i32, mut str_0: *mut i8, mut base: i32) -> *const i8 {
 }
 
 pub static mut ch: i8 = 0;
-pub static mut str: [i8; 80] = [0; 80];
 pub static mut playermode: [inputtype; 3] = [keyboard, keyboard, joystick1];
 pub static mut keydown: [boolean; 512] = [0; 512];
 pub static mut JoyXlow: [i32; 3] = [0; 3];
@@ -974,14 +972,10 @@ pub fn LoadDemo(mut demonum: i32) {
 }
 
 pub unsafe fn SaveDemo(mut demonum: i32) {
-    let mut st2: [i8; 5] = [0; 5];
-    strcpy(str.as_mut_ptr(), b"DEMO\0" as *const u8 as *const i8);
-    itoa(demonum, st2.as_mut_ptr(), 10);
-    strcat(str.as_mut_ptr(), st2.as_mut_ptr());
-    strcat(str.as_mut_ptr(), b".\0" as *const u8 as *const i8);
-    strcat(str.as_mut_ptr(), _extension);
+    let str = CString::new(format!("DEMO{demonum}.{port_temp__extension}")).unwrap();
+
     SaveFile(
-        str.as_mut_ptr(),
+        str.as_ptr(),
         demobuffer.as_mut_ptr(),
         demoptr.offset_from(&mut *demobuffer.as_mut_ptr().offset(0) as *mut i8) as i64,
     );
@@ -1333,13 +1327,13 @@ pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState) {
 }
 
 pub unsafe fn printint(mut val: i32, gs: &mut GlobalState) {
-    itoa(val, str.as_mut_ptr(), 10);
-    print(str.as_mut_ptr(), gs);
+    let str = CString::new(format!("{val}")).unwrap();
+    print(str.as_ptr(), gs);
 }
 
 pub unsafe fn printlong(mut val: i64, gs: &mut GlobalState) {
-    ltoa(val as i32, str.as_mut_ptr(), 10);
-    print(str.as_mut_ptr(), gs);
+    let str = CString::new(format!("{val}")).unwrap();
+    print(str.as_ptr(), gs);
 }
 
 pub unsafe fn _Verify(mut filename: *const i8) -> i64 {
@@ -1661,17 +1655,15 @@ pub unsafe fn CheckMouseMode() {
 }
 
 pub unsafe fn _loadctrls() {
-    let mut handle: i32 = 0;
-    strcpy(str.as_mut_ptr(), b"CTLPANEL.\0" as *const u8 as *const i8);
-    strcat(str.as_mut_ptr(), _extension);
+    let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
     // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
     // project.
-    handle = open(
-        str.as_mut_ptr(),
+    let handle = open(
+        str.as_ptr(),
         O_RDONLY | O_BINARY,
         0o200 as i32 | 0o400 as i32,
     );
-    if handle == -(1) {
+    if handle == -1 {
         grmode = VGAgr;
         soundmode = spkr;
         playermode[1] = keyboard;
@@ -1754,7 +1746,6 @@ pub unsafe fn _loadctrls() {
 }
 
 pub unsafe fn _savectrls() {
-    let mut handle: i32 = 0;
     let mut ctlpanel: ctlpaneltype = ctlpaneltype {
         grmode: text,
         soundmode: 0,
@@ -1768,14 +1759,13 @@ pub unsafe fn _savectrls() {
         keyB1: 0,
         keyB2: 0,
     };
-    strcpy(str.as_mut_ptr(), b"CTLPANEL.\0" as *const u8 as *const i8);
-    strcat(str.as_mut_ptr(), _extension);
-    handle = open(
-        str.as_mut_ptr(),
+    let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
+    let handle = open(
+        str.as_ptr(),
         0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
         0o400 as i32 | 0o200 as i32,
     );
-    if handle == -(1) {
+    if handle == -1 {
         return;
     }
     ctlpanel.grmode = grmode;
@@ -1806,11 +1796,9 @@ pub unsafe fn _savectrls() {
 }
 
 pub unsafe fn _loadhighscores() {
-    let mut i: i32 = 0;
-    strcpy(str.as_mut_ptr(), b"SCORES.\0" as *const u8 as *const i8);
-    strcat(str.as_mut_ptr(), _extension);
-    if LoadFile(str.as_mut_ptr(), highscores.as_mut_ptr() as *mut i8) == 0 {
-        i = 0;
+    let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
+    if LoadFile(str.as_ptr(), highscores.as_mut_ptr() as *mut i8) == 0 {
+        let mut i = 0;
         while i < 5 {
             highscores[i as usize].score = 100;
             highscores[i as usize].level = 1;
@@ -1824,10 +1812,9 @@ pub unsafe fn _loadhighscores() {
 }
 
 pub unsafe fn _savehighscores() {
-    strcpy(str.as_mut_ptr(), b"SCORES.\0" as *const u8 as *const i8);
-    strcat(str.as_mut_ptr(), _extension);
+    let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
     SaveFile(
-        str.as_mut_ptr(),
+        str.as_ptr(),
         highscores.as_mut_ptr() as *mut i8,
         ::std::mem::size_of::<[scores; 5]>() as u64 as i64,
     );
@@ -1836,7 +1823,6 @@ pub unsafe fn _savehighscores() {
 pub unsafe fn _showhighscores(gs: &mut GlobalState) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
-    let mut st2: [i8; 10] = [0; 10];
     centerwindow(17, 17, gs);
     print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8, gs);
     print(b" #  SCORE LV  BY\n\0" as *const u8 as *const i8, gs);
@@ -1862,23 +1848,25 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState) {
         if h < 10 {
             sx += 1;
         }
-        ltoa(h as i32, str.as_mut_ptr(), 10);
-        print(str.as_mut_ptr(), gs);
+        let str = CString::new(format!("{h}")).unwrap();
+        print(str.as_ptr(), gs);
         sx += 1;
         if (highscores[i as usize].level as i32) < 10 {
             sx += 1;
         }
-        itoa(highscores[i as usize].level as i32, str.as_mut_ptr(), 10);
-        print(str.as_mut_ptr(), gs);
+        // Rust port: Interesting, if this is passed as format! parameter, it will cause a warning.
+        let highscore = highscores[i as usize].level;
+        let str = CString::new(format!("{highscore}")).unwrap();
+        print(str.as_ptr(), gs);
         sx += 1;
-        print((highscores[i as usize].initials).as_mut_ptr(), gs);
-        print(b"\n\n\0" as *const u8 as *const i8, gs);
+        let str = CString::new(highscores[i as usize].initials.map(|f| f as u8)).unwrap();
+        print(str.as_ptr(), gs);
+        let str = CString::new("\n\n").unwrap();
+        print(str.as_ptr(), gs);
         i += 1;
     }
-    strcpy(str.as_mut_ptr(), b"SCORE:\0" as *const u8 as *const i8);
-    ltoa(score, st2.as_mut_ptr(), 10);
-    strcat(str.as_mut_ptr(), st2.as_mut_ptr());
-    _printc(str.as_mut_ptr(), gs);
+    let str = CString::new(format!("SCORE:{score}")).unwrap();
+    _printc(str.as_ptr(), gs);
 }
 
 pub unsafe fn _checkhighscore(gs: &mut GlobalState) {

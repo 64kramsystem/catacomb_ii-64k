@@ -1,3 +1,5 @@
+use std::ffi::CString;
+
 use libc::O_RDONLY;
 
 use crate::{
@@ -28,7 +30,7 @@ use crate::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, ch, clearkeys, drawwindow, expwin,
         get, grmode, keydown, leftedge, level, port_temp_LoadFile, print, printchartile, printint,
-        score, str, sx, sy,
+        score, sx, sy,
     },
     rleasm::port_temp_RLEExpand,
     sdl_scan_codes::*,
@@ -649,9 +651,8 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                 ch = toupper(get(gs)) as i8;
                 drawchar(sx, sy, ch as i32, gs);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
-                    strcpy(str.as_mut_ptr(), b"GAME0.CA2\0" as *const u8 as *const i8);
-                    str[4] = ch;
-                    if _Verify(str.as_mut_ptr()) != 0 {
+                    let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
+                    if _Verify(str.as_ptr()) != 0 {
                         print(
                             b"\nGame exists,\noverwrite (Y/N)?\0" as *const u8 as *const i8,
                             gs,
@@ -676,7 +677,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                         919954187481050311 => {}
                         _ => {
                             handle = open(
-                                str.as_mut_ptr(),
+                                str.as_ptr(),
                                 0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
                                 0o400 as i32 | 0o200 as i32,
                             );
@@ -721,12 +722,11 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
             ch = toupper(get(gs)) as i8;
             drawchar(sx, sy, ch as i32, gs);
             if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
-                strcpy(str.as_mut_ptr(), b"GAME0.CA2\0" as *const u8 as *const i8);
-                str[4] = ch;
+                let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
                 // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
                 // project.
                 handle = open(
-                    str.as_mut_ptr(),
+                    str.as_ptr(),
                     O_RDONLY | O_BINARY,
                     0o200 as i32 | 0o400 as i32,
                 );

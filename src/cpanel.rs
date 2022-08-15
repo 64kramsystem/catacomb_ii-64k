@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 
 use ::libc;
 
@@ -665,10 +665,8 @@ unsafe fn printscan(mut sc: i32, gs: &mut GlobalState) {
     } else if sc == 0x3a as i32 {
         print(b"CAPSLK\0" as *const u8 as *const i8, gs);
     } else if sc >= 0x3b as i32 && sc <= 0x44 as i32 {
-        let mut str: [i8; 3] = [0; 3];
-        print(b"F\0" as *const u8 as *const i8, gs);
-        itoa(sc - 0x3a as i32, str.as_mut_ptr(), 10);
-        print(str.as_mut_ptr(), gs);
+        let str = CString::new(format!("F{}", sc - 0x3a as i32)).unwrap();
+        print(str.as_ptr(), gs);
     } else if sc == 0x57 as i32 {
         print(b"F11\0" as *const u8 as *const i8, gs);
     } else if sc == 0x59 as i32 {
