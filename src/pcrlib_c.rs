@@ -6,6 +6,7 @@ use std::{fs, mem, ptr};
 use ::libc;
 use libc::O_RDONLY;
 
+use crate::input_type::inputtype::{self, *};
 use crate::sound_type::soundtype::{self, *};
 use crate::{
     catacomb::loadgrfiles,
@@ -490,13 +491,6 @@ pub type C2RustUnnamed_4 = u32;
 pub const SDL_TEXTUREACCESS_TARGET: C2RustUnnamed_4 = 2;
 pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
 pub const SDL_TEXTUREACCESS_STATIC: C2RustUnnamed_4 = 0;
-
-pub type inputtype = u32;
-pub const demo: inputtype = 4;
-pub const joystick2: inputtype = 3;
-pub const joystick1: inputtype = 2;
-pub const mouse: inputtype = 1;
-pub const keyboard: inputtype = 0;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1691,7 +1685,7 @@ pub unsafe fn _loadctrls() {
         let mut i: u32 = 0;
         i = 0;
         while i < 3 {
-            playermode[i as usize] = ctlpanel.playermode[i as usize] as inputtype;
+            playermode[i as usize] = ctlpanel.playermode[i as usize].into();
             JoyXlow[i as usize] = ctlpanel.JoyXlow[i as usize] as i32;
             JoyYlow[i as usize] = ctlpanel.JoyYlow[i as usize] as i32;
             JoyXhigh[i as usize] = ctlpanel.JoyXhigh[i as usize] as i32;

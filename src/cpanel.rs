@@ -8,6 +8,7 @@ use crate::{
     dir_type::dirtype::*,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
+    input_type::inputtype::{self, *},
     pcrlib_a::{drawchar, drawpic, soundmode, xormask, ContinueSound, PauseSound, WaitVBL},
     pcrlib_c::{
         MouseSensitivity, ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen,
@@ -273,13 +274,6 @@ pub struct farptr {
     pub ofs: u16,
     pub seg: u16,
 }
-
-pub type inputtype = u32;
-pub const demo: inputtype = 4;
-pub const joystick2: inputtype = 3;
-pub const joystick1: inputtype = 2;
-pub const mouse: inputtype = 1;
-pub const keyboard: inputtype = 0;
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
@@ -840,7 +834,7 @@ pub unsafe fn controlpanel(gs: &mut GlobalState) {
                         32,
                         gs,
                     );
-                    newplayermode[1] = collumn as inputtype;
+                    newplayermode[1] = collumn.into();
                     if newplayermode[1] as u32 == keyboard as i32 as u32 {
                         calibratekeys(gs);
                     } else if newplayermode[1] as u32 == mouse as i32 as u32 {
