@@ -7,10 +7,10 @@ use crate::{
     extra_constants::PC_BASE_TIMER,
     extra_types::boolean,
     global_state::GlobalState,
+    pcrlib_a_state::PcrlibAState,
     pcrlib_c::{charptr, egaplaneofs, grmode, picptr, UpdateScreen},
     safe_sdl::*,
-    sound_type::soundtype::{self, *},
-    spkr_table::SPKRtable,
+    sound_type::soundtype::*,
 };
 
 type __time_t = i64;
@@ -68,129 +68,102 @@ unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
         | *chan.offset(0) as i32 >> ofs as i32 & 1) as u8;
 }
 
-pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
-pub static mut soundmode: soundtype = spkr;
-pub static mut xormask: i32 = 0;
-static mut SndPriority: u8 = 0;
-static mut _dontplay: i32 = 0;
-static mut AudioMutex: *mut SDL_mutex = 0 as *const SDL_mutex as *mut SDL_mutex;
-static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {
-    freq: 0,
-    format: 0,
-    channels: 0,
-    silence: 0,
-    samples: 0,
-    padding: 0,
-    size: 0,
-    callback: None,
-    userdata: 0 as *const libc::c_void as *mut libc::c_void,
-};
-static mut AudioDev: SDL_AudioDeviceID = 0;
-static mut pcVolume: libc::c_short = 5000;
-static mut pcPhaseTick: u32 = 0;
-static mut pcPhaseLength: u32 = 0;
-static mut pcActive: boolean = false as boolean;
-static mut pcSamplesPerTick: u32 = 0;
-static mut pcNumReadySamples: u32 = 0;
-static mut pcLastSample: u16 = 0;
-static mut pcLengthLeft: u32 = 0;
-static mut pcSound: *mut u16 = 0 as *const u16 as *mut u16;
-
 #[inline]
-unsafe fn _SDL_turnOnPCSpeaker(mut pcSample: u16) {
+unsafe fn _SDL_turnOnPCSpeaker(mut pcSample: u16, pas: &mut PcrlibAState) {
     // There is a bug in the SDL port; the data types used don't cover the range of values.
     // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
-    pcPhaseLength = pcSample as u32 * AudioSpec.freq as u32 / (2 * PC_BASE_TIMER);
-    pcActive = true as boolean;
+    pas.pcPhaseLength = pcSample as u32 * pas.AudioSpec.freq as u32 / (2 * PC_BASE_TIMER);
+    pas.pcActive = true as boolean;
 }
 
 #[inline]
-unsafe fn _SDL_turnOffPCSpeaker() {
-    pcActive = false as boolean;
-    pcPhaseTick = 0;
+unsafe fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAState) {
+    pas.pcActive = false as boolean;
+    pas.pcPhaseTick = 0;
 }
 
 #[inline]
-unsafe fn _SDL_PCService() {
-    if !pcSound.is_null() {
-        if *pcSound as i32 != pcLastSample as i32 {
-            pcLastSample = *pcSound;
-            if pcLastSample != 0 {
-                _SDL_turnOnPCSpeaker(pcLastSample);
+unsafe fn _SDL_PCService(pas: &mut PcrlibAState) {
+    if !pas.pcSound.is_null() {
+        if *pas.pcSound as i32 != pas.pcLastSample as i32 {
+            pas.pcLastSample = *pas.pcSound;
+            if pas.pcLastSample != 0 {
+                _SDL_turnOnPCSpeaker(pas.pcLastSample, pas);
             } else {
-                _SDL_turnOffPCSpeaker();
+                _SDL_turnOffPCSpeaker(pas);
             }
         }
-        pcSound = pcSound.offset(1);
-        pcLengthLeft = pcLengthLeft.wrapping_sub(1);
-        if pcLengthLeft == 0 {
-            pcSound = 0 as *mut u16;
-            SndPriority = 0;
-            _SDL_turnOffPCSpeaker();
+        pas.pcSound = pas.pcSound.offset(1);
+        pas.pcLengthLeft = pas.pcLengthLeft.wrapping_sub(1);
+        if pas.pcLengthLeft == 0 {
+            pas.pcSound = 0 as *mut u16;
+            pas.SndPriority = 0;
+            _SDL_turnOffPCSpeaker(pas);
         }
     }
 }
 
-unsafe fn _SDL_PCPlaySound(mut sound: i32) {
-    safe_SDL_LockMutex(AudioMutex);
-    pcPhaseTick = 0;
-    pcLastSample = 0;
-    pcLengthLeft = ((*SoundData).sounds[sound as usize].start as i32
-        - (*SoundData).sounds[(sound - 1) as usize].start as i32
+unsafe fn _SDL_PCPlaySound(mut sound: i32, pas: &mut PcrlibAState) {
+    safe_SDL_LockMutex(pas.AudioMutex);
+    pas.pcPhaseTick = 0;
+    pas.pcLastSample = 0;
+    pas.pcLengthLeft = ((*pas.SoundData).sounds[sound as usize].start as i32
+        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32
         >> 1) as u32;
-    pcSound = (SoundData as *mut u8)
-        .offset((*SoundData).sounds[(sound - 1) as usize].start as i32 as isize)
+    pas.pcSound = (pas.SoundData as *mut u8)
+        .offset((*pas.SoundData).sounds[(sound - 1) as usize].start as i32 as isize)
         as *mut u16;
-    SndPriority = (*SoundData).sounds[(sound - 1) as usize].priority;
-    pcSamplesPerTick = (AudioSpec.freq
-        / (1193181 * (*SoundData).sounds[(sound - 1) as usize].samplerate as i32 >> 16))
+    pas.SndPriority = (*pas.SoundData).sounds[(sound - 1) as usize].priority;
+    pas.pcSamplesPerTick = (pas.AudioSpec.freq
+        / (1193181 * (*pas.SoundData).sounds[(sound - 1) as usize].samplerate as i32 >> 16))
         as u32;
-    safe_SDL_UnlockMutex(AudioMutex);
+    safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-unsafe fn _SDL_PCStopSound() {
-    safe_SDL_LockMutex(AudioMutex);
-    pcSound = 0 as *mut u16;
-    _SDL_turnOffPCSpeaker();
-    safe_SDL_UnlockMutex(AudioMutex);
+unsafe fn _SDL_PCStopSound(pas: &mut PcrlibAState) {
+    safe_SDL_LockMutex(pas.AudioMutex);
+    pas.pcSound = 0 as *mut u16;
+    _SDL_turnOffPCSpeaker(pas);
+    safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-unsafe fn _SDL_ShutPC() {
-    _SDL_PCStopSound();
+unsafe fn _SDL_ShutPC(pas: &mut PcrlibAState) {
+    _SDL_PCStopSound(pas);
 }
 
 unsafe extern "C" fn UpdateSPKR(
-    mut _userdata: *mut libc::c_void,
+    mut userdata: *mut libc::c_void,
     mut stream: *mut u8,
     mut len: i32,
 ) {
-    if soundmode as u32 != spkr as i32 as u32 {
+    let pas = &mut *(userdata as *mut PcrlibAState);
+    if pas.soundmode as u32 != spkr as i32 as u32 {
         stream.write_bytes(0, len as usize);
         return;
     }
     let mut sampleslen: i32 = len >> 1;
     let mut stream16: *mut i16 = stream as *mut libc::c_void as *mut i16;
-    safe_SDL_LockMutex(AudioMutex);
+    safe_SDL_LockMutex(pas.AudioMutex);
     loop {
-        if pcNumReadySamples != 0 {
-            if pcActive != 0 {
-                while pcNumReadySamples != 0 && sampleslen != 0 {
-                    pcNumReadySamples = pcNumReadySamples.wrapping_sub(1);
+        if pas.pcNumReadySamples != 0 {
+            if pas.pcActive != 0 {
+                while pas.pcNumReadySamples != 0 && sampleslen != 0 {
+                    pas.pcNumReadySamples = pas.pcNumReadySamples.wrapping_sub(1);
                     sampleslen -= 1;
                     let fresh0 = stream16;
                     stream16 = stream16.offset(1);
-                    *fresh0 = pcVolume;
-                    let fresh1 = pcPhaseTick;
-                    pcPhaseTick = pcPhaseTick.wrapping_add(1);
-                    if fresh1 >= pcPhaseLength {
-                        pcVolume = -(pcVolume as i32) as libc::c_short;
-                        pcPhaseTick = 0;
+                    *fresh0 = pas.pcVolume;
+                    let fresh1 = pas.pcPhaseTick;
+                    pas.pcPhaseTick = pas.pcPhaseTick.wrapping_add(1);
+                    if fresh1 >= pas.pcPhaseLength {
+                        pas.pcVolume = -(pas.pcVolume as i32) as libc::c_short;
+                        pas.pcPhaseTick = 0;
                     }
                 }
             } else {
-                while pcNumReadySamples != 0 && sampleslen != 0 {
-                    pcNumReadySamples = pcNumReadySamples.wrapping_sub(1);
+                while pas.pcNumReadySamples != 0 && sampleslen != 0 {
+                    pas.pcNumReadySamples = pas.pcNumReadySamples.wrapping_sub(1);
                     sampleslen -= 1;
                     let fresh2 = stream16;
                     stream16 = stream16.offset(1);
@@ -201,16 +174,16 @@ unsafe extern "C" fn UpdateSPKR(
                 break;
             }
         }
-        _SDL_PCService();
-        pcNumReadySamples = pcSamplesPerTick;
-        if !(pcNumReadySamples != 0) {
+        _SDL_PCService(pas);
+        pas.pcNumReadySamples = pas.pcSamplesPerTick;
+        if !(pas.pcNumReadySamples != 0) {
             break;
         }
     }
-    safe_SDL_UnlockMutex(AudioMutex);
+    safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-pub unsafe fn StartupSound() {
+pub unsafe fn StartupSound(pas: &mut PcrlibAState) {
     let mut desired: SDL_AudioSpec = SDL_AudioSpec {
         freq: 0,
         format: 0,
@@ -233,89 +206,84 @@ pub unsafe fn StartupSound() {
     desired.samples = 4096 as u16;
     desired.callback =
         Some(UpdateSPKR as unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ());
-    AudioMutex = safe_SDL_CreateMutex();
-    if AudioMutex.is_null() || safe_SDL_InitSubSystem(0x10 as u32) < 0 || {
-        AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut AudioSpec, 0);
-        AudioDev == 0
+    desired.userdata = pas as *mut PcrlibAState as *mut libc::c_void;
+    pas.AudioMutex = safe_SDL_CreateMutex();
+    if pas.AudioMutex.is_null() || safe_SDL_InitSubSystem(0x10 as u32) < 0 || {
+        pas.AudioDev =
+            safe_SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut pas.AudioSpec, 0);
+        pas.AudioDev == 0
     } {
         println!("Audio initialization failed: {:?}", safe_SDL_GetError());
-        soundmode = off;
-        _dontplay = 1;
+        pas.soundmode = off;
+        pas._dontplay = 1;
         return;
     }
-    pcSamplesPerTick = (AudioSpec.freq / 145) as u32;
-    soundmode = spkr;
-    safe_SDL_PauseAudioDevice(AudioDev, 0);
+    pas.pcSamplesPerTick = (pas.AudioSpec.freq / 145) as u32;
+    pas.soundmode = spkr;
+    safe_SDL_PauseAudioDevice(pas.AudioDev, 0);
 }
 
-pub unsafe fn ShutdownSound() {
-    if _dontplay != 0 {
+pub unsafe fn ShutdownSound(pas: &mut PcrlibAState) {
+    if pas._dontplay != 0 {
         return;
     }
-    _SDL_ShutPC();
+    _SDL_ShutPC(pas);
     safe_SDL_CloseAudio();
 }
 
-pub unsafe fn PlaySound(mut sound: i32) {
-    if _dontplay != 0 {
+pub unsafe fn PlaySound(mut sound: i32, pas: &mut PcrlibAState) {
+    if pas._dontplay != 0 {
         return;
     }
-    if (*SoundData).sounds[(sound - 1) as usize].priority as i32 >= SndPriority as i32 {
-        _SDL_PCPlaySound(sound);
+    if (*pas.SoundData).sounds[(sound - 1) as usize].priority as i32 >= pas.SndPriority as i32 {
+        _SDL_PCPlaySound(sound, pas);
     }
 }
 
-unsafe fn StopSound() {
-    if _dontplay != 0 {
+unsafe fn StopSound(pas: &mut PcrlibAState) {
+    if pas._dontplay != 0 {
         return;
     }
-    _SDL_PCStopSound();
+    _SDL_PCStopSound(pas);
 }
-static mut SavedSound: SavedSoundStruct = SavedSoundStruct {
-    SndPriority: 0,
-    pcSamplesPerTick: 0,
-    pcLengthLeft: 0,
-    pcSound: 0 as *const u16 as *mut u16,
-};
 
-pub unsafe fn PauseSound() {
-    if _dontplay != 0 {
+pub unsafe fn PauseSound(pas: &mut PcrlibAState) {
+    if pas._dontplay != 0 {
         return;
     }
-    safe_SDL_LockMutex(AudioMutex);
-    SavedSound.SndPriority = SndPriority;
-    SavedSound.pcSamplesPerTick = pcSamplesPerTick;
-    SavedSound.pcLengthLeft = pcLengthLeft;
-    SavedSound.pcSound = pcSound;
-    SndPriority = 0;
-    pcLengthLeft = 0;
-    pcSound = 0 as *mut u16;
-    _SDL_turnOffPCSpeaker();
-    safe_SDL_UnlockMutex(AudioMutex);
+    safe_SDL_LockMutex(pas.AudioMutex);
+    pas.SavedSound.SndPriority = pas.SndPriority;
+    pas.SavedSound.pcSamplesPerTick = pas.pcSamplesPerTick;
+    pas.SavedSound.pcLengthLeft = pas.pcLengthLeft;
+    pas.SavedSound.pcSound = pas.pcSound;
+    pas.SndPriority = 0;
+    pas.pcLengthLeft = 0;
+    pas.pcSound = 0 as *mut u16;
+    _SDL_turnOffPCSpeaker(pas);
+    safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-pub unsafe fn ContinueSound() {
-    if _dontplay != 0 {
+pub unsafe fn ContinueSound(pas: &mut PcrlibAState) {
+    if pas._dontplay != 0 {
         return;
     }
-    pcPhaseTick = 0;
-    pcLastSample = 0;
-    SndPriority = SavedSound.SndPriority;
-    pcSamplesPerTick = SavedSound.pcSamplesPerTick;
-    pcLengthLeft = SavedSound.pcLengthLeft;
-    pcSound = SavedSound.pcSound;
+    pas.pcPhaseTick = 0;
+    pas.pcLastSample = 0;
+    pas.SndPriority = pas.SavedSound.SndPriority;
+    pas.pcSamplesPerTick = pas.SavedSound.pcSamplesPerTick;
+    pas.pcLengthLeft = pas.SavedSound.pcLengthLeft;
+    pas.pcSound = pas.SavedSound.pcSound;
 }
 
-pub unsafe fn WaitEndSound(gs: &mut GlobalState) {
-    if _dontplay != 0 {
+pub unsafe fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+    if pas._dontplay != 0 {
         return;
     }
     UpdateScreen(gs);
-    while !pcSound.is_null() {
-        WaitVBL();
+    while !pas.pcSound.is_null() {
+        WaitVBL(pas);
     }
 }
-static mut rndindex: u16 = 0;
 const rndtable: [u8; 256] = [
     0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66, 74, 21, 211, 47, 80, 242, 154,
     27, 205, 128, 161, 89, 77, 36, 95, 110, 85, 48, 212, 140, 211, 249, 22, 79, 200, 50, 28, 188,
@@ -332,31 +300,27 @@ const rndtable: [u8; 256] = [
     84, 118, 222, 187, 136, 120, 163, 236, 249,
 ];
 
-static mut indexi: u16 = 0;
-static mut indexj: u16 = 0;
-static mut LastRnd: u16 = 0;
-static mut RndArray: [u16; 17] = [0; 17];
 const baseRndArray: [u16; 17] = [
     1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
 
-pub unsafe fn initrnd(mut randomize: boolean) {
-    RndArray.copy_from_slice(&baseRndArray);
-    LastRnd = 0;
-    indexi = 17;
-    indexj = 5;
+pub unsafe fn initrnd(mut randomize: boolean, pas: &mut PcrlibAState) {
+    pas.RndArray.copy_from_slice(&baseRndArray);
+    pas.LastRnd = 0;
+    pas.indexi = 17;
+    pas.indexj = 5;
     if randomize != 0 {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs();
-        RndArray[16] = (now & 0xffff) as u16;
-        RndArray[4] = (now & 0xffff ^ now >> 16 & 0xffff) as u16;
+        pas.RndArray[16] = (now & 0xffff) as u16;
+        pas.RndArray[4] = (now & 0xffff ^ now >> 16 & 0xffff) as u16;
     }
-    rnd(0xffff as i32 as u16);
+    rnd(0xffff as i32 as u16, pas);
 }
 
-pub unsafe fn rnd(mut maxval: u16) -> i32 {
+pub unsafe fn rnd(mut maxval: u16, pas: &mut PcrlibAState) -> i32 {
     let mut mask: u16 = 0;
     let mut shift: u16 = 0;
     let mut val: i32 = 0;
@@ -369,19 +333,19 @@ pub unsafe fn rnd(mut maxval: u16) -> i32 {
         shift = ((shift as i32) << 1) as u16;
         mask = (mask as i32 >> 1) as u16;
     }
-    val = RndArray[(indexi as i32 - 1) as usize] as i32
-        + RndArray[(indexj as i32 - 1) as usize] as i32
+    val = pas.RndArray[(pas.indexi as i32 - 1) as usize] as i32
+        + pas.RndArray[(pas.indexj as i32 - 1) as usize] as i32
         + 1;
-    RndArray[(indexi as i32 - 1) as usize] = val as u16;
-    val += LastRnd as i32;
-    LastRnd = val as u16;
-    indexi = indexi.wrapping_sub(1);
-    if indexi as i32 == 0 {
-        indexi = 17;
+    pas.RndArray[(pas.indexi as i32 - 1) as usize] = val as u16;
+    val += pas.LastRnd as i32;
+    pas.LastRnd = val as u16;
+    pas.indexi = pas.indexi.wrapping_sub(1);
+    if pas.indexi as i32 == 0 {
+        pas.indexi = 17;
     }
-    indexj = indexj.wrapping_sub(1);
-    if indexj as i32 == 0 {
-        indexj = 17;
+    pas.indexj = pas.indexj.wrapping_sub(1);
+    if pas.indexj as i32 == 0 {
+        pas.indexj = 17;
     }
     val &= mask as i32;
     if val > maxval as i32 {
@@ -390,8 +354,8 @@ pub unsafe fn rnd(mut maxval: u16) -> i32 {
     return val;
 }
 
-pub unsafe fn initrndt(mut randomize: boolean) {
-    rndindex = (if randomize as i32 != 0 {
+pub unsafe fn initrndt(mut randomize: boolean, pas: &mut PcrlibAState) {
+    pas.rndindex = (if randomize as i32 != 0 {
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -401,39 +365,36 @@ pub unsafe fn initrndt(mut randomize: boolean) {
     }) as u16;
 }
 
-pub unsafe fn rndt() -> i32 {
-    rndindex = (rndindex as i32 + 1 & 0xff as i32) as u16;
-    return rndtable[rndindex as usize] as i32;
+pub unsafe fn rndt(pas: &mut PcrlibAState) -> i32 {
+    pas.rndindex = (pas.rndindex as i32 + 1 & 0xff as i32) as u16;
+    return rndtable[pas.rndindex as usize] as i32;
 }
 
-static mut vblsem: *mut SDL_sem = 0 as *const SDL_sem as *mut SDL_sem;
-
-static mut vbltimer: SDL_TimerID = 0;
-
-unsafe extern "C" fn VBLCallback(mut _interval: u32, mut _param: *mut libc::c_void) -> u32 {
-    safe_SDL_SemPost(vblsem);
+unsafe extern "C" fn VBLCallback(mut _interval: u32, mut param: *mut libc::c_void) -> u32 {
+    let pas = &mut *(param as *mut PcrlibAState);
+    safe_SDL_SemPost(pas.vblsem);
     return VBL_TIME as i32 as u32;
 }
 
 pub unsafe extern "C" fn ShutdownEmulatedVBL() {
-    safe_SDL_RemoveTimer(vbltimer);
-    safe_SDL_DestroySemaphore(vblsem);
+    safe_SDL_RemoveTimer(pas.vbltimer);
+    safe_SDL_DestroySemaphore(pas.vblsem);
 }
 
-pub unsafe fn SetupEmulatedVBL() {
-    vblsem = safe_SDL_CreateSemaphore(0 as u32);
-    vbltimer = safe_SDL_AddTimer(
+pub unsafe fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
+    pas.vblsem = safe_SDL_CreateSemaphore(0 as u32);
+    pas.vbltimer = safe_SDL_AddTimer(
         VBL_TIME as i32 as u32,
         Some(VBLCallback as unsafe extern "C" fn(u32, *mut libc::c_void) -> u32),
-        0 as *mut libc::c_void,
+        pas as *mut PcrlibAState as *mut libc::c_void,
     );
     safe_register_shutdown_vbl_on_exit();
 }
 
-pub unsafe fn WaitVBL() {
+pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
     loop {
-        safe_SDL_SemWait(vblsem);
-        if !(safe_SDL_SemValue(vblsem) != 0) {
+        safe_SDL_SemWait(pas.vblsem);
+        if !(safe_SDL_SemValue(pas.vblsem) != 0) {
             break;
         }
     }

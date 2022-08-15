@@ -4,6 +4,7 @@ use crate::{
     class_type::classtype::*,
     cpanel_state::CpanelState,
     global_state::GlobalState,
+    pcrlib_a_state::PcrlibAState,
     pcrlib_c::{grmode, UpdateScreen},
 };
 
@@ -97,7 +98,7 @@ pub unsafe fn eraseobj(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn doall(gs: &mut GlobalState, cps: &mut CpanelState) {
+pub unsafe fn doall(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
     assert!(gs.numobj > 0);
 
     loop {
@@ -108,7 +109,7 @@ pub unsafe fn doall(gs: &mut GlobalState, cps: &mut CpanelState) {
                 gs.obj
                     .update_from_objdeftype(&gs.objdef[gs.obj.class as usize]);
                 if gs.obj.active != 0 {
-                    doactive(gs, cps);
+                    doactive(gs, cps, pas);
                 } else {
                     doinactive(gs);
                 }
@@ -121,7 +122,7 @@ pub unsafe fn doall(gs: &mut GlobalState, cps: &mut CpanelState) {
                 break;
             }
         }
-        refresh(gs);
+        refresh(gs, pas);
         gs.frameon = gs.frameon.wrapping_add(1);
         if gs.leveldone {
             return;

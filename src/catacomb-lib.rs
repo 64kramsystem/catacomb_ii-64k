@@ -34,6 +34,7 @@ mod obj_def_type;
 mod obj_type;
 mod objects;
 mod pcrlib_a;
+mod pcrlib_a_state;
 mod pcrlib_c;
 mod rleasm;
 mod safe_sdl;

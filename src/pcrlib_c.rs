@@ -8,6 +8,7 @@ use libc::O_RDONLY;
 
 use crate::cpanel_state::CpanelState;
 use crate::input_type::inputtype::{self, *};
+use crate::pcrlib_a_state::PcrlibAState;
 use crate::sound_type::soundtype::{self, *};
 use crate::{
     catacomb::loadgrfiles,
@@ -21,12 +22,12 @@ use crate::{
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_a::{
-        drawchar, initrnd, initrndt, soundmode, PlaySound, SetupEmulatedVBL, ShutdownSound,
-        SoundData, StartupSound, WaitVBL,
+        drawchar, initrnd, initrndt, PlaySound, SetupEmulatedVBL, ShutdownSound, StartupSound,
+        WaitVBL,
     },
     safe_sdl::*,
-    scores::scores,
     scan_codes::*,
+    scores::scores,
     spkr_table::SPKRtable,
 };
 extern "C" {
@@ -593,11 +594,12 @@ pub unsafe fn ProcessEvents() {
 static mut hasFocus: boolean = true as boolean;
 
 unsafe extern "C" fn WatchUIEvents(
-    mut _userdata: *mut libc::c_void,
+    mut userdata: *mut libc::c_void,
     mut event: *mut SDL_Event,
 ) -> i32 {
+    let pas = &mut *(userdata as *mut PcrlibAState);
     if (*event).type_0 == SDL_QUIT as i32 as u32 {
-        _quit(b"\0" as *const u8 as *const i8 as *mut i8);
+        _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas);
     } else if (*event).type_0 == SDL_WINDOWEVENT as i32 as u32 {
         match (*event).window.event as i32 {
             13 => {
@@ -1142,36 +1144,41 @@ pub unsafe fn centerwindow(mut width: i32, mut height: i32, gs: &mut GlobalState
     drawwindow(xl, yl, xl + width + 1, yl + height + 1, gs);
 }
 
-pub unsafe fn expwin(mut width: i32, mut height: i32, gs: &mut GlobalState) {
+pub unsafe fn expwin(
+    mut width: i32,
+    mut height: i32,
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+) {
     if width > 2 {
         if height > 2 {
-            expwin(width - 2, height - 2, gs);
+            expwin(width - 2, height - 2, gs, pas);
         } else {
-            expwinh(width - 2, height, gs);
+            expwinh(width - 2, height, gs, pas);
         }
     } else if height > 2 {
-        expwinv(width, height - 2, gs);
+        expwinv(width, height - 2, gs, pas);
     }
     UpdateScreen(gs);
-    WaitVBL();
+    WaitVBL(pas);
     centerwindow(width, height, gs);
 }
 
-unsafe fn expwinh(mut width: i32, mut height: i32, gs: &mut GlobalState) {
+unsafe fn expwinh(mut width: i32, mut height: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     if width > 2 {
-        expwinh(width - 2, height, gs);
+        expwinh(width - 2, height, gs, pas);
     }
     UpdateScreen(gs);
-    WaitVBL();
+    WaitVBL(pas);
     centerwindow(width, height, gs);
 }
 
-unsafe fn expwinv(mut width: i32, mut height: i32, gs: &mut GlobalState) {
+unsafe fn expwinv(mut width: i32, mut height: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     if height > 2 {
-        expwinv(width, height - 2, gs);
+        expwinv(width, height - 2, gs, pas);
     }
     UpdateScreen(gs);
-    WaitVBL();
+    WaitVBL(pas);
     centerwindow(width, height, gs);
 }
 
@@ -1228,7 +1235,7 @@ pub unsafe fn UpdateScreen(gs: &mut GlobalState) {
     safe_SDL_RenderPresent(renderer);
 }
 
-pub unsafe fn get(gs: &mut GlobalState) -> i32 {
+pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState) -> i32 {
     let mut cycle: i32 = 0;
     let mut key_0: i32 = 0;
     loop {
@@ -1242,11 +1249,11 @@ pub unsafe fn get(gs: &mut GlobalState) -> i32 {
             cycle = cycle + 1;
             drawchar(sx, sy, fresh2, gs);
             UpdateScreen(gs);
-            WaitVBL();
-            WaitVBL();
-            WaitVBL();
-            WaitVBL();
-            WaitVBL();
+            WaitVBL(pas);
+            WaitVBL(pas);
+            WaitVBL(pas);
+            WaitVBL(pas);
+            WaitVBL(pas);
         }
         if !(key_0 == 0) {
             break;
@@ -1372,12 +1379,12 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub unsafe fn _inputint(gs: &mut GlobalState) -> u32 {
+pub unsafe fn _inputint(gs: &mut GlobalState, pas: &mut PcrlibAState) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
 
-    _input(&mut string, 17, gs);
+    _input(&mut string, 17, gs, pas);
 
     if string[0] == b'$' {
         let digits = port_temp_strlen(&string) as isize - 2;
@@ -1416,12 +1423,17 @@ pub unsafe fn _inputint(gs: &mut GlobalState) -> u32 {
 // line input routine
 //
 ////////////////////////////////////////////////////////////////////
-unsafe fn _input(string: &mut [u8], max: usize, gs: &mut GlobalState) -> i32 {
+unsafe fn _input(
+    string: &mut [u8],
+    max: usize,
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
 
     loop {
-        key_ = (get(gs) as u8).to_ascii_uppercase();
+        key_ = (get(gs, pas) as u8).to_ascii_uppercase();
         if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
             drawchar(sx, sy, ' ' as i32, gs);
@@ -1496,7 +1508,7 @@ pub unsafe fn CheckMouseMode() {
     );
 }
 
-pub unsafe fn _loadctrls() {
+pub unsafe fn _loadctrls(pas: &mut PcrlibAState) {
     let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
     // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
     // project.
@@ -1507,7 +1519,7 @@ pub unsafe fn _loadctrls() {
     );
     if handle == -1 {
         grmode = VGAgr;
-        soundmode = spkr;
+        pas.soundmode = spkr;
         playermode[1] = keyboard;
         playermode[2] = joystick1;
         JoyXlow[2] = 20;
@@ -1550,7 +1562,7 @@ pub unsafe fn _loadctrls() {
         );
         close(handle);
         grmode = ctlpanel.grmode as grtype;
-        soundmode = ctlpanel.soundmode as soundtype;
+        pas.soundmode = ctlpanel.soundmode as soundtype;
         let mut i: u32 = 0;
         i = 0;
         while i < 3 {
@@ -1587,7 +1599,7 @@ pub unsafe fn _loadctrls() {
     };
 }
 
-pub unsafe fn _savectrls() {
+pub unsafe fn _savectrls(pas: &mut PcrlibAState) {
     let mut ctlpanel: ctlpaneltype = ctlpaneltype {
         grmode: text,
         soundmode: off,
@@ -1611,7 +1623,7 @@ pub unsafe fn _savectrls() {
         return;
     }
     ctlpanel.grmode = grmode;
-    ctlpanel.soundmode = soundmode;
+    ctlpanel.soundmode = pas.soundmode;
     let mut i = 0;
     while i < 3 {
         ctlpanel.playermode[i] = playermode[i] as u16;
@@ -1711,7 +1723,7 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState) {
     _printc(str.as_ptr(), gs);
 }
 
-pub unsafe fn _checkhighscore(gs: &mut GlobalState) {
+pub unsafe fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
     let mut k: i32 = 0;
@@ -1738,13 +1750,13 @@ pub unsafe fn _checkhighscore(gs: &mut GlobalState) {
     _showhighscores(gs);
     UpdateScreen(gs);
     if i < 5 {
-        PlaySound(16);
+        PlaySound(16, pas);
         clearkeys();
         sx = gs.screencenter.x - 17 / 2 + 14;
         sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
-            k = get(gs);
+            k = get(gs, pas);
             ch = k as i8;
             if ch as i32 >= ' ' as i32 && j < 3 {
                 drawchar(sx, sy, ch as i32, gs);
@@ -1768,7 +1780,7 @@ pub unsafe fn _checkhighscore(gs: &mut GlobalState) {
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
-pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState) {
+pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
     if safe_SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
         eprintln!("Failed to initialize SDL: {}", safe_SDL_GetError());
         std::process::exit(1);
@@ -1776,7 +1788,7 @@ pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState) {
     safe_register_sdl_quit_on_exit();
     safe_SDL_AddEventWatch(
         Some(WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32),
-        0 as *mut libc::c_void,
+        pas as *mut PcrlibAState as *mut libc::c_void,
     );
     let mut windowed = false;
     let mut winWidth = 640;
@@ -1879,7 +1891,7 @@ pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState) {
         grmode = EGAgr;
         joystick[2].device = -(1);
         joystick[1].device = joystick[2].device;
-        _loadctrls();
+        _loadctrls(pas);
         if grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
             grmode = VGAgr;
         } else if grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
@@ -1888,21 +1900,21 @@ pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState) {
             grmode = CGAgr;
         }
         let filename = format!("SOUNDS.{port_temp__extension}");
-        SoundData = bloadin(&filename) as *mut SPKRtable;
-        StartupSound();
+        pas.SoundData = bloadin(&filename) as *mut SPKRtable;
+        StartupSound(pas);
         SetupKBD();
-        initrndt(1);
-        initrnd(1);
+        initrndt(1, pas);
+        initrnd(1, pas);
         _loadhighscores();
         loadgrfiles(gs, cps);
-        SetupEmulatedVBL();
+        SetupEmulatedVBL(pas);
     }
 }
 
-pub unsafe fn _quit(mut error: *const i8) {
+pub unsafe fn _quit(mut error: *const i8, pas: &mut PcrlibAState) {
     if *error == 0 {
         _savehighscores();
-        _savectrls();
+        _savectrls(pas);
     } else {
         puts(error);
         puts(b"\n\0" as *const u8 as *const i8);
@@ -1912,7 +1924,7 @@ pub unsafe fn _quit(mut error: *const i8) {
         puts(b"\n\0" as *const u8 as *const i8);
         std::process::exit(1);
     }
-    ShutdownSound();
+    ShutdownSound(pas);
     ShutdownJoysticks();
     safe_SDL_DestroyRenderer(renderer);
     safe_SDL_DestroyWindow(window);

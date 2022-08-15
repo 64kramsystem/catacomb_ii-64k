@@ -9,7 +9,8 @@ use crate::{
     dir_type::dirtype::*,
     global_state::GlobalState,
     input_type::inputtype::*,
-    pcrlib_a::{drawchar, drawpic, soundmode, xormask, ContinueSound, PauseSound, WaitVBL},
+    pcrlib_a::{drawchar, drawpic, ContinueSound, PauseSound, WaitVBL},
+    pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         MouseSensitivity, ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen,
         _egaok, _vgaok, bioskey, bloadin, charptr, clearkeys, drawwindow, egaplaneofs, erasewindow,
@@ -86,7 +87,7 @@ unsafe fn flatptr(mut ptr: farptr) -> u32 {
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
 
-unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState) {
+unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
     let mut dx: i32 = 0;
@@ -100,7 +101,7 @@ unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState) {
         button1: 0,
         button2: 0,
     };
-    expwin(24, 9, gs);
+    expwin(24, 9, gs, pas);
     print(
         b" Joystick Configuration\n\r\0" as *const u8 as *const i8,
         gs,
@@ -119,9 +120,9 @@ unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState) {
     loop {
         drawchar(sx, sy, stage, gs);
         UpdateScreen(gs);
-        WaitVBL();
-        WaitVBL();
-        WaitVBL();
+        WaitVBL(pas);
+        WaitVBL(pas);
+        WaitVBL(pas);
         stage += 1;
         if stage == 23 {
             stage = 15;
@@ -148,8 +149,8 @@ unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState) {
                 }
             }
             UpdateScreen(gs);
-            WaitVBL();
-            WaitVBL();
+            WaitVBL(pas);
+            WaitVBL(pas);
             print(
                 b"\n\n\rHold the joystick in the\n\r\0" as *const u8 as *const i8,
                 gs,
@@ -159,9 +160,9 @@ unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState) {
             loop {
                 drawchar(sx, sy, stage, gs);
                 UpdateScreen(gs);
-                WaitVBL();
-                WaitVBL();
-                WaitVBL();
+                WaitVBL(pas);
+                WaitVBL(pas);
+                WaitVBL(pas);
                 stage += 1;
                 if stage == 23 {
                     stage = 15;
@@ -204,9 +205,9 @@ unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState) {
     erasewindow(gs);
 }
 
-unsafe fn calibratemouse(gs: &mut GlobalState) {
+unsafe fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut ch: i8 = 0;
-    expwin(24, 5, gs);
+    expwin(24, 5, gs, pas);
     print(
         b"  Mouse Configuration   \n\r\0" as *const u8 as *const i8,
         gs,
@@ -225,7 +226,7 @@ unsafe fn calibratemouse(gs: &mut GlobalState) {
     );
     print(b"slow, 9 being fast:\0" as *const u8 as *const i8, gs);
     loop {
-        ch = (get(gs) % 256) as i8;
+        ch = (get(gs, pas) % 256) as i8;
         if ch as i32 == 27 {
             ch = '5' as i32 as i8;
         }
@@ -302,14 +303,14 @@ unsafe fn printscan(mut sc: i32, gs: &mut GlobalState) {
     };
 }
 
-unsafe fn calibratekeys(gs: &mut GlobalState) {
+unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
     let mut hy: i32 = 0;
     let mut i: i32 = 0;
     let mut select: i32 = 0;
     let mut new: i32 = 0;
-    expwin(22, 15, gs);
+    expwin(22, 15, gs, pas);
     print(
         b"Keyboard Configuration\n\r\0" as *const u8 as *const i8,
         gs,
@@ -347,7 +348,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState) {
     loop {
         sx = hx;
         sy = hy;
-        ch = (get(gs) % 256) as i8;
+        ch = (get(gs, pas) % 256) as i8;
         if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
             select = ch as i32 - '0' as i32;
             drawchar(sx, sy, ch as i32, gs);
@@ -360,7 +361,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState) {
                 if !(new == 0) {
                     break;
                 }
-                WaitVBL();
+                WaitVBL(pas);
             }
             clearkeys();
             print(b"\r                  \0" as *const u8 as *const i8, gs);
@@ -410,9 +411,9 @@ pub unsafe fn getconfig(cps: &mut CpanelState) {
     cps.spotok[2][4] = 0;
 }
 
-unsafe fn drawpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
+unsafe fn drawpanel(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
     leftedge = 1;
-    xormask = 0;
+    pas.xormask = 0;
     sx = 8;
     sy = 2;
     print(
@@ -487,16 +488,16 @@ unsafe fn drawpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
     );
 }
 
-pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
+pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
     let mut oldcentery: i32 = 0;
     clearkeys();
-    PauseSound();
+    PauseSound(pas);
     ProbeJoysticks();
     cps.oldgrmode = grmode;
     cps.newgrmode = cps.oldgrmode;
-    cps.oldsoundmode = soundmode;
+    cps.oldsoundmode = pas.soundmode;
     cps.newsoundmode = cps.oldsoundmode;
     cps.oldplayermode[1] = playermode[1];
     cps.newplayermode[1] = cps.oldplayermode[1];
@@ -507,13 +508,13 @@ pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
     gs.screencenter.x = 19;
     gs.screencenter.y = 11;
     drawwindow(0, 0, 39, 24, gs);
-    drawpanel(gs, cps);
+    drawpanel(gs, cps, pas);
     cps.row = 0;
     cps.collumn = grmode as i32 - 1;
     loop {
         sx = collumnx[cps.collumn as usize] + 2;
         sy = rowy[cps.row as usize] + 3;
-        chf = get(gs);
+        chf = get(gs, pas);
         if chf == SDLK_UP as i32 {
             cps.row -= 1;
             if cps.row < 0 {
@@ -565,7 +566,7 @@ pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
                         grmode = cps.newgrmode;
                         loadgrfiles(gs, cps);
                         drawwindow(0, 0, 39, 24, gs);
-                        drawpanel(gs, cps);
+                        drawpanel(gs, cps, pas);
                     }
                 }
                 1 => {
@@ -586,15 +587,15 @@ pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
                     );
                     cps.newplayermode[1] = cps.collumn.into();
                     if cps.newplayermode[1] as u32 == keyboard as i32 as u32 {
-                        calibratekeys(gs);
+                        calibratekeys(gs, pas);
                     } else if cps.newplayermode[1] as u32 == mouse as i32 as u32 {
-                        calibratemouse(gs);
+                        calibratemouse(gs, pas);
                     } else if cps.newplayermode[1] as u32 == joystick1 as i32 as u32 {
-                        calibratejoy(1, gs);
+                        calibratejoy(1, gs, pas);
                     } else if cps.newplayermode[1] as u32 == joystick2 as i32 as u32 {
-                        calibratejoy(2, gs);
+                        calibratejoy(2, gs, pas);
                     }
-                    drawpanel(gs, cps);
+                    drawpanel(gs, cps, pas);
                 }
                 _ => {}
             }
@@ -615,9 +616,9 @@ pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
     grmode = cps.newgrmode;
     gs.screencenter.x = oldcenterx;
     gs.screencenter.y = oldcentery;
-    soundmode = cps.newsoundmode;
-    repaintscreen(gs, cps);
-    ContinueSound();
+    pas.soundmode = cps.newsoundmode;
+    repaintscreen(gs, cps, pas);
+    ContinueSound(pas);
 }
 
 pub unsafe fn installgrfile(
