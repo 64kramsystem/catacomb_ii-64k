@@ -11,8 +11,6 @@ use crate::{
 };
 extern "C" {
     fn time(__timer: *mut time_t) -> time_t;
-    fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
 }
 type __time_t = i64;
 type time_t = __time_t;
@@ -172,7 +170,7 @@ unsafe extern "C" fn UpdateSPKR(
     mut len: i32,
 ) {
     if soundmode as u32 != spkr as i32 as u32 {
-        memset(stream as *mut libc::c_void, 0, len as u64);
+        stream.write_bytes(0, len as usize);
         return;
     }
     let mut sampleslen: i32 = len >> 1;
@@ -347,11 +345,7 @@ const baseRndArray: [u16; 17] = [
 ];
 
 pub unsafe fn initrnd(mut randomize: boolean) {
-    memcpy(
-        RndArray.as_mut_ptr() as *mut libc::c_void,
-        baseRndArray.as_mut_ptr() as *const libc::c_void,
-        ::std::mem::size_of::<[u16; 17]>() as u64,
-    );
+    RndArray.copy_from_slice(&baseRndArray);
     LastRnd = 0;
     indexi = 17;
     indexj = 5;
