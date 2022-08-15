@@ -1,3 +1,5 @@
+use std::ffi::CStr;
+
 use ::libc;
 
 use crate::{
@@ -1071,7 +1073,8 @@ pub unsafe fn installgrfile(mut filename: *mut i8, mut inmem: *mut libc::c_void)
         if lastgrpic as i64 != 0 {
             free(lastgrpic);
         }
-        picfile = bloadin(filename) as *mut picfiletype;
+        let filename = CStr::from_ptr(filename).to_string_lossy().to_string();
+        picfile = bloadin(&filename) as *mut picfiletype;
         lastgrpic = picfile as *mut libc::c_void;
     }
     numchars = (*picfile).numchars as i32;

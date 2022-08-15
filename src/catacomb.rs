@@ -174,14 +174,14 @@ pub unsafe fn loadgrfiles() {
         free(picsexact as *mut libc::c_void);
     }
     if grmode as u32 == CGAgr as i32 as u32 {
-        pics = bloadin(b"CGACHARS.CA2\0" as *const u8 as *const i8 as *mut i8) as *mut i8;
+        pics = bloadin("CGACHARS.CA2") as *mut i8;
         picsexact = pics;
         installgrfile(
             b"CGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
         );
     } else {
-        pics = bloadin(b"EGACHARS.CA2\0" as *const u8 as *const i8 as *mut i8) as *mut i8;
+        pics = bloadin("EGACHARS.CA2") as *mut i8;
         picsexact = pics;
         installgrfile(
             b"EGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,

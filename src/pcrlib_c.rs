@@ -1,8 +1,6 @@
+use std::fs::File;
 use std::io::Read;
-use std::{
-    alloc::{alloc, Layout},
-    fs::File,
-};
+use std::{fs, mem, ptr};
 
 use ::libc;
 use libc::O_RDONLY;
@@ -1075,20 +1073,24 @@ pub unsafe fn SaveFile(mut filename: *mut i8, mut buffer: *mut i8, mut size: i64
     close(fd);
 }
 
-pub unsafe fn bloadin(mut filename: *mut i8) -> *mut libc::c_void {
-    let handle = open(filename, 0);
-    let length = filelength(handle) as usize;
-    if handle != -(1) {
-        let layout = Layout::array::<u8>(length).unwrap();
-        let location = alloc(layout);
+pub fn bloadin(filename: &str) -> *mut u8 {
+    let file_meta = fs::metadata(filename);
 
-        close(handle);
-        LoadFile(filename, location as *mut i8);
-        return location as *mut libc::c_void;
+    if let Ok(file_meta) = file_meta {
+        let mut buffer = vec![0; file_meta.len() as usize];
+
+        port_temp_LoadFile(filename, &mut buffer);
+
+        let buffer_p = buffer.as_mut_ptr();
+
+        mem::forget(buffer);
+
+        buffer_p
     } else {
-        return 0 as *mut libc::c_void;
-    };
+        ptr::null_mut()
+    }
 }
+
 pub static mut grmode: grtype = text;
 pub static mut charptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
 pub static mut tileptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
@@ -2055,9 +2057,8 @@ pub fn _setupgame(gs: &mut GlobalState) {
         } else {
             grmode = CGAgr;
         }
-        strcpy(str.as_mut_ptr(), b"SOUNDS.\0" as *const u8 as *const i8);
-        strcat(str.as_mut_ptr(), _extension);
-        SoundData = bloadin(str.as_mut_ptr()) as *mut SPKRtable;
+        let filename = format!("SOUNDS.{port_temp__extension}");
+        SoundData = bloadin(&filename) as *mut SPKRtable;
         StartupSound();
         SetupKBD();
         initrndt(1);
