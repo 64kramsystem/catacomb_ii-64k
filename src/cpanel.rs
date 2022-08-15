@@ -328,34 +328,21 @@ unsafe fn flatptr(mut ptr: farptr) -> u32 {
     return (((ptr.seg as i32) << 4) + ptr.ofs as i32) as u32;
 }
 
-#[no_mangle]
-pub static mut rowy: [i32; 4] = [4, 9, 14, 19];
-#[no_mangle]
-pub static mut collumnx: [i32; 4] = [14, 20, 26, 32];
-#[no_mangle]
-pub static mut spotok: [[i32; 5]; 4] = [[0; 5]; 4];
-#[no_mangle]
-pub static mut row: i32 = 0;
-#[no_mangle]
-pub static mut collumn: i32 = 0;
-#[no_mangle]
-pub static mut oldgrmode: grtype = text;
-#[no_mangle]
-pub static mut newgrmode: grtype = text;
-#[no_mangle]
-pub static mut oldsoundmode: soundtype = off;
-#[no_mangle]
-pub static mut newsoundmode: soundtype = off;
-#[no_mangle]
-pub static mut oldplayermode: [inputtype; 3] = [keyboard; 3];
-#[no_mangle]
-pub static mut newplayermode: [inputtype; 3] = [keyboard; 3];
-#[no_mangle]
-pub static mut joy1ok: i32 = 0;
-#[no_mangle]
-pub static mut joy2ok: i32 = 0;
-#[no_mangle]
-pub static mut mouseok: i32 = 0;
+const rowy: [i32; 4] = [4, 9, 14, 19];
+const collumnx: [i32; 4] = [14, 20, 26, 32];
+
+static mut spotok: [[i32; 5]; 4] = [[0; 5]; 4];
+static mut row: i32 = 0;
+static mut collumn: i32 = 0;
+static mut oldgrmode: grtype = text;
+static mut newgrmode: grtype = text;
+static mut oldsoundmode: soundtype = off;
+static mut newsoundmode: soundtype = off;
+static mut oldplayermode: [inputtype; 3] = [keyboard; 3];
+static mut newplayermode: [inputtype; 3] = [keyboard; 3];
+static mut joy1ok: i32 = 0;
+static mut joy2ok: i32 = 0;
+static mut mouseok: i32 = 0;
 
 unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState) {
     let mut current_block: u64;
