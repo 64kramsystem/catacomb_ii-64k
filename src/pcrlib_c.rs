@@ -1105,14 +1105,16 @@ pub unsafe fn RecordDemo() {
     indemo = demoenum::recording;
 }
 
-pub unsafe fn LoadDemo(mut demonum: i32) {
+pub fn LoadDemo(mut demonum: i32) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
     port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
-    demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as i8));
-    level = demobuffer[0] as i16;
-    demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
-    indemo = demoenum::demoplay;
+    unsafe {
+        demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as i8));
+        level = demobuffer[0] as i16;
+        demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
+        indemo = demoenum::demoplay;
+    }
 }
 
 pub unsafe fn SaveDemo(mut demonum: i32) {
