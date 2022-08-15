@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use ::libc;
 
 use crate::{
@@ -9,9 +11,7 @@ use crate::{
     safe_sdl::*,
     spkr_table::SPKRtable,
 };
-extern "C" {
-    fn time(__timer: *mut time_t) -> time_t;
-}
+
 type __time_t = i64;
 type time_t = __time_t;
 type SDL_bool = u32;
@@ -350,9 +350,12 @@ pub unsafe fn initrnd(mut randomize: boolean) {
     indexi = 17;
     indexj = 5;
     if randomize != 0 {
-        let mut now: time_t = time(0 as *mut time_t);
-        RndArray[16] = (now & 0xffff as i32 as i64) as u16;
-        RndArray[4] = (now & 0xffff as i32 as i64 ^ now >> 16 & 0xffff as i32 as i64) as u16;
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        RndArray[16] = (now & 0xffff) as u16;
+        RndArray[4] = (now & 0xffff ^ now >> 16 & 0xffff) as u16;
     }
     rnd(0xffff as i32 as u16);
 }
@@ -393,7 +396,10 @@ pub unsafe fn rnd(mut maxval: u16) -> i32 {
 
 pub unsafe fn initrndt(mut randomize: boolean) {
     rndindex = (if randomize as i32 != 0 {
-        time(0 as *mut time_t) & 0xff as i32 as i64
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
     } else {
         0
     }) as u16;
