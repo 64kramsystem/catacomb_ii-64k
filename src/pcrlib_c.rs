@@ -2079,13 +2079,9 @@ pub unsafe fn _checkhighscore(gs: &mut GlobalState) {
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
-pub unsafe fn _setupgame(gs: &mut GlobalState) {
+pub fn _setupgame(gs: &mut GlobalState) {
     if safe_SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
-        fprintf(
-            stderr,
-            b"Failed to initialize SDL: %s\n\0" as *const u8 as *const i8,
-            safe_SDL_GetError(),
-        );
+        eprintln!("Failed to initialize SDL: {}", safe_SDL_GetError());
         std::process::exit(1);
     }
     safe_register_sdl_quit_on_exit();
@@ -2136,93 +2132,83 @@ pub unsafe fn _setupgame(gs: &mut GlobalState) {
         w: 0,
         h: 0,
     };
-    if safe_SDL_GetCurrentDisplayMode(displayindex, &mut mode) < -(1)
-        || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
-    {
-        fprintf(
-            stderr,
-            b"Could not get display mode: %s\n\0" as *const u8 as *const i8,
-            safe_SDL_GetError(),
+    unsafe {
+        if safe_SDL_GetCurrentDisplayMode(displayindex, &mut mode) < -(1)
+            || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
+        {
+            eprintln!("Could not get display mode: {}", safe_SDL_GetError());
+            std::process::exit(1);
+        }
+        if windowed {
+            bounds.x = (0x1fff0000 as u32 | 0) as i32;
+            bounds.y = (0x1fff0000 as u32 | 0) as i32;
+            mode.w = winWidth as i32;
+            mode.h = winHeight as i32;
+        }
+        window = safe_SDL_CreateWindow(
+            b"The Catacomb\0" as *const u8 as *const i8,
+            bounds.x,
+            bounds.y,
+            mode.w,
+            mode.h,
+            (if windowed as i32 != 0 {
+                0
+            } else {
+                SDL_WINDOW_FULLSCREEN_DESKTOP as i32
+            }) as u32,
         );
-        std::process::exit(1);
-    }
-    if windowed {
-        bounds.x = (0x1fff0000 as u32 | 0) as i32;
-        bounds.y = (0x1fff0000 as u32 | 0) as i32;
-        mode.w = winWidth as i32;
-        mode.h = winHeight as i32;
-    }
-    window = safe_SDL_CreateWindow(
-        b"The Catacomb\0" as *const u8 as *const i8,
-        bounds.x,
-        bounds.y,
-        mode.w,
-        mode.h,
-        (if windowed as i32 != 0 {
-            0
+        if window.is_null() || {
+            renderer = safe_SDL_CreateRenderer(window, -(1), 0);
+            renderer.is_null()
+        } {
+            eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
+            std::process::exit(1);
+        }
+        sdltexture = safe_SDL_CreateTexture(
+            renderer,
+            SDL_PIXELFORMAT_ARGB8888,
+            SDL_TEXTUREACCESS_STREAMING as i32,
+            320,
+            200,
+        );
+        if sdltexture.is_null() {
+            eprintln!("Could not create video buffer: {}", safe_SDL_GetError());
+            std::process::exit(1);
+        }
+        if mode.w == 320 && mode.h == 200 || mode.w == 640 && mode.h == 400 {
+            updateRect.w = mode.w;
+            updateRect.h = mode.h;
+            updateRect.y = 0;
+            updateRect.x = updateRect.y;
         } else {
-            SDL_WINDOW_FULLSCREEN_DESKTOP as i32
-        }) as u32,
-    );
-    if window.is_null() || {
-        renderer = safe_SDL_CreateRenderer(window, -(1), 0);
-        renderer.is_null()
-    } {
-        fprintf(
-            stderr,
-            b"Failed to create SDL window: %s\n\0" as *const u8 as *const i8,
-            safe_SDL_GetError(),
-        );
-        std::process::exit(1);
-    }
-    sdltexture = safe_SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING as i32,
-        320,
-        200,
-    );
-    if sdltexture.is_null() {
-        fprintf(
-            stderr,
-            b"Could not create video buffer: %s\n\0" as *const u8 as *const i8,
-            safe_SDL_GetError(),
-        );
-        std::process::exit(1);
-    }
-    if mode.w == 320 && mode.h == 200 || mode.w == 640 && mode.h == 400 {
-        updateRect.w = mode.w;
-        updateRect.h = mode.h;
-        updateRect.y = 0;
-        updateRect.x = updateRect.y;
-    } else {
-        updateRect.h = mode.h;
-        updateRect.w = mode.h * 4 / 3;
-        updateRect.x = mode.w - updateRect.w >> 1;
-        updateRect.y = 0;
-    }
-    gs.screenseg.fill(0);
-    grmode = EGAgr;
-    joystick[2].device = -(1);
-    joystick[1].device = joystick[2].device;
-    _loadctrls();
-    if grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
-        grmode = VGAgr;
-    } else if grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
+            updateRect.h = mode.h;
+            updateRect.w = mode.h * 4 / 3;
+            updateRect.x = mode.w - updateRect.w >> 1;
+            updateRect.y = 0;
+        }
+        gs.screenseg.fill(0);
         grmode = EGAgr;
-    } else {
-        grmode = CGAgr;
+        joystick[2].device = -(1);
+        joystick[1].device = joystick[2].device;
+        _loadctrls();
+        if grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
+            grmode = VGAgr;
+        } else if grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
+            grmode = EGAgr;
+        } else {
+            grmode = CGAgr;
+        }
+        strcpy(str.as_mut_ptr(), b"SOUNDS.\0" as *const u8 as *const i8);
+        strcat(str.as_mut_ptr(), _extension);
+        SoundData = bloadin(str.as_mut_ptr()) as *mut SPKRtable;
+        StartupSound();
+        SetupKBD();
+        initrndt(1);
+        initrnd(1);
+        _loadhighscores();
+        loadgrfiles();
+        SetupEmulatedVBL();
     }
-    strcpy(str.as_mut_ptr(), b"SOUNDS.\0" as *const u8 as *const i8);
-    strcat(str.as_mut_ptr(), _extension);
-    SoundData = bloadin(str.as_mut_ptr()) as *mut SPKRtable;
-    StartupSound();
-    SetupKBD();
-    initrndt(1);
-    initrnd(1);
-    _loadhighscores();
-    loadgrfiles();
-    SetupEmulatedVBL();
 }
 
 pub unsafe fn _quit(mut error: *mut i8) {
