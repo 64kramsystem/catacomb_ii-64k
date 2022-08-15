@@ -9,6 +9,7 @@ use crate::{
     global_state::GlobalState,
     pcrlib_c::{charptr, egaplaneofs, grmode, picptr, UpdateScreen},
     safe_sdl::*,
+    sound_type::soundtype::{self, *},
     spkr_table::SPKRtable,
 };
 
@@ -36,11 +37,6 @@ pub struct SDL_AudioSpec {
 pub type SDL_AudioDeviceID = u32;
 pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
 pub type SDL_TimerID = i32;
-
-type soundtype = u32;
-const sdlib: soundtype = 2;
-const spkr: soundtype = 1;
-const off: soundtype = 0;
 
 #[derive(Copy, Clone)]
 #[repr(C)]

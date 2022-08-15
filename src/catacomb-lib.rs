@@ -37,6 +37,7 @@ mod rleasm;
 mod safe_sdl;
 mod scores;
 mod sdl_scan_codes;
+mod sound_type;
 mod spkr_table;
 mod spksndtype;
 mod state_type;

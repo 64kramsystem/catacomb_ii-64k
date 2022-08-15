@@ -6,6 +6,7 @@ use std::{fs, mem, ptr};
 use ::libc;
 use libc::O_RDONLY;
 
+use crate::sound_type::soundtype::{self, *};
 use crate::{
     catacomb::loadgrfiles,
     catasm::drawchartile,
@@ -489,10 +490,6 @@ pub type C2RustUnnamed_4 = u32;
 pub const SDL_TEXTUREACCESS_TARGET: C2RustUnnamed_4 = 2;
 pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
 pub const SDL_TEXTUREACCESS_STATIC: C2RustUnnamed_4 = 0;
-pub type soundtype = u32;
-pub const sdlib: soundtype = 2;
-pub const spkr: soundtype = 1;
-pub const off: soundtype = 0;
 
 pub type inputtype = u32;
 pub const demo: inputtype = 4;
@@ -519,7 +516,7 @@ pub union C2RustUnnamed_5 {
 #[repr(C, packed)]
 pub struct ctlpaneltype {
     pub grmode: grtype,
-    pub soundmode: u16,
+    pub soundmode: soundtype,
     pub playermode: [u16; 3],
     pub JoyXlow: [i16; 3],
     pub JoyYlow: [i16; 3],
@@ -1672,7 +1669,7 @@ pub unsafe fn _loadctrls() {
     } else {
         let mut ctlpanel: ctlpaneltype = ctlpaneltype {
             grmode: text,
-            soundmode: 0,
+            soundmode: off,
             playermode: [0; 3],
             JoyXlow: [0; 3],
             JoyYlow: [0; 3],
@@ -1730,7 +1727,7 @@ pub unsafe fn _loadctrls() {
 pub unsafe fn _savectrls() {
     let mut ctlpanel: ctlpaneltype = ctlpaneltype {
         grmode: text,
-        soundmode: 0,
+        soundmode: off,
         playermode: [0; 3],
         JoyXlow: [0; 3],
         JoyYlow: [0; 3],
@@ -1751,7 +1748,7 @@ pub unsafe fn _savectrls() {
         return;
     }
     ctlpanel.grmode = grmode;
-    ctlpanel.soundmode = soundmode as u16;
+    ctlpanel.soundmode = soundmode;
     let mut i = 0;
     while i < 3 {
         ctlpanel.playermode[i] = playermode[i] as u16;

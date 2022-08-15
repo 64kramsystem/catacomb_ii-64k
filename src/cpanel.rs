@@ -18,6 +18,7 @@ use crate::{
     },
     safe_sdl::safe_SDL_NumJoysticks,
     sdl_scan_codes::*,
+    sound_type::soundtype::{self, *},
 };
 
 extern "C" {
@@ -272,10 +273,6 @@ pub struct farptr {
     pub ofs: u16,
     pub seg: u16,
 }
-pub type soundtype = u32;
-pub const sdlib: soundtype = 2;
-pub const spkr: soundtype = 1;
-pub const off: soundtype = 0;
 
 pub type inputtype = u32;
 pub const demo: inputtype = 4;
@@ -834,7 +831,7 @@ pub unsafe fn controlpanel(gs: &mut GlobalState) {
                         32,
                         gs,
                     );
-                    newsoundmode = collumn as soundtype;
+                    newsoundmode = collumn.into();
                 }
                 2 => {
                     drawchar(
