@@ -43,8 +43,6 @@ extern "C" {
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn free(_: *mut libc::c_void);
     fn __ctype_b_loc() -> *mut *const libc::c_ushort;
-    fn tolower(_: i32) -> i32;
-    fn toupper(_: i32) -> i32;
     fn strcasecmp(_: *const i8, _: *const i8) -> i32;
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
@@ -635,7 +633,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
             clearkeys();
             expwin(18, 1, gs);
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8, gs);
-            ch = toupper(get(gs)) as i8;
+            ch = (get(gs) as u8).to_ascii_uppercase() as i8;
             if ch as i32 == 'Y' as i32 {
                 gs.resetgame = true;
             }
@@ -648,7 +646,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
                 get(gs);
             } else {
                 print(b"Save as game #(1-9):\0" as *const u8 as *const i8, gs);
-                ch = toupper(get(gs)) as i8;
+                ch = (get(gs) as u8).to_ascii_uppercase() as i8;
                 drawchar(sx, sy, ch as i32, gs);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                     let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
@@ -719,7 +717,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
             clearkeys();
             expwin(22, 4, gs);
             print(b"Load game #(1-9):\0" as *const u8 as *const i8, gs);
-            ch = toupper(get(gs)) as i8;
+            ch = (get(gs) as u8).to_ascii_uppercase() as i8;
             drawchar(sx, sy, ch as i32, gs);
             if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                 let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
@@ -774,7 +772,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
             clearkeys();
             expwin(12, 1, gs);
             print(b"QUIT (Y/N)?\0" as *const u8 as *const i8, gs);
-            ch = toupper(get(gs)) as i8;
+            ch = (get(gs) as u8).to_ascii_uppercase() as i8;
             if ch as i32 == 'Y' as i32 {
                 _quit(b"\0" as *const u8 as *const i8 as *mut i8);
             }
