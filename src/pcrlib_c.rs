@@ -1,3 +1,4 @@
+use std::ascii::AsciiExt;
 use std::ffi::CString;
 use std::fs::File;
 use std::io::Read;
@@ -37,7 +38,6 @@ extern "C" {
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn fstat(__fd: i32, __buf: *mut stat) -> i32;
     fn atoi(__nptr: *const i8) -> i32;
-    fn toupper(_: i32) -> i32;
     static mut stderr: *mut FILE;
     fn fprintf(_: *mut FILE, _: *const i8, _: ...) -> i32;
     fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
@@ -1390,7 +1390,7 @@ pub unsafe fn _inputint(gs: &mut GlobalState) -> u32 {
         value = 0;
         loop1 = 0;
         while loop1 as u64 <= digits as u64 {
-            digit = toupper(string[loop1.wrapping_add(1) as usize] as i32) as i8;
+            digit = (string[loop1 as usize + 1] as u8).to_ascii_uppercase() as i8;
             loop_0 = 0;
             while loop_0 < 16 {
                 if digit as i32 == hexstr[loop_0 as usize] as i32 {
@@ -1431,7 +1431,7 @@ unsafe fn _input(mut string: *mut i8, mut max: i32, gs: &mut GlobalState) -> i32
     let mut count: i32 = 0;
     let mut loop_0: i32 = 0;
     loop {
-        key_0 = toupper(get(gs) & 0xff as i32) as i8;
+        key_0 = (get(gs) as u8).to_ascii_uppercase() as i8;
         if (key_0 as i32 == 127 || key_0 as i32 == 8) && count > 0 {
             count -= 1;
             drawchar(sx, sy, ' ' as i32, gs);
