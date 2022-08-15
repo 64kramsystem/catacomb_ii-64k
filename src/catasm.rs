@@ -3,13 +3,12 @@ use ::libc;
 use crate::{
     active_obj::activeobj,
     cat_play::{doactive, doinactive},
-    catacomb::refresh,
+    catacomb::{pics, refresh},
     class_type::classtype::*,
     global_state::GlobalState,
-    gr_type::grtype,
     obj_def_type::objdeftype,
     obj_type::objtype,
-    pcrlib_c::UpdateScreen,
+    pcrlib_c::{grmode, UpdateScreen},
 };
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
@@ -19,8 +18,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    static mut pics: *mut i8;
-    static mut grmode: grtype;
 }
 
 pub type C2RustUnnamed_0 = u32;

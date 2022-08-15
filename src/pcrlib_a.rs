@@ -1,20 +1,18 @@
 use ::libc;
 
 use crate::{
-    extra_constants::PC_BASE_TIMER, extra_types::boolean, global_state::GlobalState,
-    gr_type::grtype, pcrlib_c::UpdateScreen, safe_sdl::*,
+    cpanel::pictable,
+    extra_constants::PC_BASE_TIMER,
+    extra_types::boolean,
+    global_state::GlobalState,
+    pcrlib_c::{charptr, egaplaneofs, grmode, picptr, UpdateScreen},
+    safe_sdl::*,
+    spkr_table::SPKRtable,
 };
 extern "C" {
-    fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
     fn time(__timer: *mut time_t) -> time_t;
     fn memset(_: *mut libc::c_void, _: i32, _: u64) -> *mut libc::c_void;
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    fn printf(_: *const i8, _: ...) -> i32;
-    static mut egaplaneofs: [u32; 4];
-    static mut picptr: *mut libc::c_void;
-    static mut charptr: *mut libc::c_void;
-    static mut pictable: [pictype; 64];
-    static mut grmode: grtype;
 }
 type __time_t = i64;
 type time_t = __time_t;
@@ -45,23 +43,7 @@ type soundtype = u32;
 const sdlib: soundtype = 2;
 const spkr: soundtype = 1;
 const off: soundtype = 0;
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-struct spksndtype {
-    pub start: u16,
-    pub priority: u8,
-    pub samplerate: u8,
-    pub name: [i8; 12],
-}
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-struct SPKRtable {
-    pub id: [i8; 4],
-    pub filelength: u16,
-    pub filler: [u16; 5],
-    pub sounds: [spksndtype; 63],
-    pub freqdata: [u16; 0],
-}
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 struct C2RustUnnamed_0 {
@@ -92,14 +74,10 @@ unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
         | *chan.offset(0) as i32 >> ofs as i32 & 1) as u8;
 }
 
-#[no_mangle]
-static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
-#[no_mangle]
-static mut soundmode: soundtype = spkr;
+pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
+pub static mut soundmode: soundtype = spkr;
 static mut SndPriority: u8 = 0;
-#[no_mangle]
-static mut xormask: i32 = 0;
-#[no_mangle]
+pub static mut xormask: i32 = 0;
 static mut _dontplay: i32 = 0;
 static mut AudioMutex: *mut SDL_mutex = 0 as *const SDL_mutex as *mut SDL_mutex;
 static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {
@@ -266,10 +244,7 @@ pub unsafe fn StartupSound() {
         AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut AudioSpec, 0);
         AudioDev == 0
     } {
-        printf(
-            b"Audio initialization failed: %s\n\0" as *const u8 as *const i8,
-            safe_SDL_GetError(),
-        );
+        println!("Audio initialization failed: {:?}", safe_SDL_GetError());
         soundmode = off;
         _dontplay = 1;
         return;
@@ -444,7 +419,7 @@ unsafe extern "C" fn VBLCallback(mut _interval: u32, mut _param: *mut libc::c_vo
     return VBL_TIME as i32 as u32;
 }
 
-unsafe extern "C" fn ShutdownEmulatedVBL() {
+pub unsafe extern "C" fn ShutdownEmulatedVBL() {
     safe_SDL_RemoveTimer(vbltimer);
     safe_SDL_DestroySemaphore(vblsem);
 }
@@ -456,7 +431,7 @@ pub unsafe fn SetupEmulatedVBL() {
         Some(VBLCallback as unsafe extern "C" fn(u32, *mut libc::c_void) -> u32),
         0 as *mut libc::c_void,
     );
-    atexit(Some(ShutdownEmulatedVBL as unsafe extern "C" fn() -> ()));
+    safe_register_shutdown_vbl_on_exit();
 }
 
 pub unsafe fn WaitVBL() {

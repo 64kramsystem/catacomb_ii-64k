@@ -20,16 +20,17 @@ use crate::{
     },
     extra_types::boolean,
     global_state::GlobalState,
-    gr_type::grtype::{self, *},
+    gr_type::grtype::*,
     indemo,
     obj_def_type::objdeftype,
     obj_type::objtype,
     objects::initobjects,
     pcrlib_a::{drawchar, drawpic, rnd, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{
-        _checkhighscore, _setupgame, _showhighscores, bar, bioskey, bloadin, centerwindow,
-        clearkeys, drawwindow, expwin, get, print, printchartile, printint, ControlPlayer,
-        LoadDemo, LoadFile, UpdateScreen, _Verify, _quit,
+        ControlPlayer, LoadDemo, LoadFile, UpdateScreen, _Verify, _checkhighscore, _quit,
+        _setupgame, _showhighscores, bar, bioskey, bloadin, centerwindow, ch, clearkeys,
+        drawwindow, expwin, get, grmode, keydown, leftedge, level, print, printchartile, printint,
+        score, str, sx, sy,
     },
     rleasm::RLEExpand,
     sdl_scan_codes::*,
@@ -41,7 +42,6 @@ extern "C" {
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn free(_: *mut libc::c_void);
-    fn printf(_: *const i8, _: ...) -> i32;
     fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
     fn __ctype_b_loc() -> *mut *const libc::c_ushort;
     fn tolower(_: i32) -> i32;
@@ -50,15 +50,6 @@ extern "C" {
     fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
-    static mut score: i32;
-    static mut level: i16;
-    static mut leftedge: i32;
-    static mut sy: i32;
-    static mut sx: i32;
-    static mut grmode: grtype;
-    static mut keydown: [boolean; 512];
-    static mut str: [i8; 80];
-    static mut ch: i8;
 }
 
 #[inline]
