@@ -154,8 +154,22 @@ pub unsafe fn printbody(gs: &mut GlobalState) {
     };
 }
 
+// Rust port: this routine seems to have had two bugs - one in the original, and the other in the SDL
+// port.
+//
+// In the original, the [second warp assignment](https://github.com/64kramsystem/catacomb_ii-64k/blob/master/original_project/CAT_PLAY.C#L120)
+// has a index of 2, while warp has (originally) a length of 2. It probably should have been 1.
+//
+// In the port, such assignment has been left to 2, and the warp size has been [increased to 3](https://github.com/64kramsystem/catacomb_ii-64k/blob/master/sdl_port_project/cat_play.c#L106),
+// however, the assignment still doesn't make sense.
+// Based on the history, the developer increased the array size by 1 because of a Clang warning, but
+// didn't realize why the warning was raised.
+//
+// Interestingly, this a corrupting off-by-one error, and it was not easily detected because the atoi()
+// API ignores trailing junk (🤦).
+//
 unsafe fn levelcleared(gs: &mut GlobalState) {
-    let mut warp: [i8; 3] = [0; 3];
+    let mut warp: [i8; 2] = [0; 2];
     let mut value: i32 = 0;
     gs.leveldone = true;
     warp[0] = (gs.background[(gs.altobj.y as i32 + 2) as usize][gs.altobj.x as usize] as i8 as i32
@@ -167,7 +181,7 @@ unsafe fn levelcleared(gs: &mut GlobalState) {
         as i8 as i32
         - 161) as i8;
     if (warp[1] as i32) < '0' as i32 || warp[1] as i32 > '9' as i32 {
-        warp[2] = ' ' as i32 as i8;
+        warp[1] = ' ' as i32 as i8;
     }
     value = atoi(warp.as_mut_ptr());
     if value > 0 {
