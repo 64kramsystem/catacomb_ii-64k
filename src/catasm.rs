@@ -2,6 +2,7 @@ use crate::{
     cat_play::{doactive, doinactive},
     catacomb::refresh,
     class_type::classtype::*,
+    cpanel_state::CpanelState,
     global_state::GlobalState,
     pcrlib_c::{grmode, UpdateScreen},
 };
@@ -96,7 +97,7 @@ pub unsafe fn eraseobj(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn doall(gs: &mut GlobalState) {
+pub unsafe fn doall(gs: &mut GlobalState, cps: &mut CpanelState) {
     assert!(gs.numobj > 0);
 
     loop {
@@ -107,7 +108,7 @@ pub unsafe fn doall(gs: &mut GlobalState) {
                 gs.obj
                     .update_from_objdeftype(&gs.objdef[gs.obj.class as usize]);
                 if gs.obj.active != 0 {
-                    doactive(gs);
+                    doactive(gs, cps);
                 } else {
                     doinactive(gs);
                 }

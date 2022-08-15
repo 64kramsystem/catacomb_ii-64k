@@ -4,6 +4,7 @@ use crate::{
     catasm::{doall, drawobj, eraseobj},
     class_type::classtype::*,
     control_struct::ControlStruct,
+    cpanel_state::CpanelState,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
@@ -734,7 +735,7 @@ unsafe fn walk(gs: &mut GlobalState) -> boolean {
     return true as boolean;
 }
 
-unsafe fn playercmdthink(gs: &mut GlobalState) {
+unsafe fn playercmdthink(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
         dir: north,
@@ -873,7 +874,7 @@ unsafe fn playercmdthink(gs: &mut GlobalState) {
             keydown[SDL_SCANCODE_RETURN as usize] = false as boolean;
         }
     }
-    dofkeys(gs);
+    dofkeys(gs, cps);
     if gs.resetgame {
         gs.resetgame = false;
         gs.playdone = true;
@@ -1189,13 +1190,13 @@ unsafe fn explodethink(gs: &mut GlobalState) {
     }
 }
 
-unsafe fn think(gs: &mut GlobalState) {
+unsafe fn think(gs: &mut GlobalState, cps: &mut CpanelState) {
     if gs.obj.delay as i32 > 0 {
         gs.obj.delay = (gs.obj.delay).wrapping_sub(1);
     } else if rndt() < gs.obj.speed as i32 {
         match gs.obj.think as i32 {
             0 => {
-                playercmdthink(gs);
+                playercmdthink(gs, cps);
             }
             3 => {
                 chasethink(false as boolean, gs);
@@ -1232,7 +1233,7 @@ unsafe fn think(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn doactive(gs: &mut GlobalState) {
+pub unsafe fn doactive(gs: &mut GlobalState, cps: &mut CpanelState) {
     if gs.obj.class as i32 != dead1 as i32
         && ((gs.obj.x as i32) < gs.origin.x - 10
             || gs.obj.x as i32 > gs.origin.x + 34
@@ -1241,7 +1242,7 @@ pub unsafe fn doactive(gs: &mut GlobalState) {
     {
         gs.o[gs.objecton as usize].active = false as boolean;
     } else {
-        think(gs);
+        think(gs, cps);
         eraseobj(gs);
         if gs.playdone {
             return;
@@ -1265,7 +1266,7 @@ pub unsafe fn doinactive(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn playloop(gs: &mut GlobalState) {
+pub unsafe fn playloop(gs: &mut GlobalState, cps: &mut CpanelState) {
     gs.screencenter.x = 11;
     loop {
         if gs.indemo == demoenum::notdemo {
@@ -1304,7 +1305,7 @@ pub unsafe fn playloop(gs: &mut GlobalState) {
         gs.shotpower = 0;
         initrndt(false as boolean);
         printshotpower(gs);
-        doall(gs);
+        doall(gs, cps);
         if gs.indemo == demoenum::recording {
             clearkeys();
             centerwindow(15, 1, gs);

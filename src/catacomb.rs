@@ -12,6 +12,7 @@ use crate::{
     class_type::classtype::{self, *},
     control_struct::ControlStruct,
     cpanel::{controlpanel, installgrfile},
+    cpanel_state::CpanelState,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
@@ -21,6 +22,7 @@ use crate::{
     extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::*,
+    input_type::inputtype::*,
     obj_def_type::objdeftype,
     obj_type::objtype,
     objects::initobjects,
@@ -33,6 +35,7 @@ use crate::{
     },
     rleasm::port_temp_RLEExpand,
     sdl_scan_codes::*,
+    sound_type::soundtype::*,
     state_type::statetype,
     vec2::Vec2,
 };
@@ -600,7 +603,7 @@ pub unsafe fn repaintscreen(gs: &mut GlobalState) {
     };
 }
 
-pub unsafe fn dofkeys(gs: &mut GlobalState) {
+pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut handle: i32 = 0;
     let mut key: i32 = bioskey(1);
     if key == SDL_SCANCODE_ESCAPE as i32 {
@@ -617,7 +620,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
         }
         59 => {
             clearkeys();
-            controlpanel(gs);
+            controlpanel(gs, cps);
         }
         60 => {
             clearkeys();
@@ -774,7 +777,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState) {
     repaintscreen(gs);
 }
 
-unsafe fn dotitlepage(gs: &mut GlobalState) {
+unsafe fn dotitlepage(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14, gs);
     UpdateScreen(gs);
@@ -794,7 +797,7 @@ unsafe fn dotitlepage(gs: &mut GlobalState) {
         } else {
             gs.indemo = demoenum::demoplay;
             if bioskey(1) != 0 {
-                dofkeys(gs);
+                dofkeys(gs, cps);
                 UpdateScreen(gs);
             }
             if gs.exitdemo {
@@ -838,10 +841,10 @@ unsafe fn doendpage(gs: &mut GlobalState) {
     get(gs);
 }
 
-unsafe fn dodemo(gs: &mut GlobalState) {
+unsafe fn dodemo(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut i: i32 = 0;
     while !gs.exitdemo {
-        dotitlepage(gs);
+        dotitlepage(gs, cps);
         if gs.exitdemo {
             break;
         }
@@ -849,7 +852,7 @@ unsafe fn dodemo(gs: &mut GlobalState) {
         LoadDemo(i, gs);
         level = 0;
         playsetup(gs);
-        playloop(gs);
+        playloop(gs, cps);
         if gs.exitdemo {
             break;
         }
@@ -871,7 +874,7 @@ unsafe fn dodemo(gs: &mut GlobalState) {
                 break;
             } else {
                 if bioskey(1) != 0 {
-                    dofkeys(gs);
+                    dofkeys(gs, cps);
                 }
                 if gs.exitdemo {
                     break;
@@ -882,7 +885,7 @@ unsafe fn dodemo(gs: &mut GlobalState) {
     }
 }
 
-unsafe fn gameover(gs: &mut GlobalState) {
+unsafe fn gameover(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut i: i32 = 0;
     expwin(11, 4, gs);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const i8, gs);
@@ -907,7 +910,7 @@ unsafe fn gameover(gs: &mut GlobalState) {
             break;
         }
         if bioskey(1) != 0 {
-            dofkeys(gs);
+            dofkeys(gs, cps);
         }
         if gs.exitdemo as i32 != 0 || gs.indemo == demoenum::demoplay {
             break;
@@ -1058,6 +1061,21 @@ pub fn original_main() {
         demoenum::notdemo,
     );
 
+    let mut cps = CpanelState::new(
+        [[0; 5]; 4],
+        0,
+        0,
+        text,
+        text,
+        off,
+        off,
+        [keyboard; 3],
+        [keyboard; 3],
+        0,
+        0,
+        0,
+    );
+
     /***************************************************************************/
 
     let ver_arg_position = std::env::args().position(|arg| arg == "/VER");
@@ -1185,17 +1203,17 @@ pub fn original_main() {
 
         // go until quit () is called
         loop {
-            dodemo(&mut gs);
+            dodemo(&mut gs, &mut cps);
             playsetup(&mut gs);
             gs.indemo = demoenum::notdemo;
             gs.gamestate = statetype::ingame;
-            playloop(&mut gs);
+            playloop(&mut gs, &mut cps);
             if gs.indemo == demoenum::notdemo {
                 gs.exitdemo = false;
                 if level > numlevels {
                     doendpage(&mut gs); // finished all levels
                 }
-                gameover(&mut gs);
+                gameover(&mut gs, &mut cps);
             }
         }
     }

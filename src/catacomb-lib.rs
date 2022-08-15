@@ -20,6 +20,7 @@ mod catasm;
 mod class_type;
 mod control_struct;
 mod cpanel;
+mod cpanel_state;
 mod demo_enum;
 mod dir_type;
 mod exit_type;

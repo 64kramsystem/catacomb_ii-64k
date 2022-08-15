@@ -5,10 +5,10 @@ use ::libc;
 use crate::{
     catacomb::{loadgrfiles, repaintscreen},
     control_struct::ControlStruct,
+    cpanel_state::CpanelState,
     dir_type::dirtype::*,
     global_state::GlobalState,
-    gr_type::grtype::{self, *},
-    input_type::inputtype::{self, *},
+    input_type::inputtype::*,
     pcrlib_a::{drawchar, drawpic, soundmode, xormask, ContinueSound, PauseSound, WaitVBL},
     pcrlib_c::{
         MouseSensitivity, ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen,
@@ -19,7 +19,6 @@ use crate::{
     },
     safe_sdl::safe_SDL_NumJoysticks,
     sdl_scan_codes::*,
-    sound_type::soundtype::{self, *},
 };
 
 extern "C" {
@@ -321,19 +320,6 @@ unsafe fn flatptr(mut ptr: farptr) -> u32 {
 
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
-
-static mut spotok: [[i32; 5]; 4] = [[0; 5]; 4];
-static mut row: i32 = 0;
-static mut collumn: i32 = 0;
-static mut oldgrmode: grtype = text;
-static mut newgrmode: grtype = text;
-static mut oldsoundmode: soundtype = off;
-static mut newsoundmode: soundtype = off;
-static mut oldplayermode: [inputtype; 3] = [keyboard; 3];
-static mut newplayermode: [inputtype; 3] = [keyboard; 3];
-static mut joy1ok: i32 = 0;
-static mut joy2ok: i32 = 0;
-static mut mouseok: i32 = 0;
 
 unsafe fn calibratejoy(mut joynum: i32, gs: &mut GlobalState) {
     let mut current_block: u64;
@@ -638,29 +624,29 @@ unsafe fn calibratekeys(gs: &mut GlobalState) {
 }
 
 #[no_mangle]
-pub unsafe fn getconfig() {
-    spotok[0][0] = 1;
-    spotok[0][1] = _egaok as i32;
-    spotok[0][2] = _vgaok as i32;
-    spotok[0][3] = 0;
-    spotok[0][4] = 0;
-    spotok[1][0] = 1;
-    spotok[1][1] = 1;
-    spotok[1][2] = 0;
-    spotok[1][3] = 0;
-    spotok[1][4] = 0;
+pub unsafe fn getconfig(cps: &mut CpanelState) {
+    cps.spotok[0][0] = 1;
+    cps.spotok[0][1] = _egaok as i32;
+    cps.spotok[0][2] = _vgaok as i32;
+    cps.spotok[0][3] = 0;
+    cps.spotok[0][4] = 0;
+    cps.spotok[1][0] = 1;
+    cps.spotok[1][1] = 1;
+    cps.spotok[1][2] = 0;
+    cps.spotok[1][3] = 0;
+    cps.spotok[1][4] = 0;
     let mut numjoy: i32 = safe_SDL_NumJoysticks();
-    joy1ok = (numjoy > 0) as i32;
-    joy2ok = (numjoy > 1) as i32;
-    mouseok = 1;
-    spotok[2][0] = 1;
-    spotok[2][1] = mouseok;
-    spotok[2][2] = joy1ok;
-    spotok[2][3] = joy2ok;
-    spotok[2][4] = 0;
+    cps.joy1ok = (numjoy > 0) as i32;
+    cps.joy2ok = (numjoy > 1) as i32;
+    cps.mouseok = 1;
+    cps.spotok[2][0] = 1;
+    cps.spotok[2][1] = cps.mouseok;
+    cps.spotok[2][2] = cps.joy1ok;
+    cps.spotok[2][3] = cps.joy2ok;
+    cps.spotok[2][4] = 0;
 }
 
-unsafe fn drawpanel(gs: &mut GlobalState) {
+unsafe fn drawpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
     leftedge = 1;
     xormask = 0;
     sx = 8;
@@ -669,7 +655,7 @@ unsafe fn drawpanel(gs: &mut GlobalState) {
         b"       Control Panel      \n\r\0" as *const u8 as *const i8,
         gs,
     );
-    getconfig();
+    getconfig(cps);
     sy = rowy[0] + 2;
     sx = 2;
     print(b"VIDEO:\0" as *const u8 as *const i8, gs);
@@ -688,35 +674,35 @@ unsafe fn drawpanel(gs: &mut GlobalState) {
     sx = 2;
     print(b"CONTROL:\0" as *const u8 as *const i8, gs);
     drawpic(collumnx[0] * 8, rowy[2] * 8, 7, gs);
-    if mouseok != 0 {
+    if cps.mouseok != 0 {
         drawpic(collumnx[1] * 8, rowy[2] * 8, 10, gs);
     } else {
         drawpic(collumnx[1] * 8, rowy[2] * 8, 12, gs);
     }
-    if joy1ok != 0 {
+    if cps.joy1ok != 0 {
         drawpic(collumnx[2] * 8, rowy[2] * 8, 8, gs);
     } else {
         drawpic(collumnx[2] * 8, rowy[2] * 8, 11, gs);
     }
-    if joy2ok != 0 {
+    if cps.joy2ok != 0 {
         drawpic(collumnx[3] * 8, rowy[2] * 8, 9, gs);
     } else {
         drawpic(collumnx[3] * 8, rowy[2] * 8, 11, gs);
     }
     drawchar(
-        collumnx[(newgrmode as i32 - 1) as usize] + 1,
+        collumnx[(cps.newgrmode as i32 - 1) as usize] + 1,
         rowy[0] + 3,
         15,
         gs,
     );
     drawchar(
-        collumnx[newsoundmode as i32 as usize] + 1,
+        collumnx[cps.newsoundmode as i32 as usize] + 1,
         rowy[1] + 3,
         15,
         gs,
     );
     drawchar(
-        collumnx[newplayermode[1] as i32 as usize] + 1,
+        collumnx[cps.newplayermode[1] as i32 as usize] + 1,
         rowy[2] + 3,
         15,
         gs,
@@ -737,120 +723,120 @@ unsafe fn drawpanel(gs: &mut GlobalState) {
     );
 }
 
-pub unsafe fn controlpanel(gs: &mut GlobalState) {
+pub unsafe fn controlpanel(gs: &mut GlobalState, cps: &mut CpanelState) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
     let mut oldcentery: i32 = 0;
     clearkeys();
     PauseSound();
     ProbeJoysticks();
-    oldgrmode = grmode;
-    newgrmode = oldgrmode;
-    oldsoundmode = soundmode;
-    newsoundmode = oldsoundmode;
-    oldplayermode[1] = playermode[1];
-    newplayermode[1] = oldplayermode[1];
-    oldplayermode[2] = playermode[2];
-    newplayermode[2] = oldplayermode[2];
+    cps.oldgrmode = grmode;
+    cps.newgrmode = cps.oldgrmode;
+    cps.oldsoundmode = soundmode;
+    cps.newsoundmode = cps.oldsoundmode;
+    cps.oldplayermode[1] = playermode[1];
+    cps.newplayermode[1] = cps.oldplayermode[1];
+    cps.oldplayermode[2] = playermode[2];
+    cps.newplayermode[2] = cps.oldplayermode[2];
     oldcenterx = gs.screencenter.x;
     oldcentery = gs.screencenter.y;
     gs.screencenter.x = 19;
     gs.screencenter.y = 11;
     drawwindow(0, 0, 39, 24, gs);
-    drawpanel(gs);
-    row = 0;
-    collumn = grmode as i32 - 1;
+    drawpanel(gs, cps);
+    cps.row = 0;
+    cps.collumn = grmode as i32 - 1;
     loop {
-        sx = collumnx[collumn as usize] + 2;
-        sy = rowy[row as usize] + 3;
+        sx = collumnx[cps.collumn as usize] + 2;
+        sy = rowy[cps.row as usize] + 3;
         chf = get(gs);
         if chf == SDLK_UP as i32 {
-            row -= 1;
-            if row < 0 {
-                row = 2;
+            cps.row -= 1;
+            if cps.row < 0 {
+                cps.row = 2;
             }
         }
         if chf == SDLK_DOWN as i32 {
-            row += 1;
-            if row > 2 {
-                row = 0;
+            cps.row += 1;
+            if cps.row > 2 {
+                cps.row = 0;
             }
         }
-        while spotok[row as usize][collumn as usize] == 0 {
-            collumn -= 1;
+        while cps.spotok[cps.row as usize][cps.collumn as usize] == 0 {
+            cps.collumn -= 1;
         }
         if chf == SDLK_LEFT as i32 {
-            if collumn == 0 {
-                collumn = 4;
+            if cps.collumn == 0 {
+                cps.collumn = 4;
             }
             loop {
-                collumn -= 1;
-                if !(spotok[row as usize][collumn as usize] == 0) {
+                cps.collumn -= 1;
+                if !(cps.spotok[cps.row as usize][cps.collumn as usize] == 0) {
                     break;
                 }
             }
         }
         if chf == SDLK_RIGHT as i32 {
             loop {
-                collumn += 1;
-                if !(spotok[row as usize][collumn as usize] == 0 || collumn > 3) {
+                cps.collumn += 1;
+                if !(cps.spotok[cps.row as usize][cps.collumn as usize] == 0 || cps.collumn > 3) {
                     break;
                 }
-                if collumn == 4 {
-                    collumn = -(1);
+                if cps.collumn == 4 {
+                    cps.collumn = -(1);
                 }
             }
         }
         if chf == SDLK_RETURN as i32 {
-            match row {
+            match cps.row {
                 0 => {
-                    if !(newgrmode as i32 == collumn + 1) {
+                    if !(cps.newgrmode as i32 == cps.collumn + 1) {
                         drawchar(
-                            collumnx[(newgrmode as i32 - 1) as usize] + 1,
-                            rowy[row as usize] + 3,
+                            collumnx[(cps.newgrmode as i32 - 1) as usize] + 1,
+                            rowy[cps.row as usize] + 3,
                             32,
                             gs,
                         );
-                        newgrmode = (collumn + 1).into();
-                        grmode = newgrmode;
+                        cps.newgrmode = (cps.collumn + 1).into();
+                        grmode = cps.newgrmode;
                         loadgrfiles(gs);
                         drawwindow(0, 0, 39, 24, gs);
-                        drawpanel(gs);
+                        drawpanel(gs, cps);
                     }
                 }
                 1 => {
                     drawchar(
-                        collumnx[newsoundmode as i32 as usize] + 1,
-                        rowy[row as usize] + 3,
+                        collumnx[cps.newsoundmode as i32 as usize] + 1,
+                        rowy[cps.row as usize] + 3,
                         32,
                         gs,
                     );
-                    newsoundmode = collumn.into();
+                    cps.newsoundmode = cps.collumn.into();
                 }
                 2 => {
                     drawchar(
-                        collumnx[newplayermode[1] as i32 as usize] + 1,
-                        rowy[row as usize] + 3,
+                        collumnx[cps.newplayermode[1] as i32 as usize] + 1,
+                        rowy[cps.row as usize] + 3,
                         32,
                         gs,
                     );
-                    newplayermode[1] = collumn.into();
-                    if newplayermode[1] as u32 == keyboard as i32 as u32 {
+                    cps.newplayermode[1] = cps.collumn.into();
+                    if cps.newplayermode[1] as u32 == keyboard as i32 as u32 {
                         calibratekeys(gs);
-                    } else if newplayermode[1] as u32 == mouse as i32 as u32 {
+                    } else if cps.newplayermode[1] as u32 == mouse as i32 as u32 {
                         calibratemouse(gs);
-                    } else if newplayermode[1] as u32 == joystick1 as i32 as u32 {
+                    } else if cps.newplayermode[1] as u32 == joystick1 as i32 as u32 {
                         calibratejoy(1, gs);
-                    } else if newplayermode[1] as u32 == joystick2 as i32 as u32 {
+                    } else if cps.newplayermode[1] as u32 == joystick2 as i32 as u32 {
                         calibratejoy(2, gs);
                     }
-                    drawpanel(gs);
+                    drawpanel(gs, cps);
                 }
                 _ => {}
             }
             drawchar(
-                collumnx[collumn as usize] + 1,
-                rowy[row as usize] + 3,
+                collumnx[cps.collumn as usize] + 1,
+                rowy[cps.row as usize] + 3,
                 15,
                 gs,
             );
@@ -859,13 +845,13 @@ pub unsafe fn controlpanel(gs: &mut GlobalState) {
             break;
         }
     }
-    playermode[1] = newplayermode[1];
-    playermode[2] = newplayermode[2];
+    playermode[1] = cps.newplayermode[1];
+    playermode[2] = cps.newplayermode[2];
     CheckMouseMode();
-    grmode = newgrmode;
+    grmode = cps.newgrmode;
     gs.screencenter.x = oldcenterx;
     gs.screencenter.y = oldcentery;
-    soundmode = newsoundmode;
+    soundmode = cps.newsoundmode;
     repaintscreen(gs);
     ContinueSound();
 }

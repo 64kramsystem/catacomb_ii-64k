@@ -70,8 +70,8 @@ unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
 
 pub static mut SoundData: *mut SPKRtable = 0 as *const SPKRtable as *mut SPKRtable;
 pub static mut soundmode: soundtype = spkr;
-static mut SndPriority: u8 = 0;
 pub static mut xormask: i32 = 0;
+static mut SndPriority: u8 = 0;
 static mut _dontplay: i32 = 0;
 static mut AudioMutex: *mut SDL_mutex = 0 as *const SDL_mutex as *mut SDL_mutex;
 static mut AudioSpec: SDL_AudioSpec = SDL_AudioSpec {
