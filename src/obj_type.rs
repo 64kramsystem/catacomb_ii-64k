@@ -1,4 +1,6 @@
-use crate::{active_obj::activeobj, class_type::classtype, extra_types::boolean};
+use crate::{
+    active_obj::activeobj, class_type::classtype, extra_types::boolean, obj_def_type::objdeftype,
+};
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
@@ -43,5 +45,20 @@ impl objtype {
         self.oldy = active_o.oldy;
         self.oldtile = active_o.oldtile;
         self.filler = active_o.filler;
+    }
+
+    pub fn update_from_objdeftype(&mut self, o: &objdeftype) {
+        self.think = o.think;
+        self.contact = o.contact;
+        self.solid = o.solid;
+        self.firstchar = o.firstchar;
+        self.size = o.size;
+        self.stages = o.stages;
+        self.dirmask = o.dirmask;
+        self.speed = o.speed;
+        self.hitpoints = o.hitpoints;
+        self.damage = o.damage;
+        self.points = o.points;
+        self.filler2 = o.filler;
     }
 }
