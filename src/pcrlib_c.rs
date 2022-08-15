@@ -1,4 +1,3 @@
-use std::ascii::AsciiExt;
 use std::ffi::CString;
 use std::fs::File;
 use std::io::Read;
@@ -1371,94 +1370,93 @@ unsafe fn _printc(mut string: *const i8, gs: &mut GlobalState) {
     print(string, gs);
 }
 
+// Rust port: Avoids importing strlen, and also, works on u8.
+//
+pub fn port_temp_strlen(string: &[u8]) -> usize {
+    string.iter().position(|c| *c == 0).unwrap()
+}
+
+////////////////////////////////////////////////////////////////////
+//
+// input unsigned
+//
+////////////////////////////////////////////////////////////////////
 pub unsafe fn _inputint(gs: &mut GlobalState) -> u32 {
-    let mut string: [i8; 18] =
-        *::std::mem::transmute::<&[u8; 18], &mut [i8; 18]>(b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
-    let mut digit: i8 = 0;
-    let mut hexstr: [i8; 16] =
-        *::std::mem::transmute::<&[u8; 16], &mut [i8; 16]>(b"0123456789ABCDEF");
-    let mut value: u32 = 0;
-    let mut loop_0: u32 = 0;
-    let mut loop1: u32 = 0;
-    _input(string.as_mut_ptr(), 17, gs);
-    if string[0] as i32 == '$' as i32 {
-        let mut digits: i64 = 0;
-        digits = (strlen(string.as_mut_ptr())).wrapping_sub(2) as i64;
+    let mut string = vec![0; 18];
+    let hexstr = b"0123456789ABCDEF";
+    let mut value = 0;
+
+    _input(&mut string, 17, gs);
+
+    if string[0] == b'$' {
+        let digits = port_temp_strlen(&string) as isize - 2;
         if digits < 0 {
             return 0;
         }
-        value = 0;
-        loop1 = 0;
-        while loop1 as u64 <= digits as u64 {
-            digit = (string[loop1 as usize + 1] as u8).to_ascii_uppercase() as i8;
-            loop_0 = 0;
-            while loop_0 < 16 {
-                if digit as i32 == hexstr[loop_0 as usize] as i32 {
-                    value |= loop_0 << (digits - loop1 as i64) * 4;
+        for loop1 in 0..=digits {
+            let digit = string[loop1 as usize + 1].to_ascii_uppercase();
+
+            for loop_0 in 0..16 {
+                if digit == hexstr[loop_0 as usize] {
+                    value |= (loop_0 as u8) << (digits - loop1 as isize) * 4;
                     break;
-                } else {
-                    loop_0 = loop_0.wrapping_add(1);
                 }
             }
-            loop1 = loop1.wrapping_add(1);
         }
-    } else if string[0] as i32 == '%' as i32 {
-        let mut digits_0: i64 = 0;
-        digits_0 = (strlen(string.as_mut_ptr())).wrapping_sub(2) as i64;
+    } else if string[0] == b'%' {
+        let digits_0 = (port_temp_strlen(&string)) as isize - 2;
         if digits_0 < 0 {
             return 0;
         }
-        value = 0;
-        loop1 = 0;
-        while loop1 as u64 <= digits_0 as u64 {
-            if (string[loop1.wrapping_add(1) as usize] as i32) < '0' as i32
-                || string[loop1.wrapping_add(1) as usize] as i32 > '1' as i32
-            {
+        for loop1 in 0..=(digits_0 as usize) {
+            if (string[loop1 + 1]) < b'0' || string[loop1 + 1] > b'1' {
                 return 0;
             }
-            value |= ((string[loop1.wrapping_add(1) as usize] as i32 - '0' as i32)
-                << digits_0 - loop1 as i64) as u32;
-            loop1 = loop1.wrapping_add(1);
+            value |= (string[loop1 + 1] - b'0') << digits_0 - loop1 as isize;
         }
     } else {
-        value = atoi(string.as_mut_ptr()) as u32;
+        value = String::from_utf8(string).unwrap().parse().unwrap();
     }
-    return value;
+    value as u32
 }
 
-unsafe fn _input(mut string: *mut i8, mut max: i32, gs: &mut GlobalState) -> i32 {
-    let mut key_0: i8 = 0;
-    let mut count: i32 = 0;
-    let mut loop_0: i32 = 0;
+////////////////////////////////////////////////////////////////////
+//
+// line input routine
+//
+////////////////////////////////////////////////////////////////////
+unsafe fn _input(string: &mut [u8], max: usize, gs: &mut GlobalState) -> i32 {
+    let mut key_ = 0;
+    let mut count = 0;
+
     loop {
-        key_0 = (get(gs) as u8).to_ascii_uppercase() as i8;
-        if (key_0 as i32 == 127 || key_0 as i32 == 8) && count > 0 {
+        key_ = (get(gs) as u8).to_ascii_uppercase();
+        if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
             drawchar(sx, sy, ' ' as i32, gs);
             sx -= 1;
         }
-        if key_0 as i32 >= ' ' as i32 && key_0 as i32 <= 'z' as i32 && count < max {
-            let fresh7 = count;
-            count = count + 1;
-            *string.offset(fresh7 as isize) = key_0;
-            let fresh8 = sx;
-            sx = sx + 1;
-            drawchar(fresh8, sy, key_0 as i32, gs);
+
+        if key_ >= b' ' && key_ <= b'z' && count < max {
+            string[count as usize] = key_;
+            count += 1;
+            drawchar(sx, sy, key_ as i32, gs);
+            sx += 1;
         }
-        if !(key_0 as i32 != 27 && key_0 as i32 != 13) {
+
+        if key_ == 27 || key_ == 13 {
             break;
         }
     }
-    loop_0 = count;
-    while loop_0 < max {
-        *string.offset(loop_0 as isize) = 0;
-        loop_0 += 1;
+    for loop_ in count..max {
+        string[loop_] = 0;
     }
-    if key_0 as i32 == 13 {
+    if key_ == 13 {
         return 1;
     }
-    return 0;
+    0
 }
+
 #[no_mangle]
 pub static mut scoreswap: scores = scores {
     score: 0,
