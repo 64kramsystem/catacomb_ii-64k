@@ -1,5 +1,3 @@
-use ::libc;
-
 use crate::{
     active_obj::activeobj,
     catacomb::{clearold, dofkeys, loadlevel, refresh, restore},
@@ -12,8 +10,6 @@ use crate::{
     extra_types::boolean,
     global_state::GlobalState,
     indemo,
-    obj_def_type::objdeftype,
-    obj_type::objtype,
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_c::{
         centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
@@ -22,9 +18,6 @@ use crate::{
     sdl_scan_codes::*,
     tag_type::tagtype::*,
 };
-extern "C" {
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-}
 
 const altmeters: [[i8; 14]; 14] = [
     [
@@ -496,19 +489,28 @@ unsafe fn tagobject(gs: &mut GlobalState) {
     };
 }
 
+/*==============================*/
+/*			        */
+/* intomonster                  */
+/* obj contacted another object */
+/*			        */
+/*==============================*/
+
 unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     let mut gotit: boolean = 0;
+
+    /*figure out which object got hit*/
+
     gs.altnum = 0;
     gotit = false as boolean;
     loop {
+        /* make a copy of the objects info into a global varriable */
+
         gs.altobj.update_from_active(&gs.o[gs.altnum as usize]);
         if gs.altobj.class as i32 > nothing as i32 && gs.altnum != gs.objecton {
-            memcpy(
-                &mut gs.altobj.think as *mut u8 as *mut libc::c_void,
-                &mut *gs.objdef.as_mut_ptr().offset(gs.altobj.class as isize) as *mut objdeftype
-                    as *const libc::c_void,
-                ::std::mem::size_of::<objdeftype>() as u64,
-            );
+            gs.altobj
+                .update_from_objdeftype(&gs.objdef[gs.altobj.class as usize]);
+
             if gs.chkx >= gs.altobj.x as i32
                 && (gs.chkx - gs.altobj.x as i32) < gs.altobj.size as i32
                 && gs.chky >= gs.altobj.y as i32
@@ -520,6 +522,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
                     && (gs.altobj.class as i32 == teleporter as i32
                         || gs.altobj.class as i32 == secretgate as i32)
                 {
+                    /*player got to the teleporter*/
                     levelcleared(gs);
                 }
             }
@@ -534,14 +537,18 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
     if gotit == 0 {
         return true as boolean;
     }
+
+    /*resolve contact based on attacker and target*/
+
     match gs.obj.contact as i32 {
-        0 => return false as boolean,
+        0 => return false as boolean, /*benign objects just don't move through others*/
         1 | 3 => {
             if gs.altnum == 0 {
                 tagobject(gs);
-                gs.obj.stage = 2;
-                gs.obj.delay = 20;
+                gs.obj.stage = 2; /*set it to attack stage*/
+                gs.obj.delay = 20; /*delay for several frames*/
             } else if gs.altobj.class as i32 == shot as i32 {
+                /*they can walk into shots*/
                 return true as boolean;
             }
             return false as boolean;
@@ -554,7 +561,7 @@ unsafe fn intomonster(gs: &mut GlobalState) -> boolean {
         }
         4 => {
             tagobject(gs);
-            return true as boolean;
+            return true as boolean; /*nuke shots keep going*/
         }
         _ => {}
     }
@@ -1243,12 +1250,7 @@ pub unsafe fn doactive(gs: &mut GlobalState) {
         if gs.obj.class as i32 > nothing as i32 {
             drawobj(gs);
         }
-        memcpy(
-            &mut *gs.o.as_mut_ptr().offset(gs.objecton as isize) as *mut activeobj
-                as *mut libc::c_void,
-            &mut gs.obj as *mut objtype as *const libc::c_void,
-            ::std::mem::size_of::<activeobj>() as u64,
-        );
+        gs.o[gs.objecton as usize] = gs.obj.into();
     };
 }
 
