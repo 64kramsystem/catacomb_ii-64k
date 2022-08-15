@@ -1033,7 +1033,7 @@ unsafe fn filelength(mut fd: i32) -> i64 {
     return s.st_size;
 }
 
-pub unsafe fn LoadFile(mut filename: *mut i8, mut buffer: *mut i8) -> u64 {
+pub unsafe fn LoadFile(mut filename: *const i8, mut buffer: *mut i8) -> u64 {
     let mut fd: i32 = 0;
     fd = open(filename, 0o400 as i32);
     if fd < 0 {
@@ -1059,7 +1059,7 @@ pub fn port_temp_LoadFile(filename: &str, dest: &mut [u8]) -> usize {
     }
 }
 
-pub unsafe fn SaveFile(mut filename: *mut i8, mut buffer: *mut i8, mut size: i64) {
+pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *mut i8, mut size: i64) {
     let mut fd: i32 = 0;
     fd = open(
         filename,
