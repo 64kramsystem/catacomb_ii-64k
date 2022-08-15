@@ -1,24 +1,10 @@
-use ::libc;
-
 use crate::{
-    active_obj::activeobj,
     cat_play::{doactive, doinactive},
     catacomb::{pics, refresh},
     class_type::classtype::*,
     global_state::GlobalState,
-    obj_def_type::objdeftype,
-    obj_type::objtype,
     pcrlib_c::{grmode, UpdateScreen},
 };
-extern "C" {
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: u64) -> *mut libc::c_void;
-    fn __assert_fail(
-        __assertion: *const i8,
-        __file: *const i8,
-        __line: u32,
-        __function: *const i8,
-    ) -> !;
-}
 
 pub type C2RustUnnamed_0 = u32;
 pub const screenpitch: C2RustUnnamed_0 = 320;
@@ -116,19 +102,10 @@ pub unsafe fn doall(gs: &mut GlobalState) {
     loop {
         gs.objecton = gs.numobj;
         loop {
-            memcpy(
-                &mut gs.obj as *mut objtype as *mut libc::c_void,
-                &mut *gs.o.as_mut_ptr().offset(gs.objecton as isize) as *mut activeobj
-                    as *const libc::c_void,
-                ::std::mem::size_of::<activeobj>() as u64,
-            );
+            gs.obj.update_from_activeobj(&gs.o[gs.objecton as usize]);
             if gs.obj.class as i32 != nothing as i32 {
-                memcpy(
-                    &mut gs.obj.think as *mut u8 as *mut libc::c_void,
-                    &mut *gs.objdef.as_mut_ptr().offset(gs.obj.class as isize) as *mut objdeftype
-                        as *const libc::c_void,
-                    ::std::mem::size_of::<objdeftype>() as u64,
-                );
+                gs.obj
+                    .update_from_objdeftype(&gs.objdef[gs.obj.class as usize]);
                 if gs.obj.active != 0 {
                     doactive(gs);
                 } else {
