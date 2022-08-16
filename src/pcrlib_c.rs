@@ -1756,7 +1756,8 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState) {
         let str = CString::new(format!("{highscore}")).unwrap();
         print(str.as_ptr(), gs);
         sx += 1;
-        let str = CString::new(highscores[i as usize].initials.map(|f| f as u8)).unwrap();
+        // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
+        let str = CString::new(&highscores[i as usize].initials.map(|f| f as u8)[0..=2]).unwrap();
         print(str.as_ptr(), gs);
         let str = CString::new("\n\n").unwrap();
         print(str.as_ptr(), gs);
