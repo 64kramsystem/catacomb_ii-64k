@@ -536,8 +536,8 @@ static mut mouseEvent: boolean = 0;
 pub static mut key: [i32; 8] = [0; 8];
 pub static mut keyB1: i32 = 0;
 pub static mut keyB2: i32 = 0;
-static mut demobuffer: [i8; 5000] = [0; 5000];
-static mut demoptr: *mut i8 = 0 as *const i8 as *mut i8;
+static mut demobuffer: [u8; 5000] = [0; 5000];
+static mut demoptr: *mut u8 = ptr::null_mut();
 static mut democount: i32 = 0;
 static mut lastdemoval: i32 = 0;
 static mut lastkey: SDL_Scancode = SDL_SCANCODE_UNKNOWN;
@@ -895,7 +895,6 @@ pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStr
         button1: 0,
         button2: 0,
     };
-    let mut val: i32 = 0;
     ProcessEvents();
     if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
         match playermode[player as usize] as u32 {
@@ -913,16 +912,15 @@ pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStr
             }
         }
         if gs.indemo == demoenum::recording {
-            val = ((ret.dir as u32) << 2 | ((ret.button2 as i32) << 1) as u32 | ret.button1 as u32)
-                as i32;
-            let fresh0 = demoptr;
+            let val = ((ret.dir as u32) << 2
+                | ((ret.button2 as i32) << 1) as u32
+                | ret.button1 as u32) as i32;
+            *demoptr = val as u8;
             demoptr = demoptr.offset(1);
-            *fresh0 = val as i8;
         }
     } else {
-        let fresh1 = demoptr;
+        let val = *demoptr as i32;
         demoptr = demoptr.offset(1);
-        val = *fresh1 as i32;
         ret.button1 = (val & 1) as boolean;
         ret.button2 = ((val & 2) >> 1) as boolean;
         ret.dir = ((val & 4 + 8 + 16 + 32) >> 2).into();
@@ -931,8 +929,8 @@ pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStr
 }
 
 pub unsafe fn RecordDemo(gs: &mut GlobalState) {
-    demobuffer[0] = level as i8;
-    demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
+    demobuffer[0] = level as u8;
+    demoptr = demobuffer.as_mut_ptr().offset(1);
     gs.indemo = demoenum::recording;
 }
 
@@ -941,9 +939,9 @@ pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState) {
     let mut temp_port_demobuffer = [0; 5000];
     port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
     unsafe {
-        demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as i8));
+        demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
         level = demobuffer[0] as i16;
-        demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
+        demoptr = demobuffer.as_mut_ptr().offset(1);
         gs.indemo = demoenum::demoplay;
     }
 }
@@ -953,8 +951,8 @@ pub unsafe fn SaveDemo(mut demonum: i32, gs: &mut GlobalState) {
 
     SaveFile(
         str.as_ptr(),
-        demobuffer.as_mut_ptr(),
-        demoptr.offset_from(&mut *demobuffer.as_mut_ptr().offset(0) as *mut i8) as i64,
+        demobuffer.as_ptr() as *const i8,
+        demoptr.offset_from(demobuffer.as_ptr()) as i64,
     );
     gs.indemo = demoenum::notdemo;
 }
