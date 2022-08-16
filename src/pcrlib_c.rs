@@ -1,6 +1,6 @@
 use std::ffi::CString;
-use std::fs::File;
-use std::io::Read;
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
 use std::{fs, mem, ptr};
 
 use ::libc;
@@ -524,7 +524,6 @@ pub struct ctlpaneltype {
     pub keyB2: u8,
 }
 
-pub static mut ch: i8 = 0;
 pub static mut playermode: [inputtype; 3] = [keyboard, keyboard, joystick1];
 pub static mut keydown: [boolean; 512] = [0; 512];
 pub static mut JoyXlow: [i32; 3] = [0; 3];
@@ -536,8 +535,8 @@ static mut mouseEvent: boolean = 0;
 pub static mut key: [i32; 8] = [0; 8];
 pub static mut keyB1: i32 = 0;
 pub static mut keyB2: i32 = 0;
-static mut demobuffer: [i8; 5000] = [0; 5000];
-static mut demoptr: *mut i8 = 0 as *const i8 as *mut i8;
+static mut demobuffer: [u8; 5000] = [0; 5000];
+static mut demoptr: usize = 0;
 static mut democount: i32 = 0;
 static mut lastdemoval: i32 = 0;
 static mut lastkey: SDL_Scancode = SDL_SCANCODE_UNKNOWN;
@@ -895,7 +894,6 @@ pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStr
         button1: 0,
         button2: 0,
     };
-    let mut val: i32 = 0;
     ProcessEvents();
     if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
         match playermode[player as usize] as u32 {
@@ -913,16 +911,15 @@ pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStr
             }
         }
         if gs.indemo == demoenum::recording {
-            val = ((ret.dir as u32) << 2 | ((ret.button2 as i32) << 1) as u32 | ret.button1 as u32)
-                as i32;
-            let fresh0 = demoptr;
-            demoptr = demoptr.offset(1);
-            *fresh0 = val as i8;
+            let val = ((ret.dir as u32) << 2
+                | ((ret.button2 as i32) << 1) as u32
+                | ret.button1 as u32) as i32;
+            demobuffer[demoptr] = val as u8;
+            demoptr += 1;
         }
     } else {
-        let fresh1 = demoptr;
-        demoptr = demoptr.offset(1);
-        val = *fresh1 as i32;
+        let val = demobuffer[demoptr];
+        demoptr += 1;
         ret.button1 = (val & 1) as boolean;
         ret.button2 = ((val & 2) >> 1) as boolean;
         ret.dir = ((val & 4 + 8 + 16 + 32) >> 2).into();
@@ -931,33 +928,46 @@ pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStr
 }
 
 pub unsafe fn RecordDemo(gs: &mut GlobalState) {
-    demobuffer[0] = level as i8;
-    demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
+    demobuffer[0] = level as u8;
+    demoptr = 1;
     gs.indemo = demoenum::recording;
 }
+
+////////////////////////
+//
+// LoadDemo / SaveDemo
+// Loads a demo from disk or
+// saves the accumulated demo command string to disk
+//
+////////////////////////
 
 pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
     port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
     unsafe {
-        demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as i8));
+        demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
         level = demobuffer[0] as i16;
-        demoptr = &mut *demobuffer.as_mut_ptr().offset(1) as *mut i8;
+        demoptr = 1;
         gs.indemo = demoenum::demoplay;
     }
 }
 
-pub unsafe fn SaveDemo(mut demonum: i32, gs: &mut GlobalState) {
-    let str = CString::new(format!("DEMO{demonum}.{port_temp__extension}")).unwrap();
+pub unsafe fn SaveDemo(demonum: u8, gs: &mut GlobalState) {
+    let str = format!("DEMO{demonum}.{port_temp__extension}");
 
-    SaveFile(
-        str.as_ptr(),
-        demobuffer.as_mut_ptr(),
-        demoptr.offset_from(&mut *demobuffer.as_mut_ptr().offset(0) as *mut i8) as i64,
-    );
+    port_temp_SaveFile(&str, &demobuffer[..demoptr]);
+
     gs.indemo = demoenum::notdemo;
 }
+
+////////////////////////
+//
+// StartDemo
+//
+////////////////////////
+
+/*=========================================================================*/
 
 pub unsafe fn clearkeys() {
     let mut i: i32 = 0;
@@ -1030,8 +1040,20 @@ pub fn port_temp_LoadFile(filename: &str, dest: &mut [u8]) -> usize {
     }
 }
 
+//===========================================================================
+
+/*
+==============================================
+=
+= Save a *LARGE* file far a FAR buffer!
+= by John Romero (C) 1990 PCRcade
+=
+==============================================
+*/
+
 pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *const i8, mut size: i64) {
     let mut fd: i32 = 0;
+    // Flags: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
     fd = open(
         filename,
         0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
@@ -1043,6 +1065,27 @@ pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *const i8, mut size:
     write(fd, buffer as *const libc::c_void, size as u64);
     close(fd);
 }
+
+pub unsafe fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
+    // Flags originally used: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
+    //
+    // Rust port: In the original project, this is written in ASM (https://github.com/64kramsystem/catacomb_ii-64k/blob/db8017c1aba84823cb5116ca2f819e5c77636c9e/original_project/PCRLIB_C.C#L649).
+    // Errors are swallowed; it's not clear if this is intentional, but we leave this behavior.
+    // The file is truncated if existing (http://spike.scu.edu.au/~barry/interrupts.html#ah3c), so we just use corresponding flags.
+    // Permissions are ignored (they're set in the SDL port).
+
+    let mut file = OpenOptions::new() //
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(filename);
+
+    if let Ok(mut file) = file {
+        file.write_all(buffer).ok();
+    }
+}
+
+//==========================================================================
 
 pub fn bloadin(filename: &str) -> *const u8 {
     let file_meta = fs::metadata(filename);
@@ -1710,10 +1753,12 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState) {
         }
         // Rust port: Interesting, if this is passed as format! parameter, it will cause a warning.
         let highscore = highscores[i as usize].level;
-        let str = CString::new(format!("{highscore}")).unwrap();
+        let str = CString::new(highscore.to_string()).unwrap();
         print(str.as_ptr(), gs);
         sx += 1;
-        let str = CString::new(highscores[i as usize].initials.map(|f| f as u8)).unwrap();
+        // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
+        let highscore_bytes = &highscores[i as usize].initials.map(|f| f as u8)[0..=2];
+        let str = CString::new(highscore_bytes).unwrap();
         print(str.as_ptr(), gs);
         let str = CString::new("\n\n").unwrap();
         print(str.as_ptr(), gs);
@@ -1757,8 +1802,8 @@ pub unsafe fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState) {
         j = 0;
         loop {
             k = get(gs, pas);
-            ch = k as i8;
-            if ch as i32 >= ' ' as i32 && j < 3 {
+            let ch = k as i8;
+            if ch >= ' ' as i8 && j < 3 {
                 drawchar(sx, sy, ch as i32, gs);
                 sx += 1;
                 highscores[i as usize].initials[j as usize] = ch;

@@ -29,3 +29,9 @@ impl From<u16> for dirtype {
         FromPrimitive::from_u16(value).unwrap()
     }
 }
+
+impl From<u8> for dirtype {
+    fn from(value: u8) -> Self {
+        FromPrimitive::from_u8(value).unwrap()
+    }
+}
