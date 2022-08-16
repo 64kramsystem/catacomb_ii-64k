@@ -1239,12 +1239,13 @@ pub unsafe fn bioskey(mut cmd: i32, pcs: &mut PcrlibCState) -> i32 {
     return pcs.lastkey as i32;
 }
 
+const EGAPalette: [u32; 16] = [
+    0, 0xaa, 0xaa00, 0xaaaa, 0xaa0000, 0xaa00aa, 0xaa5500, 0xaaaaaa, 0x555555, 0x5555ff, 0x55ff55,
+    0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff,
+];
+const CGAPalette: [u32; 4] = [0, 0x55ffff, 0xff55ff, 0xffffff];
+
 pub unsafe fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    static mut EGAPalette: [u32; 16] = [
-        0, 0xaa, 0xaa00, 0xaaaa, 0xaa0000, 0xaa00aa, 0xaa5500, 0xaaaaaa, 0x555555, 0x5555ff,
-        0x55ff55, 0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff,
-    ];
-    static mut CGAPalette: [u32; 4] = [0, 0x55ffff, 0xff55ff, 0xffffff];
     static mut conv: [u32; 64000] = [0; 64000];
     let mut i: u64 = 0;
     if grmode as u32 == EGAgr as i32 as u32 {
@@ -1506,7 +1507,7 @@ unsafe fn _input(
     0
 }
 
-static mut scoreswap: scores = scores {
+const scoreswap: scores = scores {
     score: 0,
     level: 0,
     initials: [0; 4],
@@ -1528,11 +1529,11 @@ pub static mut level: i16 = 0;
 //
 // which is overwritten with "CA2" in `CATACOMB.C`.
 
-static mut _cgaok: boolean = true as boolean;
+const _cgaok: boolean = true as boolean;
 
-pub static mut _egaok: boolean = true as boolean;
+pub const _egaok: boolean = true as boolean;
 
-pub static mut _vgaok: boolean = false as boolean;
+pub const _vgaok: boolean = false as boolean;
 
 pub unsafe fn ScancodeToDOS(mut sc: SDL_Scancode) -> i32 {
     let mut i: i32 = 0;
