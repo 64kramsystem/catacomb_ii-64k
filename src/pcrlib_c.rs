@@ -1753,11 +1753,12 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState) {
         }
         // Rust port: Interesting, if this is passed as format! parameter, it will cause a warning.
         let highscore = highscores[i as usize].level;
-        let str = CString::new(format!("{highscore}")).unwrap();
+        let str = CString::new(highscore.to_string()).unwrap();
         print(str.as_ptr(), gs);
         sx += 1;
         // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
-        let str = CString::new(&highscores[i as usize].initials.map(|f| f as u8)[0..=2]).unwrap();
+        let highscore_bytes = &highscores[i as usize].initials.map(|f| f as u8)[0..=2];
+        let str = CString::new(highscore_bytes).unwrap();
         print(str.as_ptr(), gs);
         let str = CString::new("\n\n").unwrap();
         print(str.as_ptr(), gs);
