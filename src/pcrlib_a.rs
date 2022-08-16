@@ -6,15 +6,9 @@ use std::{
 use ::libc;
 
 use crate::{
-    cpanel_state::CpanelState,
-    extra_constants::PC_BASE_TIMER,
-    extra_types::boolean,
-    global_state::GlobalState,
-    pcrlib_a_state::PcrlibAState,
-    pcrlib_c::{charptr, egaplaneofs, grmode, picptr, UpdateScreen},
-    pcrlib_c_state::PcrlibCState,
-    safe_sdl::*,
-    sound_type::soundtype::*,
+    cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, extra_types::boolean,
+    global_state::GlobalState, pcrlib_a_state::PcrlibAState, pcrlib_c::UpdateScreen,
+    pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*,
 };
 
 type __time_t = i64;
@@ -412,7 +406,13 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
     }
 }
 
-pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, gs: &mut GlobalState) {
+pub unsafe fn drawchar(
+    mut x: i32,
+    mut y: i32,
+    mut charnum: i32,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+) {
     let mut vbuf: *mut u8 = gs
         .screenseg
         .as_mut_ptr()
@@ -420,9 +420,9 @@ pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, gs: &mut Global
         .offset((x << 3) as isize);
     let mut src: *mut u8 = ptr::null_mut();
     let mut i: u32 = 0;
-    match grmode as u32 {
+    match pcs.grmode as u32 {
         1 => {
-            src = (charptr as *mut u8).offset((charnum * 16) as isize);
+            src = (pcs.charptr as *mut u8).offset((charnum * 16) as isize);
             i = 0;
             while i < 8 {
                 let fresh10 = vbuf;
@@ -453,7 +453,7 @@ pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, gs: &mut Global
             }
         }
         3 => {
-            src = (charptr as *mut u8).offset((charnum * 64) as isize);
+            src = (pcs.charptr as *mut u8).offset((charnum * 64) as isize);
             i = 0;
             while i < 8 {
                 *(vbuf as *mut u64) = *(src as *mut u64);
@@ -463,14 +463,14 @@ pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, gs: &mut Global
             }
         }
         2 | _ => {
-            src = (charptr as *mut u8).offset((charnum * 8) as isize);
+            src = (pcs.charptr as *mut u8).offset((charnum * 8) as isize);
             i = 0;
             while i < 8 {
                 let chan: [u8; 4] = [
-                    *src.offset(egaplaneofs[0] as isize),
-                    *src.offset(egaplaneofs[1] as isize),
-                    *src.offset(egaplaneofs[2] as isize),
-                    *src.offset(egaplaneofs[3] as isize),
+                    *src.offset(pcs.egaplaneofs[0] as isize),
+                    *src.offset(pcs.egaplaneofs[1] as isize),
+                    *src.offset(pcs.egaplaneofs[2] as isize),
+                    *src.offset(pcs.egaplaneofs[3] as isize),
                 ];
                 let fresh3 = vbuf;
                 vbuf = vbuf.offset(1);
@@ -508,6 +508,7 @@ pub unsafe fn drawpic(
     mut picnum: i32,
     gs: &mut GlobalState,
     cps: &mut CpanelState,
+    pcs: &mut PcrlibCState,
 ) {
     let mut vbuf: *mut u8 = gs
         .screenseg
@@ -518,8 +519,8 @@ pub unsafe fn drawpic(
     let mut i: u32 = 0;
     let mut picwidth: u32 = cps.pictable[picnum as usize].width as u32;
     let mut picheight: u32 = cps.pictable[picnum as usize].height as u32;
-    src = (picptr as *mut u8).offset(cps.pictable[picnum as usize].shapeptr as isize);
-    match grmode as u32 {
+    src = (pcs.picptr as *mut u8).offset(cps.pictable[picnum as usize].shapeptr as isize);
+    match pcs.grmode as u32 {
         1 => loop {
             i = picwidth;
             loop {
@@ -570,10 +571,10 @@ pub unsafe fn drawpic(
             i = picwidth;
             loop {
                 let chan: [u8; 4] = [
-                    *src.offset(egaplaneofs[0] as isize),
-                    *src.offset(egaplaneofs[1] as isize),
-                    *src.offset(egaplaneofs[2] as isize),
-                    *src.offset(egaplaneofs[3] as isize),
+                    *src.offset(pcs.egaplaneofs[0] as isize),
+                    *src.offset(pcs.egaplaneofs[1] as isize),
+                    *src.offset(pcs.egaplaneofs[2] as isize),
+                    *src.offset(pcs.egaplaneofs[3] as isize),
                 ];
                 src = src.offset(1);
                 let fresh17 = vbuf;

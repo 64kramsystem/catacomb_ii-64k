@@ -523,22 +523,6 @@ pub struct ctlpaneltype {
     pub keyB2: u8,
 }
 
-static mut mode: SDL_DisplayMode = SDL_DisplayMode {
-    format: 0,
-    w: 0,
-    h: 0,
-    refresh_rate: 0,
-    driverdata: 0 as *const libc::c_void as *mut libc::c_void,
-};
-
-static mut joystick: [joyinfo_t; 3] = [joyinfo_t {
-    c2rust_unnamed: C2RustUnnamed_5 {
-        controller: 0 as *const SDL_GameController as *mut SDL_GameController,
-    },
-    device: 0,
-    isgamecontroller: 0,
-}; 3];
-
 pub unsafe fn SetupKBD(pcs: &mut PcrlibCState) {
     let mut i: u32 = 0;
     i = 0;
@@ -563,8 +547,6 @@ pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
     }
 }
 
-static mut hasFocus: boolean = true as boolean;
-
 unsafe extern "C" fn WatchUIEvents(
     mut userdata: *mut libc::c_void,
     mut event: *mut SDL_Event,
@@ -577,7 +559,7 @@ unsafe extern "C" fn WatchUIEvents(
     } else if (*event).type_0 == SDL_WINDOWEVENT as i32 as u32 {
         match (*event).window.event as i32 {
             13 => {
-                hasFocus = false as boolean;
+                pcs.hasFocus = false as boolean;
                 CheckMouseMode(pcs);
             }
             12 => {
@@ -585,7 +567,7 @@ unsafe extern "C" fn WatchUIEvents(
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
                 }
-                hasFocus = true as boolean;
+                pcs.hasFocus = true as boolean;
                 CheckMouseMode(pcs);
             }
             _ => {}
@@ -725,62 +707,68 @@ pub unsafe fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
     return action;
 }
 
-unsafe fn ShutdownJoysticks() {
+unsafe fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     let mut j: u32 = 0;
     j = 1;
     while j < 3 {
-        if !(joystick[j as usize].device < 0) {
-            if joystick[j as usize].isgamecontroller != 0 {
-                safe_SDL_GameControllerClose(joystick[j as usize].c2rust_unnamed.controller);
+        if !(pcs.joystick[j as usize].device < 0) {
+            if pcs.joystick[j as usize].isgamecontroller != 0 {
+                safe_SDL_GameControllerClose(pcs.joystick[j as usize].c2rust_unnamed.controller);
             } else {
-                safe_SDL_JoystickClose(joystick[j as usize].c2rust_unnamed.joy);
+                safe_SDL_JoystickClose(pcs.joystick[j as usize].c2rust_unnamed.joy);
             }
-            joystick[j as usize].device = -(1);
+            pcs.joystick[j as usize].device = -(1);
         }
         j = j.wrapping_add(1);
     }
 }
 
-pub unsafe fn ProbeJoysticks() {
+pub unsafe fn ProbeJoysticks(pcs: &mut PcrlibCState) {
     let mut j: i32 = 0;
-    if joystick[1].device > 0 || joystick[2].device > 0 {
-        ShutdownJoysticks();
+    if pcs.joystick[1].device > 0 || pcs.joystick[2].device > 0 {
+        ShutdownJoysticks(pcs);
     }
     j = 1;
     while j < 3 {
         if j - 1 >= safe_SDL_NumJoysticks() {
-            joystick[j as usize].device = -(1);
+            pcs.joystick[j as usize].device = -(1);
         } else {
-            joystick[j as usize].device = j - 1;
-            joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) as boolean;
+            pcs.joystick[j as usize].device = j - 1;
+            pcs.joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) as boolean;
             if safe_SDL_IsGameController(j - 1) as u64 != 0 {
-                joystick[j as usize].c2rust_unnamed.controller = safe_SDL_GameControllerOpen(j - 1);
+                pcs.joystick[j as usize].c2rust_unnamed.controller =
+                    safe_SDL_GameControllerOpen(j - 1);
             } else {
-                joystick[j as usize].c2rust_unnamed.joy = safe_SDL_JoystickOpen(j - 1);
+                pcs.joystick[j as usize].c2rust_unnamed.joy = safe_SDL_JoystickOpen(j - 1);
             }
         }
         j += 1;
     }
 }
 
-pub unsafe fn ReadJoystick(mut joynum: i32, mut xcount: *mut i32, mut ycount: *mut i32) {
+pub unsafe fn ReadJoystick(
+    mut joynum: i32,
+    mut xcount: *mut i32,
+    mut ycount: *mut i32,
+    pcs: &mut PcrlibCState,
+) {
     let mut a1: i32 = 0;
     let mut a2: i32 = 0;
     *xcount = 0;
     *ycount = 0;
     safe_SDL_JoystickUpdate();
-    if joystick[joynum as usize].isgamecontroller != 0 {
+    if pcs.joystick[joynum as usize].isgamecontroller != 0 {
         a1 = safe_SDL_GameControllerGetAxis(
-            joystick[joynum as usize].c2rust_unnamed.controller,
+            pcs.joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_AXIS_LEFTX,
         ) as i32;
         a2 = safe_SDL_GameControllerGetAxis(
-            joystick[joynum as usize].c2rust_unnamed.controller,
+            pcs.joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_AXIS_LEFTY,
         ) as i32;
     } else {
-        a1 = safe_SDL_JoystickGetAxis(joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32;
-        a2 = safe_SDL_JoystickGetAxis(joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32;
+        a1 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32;
+        a2 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32;
     }
     *xcount = a1;
     *ycount = a2;
@@ -796,24 +784,24 @@ pub unsafe fn ControlJoystick(mut joynum: i32, pcs: &mut PcrlibCState) -> Contro
         button1: 0,
         button2: 0,
     };
-    ReadJoystick(joynum, &mut joyx, &mut joyy);
-    if joystick[joynum as usize].isgamecontroller != 0 {
+    ReadJoystick(joynum, &mut joyx, &mut joyy, pcs);
+    if pcs.joystick[joynum as usize].isgamecontroller != 0 {
         action.button1 = (safe_SDL_GameControllerGetButton(
-            joystick[joynum as usize].c2rust_unnamed.controller,
+            pcs.joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_BUTTON_A,
         ) as i32
             != 0) as i32 as boolean;
         action.button2 = (safe_SDL_GameControllerGetButton(
-            joystick[joynum as usize].c2rust_unnamed.controller,
+            pcs.joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_BUTTON_B,
         ) as i32
             != 0) as i32 as boolean;
     } else {
         action.button1 =
-            (safe_SDL_JoystickGetButton(joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32
+            (safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32
                 != 0) as i32 as boolean;
         action.button2 =
-            (safe_SDL_JoystickGetButton(joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32
+            (safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32
                 != 0) as i32 as boolean;
     }
     if joyx == 0 && joyy == 0 {
@@ -907,7 +895,7 @@ pub unsafe fn ControlPlayer(
 }
 
 pub unsafe fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    pcs.demobuffer[0] = level as u8;
+    pcs.demobuffer[0] = pcs.level as u8;
     pcs.demoptr = 1;
     gs.indemo = demoenum::recording;
 }
@@ -927,7 +915,7 @@ pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) 
     unsafe {
         pcs.demobuffer
             .copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
-        level = pcs.demobuffer[0] as i16;
+        pcs.level = pcs.demobuffer[0] as i16;
         pcs.demoptr = 1;
         gs.indemo = demoenum::demoplay;
     }
@@ -1085,55 +1073,48 @@ pub fn bloadin(filename: &str) -> *const u8 {
     }
 }
 
-pub static mut grmode: grtype = text;
-pub static mut charptr: *mut libc::c_void = ptr::null_mut();
-pub static mut tileptr: *mut libc::c_void = ptr::null_mut();
-pub static mut picptr: *mut libc::c_void = ptr::null_mut();
-pub static mut spriteptr: *mut libc::c_void = ptr::null_mut();
-pub static mut egaplaneofs: [u32; 4] = [0; 4];
-pub static mut sx: i32 = 0;
-pub static mut sy: i32 = 0;
-pub static mut leftedge: i32 = 0;
-static mut win_xl: i32 = 0;
-static mut win_yl: i32 = 0;
-static mut win_xh: i32 = 0;
-static mut win_yh: i32 = 0;
-
-pub unsafe fn drawwindow(mut xl: i32, mut yl: i32, mut xh: i32, mut yh: i32, gs: &mut GlobalState) {
+pub unsafe fn drawwindow(
+    mut xl: i32,
+    mut yl: i32,
+    mut xh: i32,
+    mut yh: i32,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
-    win_xl = xl;
-    win_yl = yl;
-    win_xh = xh;
-    win_yh = yh;
-    drawchar(xl, yl, 1, gs);
+    pcs.win_xl = xl;
+    pcs.win_yl = yl;
+    pcs.win_xh = xh;
+    pcs.win_yh = yh;
+    drawchar(xl, yl, 1, gs, pcs);
     x = xl + 1;
     while x < xh {
-        drawchar(x, yl, 2, gs);
+        drawchar(x, yl, 2, gs, pcs);
         x += 1;
     }
-    drawchar(xh, yl, 3, gs);
+    drawchar(xh, yl, 3, gs, pcs);
     y = yl + 1;
     while y < yh {
-        drawchar(xl, y, 4, gs);
+        drawchar(xl, y, 4, gs, pcs);
         x = xl + 1;
         while x < xh {
-            drawchar(x, y, ' ' as i32, gs);
+            drawchar(x, y, ' ' as i32, gs, pcs);
             x += 1;
         }
-        drawchar(xh, y, 5, gs);
+        drawchar(xh, y, 5, gs, pcs);
         y += 1;
     }
-    drawchar(xl, yh, 6, gs);
+    drawchar(xl, yh, 6, gs, pcs);
     x = xl + 1;
     while x < xh {
-        drawchar(x, yh, 7, gs);
+        drawchar(x, yh, 7, gs, pcs);
         x += 1;
     }
-    drawchar(xh, yh, 8, gs);
-    leftedge = xl + 1;
-    sx = leftedge;
-    sy = yl + 1;
+    drawchar(xh, yh, 8, gs, pcs);
+    pcs.leftedge = xl + 1;
+    pcs.sx = pcs.leftedge;
+    pcs.sy = yl + 1;
 }
 
 pub unsafe fn bar(
@@ -1143,6 +1124,7 @@ pub unsafe fn bar(
     mut yh: i32,
     mut ch_0: i32,
     gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
 ) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
@@ -1150,21 +1132,28 @@ pub unsafe fn bar(
     while y <= yh {
         x = xl;
         while x <= xh {
-            drawchar(x, y, ch_0, gs);
+            drawchar(x, y, ch_0, gs, pcs);
             x += 1;
         }
         y += 1;
     }
 }
 
-pub unsafe fn erasewindow(gs: &mut GlobalState) {
-    bar(win_xl, win_yl, win_xh, win_yh, ' ' as i32, gs);
+pub unsafe fn erasewindow(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    bar(
+        pcs.win_xl, pcs.win_yl, pcs.win_xh, pcs.win_yh, ' ' as i32, gs, pcs,
+    );
 }
 
-pub unsafe fn centerwindow(mut width: i32, mut height: i32, gs: &mut GlobalState) {
+pub unsafe fn centerwindow(
+    mut width: i32,
+    mut height: i32,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+) {
     let mut xl: i32 = gs.screencenter.x - width / 2;
     let mut yl: i32 = gs.screencenter.y - height / 2;
-    drawwindow(xl, yl, xl + width + 1, yl + height + 1, gs);
+    drawwindow(xl, yl, xl + width + 1, yl + height + 1, gs, pcs);
 }
 
 pub unsafe fn expwin(
@@ -1185,7 +1174,7 @@ pub unsafe fn expwin(
     }
     UpdateScreen(gs, pcs);
     WaitVBL(pas);
-    centerwindow(width, height, gs);
+    centerwindow(width, height, gs, pcs);
 }
 
 unsafe fn expwinh(
@@ -1200,7 +1189,7 @@ unsafe fn expwinh(
     }
     UpdateScreen(gs, pcs);
     WaitVBL(pas);
-    centerwindow(width, height, gs);
+    centerwindow(width, height, gs, pcs);
 }
 
 unsafe fn expwinv(
@@ -1215,7 +1204,7 @@ unsafe fn expwinv(
     }
     UpdateScreen(gs, pcs);
     WaitVBL(pas);
-    centerwindow(width, height, gs);
+    centerwindow(width, height, gs, pcs);
 }
 
 pub unsafe fn bioskey(mut cmd: i32, pcs: &mut PcrlibCState) -> i32 {
@@ -1246,16 +1235,15 @@ const EGAPalette: [u32; 16] = [
 const CGAPalette: [u32; 4] = [0, 0x55ffff, 0xff55ff, 0xffffff];
 
 pub unsafe fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    static mut conv: [u32; 64000] = [0; 64000];
     let mut i: u64 = 0;
-    if grmode as u32 == EGAgr as i32 as u32 {
+    if pcs.grmode as u32 == EGAgr as i32 as u32 {
         while i < ::std::mem::size_of::<[u8; 64000]>() as u64 {
-            conv[i as usize] = EGAPalette[gs.screenseg[i as usize] as usize];
+            pcs.conv[i as usize] = EGAPalette[gs.screenseg[i as usize] as usize];
             i = i.wrapping_add(1);
         }
-    } else if grmode as u32 == CGAgr as i32 as u32 {
+    } else if pcs.grmode as u32 == CGAgr as i32 as u32 {
         while i < ::std::mem::size_of::<[u8; 64000]>() as u64 {
-            conv[i as usize] = CGAPalette[gs.screenseg[i as usize] as usize];
+            pcs.conv[i as usize] = CGAPalette[gs.screenseg[i as usize] as usize];
             i = i.wrapping_add(1);
         }
     } else {
@@ -1264,7 +1252,7 @@ pub unsafe fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     safe_SDL_UpdateTexture(
         pcs.sdltexture,
         0 as *const SDL_Rect,
-        conv.as_mut_ptr() as *const libc::c_void,
+        pcs.conv.as_mut_ptr() as *const libc::c_void,
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
     safe_SDL_RenderClear(pcs.renderer);
@@ -1289,7 +1277,7 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
             }
             let fresh2 = cycle;
             cycle = cycle + 1;
-            drawchar(sx, sy, fresh2, gs);
+            drawchar(pcs.sx, pcs.sy, fresh2, gs, pcs);
             UpdateScreen(gs, pcs);
             WaitVBL(pas);
             WaitVBL(pas);
@@ -1301,12 +1289,12 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
             break;
         }
     }
-    drawchar(sx, sy, ' ' as i32, gs);
+    drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
     UpdateScreen(gs, pcs);
     return safe_SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
 }
 
-pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState) {
+pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut ch_0: i8 = 0;
     loop {
         let fresh3 = str_0;
@@ -1316,19 +1304,19 @@ pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState) {
             break;
         }
         if ch_0 as i32 == '\n' as i32 {
-            sy += 1;
-            sx = leftedge;
+            pcs.sy += 1;
+            pcs.sx = pcs.leftedge;
         } else if ch_0 as i32 == '\r' as i32 {
-            sx = leftedge;
+            pcs.sx = pcs.leftedge;
         } else {
-            let fresh4 = sx;
-            sx = sx + 1;
-            drawchar(fresh4, sy, ch_0 as u8 as i32, gs);
+            let fresh4 = pcs.sx;
+            pcs.sx = pcs.sx + 1;
+            drawchar(fresh4, pcs.sy, ch_0 as u8 as i32, gs, pcs);
         }
     }
 }
 
-pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState) {
+pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut ch_0: i8 = 0;
     loop {
         let fresh5 = str_0;
@@ -1338,26 +1326,26 @@ pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState) {
             break;
         }
         if ch_0 as i32 == '\n' as i32 {
-            sy += 1;
-            sx = leftedge;
+            pcs.sy += 1;
+            pcs.sx = pcs.leftedge;
         } else if ch_0 as i32 == '\r' as i32 {
-            sx = leftedge;
+            pcs.sx = pcs.leftedge;
         } else {
-            let fresh6 = sx;
-            sx = sx + 1;
-            drawchartile(fresh6, sy, ch_0 as u8 as i32, gs);
+            let fresh6 = pcs.sx;
+            pcs.sx = pcs.sx + 1;
+            drawchartile(fresh6, pcs.sy, ch_0 as u8 as i32, gs, pcs);
         }
     }
 }
 
-pub unsafe fn printint(mut val: i32, gs: &mut GlobalState) {
+pub unsafe fn printint(mut val: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let str = CString::new(format!("{val}")).unwrap();
-    print(str.as_ptr(), gs);
+    print(str.as_ptr(), gs, pcs);
 }
 
-pub unsafe fn printlong(mut val: i64, gs: &mut GlobalState) {
+pub unsafe fn printlong(mut val: i64, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let str = CString::new(format!("{val}")).unwrap();
-    print(str.as_ptr(), gs);
+    print(str.as_ptr(), gs, pcs);
 }
 
 pub unsafe fn _Verify(mut filename: *const i8) -> i64 {
@@ -1372,7 +1360,7 @@ pub unsafe fn _Verify(mut filename: *const i8) -> i64 {
     return size;
 }
 
-unsafe fn _printhexb(mut value: libc::c_uchar, gs: &mut GlobalState) {
+unsafe fn _printhexb(mut value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut loop_0: i32 = 0;
     let mut hexstr: [i8; 16] =
         *::std::mem::transmute::<&[u8; 16], &mut [i8; 16]>(b"0123456789ABCDEF");
@@ -1380,34 +1368,34 @@ unsafe fn _printhexb(mut value: libc::c_uchar, gs: &mut GlobalState) {
     loop_0 = 0;
     while loop_0 < 2 {
         str_0[0] = hexstr[(value as i32 >> (1 - loop_0) * 4 & 15) as usize];
-        print(str_0.as_mut_ptr(), gs);
+        print(str_0.as_mut_ptr(), gs, pcs);
         loop_0 += 1;
     }
 }
 
-unsafe fn _printhex(mut value: u32, gs: &mut GlobalState) {
-    print(b"$\0" as *const u8 as *const i8, gs);
-    _printhexb((value >> 8) as libc::c_uchar, gs);
-    _printhexb((value & 0xff as i32 as u32) as libc::c_uchar, gs);
+unsafe fn _printhex(mut value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    print(b"$\0" as *const u8 as *const i8, gs, pcs);
+    _printhexb((value >> 8) as libc::c_uchar, gs, pcs);
+    _printhexb((value & 0xff as i32 as u32) as libc::c_uchar, gs, pcs);
 }
 
-unsafe fn _printbin(mut value: u32, gs: &mut GlobalState) {
+unsafe fn _printbin(mut value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut loop_0: i32 = 0;
-    print(b"%\0" as *const u8 as *const i8, gs);
+    print(b"%\0" as *const u8 as *const i8, gs, pcs);
     loop_0 = 0;
     while loop_0 < 16 {
         if value >> 15 - loop_0 & 1 != 0 {
-            print(b"1\0" as *const u8 as *const i8, gs);
+            print(b"1\0" as *const u8 as *const i8, gs, pcs);
         } else {
-            print(b"0\0" as *const u8 as *const i8, gs);
+            print(b"0\0" as *const u8 as *const i8, gs, pcs);
         }
         loop_0 += 1;
     }
 }
 
-unsafe fn _printc(mut string: *const i8, gs: &mut GlobalState) {
-    sx = 1 + gs.screencenter.x - (strlen(string)).wrapping_div(2) as i32;
-    print(string, gs);
+unsafe fn _printc(mut string: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    pcs.sx = 1 + gs.screencenter.x - (strlen(string)).wrapping_div(2) as i32;
+    print(string, gs, pcs);
 }
 
 // Rust port: Avoids importing strlen, and also, works on u8.
@@ -1483,15 +1471,15 @@ unsafe fn _input(
         key_ = (get(gs, pas, pcs) as u8).to_ascii_uppercase();
         if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
-            drawchar(sx, sy, ' ' as i32, gs);
-            sx -= 1;
+            drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
+            pcs.sx -= 1;
         }
 
         if key_ >= b' ' && key_ <= b'z' && count < max {
             string[count as usize] = key_;
             count += 1;
-            drawchar(sx, sy, key_ as i32, gs);
-            sx += 1;
+            drawchar(pcs.sx, pcs.sy, key_ as i32, gs, pcs);
+            pcs.sx += 1;
         }
 
         if key_ == 27 || key_ == 13 {
@@ -1512,16 +1500,6 @@ const scoreswap: scores = scores {
     level: 0,
     initials: [0; 4],
 };
-
-pub static mut highscores: [scores; 5] = [scores {
-    score: 0,
-    level: 0,
-    initials: [0; 4],
-}; 5];
-
-pub static mut score: i32 = 0;
-
-pub static mut level: i16 = 0;
 
 // There seems to be a (harmless) wrong definition in the original project:
 //
@@ -1549,7 +1527,7 @@ pub unsafe fn ScancodeToDOS(mut sc: SDL_Scancode) -> i32 {
 
 pub unsafe fn CheckMouseMode(pcs: &mut PcrlibCState) {
     safe_SDL_SetRelativeMouseMode(
-        (hasFocus as i32 != 0
+        (pcs.hasFocus as i32 != 0
             && (pcs.playermode[1] as u32 == mouse as i32 as u32
                 || pcs.playermode[2] as u32 == mouse as i32 as u32)) as i32 as SDL_bool,
     );
@@ -1565,7 +1543,7 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         0o200 as i32 | 0o400 as i32,
     );
     if handle == -1 {
-        grmode = VGAgr;
+        pcs.grmode = VGAgr;
         pas.soundmode = spkr;
         pcs.playermode[1] = keyboard;
         pcs.playermode[2] = joystick1;
@@ -1608,7 +1586,7 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
             ::std::mem::size_of::<ctlpaneltype>() as u64,
         );
         close(handle);
-        grmode = ctlpanel.grmode as grtype;
+        pcs.grmode = ctlpanel.grmode as grtype;
         pas.soundmode = ctlpanel.soundmode as soundtype;
         let mut i: u32 = 0;
         i = 0;
@@ -1624,11 +1602,11 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
             if pcs.playermode[i as usize] as u32 == joystick1 as i32 as u32
                 || pcs.playermode[i as usize] as u32 == joystick2 as i32 as u32
             {
-                ProbeJoysticks();
+                ProbeJoysticks(pcs);
                 if pcs.playermode[i as usize] as u32 == joystick1 as i32 as u32
-                    && joystick[1].device < 0
+                    && pcs.joystick[1].device < 0
                     || pcs.playermode[i as usize] as u32 == joystick2 as i32 as u32
-                        && joystick[2].device < 0
+                        && pcs.joystick[2].device < 0
                 {
                     pcs.playermode[i as usize] = keyboard;
                 }
@@ -1669,7 +1647,7 @@ pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if handle == -1 {
         return;
     }
-    ctlpanel.grmode = grmode;
+    ctlpanel.grmode = pcs.grmode;
     ctlpanel.soundmode = pas.soundmode;
     let mut i = 0;
     while i < 3 {
@@ -1696,15 +1674,15 @@ pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     close(handle);
 }
 
-pub unsafe fn _loadhighscores() {
+pub unsafe fn _loadhighscores(pcs: &mut PcrlibCState) {
     let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
-    if LoadFile(str.as_ptr(), highscores.as_mut_ptr() as *mut i8) == 0 {
+    if LoadFile(str.as_ptr(), pcs.highscores.as_mut_ptr() as *mut i8) == 0 {
         let mut i = 0;
         while i < 5 {
-            highscores[i as usize].score = 100;
-            highscores[i as usize].level = 1;
+            pcs.highscores[i as usize].score = 100;
+            pcs.highscores[i as usize].level = 1;
             strcpy(
-                (highscores[i as usize].initials).as_mut_ptr(),
+                (pcs.highscores[i as usize].initials).as_mut_ptr(),
                 b"PCR\0" as *const u8 as *const i8,
             );
             i += 1;
@@ -1712,64 +1690,64 @@ pub unsafe fn _loadhighscores() {
     }
 }
 
-pub unsafe fn _savehighscores() {
+pub unsafe fn _savehighscores(pcs: &mut PcrlibCState) {
     let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
     SaveFile(
         str.as_ptr(),
-        highscores.as_mut_ptr() as *mut i8,
+        pcs.highscores.as_mut_ptr() as *mut i8,
         ::std::mem::size_of::<[scores; 5]>() as u64 as i64,
     );
 }
 
-pub unsafe fn _showhighscores(gs: &mut GlobalState) {
+pub unsafe fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
-    centerwindow(17, 17, gs);
-    print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8, gs);
-    print(b" #  SCORE LV  BY\n\0" as *const u8 as *const i8, gs);
-    print(b" - ------ -- ---\n\0" as *const u8 as *const i8, gs);
+    centerwindow(17, 17, gs, pcs);
+    print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8, gs, pcs);
+    print(b" #  SCORE LV  BY\n\0" as *const u8 as *const i8, gs, pcs);
+    print(b" - ------ -- ---\n\0" as *const u8 as *const i8, gs, pcs);
     i = 0;
     while i < 5 {
-        sx += 1;
-        drawchar(sx, sy, '1' as i32 + i, gs);
-        sx += 2;
-        h = highscores[i as usize].score as i64;
+        pcs.sx += 1;
+        drawchar(pcs.sx, pcs.sy, '1' as i32 + i, gs, pcs);
+        pcs.sx += 2;
+        h = pcs.highscores[i as usize].score as i64;
         if h < 100000 {
-            sx += 1;
+            pcs.sx += 1;
         }
         if h < 10000 {
-            sx += 1;
+            pcs.sx += 1;
         }
         if h < 1000 {
-            sx += 1;
+            pcs.sx += 1;
         }
         if h < 100 {
-            sx += 1;
+            pcs.sx += 1;
         }
         if h < 10 {
-            sx += 1;
+            pcs.sx += 1;
         }
         let str = CString::new(format!("{h}")).unwrap();
-        print(str.as_ptr(), gs);
-        sx += 1;
-        if (highscores[i as usize].level as i32) < 10 {
-            sx += 1;
+        print(str.as_ptr(), gs, pcs);
+        pcs.sx += 1;
+        if (pcs.highscores[i as usize].level as i32) < 10 {
+            pcs.sx += 1;
         }
         // Rust port: Interesting, if this is passed as format! parameter, it will cause a warning.
-        let highscore = highscores[i as usize].level;
+        let highscore = pcs.highscores[i as usize].level;
         let str = CString::new(highscore.to_string()).unwrap();
-        print(str.as_ptr(), gs);
-        sx += 1;
+        print(str.as_ptr(), gs, pcs);
+        pcs.sx += 1;
         // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
-        let highscore_bytes = &highscores[i as usize].initials.map(|f| f as u8)[0..=2];
+        let highscore_bytes = &pcs.highscores[i as usize].initials.map(|f| f as u8)[0..=2];
         let str = CString::new(highscore_bytes).unwrap();
-        print(str.as_ptr(), gs);
+        print(str.as_ptr(), gs, pcs);
         let str = CString::new("\n\n").unwrap();
-        print(str.as_ptr(), gs);
+        print(str.as_ptr(), gs, pcs);
         i += 1;
     }
-    let str = CString::new(format!("SCORE:{score}")).unwrap();
-    _printc(str.as_ptr(), gs);
+    let str = CString::new(format!("SCORE:{}", pcs.score)).unwrap();
+    _printc(str.as_ptr(), gs, pcs);
 }
 
 pub unsafe fn _checkhighscore(
@@ -1782,17 +1760,17 @@ pub unsafe fn _checkhighscore(
     let mut k: i32 = 0;
     i = 0;
     while i < 5 {
-        if score > highscores[i as usize].score {
+        if pcs.score > pcs.highscores[i as usize].score {
             j = 4;
             while i < j {
                 k = j - 1;
-                highscores[j as usize] = highscores[k as usize];
+                pcs.highscores[j as usize] = pcs.highscores[k as usize];
                 j -= 1;
             }
-            highscores[i as usize].score = score;
-            highscores[i as usize].level = level;
+            pcs.highscores[i as usize].score = pcs.score;
+            pcs.highscores[i as usize].level = pcs.level;
             strcpy(
-                (highscores[i as usize].initials).as_mut_ptr(),
+                (pcs.highscores[i as usize].initials).as_mut_ptr(),
                 b"   \0" as *const u8 as *const i8,
             );
             break;
@@ -1800,26 +1778,26 @@ pub unsafe fn _checkhighscore(
             i += 1;
         }
     }
-    _showhighscores(gs);
+    _showhighscores(gs, pcs);
     UpdateScreen(gs, pcs);
     if i < 5 {
         PlaySound(16, pas);
         clearkeys(pcs);
-        sx = gs.screencenter.x - 17 / 2 + 14;
-        sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
+        pcs.sx = gs.screencenter.x - 17 / 2 + 14;
+        pcs.sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
             k = get(gs, pas, pcs);
             let ch = k as i8;
             if ch >= ' ' as i8 && j < 3 {
-                drawchar(sx, sy, ch as i32, gs);
-                sx += 1;
-                highscores[i as usize].initials[j as usize] = ch;
+                drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
+                pcs.sx += 1;
+                pcs.highscores[i as usize].initials[j as usize] = ch;
                 j += 1;
             }
             if ch as i32 == 8 || k == 19200 {
                 if j > 0 {
-                    sx -= 1;
+                    pcs.sx -= 1;
                     j -= 1;
                 }
             }
@@ -1899,7 +1877,7 @@ pub fn _setupgame(
         h: 0,
     };
     unsafe {
-        if safe_SDL_GetCurrentDisplayMode(displayindex, &mut mode) < -(1)
+        if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs.mode) < -(1)
             || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
         {
             eprintln!("Could not get display mode: {}", safe_SDL_GetError());
@@ -1908,15 +1886,15 @@ pub fn _setupgame(
         if windowed {
             bounds.x = (0x1fff0000 as u32 | 0) as i32;
             bounds.y = (0x1fff0000 as u32 | 0) as i32;
-            mode.w = winWidth as i32;
-            mode.h = winHeight as i32;
+            pcs.mode.w = winWidth as i32;
+            pcs.mode.h = winHeight as i32;
         }
         pcs.window = safe_SDL_CreateWindow(
             b"The Catacomb\0" as *const u8 as *const i8,
             bounds.x,
             bounds.y,
-            mode.w,
-            mode.h,
+            pcs.mode.w,
+            pcs.mode.h,
             (if windowed as i32 != 0 {
                 0
             } else {
@@ -1941,28 +1919,28 @@ pub fn _setupgame(
             eprintln!("Could not create video buffer: {}", safe_SDL_GetError());
             std::process::exit(1);
         }
-        if mode.w == 320 && mode.h == 200 || mode.w == 640 && mode.h == 400 {
-            pcs.updateRect.w = mode.w;
-            pcs.updateRect.h = mode.h;
+        if pcs.mode.w == 320 && pcs.mode.h == 200 || pcs.mode.w == 640 && pcs.mode.h == 400 {
+            pcs.updateRect.w = pcs.mode.w;
+            pcs.updateRect.h = pcs.mode.h;
             pcs.updateRect.y = 0;
             pcs.updateRect.x = pcs.updateRect.y;
         } else {
-            pcs.updateRect.h = mode.h;
-            pcs.updateRect.w = mode.h * 4 / 3;
-            pcs.updateRect.x = mode.w - pcs.updateRect.w >> 1;
+            pcs.updateRect.h = pcs.mode.h;
+            pcs.updateRect.w = pcs.mode.h * 4 / 3;
+            pcs.updateRect.x = pcs.mode.w - pcs.updateRect.w >> 1;
             pcs.updateRect.y = 0;
         }
         gs.screenseg.fill(0);
-        grmode = EGAgr;
-        joystick[2].device = -(1);
-        joystick[1].device = joystick[2].device;
+        pcs.grmode = EGAgr;
+        pcs.joystick[2].device = -(1);
+        pcs.joystick[1].device = pcs.joystick[2].device;
         _loadctrls(pas, pcs);
-        if grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
-            grmode = VGAgr;
-        } else if grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
-            grmode = EGAgr;
+        if pcs.grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
+            pcs.grmode = VGAgr;
+        } else if pcs.grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
+            pcs.grmode = EGAgr;
         } else {
-            grmode = CGAgr;
+            pcs.grmode = CGAgr;
         }
         let filename = format!("SOUNDS.{port_temp__extension}");
         pas.SoundData = bloadin(&filename) as *mut SPKRtable;
@@ -1970,15 +1948,15 @@ pub fn _setupgame(
         SetupKBD(pcs);
         initrndt(1, pas);
         initrnd(1, pas);
-        _loadhighscores();
-        loadgrfiles(gs, cps);
+        _loadhighscores(pcs);
+        loadgrfiles(gs, cps, pcs);
         SetupEmulatedVBL(pas);
     }
 }
 
 pub unsafe fn _quit(mut error: *const i8, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if *error == 0 {
-        _savehighscores();
+        _savehighscores(pcs);
         _savectrls(pas, pcs);
     } else {
         puts(error);
@@ -1990,7 +1968,7 @@ pub unsafe fn _quit(mut error: *const i8, pas: &mut PcrlibAState, pcs: &mut Pcrl
         std::process::exit(1);
     }
     ShutdownSound(pas);
-    ShutdownJoysticks();
+    ShutdownJoysticks(pcs);
     safe_SDL_DestroyRenderer(pcs.renderer);
     safe_SDL_DestroyWindow(pcs.window);
     pcs.renderer = 0 as *mut SDL_Renderer;

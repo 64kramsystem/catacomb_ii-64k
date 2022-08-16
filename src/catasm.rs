@@ -5,7 +5,7 @@ use crate::{
     cpanel_state::CpanelState,
     global_state::GlobalState,
     pcrlib_a_state::PcrlibAState,
-    pcrlib_c::{grmode, UpdateScreen},
+    pcrlib_c::UpdateScreen,
     pcrlib_c_state::PcrlibCState,
 };
 
@@ -267,8 +267,14 @@ pub unsafe fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     UpdateScreen(gs, pcs);
 }
 
-pub unsafe fn drawchartile(mut x: i32, mut y: i32, mut tile: i32, gs: &mut GlobalState) {
-    match grmode as u32 {
+pub unsafe fn drawchartile(
+    mut x: i32,
+    mut y: i32,
+    mut tile: i32,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+) {
+    match pcs.grmode as u32 {
         1 => {
             drawcgachartile(
                 gs.screenseg

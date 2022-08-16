@@ -1,9 +1,11 @@
 use crate::{
     extra_types::boolean,
+    gr_type::grtype,
     input_type::inputtype,
-    pcrlib_c::SDL_Rect,
+    pcrlib_c::{joyinfo_t, SDL_DisplayMode, SDL_Rect},
     safe_sdl::{SDL_Renderer, SDL_Texture, SDL_Window},
     scan_codes::SDL_Scancode,
+    scores::scores,
 };
 
 // Globals previously belonging to pcrlib_c.rs.
@@ -22,6 +24,14 @@ pub struct PcrlibCState {
     pub renderer: *mut SDL_Renderer,
     pub sdltexture: *mut SDL_Texture,
     pub updateRect: SDL_Rect,
+    pub mode: SDL_DisplayMode,
+    pub joystick: [joyinfo_t; 3],
+    pub hasFocus: boolean,
+    pub win_xl: i32,
+    pub win_yl: i32,
+    pub win_xh: i32,
+    pub win_yh: i32,
+    pub conv: [u32; 64000],
 
     /*
     Public
@@ -36,7 +46,20 @@ pub struct PcrlibCState {
     pub key: [i32; 8],
     pub keyB1: i32,
     pub keyB2: i32,
+    pub grmode: grtype,
+    pub charptr: *mut libc::c_void,
+    pub tileptr: *mut libc::c_void,
+    pub picptr: *mut libc::c_void,
+    pub spriteptr: *mut libc::c_void,
+    pub egaplaneofs: [u32; 4],
+    pub sx: i32,
+    pub sy: i32,
+    pub leftedge: i32,
+    pub highscores: [scores; 5],
+    pub score: i32,
+    pub level: i16,
 }
+
 impl PcrlibCState {
     pub fn new(
         mouseEvent: boolean,
@@ -59,6 +82,26 @@ impl PcrlibCState {
         key: [i32; 8],
         keyB1: i32,
         keyB2: i32,
+        mode: SDL_DisplayMode,
+        joystick: [joyinfo_t; 3],
+        hasFocus: boolean,
+        win_xl: i32,
+        win_yl: i32,
+        win_xh: i32,
+        win_yh: i32,
+        conv: [u32; 64000],
+        grmode: grtype,
+        charptr: *mut libc::c_void,
+        tileptr: *mut libc::c_void,
+        picptr: *mut libc::c_void,
+        spriteptr: *mut libc::c_void,
+        egaplaneofs: [u32; 4],
+        sx: i32,
+        sy: i32,
+        leftedge: i32,
+        highscores: [scores; 5],
+        score: i32,
+        level: i16,
     ) -> Self {
         Self {
             mouseEvent,
@@ -81,6 +124,26 @@ impl PcrlibCState {
             key,
             keyB1,
             keyB2,
+            mode,
+            joystick,
+            hasFocus,
+            win_xl,
+            win_yl,
+            win_xh,
+            win_yh,
+            conv,
+            grmode,
+            charptr,
+            tileptr,
+            picptr,
+            spriteptr,
+            egaplaneofs,
+            sx,
+            sy,
+            leftedge,
+            highscores,
+            score,
+            level,
         }
     }
 }
