@@ -1495,13 +1495,15 @@ unsafe fn _input(
     0
 }
 
-const scoreswap: scores = scores {
-    score: 0,
-    level: 0,
-    initials: [0; 4],
-};
+// Rust port: dead code!
+//
+// const scoreswap: scores = scores {
+//     score: 0,
+//     level: 0,
+//     initials: [0; 4],
+// };
 
-// There seems to be a (harmless) wrong definition in the original project:
+// Rust port: there seems to be a (harmless) wrong definition in the original project:
 //
 //     char *_extension = "PCR";
 //
