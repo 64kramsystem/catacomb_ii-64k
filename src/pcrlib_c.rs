@@ -1,6 +1,6 @@
 use std::ffi::CString;
-use std::fs::File;
-use std::io::Read;
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
 use std::{fs, mem, ptr};
 
 use ::libc;
@@ -1030,8 +1030,20 @@ pub fn port_temp_LoadFile(filename: &str, dest: &mut [u8]) -> usize {
     }
 }
 
+//===========================================================================
+
+/*
+==============================================
+=
+= Save a *LARGE* file far a FAR buffer!
+= by John Romero (C) 1990 PCRcade
+=
+==============================================
+*/
+
 pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *const i8, mut size: i64) {
     let mut fd: i32 = 0;
+    // Flags: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
     fd = open(
         filename,
         0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
@@ -1043,6 +1055,27 @@ pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *const i8, mut size:
     write(fd, buffer as *const libc::c_void, size as u64);
     close(fd);
 }
+
+pub unsafe fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
+    // Flags originally used: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
+    //
+    // Rust port: In the original project, this is written in ASM (https://github.com/64kramsystem/catacomb_ii-64k/blob/db8017c1aba84823cb5116ca2f819e5c77636c9e/original_project/PCRLIB_C.C#L649).
+    // Errors are swallowed; it's not clear if this is intentional, but we leave this behavior.
+    // The file is truncated if existing (http://spike.scu.edu.au/~barry/interrupts.html#ah3c), so we just use corresponding flags.
+    // Permissions are ignored (they're set in the SDL port).
+
+    let mut file = OpenOptions::new() //
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(filename);
+
+    if let Ok(mut file) = file {
+        file.write_all(buffer).ok();
+    }
+}
+
+//==========================================================================
 
 pub fn bloadin(filename: &str) -> *const u8 {
     let file_meta = fs::metadata(filename);
