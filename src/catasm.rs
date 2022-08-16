@@ -5,7 +5,8 @@ use crate::{
     cpanel_state::CpanelState,
     global_state::GlobalState,
     pcrlib_a_state::PcrlibAState,
-    pcrlib_c::{grmode, UpdateScreen},
+    pcrlib_c::UpdateScreen,
+    pcrlib_c_state::PcrlibCState,
 };
 
 pub type C2RustUnnamed_0 = u32;
@@ -98,7 +99,12 @@ pub unsafe fn eraseobj(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn doall(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+pub unsafe fn doall(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     assert!(gs.numobj > 0);
 
     loop {
@@ -109,7 +115,7 @@ pub unsafe fn doall(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcrli
                 gs.obj
                     .update_from_objdeftype(&gs.objdef[gs.obj.class as usize]);
                 if gs.obj.active != 0 {
-                    doactive(gs, cps, pas);
+                    doactive(gs, cps, pas, pcs);
                 } else {
                     doinactive(gs);
                 }
@@ -122,7 +128,7 @@ pub unsafe fn doall(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcrli
                 break;
             }
         }
-        refresh(gs, pas);
+        refresh(gs, pas, pcs);
         gs.frameon = gs.frameon.wrapping_add(1);
         if gs.leveldone {
             return;
@@ -166,7 +172,7 @@ unsafe fn drawcgachartile(mut dest: *mut u8, mut tile: i32, gs: &mut GlobalState
     }
 }
 
-pub unsafe fn cgarefresh(gs: &mut GlobalState) {
+pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut ofs: u32 = (gs.origin.y * 86 + gs.origin.x) as u32;
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
@@ -191,7 +197,7 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState) {
         endofrow = endofrow.wrapping_add(86);
         vbuf = vbuf.offset((screenpitch as i32 * 8 - 24 * 8) as isize);
     }
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
 }
 
 unsafe fn drawegachartile(mut dest: *mut u8, mut tile: i32, gs: &mut GlobalState) {
@@ -233,7 +239,7 @@ unsafe fn drawegachartile(mut dest: *mut u8, mut tile: i32, gs: &mut GlobalState
     }
 }
 
-pub unsafe fn egarefresh(gs: &mut GlobalState) {
+pub unsafe fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut ofs: u32 = (gs.origin.y * 86 + gs.origin.x) as u32;
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
@@ -258,11 +264,17 @@ pub unsafe fn egarefresh(gs: &mut GlobalState) {
         endofrow = endofrow.wrapping_add(86);
         vbuf = vbuf.offset((screenpitch as i32 * 8 - 24 * 8) as isize);
     }
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
 }
 
-pub unsafe fn drawchartile(mut x: i32, mut y: i32, mut tile: i32, gs: &mut GlobalState) {
-    match grmode as u32 {
+pub unsafe fn drawchartile(
+    mut x: i32,
+    mut y: i32,
+    mut tile: i32,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+) {
+    match pcs.grmode as u32 {
         1 => {
             drawcgachartile(
                 gs.screenseg
