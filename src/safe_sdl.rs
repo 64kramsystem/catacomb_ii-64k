@@ -4,10 +4,7 @@
 use std::ffi::CStr;
 
 use crate::{
-    pcrlib_a::{
-        SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerCallback, SDL_TimerID, SDL_sem,
-        ShutdownEmulatedVBL,
-    },
+    pcrlib_a::{SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerCallback, SDL_TimerID, SDL_sem},
     pcrlib_c::*,
     scan_codes::SDL_Scancode,
 };
@@ -363,11 +360,5 @@ pub fn safe_SDL_AddTimer(
 pub fn safe_register_sdl_quit_on_exit() {
     unsafe {
         atexit(Some(SDL_Quit as unsafe extern "C" fn() -> ()));
-    }
-}
-
-pub fn safe_register_shutdown_vbl_on_exit() {
-    unsafe {
-        atexit(Some(ShutdownEmulatedVBL as unsafe extern "C" fn() -> ()));
     }
 }

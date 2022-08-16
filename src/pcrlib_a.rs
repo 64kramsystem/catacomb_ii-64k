@@ -376,10 +376,16 @@ unsafe extern "C" fn VBLCallback(mut _interval: u32, mut param: *mut libc::c_voi
     return VBL_TIME as i32 as u32;
 }
 
-pub unsafe extern "C" fn ShutdownEmulatedVBL() {
-    safe_SDL_RemoveTimer(pas.vbltimer);
-    safe_SDL_DestroySemaphore(pas.vblsem);
-}
+// In the SDL port, this was registered on atexit. Although it's tidy, it's not necessary, since (SQL)
+// quit events (e.g. window closing) are trapped by SDL and handled by the WatchUIEvents.
+// The only case where this can run is probably an unexpected termination. Since it's not strictly
+// necessary anyway, and the cost is to require globals (atexit() doesn't support parameters), it
+// can be safely removed.
+//
+// pub unsafe extern "C" fn ShutdownEmulatedVBL() {
+//     safe_SDL_RemoveTimer(pas.vbltimer);
+//     safe_SDL_DestroySemaphore(pas.vblsem);
+// }
 
 pub unsafe fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
     pas.vblsem = safe_SDL_CreateSemaphore(0 as u32);
@@ -388,7 +394,9 @@ pub unsafe fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
         Some(VBLCallback as unsafe extern "C" fn(u32, *mut libc::c_void) -> u32),
         pas as *mut PcrlibAState as *mut libc::c_void,
     );
-    safe_register_shutdown_vbl_on_exit();
+
+    // Disabled; see comment on ShutdownEmulatedVBL().
+    // safe_register_shutdown_vbl_on_exit();
 }
 
 pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
