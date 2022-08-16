@@ -911,14 +911,13 @@ pub unsafe fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
+
     port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
-    unsafe {
-        pcs.demobuffer
-            .copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
-        pcs.level = pcs.demobuffer[0] as i16;
-        pcs.demoptr = 1;
-        gs.indemo = demoenum::demoplay;
-    }
+    pcs.demobuffer
+        .copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
+    pcs.level = pcs.demobuffer[0] as i16;
+    pcs.demoptr = 1;
+    gs.indemo = demoenum::demoplay;
 }
 
 pub unsafe fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
