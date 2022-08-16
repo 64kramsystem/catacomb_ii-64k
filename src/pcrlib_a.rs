@@ -1,4 +1,7 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    ptr,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use ::libc;
 
@@ -97,7 +100,7 @@ unsafe fn _SDL_PCService(pas: &mut PcrlibAState) {
         pas.pcSound = pas.pcSound.offset(1);
         pas.pcLengthLeft = pas.pcLengthLeft.wrapping_sub(1);
         if pas.pcLengthLeft == 0 {
-            pas.pcSound = 0 as *mut u16;
+            pas.pcSound = ptr::null_mut();
             pas.SndPriority = 0;
             _SDL_turnOffPCSpeaker(pas);
         }
@@ -123,7 +126,7 @@ unsafe fn _SDL_PCPlaySound(mut sound: i32, pas: &mut PcrlibAState) {
 
 unsafe fn _SDL_PCStopSound(pas: &mut PcrlibAState) {
     safe_SDL_LockMutex(pas.AudioMutex);
-    pas.pcSound = 0 as *mut u16;
+    pas.pcSound = ptr::null_mut();
     _SDL_turnOffPCSpeaker(pas);
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
@@ -258,7 +261,7 @@ pub unsafe fn PauseSound(pas: &mut PcrlibAState) {
     pas.SavedSound.pcSound = pas.pcSound;
     pas.SndPriority = 0;
     pas.pcLengthLeft = 0;
-    pas.pcSound = 0 as *mut u16;
+    pas.pcSound = ptr::null_mut();
     _SDL_turnOffPCSpeaker(pas);
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
@@ -414,7 +417,7 @@ pub unsafe fn drawchar(mut x: i32, mut y: i32, mut charnum: i32, gs: &mut Global
         .as_mut_ptr()
         .offset(((y << 3) * screenpitch as i32) as isize)
         .offset((x << 3) as isize);
-    let mut src: *mut u8 = 0 as *mut u8;
+    let mut src: *mut u8 = ptr::null_mut();
     let mut i: u32 = 0;
     match grmode as u32 {
         1 => {
@@ -510,7 +513,7 @@ pub unsafe fn drawpic(
         .as_mut_ptr()
         .offset((y * screenpitch as i32) as isize)
         .offset(x as isize);
-    let mut src: *mut u8 = 0 as *mut u8;
+    let mut src: *mut u8 = ptr::null_mut();
     let mut i: u32 = 0;
     let mut picwidth: u32 = cps.pictable[picnum as usize].width as u32;
     let mut picheight: u32 = cps.pictable[picnum as usize].height as u32;

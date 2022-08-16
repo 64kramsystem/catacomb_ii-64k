@@ -1,4 +1,7 @@
-use std::ffi::{CStr, CString};
+use std::{
+    ffi::{CStr, CString},
+    ptr,
+};
 
 use ::libc;
 
@@ -627,9 +630,9 @@ pub unsafe fn installgrfile(
     cps: &mut CpanelState,
 ) {
     let mut i: i32 = 0;
-    let mut picfile: *mut picfiletype = 0 as *mut picfiletype;
-    let mut spriteinfile: *mut stype = 0 as *mut stype;
-    let mut picinfile: *mut ptype = 0 as *mut ptype;
+    let mut picfile: *mut picfiletype = ptr::null_mut();
+    let mut spriteinfile: *mut stype = ptr::null_mut();
+    let mut picinfile: *mut ptype = ptr::null_mut();
     if *filename.offset(0) == 0 {
         picfile = inmem as *mut picfiletype;
     } else {

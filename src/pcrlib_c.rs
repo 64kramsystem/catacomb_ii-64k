@@ -1106,10 +1106,10 @@ pub fn bloadin(filename: &str) -> *const u8 {
 }
 
 pub static mut grmode: grtype = text;
-pub static mut charptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-pub static mut tileptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-pub static mut picptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
-pub static mut spriteptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
+pub static mut charptr: *mut libc::c_void = ptr::null_mut();
+pub static mut tileptr: *mut libc::c_void = ptr::null_mut();
+pub static mut picptr: *mut libc::c_void = ptr::null_mut();
+pub static mut spriteptr: *mut libc::c_void = ptr::null_mut();
 pub static mut egaplaneofs: [u32; 4] = [0; 4];
 pub static mut sx: i32 = 0;
 pub static mut sy: i32 = 0;
@@ -1274,7 +1274,7 @@ pub unsafe fn UpdateScreen(gs: &mut GlobalState) {
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
     safe_SDL_RenderClear(renderer);
-    safe_SDL_RenderCopy(renderer, sdltexture, 0 as *const SDL_Rect, &mut updateRect);
+    safe_SDL_RenderCopy(renderer, sdltexture, ptr::null(), &mut updateRect);
     safe_SDL_RenderPresent(renderer);
 }
 
