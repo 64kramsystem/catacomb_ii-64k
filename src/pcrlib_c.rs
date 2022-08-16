@@ -953,18 +953,7 @@ pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn SaveDemo(mut demonum: i32, gs: &mut GlobalState) {
-    let str = CString::new(format!("DEMO{demonum}.{port_temp__extension}")).unwrap();
-
-    SaveFile(
-        str.as_ptr(),
-        demobuffer.as_ptr() as *const i8,
-        demoptr as i64,
-    );
-    gs.indemo = demoenum::notdemo;
-}
-
-pub unsafe fn port_temp_SaveDemo(demonum: u8, gs: &mut GlobalState) {
+pub unsafe fn SaveDemo(demonum: u8, gs: &mut GlobalState) {
     let str = format!("DEMO{demonum}.{port_temp__extension}");
 
     port_temp_SaveFile(&str, &demobuffer[..demoptr]);

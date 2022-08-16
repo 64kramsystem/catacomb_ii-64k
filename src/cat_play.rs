@@ -14,8 +14,7 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
-        bioskey, clearkeys, highscores, keydown, level, port_temp_SaveDemo, score, sx, sy,
-        RecordDemo,
+        bioskey, clearkeys, highscores, keydown, level, score, sx, sy, RecordDemo, SaveDemo,
     },
     scan_codes::*,
     tag_type::tagtype::*,
@@ -1319,7 +1318,7 @@ pub unsafe fn playloop(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pc
                     break;
                 }
             }
-            port_temp_SaveDemo((ch - '0' as i8) as u8, gs);
+            SaveDemo((ch - '0' as i8) as u8, gs);
             clearold(&mut gs.oldtiles);
             refresh(gs, pas);
             refresh(gs, pas);
