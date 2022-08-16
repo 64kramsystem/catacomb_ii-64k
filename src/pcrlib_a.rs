@@ -12,6 +12,7 @@ use crate::{
     global_state::GlobalState,
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{charptr, egaplaneofs, grmode, picptr, UpdateScreen},
+    pcrlib_c_state::PcrlibCState,
     safe_sdl::*,
     sound_type::soundtype::*,
 };
@@ -278,11 +279,11 @@ pub unsafe fn ContinueSound(pas: &mut PcrlibAState) {
     pas.pcSound = pas.SavedSound.pcSound;
 }
 
-pub unsafe fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+pub unsafe fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if pas._dontplay != 0 {
         return;
     }
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
     while !pas.pcSound.is_null() {
         WaitVBL(pas);
     }

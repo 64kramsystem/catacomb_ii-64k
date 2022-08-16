@@ -6,12 +6,15 @@ use std::{fs, mem, ptr};
 use ::libc;
 use libc::O_RDONLY;
 
+use crate::catacomb::loadgrfiles;
 use crate::cpanel_state::CpanelState;
-use crate::input_type::inputtype::{self, *};
+use crate::input_type::inputtype::*;
+use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
+use crate::pcrlib_c_state::PcrlibCState;
 use crate::sound_type::soundtype::{self, *};
+use crate::spkr_table::SPKRtable;
 use crate::{
-    catacomb::loadgrfiles,
     catasm::drawchartile,
     control_struct::ControlStruct,
     demo_enum::demoenum,
@@ -21,14 +24,10 @@ use crate::{
     extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    pcrlib_a::{
-        drawchar, initrnd, initrndt, PlaySound, SetupEmulatedVBL, ShutdownSound, StartupSound,
-        WaitVBL,
-    },
+    pcrlib_a::{drawchar, PlaySound, ShutdownSound, WaitVBL},
     safe_sdl::*,
     scan_codes::*,
     scores::scores,
-    spkr_table::SPKRtable,
 };
 extern "C" {
     pub type _IO_wide_data;
@@ -524,32 +523,6 @@ pub struct ctlpaneltype {
     pub keyB2: u8,
 }
 
-pub static mut playermode: [inputtype; 3] = [keyboard, keyboard, joystick1];
-pub static mut keydown: [boolean; 512] = [0; 512];
-pub static mut JoyXlow: [i32; 3] = [0; 3];
-pub static mut JoyXhigh: [i32; 3] = [0; 3];
-pub static mut JoyYlow: [i32; 3] = [0; 3];
-pub static mut JoyYhigh: [i32; 3] = [0; 3];
-pub static mut MouseSensitivity: i32 = 0;
-static mut mouseEvent: boolean = 0;
-pub static mut key: [i32; 8] = [0; 8];
-pub static mut keyB1: i32 = 0;
-pub static mut keyB2: i32 = 0;
-static mut demobuffer: [u8; 5000] = [0; 5000];
-static mut demoptr: usize = 0;
-static mut democount: i32 = 0;
-static mut lastdemoval: i32 = 0;
-static mut lastkey: SDL_Scancode = SDL_SCANCODE_UNKNOWN;
-static mut window: *mut SDL_Window = 0 as *const SDL_Window as *mut SDL_Window;
-static mut renderer: *mut SDL_Renderer = 0 as *const SDL_Renderer as *mut SDL_Renderer;
-static mut sdltexture: *mut SDL_Texture = 0 as *const SDL_Texture as *mut SDL_Texture;
-static mut updateRect: SDL_Rect = SDL_Rect {
-    x: 0,
-    y: 0,
-    w: 0,
-    h: 0,
-};
-
 pub static mut mode: SDL_DisplayMode = SDL_DisplayMode {
     format: 0,
     w: 0,
@@ -566,26 +539,26 @@ pub static mut joystick: [joyinfo_t; 3] = [joyinfo_t {
     isgamecontroller: 0,
 }; 3];
 
-pub unsafe fn SetupKBD() {
+pub unsafe fn SetupKBD(pcs: &mut PcrlibCState) {
     let mut i: u32 = 0;
     i = 0;
     while i < 128 {
-        keydown[i as usize] = false as boolean;
+        pcs.keydown[i as usize] = false as boolean;
         i = i.wrapping_add(1);
     }
 }
 
-pub unsafe fn ProcessEvents() {
-    mouseEvent = false as boolean;
+pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
+    pcs.mouseEvent = false as boolean;
     let mut event: SDL_Event = SDL_Event { type_0: 0 };
     while safe_SDL_PollEvent(&mut event) != 0 {
         if event.type_0 == SDL_KEYDOWN as i32 as u32 {
-            keydown[event.key.keysym.scancode as usize] = true as boolean;
-            lastkey = event.key.keysym.scancode;
+            pcs.keydown[event.key.keysym.scancode as usize] = true as boolean;
+            pcs.lastkey = event.key.keysym.scancode;
         } else if event.type_0 == SDL_KEYUP as i32 as u32 {
-            keydown[event.key.keysym.scancode as usize] = false as boolean;
+            pcs.keydown[event.key.keysym.scancode as usize] = false as boolean;
         } else if event.type_0 == SDL_MOUSEMOTION as i32 as u32 {
-            mouseEvent = true as boolean;
+            pcs.mouseEvent = true as boolean;
         }
     }
 }
@@ -596,22 +569,24 @@ unsafe extern "C" fn WatchUIEvents(
     mut userdata: *mut libc::c_void,
     mut event: *mut SDL_Event,
 ) -> i32 {
-    let pas = &mut *(userdata as *mut PcrlibAState);
+    let mut userdata = userdata as *const _ as *mut (*mut PcrlibAState, *mut PcrlibCState);
+    let (pas, pcs) = (&mut *(*userdata).0, &mut *(*userdata).1);
+
     if (*event).type_0 == SDL_QUIT as i32 as u32 {
-        _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas);
+        _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas, pcs);
     } else if (*event).type_0 == SDL_WINDOWEVENT as i32 as u32 {
         match (*event).window.event as i32 {
             13 => {
                 hasFocus = false as boolean;
-                CheckMouseMode();
+                CheckMouseMode(pcs);
             }
             12 => {
-                while safe_SDL_GetMouseFocus() != window {
+                while safe_SDL_GetMouseFocus() != pcs.window {
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
                 }
                 hasFocus = true as boolean;
-                CheckMouseMode();
+                CheckMouseMode(pcs);
             }
             _ => {}
         }
@@ -619,7 +594,7 @@ unsafe extern "C" fn WatchUIEvents(
     return 0;
 }
 
-pub unsafe fn ControlKBD() -> ControlStruct {
+pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     let mut xmove: i32 = 0;
     let mut ymove: i32 = 0;
     let mut action: ControlStruct = ControlStruct {
@@ -627,31 +602,31 @@ pub unsafe fn ControlKBD() -> ControlStruct {
         button1: 0,
         button2: 0,
     };
-    if keydown[key[north as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[north as i32 as usize] as usize] != 0 {
         ymove = -(1);
     }
-    if keydown[key[east as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[east as i32 as usize] as usize] != 0 {
         xmove = 1;
     }
-    if keydown[key[south as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[south as i32 as usize] as usize] != 0 {
         ymove = 1;
     }
-    if keydown[key[west as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[west as i32 as usize] as usize] != 0 {
         xmove = -(1);
     }
-    if keydown[key[northeast as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[northeast as i32 as usize] as usize] != 0 {
         ymove = -(1);
         xmove = 1;
     }
-    if keydown[key[northwest as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[northwest as i32 as usize] as usize] != 0 {
         ymove = -(1);
         xmove = -(1);
     }
-    if keydown[key[southeast as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[southeast as i32 as usize] as usize] != 0 {
         ymove = 1;
         xmove = 1;
     }
-    if keydown[key[southwest as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[southwest as i32 as usize] as usize] != 0 {
         ymove = 1;
         xmove = -(1);
     }
@@ -685,12 +660,12 @@ pub unsafe fn ControlKBD() -> ControlStruct {
         }
         _ => {}
     }
-    action.button1 = keydown[keyB1 as usize];
-    action.button2 = keydown[keyB2 as usize];
+    action.button1 = pcs.keydown[pcs.keyB1 as usize];
+    action.button2 = pcs.keydown[pcs.keyB2 as usize];
     return action;
 }
 
-pub unsafe fn ControlMouse() -> ControlStruct {
+pub unsafe fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
     let mut newx: i32 = 0;
     let mut newy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -703,18 +678,18 @@ pub unsafe fn ControlMouse() -> ControlStruct {
     let mut buttons: i32 = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32;
     action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) as boolean;
     action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) as boolean;
-    if mouseEvent as i32 == false as i32 {
+    if pcs.mouseEvent as i32 == false as i32 {
         action.dir = nodir;
         return action;
     }
-    if newx > MouseSensitivity {
+    if newx > pcs.MouseSensitivity {
         xmove = 1;
-    } else if newx < -MouseSensitivity {
+    } else if newx < -pcs.MouseSensitivity {
         xmove = -(1);
     }
-    if newy > MouseSensitivity {
+    if newy > pcs.MouseSensitivity {
         ymove = 1;
-    } else if newy < -MouseSensitivity {
+    } else if newy < -pcs.MouseSensitivity {
         ymove = -(1);
     }
     match ymove * 3 + xmove {
@@ -811,7 +786,7 @@ pub unsafe fn ReadJoystick(mut joynum: i32, mut xcount: *mut i32, mut ycount: *m
     *ycount = a2;
 }
 
-pub unsafe fn ControlJoystick(mut joynum: i32) -> ControlStruct {
+pub unsafe fn ControlJoystick(mut joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
     let mut joyx: i32 = 0;
     let mut joyy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -845,14 +820,14 @@ pub unsafe fn ControlJoystick(mut joynum: i32) -> ControlStruct {
         action.dir = nodir;
         return action;
     }
-    if joyx > JoyXhigh[joynum as usize] {
+    if joyx > pcs.JoyXhigh[joynum as usize] {
         xmove = 1;
-    } else if joyx < JoyXlow[joynum as usize] {
+    } else if joyx < pcs.JoyXlow[joynum as usize] {
         xmove = -(1);
     }
-    if joyy > JoyYhigh[joynum as usize] {
+    if joyy > pcs.JoyYhigh[joynum as usize] {
         ymove = 1;
-    } else if joyy < JoyYlow[joynum as usize] {
+    } else if joyy < pcs.JoyYlow[joynum as usize] {
         ymove = -(1);
     }
     match ymove * 3 + xmove {
@@ -888,38 +863,42 @@ pub unsafe fn ControlJoystick(mut joynum: i32) -> ControlStruct {
     return action;
 }
 
-pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStruct {
+pub unsafe fn ControlPlayer(
+    mut player: i32,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
         button1: 0,
         button2: 0,
     };
-    ProcessEvents();
+    ProcessEvents(pcs);
     if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
-        match playermode[player as usize] as u32 {
+        match pcs.playermode[player as usize] as u32 {
             1 => {
-                ret = ControlMouse();
+                ret = ControlMouse(pcs);
             }
             2 => {
-                ret = ControlJoystick(1);
+                ret = ControlJoystick(1, pcs);
             }
             3 => {
-                ret = ControlJoystick(2);
+                ret = ControlJoystick(2, pcs);
             }
             0 | _ => {
-                ret = ControlKBD();
+                ret = ControlKBD(pcs);
             }
         }
         if gs.indemo == demoenum::recording {
             let val = ((ret.dir as u32) << 2
                 | ((ret.button2 as i32) << 1) as u32
                 | ret.button1 as u32) as i32;
-            demobuffer[demoptr] = val as u8;
-            demoptr += 1;
+            pcs.demobuffer[pcs.demoptr] = val as u8;
+            pcs.demoptr += 1;
         }
     } else {
-        let val = demobuffer[demoptr];
-        demoptr += 1;
+        let val = pcs.demobuffer[pcs.demoptr];
+        pcs.demoptr += 1;
         ret.button1 = (val & 1) as boolean;
         ret.button2 = ((val & 2) >> 1) as boolean;
         ret.dir = ((val & 4 + 8 + 16 + 32) >> 2).into();
@@ -927,9 +906,9 @@ pub unsafe fn ControlPlayer(mut player: i32, gs: &mut GlobalState) -> ControlStr
     return ret;
 }
 
-pub unsafe fn RecordDemo(gs: &mut GlobalState) {
-    demobuffer[0] = level as u8;
-    demoptr = 1;
+pub unsafe fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    pcs.demobuffer[0] = level as u8;
+    pcs.demoptr = 1;
     gs.indemo = demoenum::recording;
 }
 
@@ -941,22 +920,23 @@ pub unsafe fn RecordDemo(gs: &mut GlobalState) {
 //
 ////////////////////////
 
-pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState) {
+pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
     port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
     unsafe {
-        demobuffer.copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
-        level = demobuffer[0] as i16;
-        demoptr = 1;
+        pcs.demobuffer
+            .copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
+        level = pcs.demobuffer[0] as i16;
+        pcs.demoptr = 1;
         gs.indemo = demoenum::demoplay;
     }
 }
 
-pub unsafe fn SaveDemo(demonum: u8, gs: &mut GlobalState) {
+pub unsafe fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let str = format!("DEMO{demonum}.{port_temp__extension}");
 
-    port_temp_SaveFile(&str, &demobuffer[..demoptr]);
+    port_temp_SaveFile(&str, &pcs.demobuffer[..pcs.demoptr]);
 
     gs.indemo = demoenum::notdemo;
 }
@@ -969,14 +949,14 @@ pub unsafe fn SaveDemo(demonum: u8, gs: &mut GlobalState) {
 
 /*=========================================================================*/
 
-pub unsafe fn clearkeys() {
+pub unsafe fn clearkeys(pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
-    while bioskey(1) != 0 {
-        bioskey(0);
+    while bioskey(1, pcs) != 0 {
+        bioskey(0, pcs);
     }
     i = 0;
     while i < 128 {
-        keydown[i as usize] = 0;
+        pcs.keydown[i as usize] = 0;
         i += 1;
     }
 }
@@ -1192,44 +1172,57 @@ pub unsafe fn expwin(
     mut height: i32,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
 ) {
     if width > 2 {
         if height > 2 {
-            expwin(width - 2, height - 2, gs, pas);
+            expwin(width - 2, height - 2, gs, pas, pcs);
         } else {
-            expwinh(width - 2, height, gs, pas);
+            expwinh(width - 2, height, gs, pas, pcs);
         }
     } else if height > 2 {
-        expwinv(width, height - 2, gs, pas);
+        expwinv(width, height - 2, gs, pas, pcs);
     }
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
     WaitVBL(pas);
     centerwindow(width, height, gs);
 }
 
-unsafe fn expwinh(mut width: i32, mut height: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn expwinh(
+    mut width: i32,
+    mut height: i32,
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     if width > 2 {
-        expwinh(width - 2, height, gs, pas);
+        expwinh(width - 2, height, gs, pas, pcs);
     }
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
     WaitVBL(pas);
     centerwindow(width, height, gs);
 }
 
-unsafe fn expwinv(mut width: i32, mut height: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn expwinv(
+    mut width: i32,
+    mut height: i32,
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     if height > 2 {
-        expwinv(width, height - 2, gs, pas);
+        expwinv(width, height - 2, gs, pas, pcs);
     }
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
     WaitVBL(pas);
     centerwindow(width, height, gs);
 }
 
-pub unsafe fn bioskey(mut cmd: i32) -> i32 {
-    if lastkey as u64 != 0 {
-        let mut oldkey: i32 = lastkey as i32;
+pub unsafe fn bioskey(mut cmd: i32, pcs: &mut PcrlibCState) -> i32 {
+    if pcs.lastkey as u64 != 0 {
+        let mut oldkey: i32 = pcs.lastkey as i32;
         if cmd != 1 {
-            lastkey = SDL_SCANCODE_UNKNOWN;
+            pcs.lastkey = SDL_SCANCODE_UNKNOWN;
         }
         return oldkey;
     }
@@ -1237,16 +1230,16 @@ pub unsafe fn bioskey(mut cmd: i32) -> i32 {
     while safe_SDL_PollEvent(&mut event) != 0 {
         if event.type_0 == SDL_KEYDOWN as i32 as u32 {
             if cmd == 1 {
-                lastkey = event.key.keysym.scancode;
-                return lastkey as i32;
+                pcs.lastkey = event.key.keysym.scancode;
+                return pcs.lastkey as i32;
             }
             return event.key.keysym.scancode as i32;
         }
     }
-    return lastkey as i32;
+    return pcs.lastkey as i32;
 }
 
-pub unsafe fn UpdateScreen(gs: &mut GlobalState) {
+pub unsafe fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     static mut EGAPalette: [u32; 16] = [
         0, 0xaa, 0xaa00, 0xaaaa, 0xaa0000, 0xaa00aa, 0xaa5500, 0xaaaaaa, 0x555555, 0x5555ff,
         0x55ff55, 0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff,
@@ -1268,30 +1261,35 @@ pub unsafe fn UpdateScreen(gs: &mut GlobalState) {
         panic!("VGA Palette conversion not implemented.");
     }
     safe_SDL_UpdateTexture(
-        sdltexture,
+        pcs.sdltexture,
         0 as *const SDL_Rect,
         conv.as_mut_ptr() as *const libc::c_void,
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
-    safe_SDL_RenderClear(renderer);
-    safe_SDL_RenderCopy(renderer, sdltexture, ptr::null(), &mut updateRect);
-    safe_SDL_RenderPresent(renderer);
+    safe_SDL_RenderClear(pcs.renderer);
+    safe_SDL_RenderCopy(
+        pcs.renderer,
+        pcs.sdltexture,
+        ptr::null(),
+        &mut pcs.updateRect,
+    );
+    safe_SDL_RenderPresent(pcs.renderer);
 }
 
-pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState) -> i32 {
+pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> i32 {
     let mut cycle: i32 = 0;
     let mut key_0: i32 = 0;
     loop {
         cycle = 9;
         loop {
-            key_0 = bioskey(0);
+            key_0 = bioskey(0, pcs);
             if !(key_0 == 0 && cycle < 13) {
                 break;
             }
             let fresh2 = cycle;
             cycle = cycle + 1;
             drawchar(sx, sy, fresh2, gs);
-            UpdateScreen(gs);
+            UpdateScreen(gs, pcs);
             WaitVBL(pas);
             WaitVBL(pas);
             WaitVBL(pas);
@@ -1303,7 +1301,7 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState) -> i32 {
         }
     }
     drawchar(sx, sy, ' ' as i32, gs);
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
     return safe_SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
 }
 
@@ -1422,12 +1420,16 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub unsafe fn _inputint(gs: &mut GlobalState, pas: &mut PcrlibAState) -> u32 {
+pub unsafe fn _inputint(
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
 
-    _input(&mut string, 17, gs, pas);
+    _input(&mut string, 17, gs, pas, pcs);
 
     if string[0] == b'$' {
         let digits = port_temp_strlen(&string) as isize - 2;
@@ -1471,12 +1473,13 @@ unsafe fn _input(
     max: usize,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
 ) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
 
     loop {
-        key_ = (get(gs, pas) as u8).to_ascii_uppercase();
+        key_ = (get(gs, pas, pcs) as u8).to_ascii_uppercase();
         if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
             drawchar(sx, sy, ' ' as i32, gs);
@@ -1543,15 +1546,15 @@ pub unsafe fn ScancodeToDOS(mut sc: SDL_Scancode) -> i32 {
     return 0;
 }
 
-pub unsafe fn CheckMouseMode() {
+pub unsafe fn CheckMouseMode(pcs: &mut PcrlibCState) {
     safe_SDL_SetRelativeMouseMode(
         (hasFocus as i32 != 0
-            && (playermode[1] as u32 == mouse as i32 as u32
-                || playermode[2] as u32 == mouse as i32 as u32)) as i32 as SDL_bool,
+            && (pcs.playermode[1] as u32 == mouse as i32 as u32
+                || pcs.playermode[2] as u32 == mouse as i32 as u32)) as i32 as SDL_bool,
     );
 }
 
-pub unsafe fn _loadctrls(pas: &mut PcrlibAState) {
+pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
     // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
     // project.
@@ -1563,27 +1566,27 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState) {
     if handle == -1 {
         grmode = VGAgr;
         pas.soundmode = spkr;
-        playermode[1] = keyboard;
-        playermode[2] = joystick1;
-        JoyXlow[2] = 20;
-        JoyXlow[1] = JoyXlow[2];
-        JoyXhigh[2] = 60;
-        JoyXhigh[1] = JoyXhigh[2];
-        JoyYlow[2] = 20;
-        JoyYlow[1] = JoyYlow[2];
-        JoyYhigh[2] = 60;
-        JoyYhigh[1] = JoyYhigh[2];
-        MouseSensitivity = 5;
-        key[north as usize] = SDL_SCANCODE_UP as i32;
-        key[northeast as usize] = SDL_SCANCODE_PAGEUP as i32;
-        key[east as usize] = SDL_SCANCODE_RIGHT as i32;
-        key[southeast as usize] = SDL_SCANCODE_PAGEDOWN as i32;
-        key[south as usize] = SDL_SCANCODE_DOWN as i32;
-        key[southwest as usize] = SDL_SCANCODE_END as i32;
-        key[west as usize] = SDL_SCANCODE_LEFT as i32;
-        key[northwest as usize] = SDL_SCANCODE_HOME as i32;
-        keyB1 = SDL_SCANCODE_LCTRL as i32;
-        keyB2 = SDL_SCANCODE_LALT as i32;
+        pcs.playermode[1] = keyboard;
+        pcs.playermode[2] = joystick1;
+        pcs.JoyXlow[2] = 20;
+        pcs.JoyXlow[1] = pcs.JoyXlow[2];
+        pcs.JoyXhigh[2] = 60;
+        pcs.JoyXhigh[1] = pcs.JoyXhigh[2];
+        pcs.JoyYlow[2] = 20;
+        pcs.JoyYlow[1] = pcs.JoyYlow[2];
+        pcs.JoyYhigh[2] = 60;
+        pcs.JoyYhigh[1] = pcs.JoyYhigh[2];
+        pcs.MouseSensitivity = 5;
+        pcs.key[north as usize] = SDL_SCANCODE_UP as i32;
+        pcs.key[northeast as usize] = SDL_SCANCODE_PAGEUP as i32;
+        pcs.key[east as usize] = SDL_SCANCODE_RIGHT as i32;
+        pcs.key[southeast as usize] = SDL_SCANCODE_PAGEDOWN as i32;
+        pcs.key[south as usize] = SDL_SCANCODE_DOWN as i32;
+        pcs.key[southwest as usize] = SDL_SCANCODE_END as i32;
+        pcs.key[west as usize] = SDL_SCANCODE_LEFT as i32;
+        pcs.key[northwest as usize] = SDL_SCANCODE_HOME as i32;
+        pcs.keyB1 = SDL_SCANCODE_LCTRL as i32;
+        pcs.keyB2 = SDL_SCANCODE_LALT as i32;
     } else {
         let mut ctlpanel: ctlpaneltype = ctlpaneltype {
             grmode: text,
@@ -1609,40 +1612,40 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState) {
         let mut i: u32 = 0;
         i = 0;
         while i < 3 {
-            playermode[i as usize] = ctlpanel.playermode[i as usize].into();
-            JoyXlow[i as usize] = ctlpanel.JoyXlow[i as usize] as i32;
-            JoyYlow[i as usize] = ctlpanel.JoyYlow[i as usize] as i32;
-            JoyXhigh[i as usize] = ctlpanel.JoyXhigh[i as usize] as i32;
-            JoyYhigh[i as usize] = ctlpanel.JoyYhigh[i as usize] as i32;
-            if playermode[i as usize] as u32 == mouse as i32 as u32 {
-                CheckMouseMode();
+            pcs.playermode[i as usize] = ctlpanel.playermode[i as usize].into();
+            pcs.JoyXlow[i as usize] = ctlpanel.JoyXlow[i as usize] as i32;
+            pcs.JoyYlow[i as usize] = ctlpanel.JoyYlow[i as usize] as i32;
+            pcs.JoyXhigh[i as usize] = ctlpanel.JoyXhigh[i as usize] as i32;
+            pcs.JoyYhigh[i as usize] = ctlpanel.JoyYhigh[i as usize] as i32;
+            if pcs.playermode[i as usize] as u32 == mouse as i32 as u32 {
+                CheckMouseMode(pcs);
             }
-            if playermode[i as usize] as u32 == joystick1 as i32 as u32
-                || playermode[i as usize] as u32 == joystick2 as i32 as u32
+            if pcs.playermode[i as usize] as u32 == joystick1 as i32 as u32
+                || pcs.playermode[i as usize] as u32 == joystick2 as i32 as u32
             {
                 ProbeJoysticks();
-                if playermode[i as usize] as u32 == joystick1 as i32 as u32
+                if pcs.playermode[i as usize] as u32 == joystick1 as i32 as u32
                     && joystick[1].device < 0
-                    || playermode[i as usize] as u32 == joystick2 as i32 as u32
+                    || pcs.playermode[i as usize] as u32 == joystick2 as i32 as u32
                         && joystick[2].device < 0
                 {
-                    playermode[i as usize] = keyboard;
+                    pcs.playermode[i as usize] = keyboard;
                 }
             }
             i = i.wrapping_add(1);
         }
-        MouseSensitivity = ctlpanel.MouseSensitivity as i32;
+        pcs.MouseSensitivity = ctlpanel.MouseSensitivity as i32;
         i = 0;
         while i < 8 {
-            key[i as usize] = DOSScanCodeMap[ctlpanel.key[i as usize] as usize] as i32;
+            pcs.key[i as usize] = DOSScanCodeMap[ctlpanel.key[i as usize] as usize] as i32;
             i = i.wrapping_add(1);
         }
-        keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize] as i32;
-        keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize] as i32;
+        pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize] as i32;
+        pcs.keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize] as i32;
     };
 }
 
-pub unsafe fn _savectrls(pas: &mut PcrlibAState) {
+pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ctlpanel: ctlpaneltype = ctlpaneltype {
         grmode: text,
         soundmode: off,
@@ -1669,21 +1672,21 @@ pub unsafe fn _savectrls(pas: &mut PcrlibAState) {
     ctlpanel.soundmode = pas.soundmode;
     let mut i = 0;
     while i < 3 {
-        ctlpanel.playermode[i] = playermode[i] as u16;
-        ctlpanel.JoyXlow[i] = JoyXlow[i] as i16;
-        ctlpanel.JoyYlow[i] = JoyYlow[i] as i16;
-        ctlpanel.JoyXhigh[i] = JoyXhigh[i] as i16;
-        ctlpanel.JoyYhigh[i] = JoyYhigh[i] as i16;
+        ctlpanel.playermode[i] = pcs.playermode[i] as u16;
+        ctlpanel.JoyXlow[i] = pcs.JoyXlow[i] as i16;
+        ctlpanel.JoyYlow[i] = pcs.JoyYlow[i] as i16;
+        ctlpanel.JoyXhigh[i] = pcs.JoyXhigh[i] as i16;
+        ctlpanel.JoyYhigh[i] = pcs.JoyYhigh[i] as i16;
         i = i.wrapping_add(1);
     }
-    ctlpanel.MouseSensitivity = MouseSensitivity as i16;
+    ctlpanel.MouseSensitivity = pcs.MouseSensitivity as i16;
     i = 0;
     while i < 8 {
-        ctlpanel.key[i as usize] = ScancodeToDOS(key[i as usize] as SDL_Scancode) as u8;
+        ctlpanel.key[i as usize] = ScancodeToDOS(pcs.key[i as usize] as SDL_Scancode) as u8;
         i = i.wrapping_add(1);
     }
-    ctlpanel.keyB1 = ScancodeToDOS(keyB1 as SDL_Scancode) as u8;
-    ctlpanel.keyB2 = ScancodeToDOS(keyB2 as SDL_Scancode) as u8;
+    ctlpanel.keyB1 = ScancodeToDOS(pcs.keyB1 as SDL_Scancode) as u8;
+    ctlpanel.keyB2 = ScancodeToDOS(pcs.keyB2 as SDL_Scancode) as u8;
     write(
         handle,
         &mut ctlpanel as *mut ctlpaneltype as *const libc::c_void,
@@ -1768,7 +1771,11 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState) {
     _printc(str.as_ptr(), gs);
 }
 
-pub unsafe fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+pub unsafe fn _checkhighscore(
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
     let mut k: i32 = 0;
@@ -1793,15 +1800,15 @@ pub unsafe fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState) {
         }
     }
     _showhighscores(gs);
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
     if i < 5 {
         PlaySound(16, pas);
-        clearkeys();
+        clearkeys(pcs);
         sx = gs.screencenter.x - 17 / 2 + 14;
         sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
-            k = get(gs, pas);
+            k = get(gs, pas, pcs);
             let ch = k as i8;
             if ch >= ' ' as i8 && j < 3 {
                 drawchar(sx, sy, ch as i32, gs);
@@ -1825,16 +1832,28 @@ pub unsafe fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState) {
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
-pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+pub fn _setupgame(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     if safe_SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
         eprintln!("Failed to initialize SDL: {}", safe_SDL_GetError());
         std::process::exit(1);
     }
     safe_register_sdl_quit_on_exit();
+
+    let mut userdata = Box::leak(Box::new((
+        pas as *mut PcrlibAState,
+        pcs as *mut PcrlibCState,
+    )));
+
     safe_SDL_AddEventWatch(
         Some(WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32),
-        pas as *mut PcrlibAState as *mut libc::c_void,
+        userdata as *const _ as *mut libc::c_void,
     );
+
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
@@ -1891,7 +1910,7 @@ pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibA
             mode.w = winWidth as i32;
             mode.h = winHeight as i32;
         }
-        window = safe_SDL_CreateWindow(
+        pcs.window = safe_SDL_CreateWindow(
             b"The Catacomb\0" as *const u8 as *const i8,
             bounds.x,
             bounds.y,
@@ -1903,40 +1922,40 @@ pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibA
                 SDL_WINDOW_FULLSCREEN_DESKTOP as i32
             }) as u32,
         );
-        if window.is_null() || {
-            renderer = safe_SDL_CreateRenderer(window, -(1), 0);
-            renderer.is_null()
+        if pcs.window.is_null() || {
+            pcs.renderer = safe_SDL_CreateRenderer(pcs.window, -(1), 0);
+            pcs.renderer.is_null()
         } {
             eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
             std::process::exit(1);
         }
-        sdltexture = safe_SDL_CreateTexture(
-            renderer,
+        pcs.sdltexture = safe_SDL_CreateTexture(
+            pcs.renderer,
             SDL_PIXELFORMAT_ARGB8888,
             SDL_TEXTUREACCESS_STREAMING as i32,
             320,
             200,
         );
-        if sdltexture.is_null() {
+        if pcs.sdltexture.is_null() {
             eprintln!("Could not create video buffer: {}", safe_SDL_GetError());
             std::process::exit(1);
         }
         if mode.w == 320 && mode.h == 200 || mode.w == 640 && mode.h == 400 {
-            updateRect.w = mode.w;
-            updateRect.h = mode.h;
-            updateRect.y = 0;
-            updateRect.x = updateRect.y;
+            pcs.updateRect.w = mode.w;
+            pcs.updateRect.h = mode.h;
+            pcs.updateRect.y = 0;
+            pcs.updateRect.x = pcs.updateRect.y;
         } else {
-            updateRect.h = mode.h;
-            updateRect.w = mode.h * 4 / 3;
-            updateRect.x = mode.w - updateRect.w >> 1;
-            updateRect.y = 0;
+            pcs.updateRect.h = mode.h;
+            pcs.updateRect.w = mode.h * 4 / 3;
+            pcs.updateRect.x = mode.w - pcs.updateRect.w >> 1;
+            pcs.updateRect.y = 0;
         }
         gs.screenseg.fill(0);
         grmode = EGAgr;
         joystick[2].device = -(1);
         joystick[1].device = joystick[2].device;
-        _loadctrls(pas);
+        _loadctrls(pas, pcs);
         if grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
             grmode = VGAgr;
         } else if grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
@@ -1947,7 +1966,7 @@ pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibA
         let filename = format!("SOUNDS.{port_temp__extension}");
         pas.SoundData = bloadin(&filename) as *mut SPKRtable;
         StartupSound(pas);
-        SetupKBD();
+        SetupKBD(pcs);
         initrndt(1, pas);
         initrnd(1, pas);
         _loadhighscores();
@@ -1956,10 +1975,10 @@ pub fn _setupgame(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibA
     }
 }
 
-pub unsafe fn _quit(mut error: *const i8, pas: &mut PcrlibAState) {
+pub unsafe fn _quit(mut error: *const i8, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if *error == 0 {
         _savehighscores();
-        _savectrls(pas);
+        _savectrls(pas, pcs);
     } else {
         puts(error);
         puts(b"\n\0" as *const u8 as *const i8);
@@ -1971,9 +1990,9 @@ pub unsafe fn _quit(mut error: *const i8, pas: &mut PcrlibAState) {
     }
     ShutdownSound(pas);
     ShutdownJoysticks();
-    safe_SDL_DestroyRenderer(renderer);
-    safe_SDL_DestroyWindow(window);
-    renderer = 0 as *mut SDL_Renderer;
-    window = 0 as *mut SDL_Window;
+    safe_SDL_DestroyRenderer(pcs.renderer);
+    safe_SDL_DestroyWindow(pcs.window);
+    pcs.renderer = 0 as *mut SDL_Renderer;
+    pcs.window = 0 as *mut SDL_Window;
     std::process::exit(0);
 }

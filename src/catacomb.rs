@@ -34,11 +34,12 @@ use crate::{
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        grmode, keydown, leftedge, level, port_temp_LoadFile, print, printchartile, printint,
-        score, sx, sy,
+        grmode, leftedge, level, port_temp_LoadFile, print, printchartile, printint, score, sx, sy,
+        SDL_Rect,
     },
+    pcrlib_c_state::PcrlibCState,
     rleasm::port_temp_RLEExpand,
-    safe_sdl::SDL_mutex,
+    safe_sdl::{SDL_Renderer, SDL_Texture, SDL_Window, SDL_mutex},
     scan_codes::*,
     sound_type::soundtype::*,
     state_type::statetype,
@@ -115,7 +116,7 @@ const demowin: [[i8; 16]; 5] = [
     ],
 ];
 
-pub unsafe fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+pub unsafe fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     let mut basex: i32 = 0;
@@ -139,9 +140,9 @@ pub unsafe fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     }
     WaitVBL(pas);
     if grmode as u32 == CGAgr as i32 as u32 {
-        cgarefresh(gs);
+        cgarefresh(gs, pcs);
     } else {
-        egarefresh(gs);
+        egarefresh(gs, pcs);
     }
     if gs.indemo != demoenum::notdemo {
         y = 0;
@@ -158,12 +159,12 @@ pub unsafe fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     WaitVBL(pas);
 }
 
-unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     WaitVBL(pas);
     if grmode as u32 == CGAgr as i32 as u32 {
-        cgarefresh(gs);
+        cgarefresh(gs, pcs);
     } else {
-        egarefresh(gs);
+        egarefresh(gs, pcs);
     };
 }
 
@@ -194,18 +195,22 @@ pub fn clearold(oldtiles: &mut [i32; 576]) {
     oldtiles.fill(0xff);
 }
 
-pub unsafe fn restore(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+pub unsafe fn restore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     clearold(&mut gs.oldtiles);
-    simplerefresh(gs, pas);
+    simplerefresh(gs, pas, pcs);
 }
 
-unsafe fn wantmore(gs: &mut GlobalState, pas: &mut PcrlibAState) -> boolean {
+unsafe fn wantmore(
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) -> boolean {
     sx = 2;
     sy = 20;
     print(b"(space for more/esc)\0" as *const u8 as *const i8, gs);
     sx = 12;
     sy = 21;
-    let ch = get(gs, pas) as i8;
+    let ch = get(gs, pas, pcs) as i8;
     if ch == 27 {
         return false as boolean;
     }
@@ -244,7 +249,7 @@ unsafe fn charpic(
     }
 }
 
-unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     centerwindow(20, 20, gs);
@@ -263,7 +268,7 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     print(b"\n\0" as *const u8 as *const i8, gs);
     print(b"hit fire at the demo\n\0" as *const u8 as *const i8, gs);
     print(b"to begin playing.   \n\0" as *const u8 as *const i8, gs);
-    if wantmore(gs, pas) == 0 {
+    if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs);
@@ -277,7 +282,7 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     print(b"\nTo switch to mouse \n\0" as *const u8 as *const i8, gs);
     print(b"or joystick control,\n\0" as *const u8 as *const i8, gs);
     print(b"hit f2             \n\0" as *const u8 as *const i8, gs);
-    if wantmore(gs, pas) == 0 {
+    if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs);
@@ -304,7 +309,7 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     charpic(17, 14, shot, east, 0, gs);
     charpic(15, 15, shot, east, 1, gs);
     charpic(8, 14, bigshot, east, 0, gs);
-    if wantmore(gs, pas) == 0 {
+    if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs);
@@ -334,7 +339,7 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     sx = 6;
     sy = 15;
     print(b"\x1D\x1D\x1E\x1E\x1F\x1F\0" as *const u8 as *const i8, gs);
-    if wantmore(gs, pas) == 0 {
+    if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs);
@@ -357,7 +362,7 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     print(b"down a lot of       \n\0" as *const u8 as *const i8, gs);
     print(b"monsters with a bit \n\0" as *const u8 as *const i8, gs);
     print(b"of skill.           \n\0" as *const u8 as *const i8, gs);
-    if wantmore(gs, pas) == 0 {
+    if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs);
@@ -404,20 +409,20 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState) {
         b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
         gs,
     );
-    wantmore(gs, pas);
+    wantmore(gs, pas, pcs);
 }
 
-unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     centerwindow(18, 1, gs);
     print(b"reset game (y/n)?\0" as *const u8 as *const i8, gs);
-    let ch = get(gs, pas) as i8;
+    let ch = get(gs, pas, pcs) as i8;
     if ch == 'y' as i8 {
         gs.gamexit = killed;
         gs.playdone = true;
     }
 }
 
-pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
@@ -492,7 +497,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     sy = 1;
     printint(level as i32, gs);
     print(b" \0" as *const u8 as *const i8, gs);
-    restore(gs, pas);
+    restore(gs, pas, pcs);
     i = 0;
     while i < 6 {
         gs.saveitems[i as usize] = gs.items[i as usize];
@@ -585,13 +590,18 @@ unsafe fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState) {
     };
 }
 
-pub unsafe fn repaintscreen(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+pub unsafe fn repaintscreen(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     match gs.gamestate {
         statetype::intitle => {
             drawpic(0, 0, 14, gs, cps);
         }
         statetype::ingame => {
-            restore(gs, pas);
+            restore(gs, pas, pcs);
             drawside(gs, cps);
             printscore(gs);
             sx = 33;
@@ -599,7 +609,7 @@ pub unsafe fn repaintscreen(gs: &mut GlobalState, cps: &mut CpanelState, pas: &m
             printint(level as i32, gs);
         }
         statetype::inscores => {
-            restore(gs, pas);
+            restore(gs, pas, pcs);
             drawside(gs, cps);
             printscore(gs);
             sx = 33;
@@ -610,9 +620,14 @@ pub unsafe fn repaintscreen(gs: &mut GlobalState, cps: &mut CpanelState, pas: &m
     };
 }
 
-pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+pub unsafe fn dofkeys(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     let mut handle: i32 = 0;
-    let mut key: i32 = bioskey(1);
+    let mut key: i32 = bioskey(1, pcs);
     if key == SDL_SCANCODE_ESCAPE as i32 {
         key = SDL_SCANCODE_F10 as i32;
     }
@@ -622,31 +637,31 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
     let mut current_block_72: u64;
     match key {
         58 => {
-            clearkeys();
-            help(gs, pas);
+            clearkeys(pcs);
+            help(gs, pas, pcs);
         }
         59 => {
-            clearkeys();
-            controlpanel(gs, cps, pas);
+            clearkeys(pcs);
+            controlpanel(gs, cps, pas, pcs);
         }
         60 => {
-            clearkeys();
-            expwin(18, 1, gs, pas);
+            clearkeys(pcs);
+            expwin(18, 1, gs, pas, pcs);
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8, gs);
-            let ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
+            let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
             if ch as i32 == 'Y' as i32 {
                 gs.resetgame = true;
             }
         }
         61 => {
-            clearkeys();
-            expwin(22, 4, gs, pas);
+            clearkeys(pcs);
+            expwin(22, 4, gs, pas, pcs);
             if gs.indemo != demoenum::notdemo {
                 print(b"Can't save game here!\0" as *const u8 as *const i8, gs);
-                get(gs, pas);
+                get(gs, pas, pcs);
             } else {
                 print(b"Save as game #(1-9):\0" as *const u8 as *const i8, gs);
-                let mut ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
+                let mut ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
                 drawchar(sx, sy, ch as i32, gs);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                     let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
@@ -655,7 +670,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
                             b"\nGame exists,\noverwrite (Y/N)?\0" as *const u8 as *const i8,
                             gs,
                         );
-                        ch = get(gs, pas) as i8;
+                        ch = get(gs, pas, pcs) as i8;
                         if ch as i32 != 'Y' as i32 && ch as i32 != 'y' as i32 {
                             current_block_72 = 919954187481050311;
                         } else {
@@ -707,17 +722,17 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
                             print(b"\nGame saved.  Hit F5\n\0" as *const u8 as *const i8, gs);
                             print(b"when you wish to\n\0" as *const u8 as *const i8, gs);
                             print(b"restart the game.\0" as *const u8 as *const i8, gs);
-                            get(gs, pas);
+                            get(gs, pas, pcs);
                         }
                     }
                 }
             }
         }
         62 => {
-            clearkeys();
-            expwin(22, 4, gs, pas);
+            clearkeys(pcs);
+            expwin(22, 4, gs, pas, pcs);
             print(b"Load game #(1-9):\0" as *const u8 as *const i8, gs);
-            let ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
+            let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
             drawchar(sx, sy, ch as i32, gs);
             if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                 let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
@@ -730,7 +745,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
                 );
                 if handle == -(1) {
                     print(b"\nGame not found.\0" as *const u8 as *const i8, gs);
-                    get(gs, pas);
+                    get(gs, pas, pcs);
                 } else {
                     read(
                         handle,
@@ -763,49 +778,54 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
             }
         }
         66 => {
-            clearkeys();
-            expwin(7, 1, gs, pas);
+            clearkeys(pcs);
+            expwin(7, 1, gs, pas, pcs);
             print(b"PAUSED\0" as *const u8 as *const i8, gs);
-            get(gs, pas);
+            get(gs, pas, pcs);
         }
         67 => {
-            clearkeys();
-            expwin(12, 1, gs, pas);
+            clearkeys(pcs);
+            expwin(12, 1, gs, pas, pcs);
             print(b"QUIT (Y/N)?\0" as *const u8 as *const i8, gs);
-            let ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
+            let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
             if ch == 'Y' as i8 {
-                _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas);
+                _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas, pcs);
             }
         }
         _ => return,
     }
     clearold(&mut gs.oldtiles);
-    clearkeys();
-    repaintscreen(gs, cps, pas);
+    clearkeys(pcs);
+    repaintscreen(gs, cps, pas, pcs);
 }
 
-unsafe fn dotitlepage(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+unsafe fn dotitlepage(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14, gs, cps);
-    UpdateScreen(gs);
+    UpdateScreen(gs, pcs);
     gs.gamestate = statetype::intitle;
     i = 0;
     while i < 300 {
         WaitVBL(pas);
         gs.indemo = demoenum::notdemo;
-        gs.ctrl = ControlPlayer(1, gs);
+        gs.ctrl = ControlPlayer(1, gs, pcs);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
-            || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
+            || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             level = 0;
             gs.exitdemo = true;
             break;
         } else {
             gs.indemo = demoenum::demoplay;
-            if bioskey(1) != 0 {
-                dofkeys(gs, cps, pas);
-                UpdateScreen(gs);
+            if bioskey(1, pcs) != 0 {
+                dofkeys(gs, cps, pas, pcs);
+                UpdateScreen(gs, pcs);
             }
             if gs.exitdemo {
                 break;
@@ -816,17 +836,22 @@ unsafe fn dotitlepage(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
     gs.gamestate = statetype::ingame;
 }
 
-unsafe fn doendpage(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
-    WaitEndSound(gs, pas);
+unsafe fn doendpage(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
+    WaitEndSound(gs, pas, pcs);
     drawpic(0, 0, 15, gs, cps);
     PlaySound(3, pas);
-    WaitEndSound(gs, pas);
+    WaitEndSound(gs, pas, pcs);
     PlaySound(3, pas);
-    WaitEndSound(gs, pas);
+    WaitEndSound(gs, pas, pcs);
     PlaySound(3, pas);
-    WaitEndSound(gs, pas);
+    WaitEndSound(gs, pas, pcs);
     PlaySound(3, pas);
-    WaitEndSound(gs, pas);
+    WaitEndSound(gs, pas, pcs);
     drawwindow(0, 0, 17, 9, gs);
     print(b"Congratulation! \n\0" as *const u8 as *const i8, gs);
     print(b"One as skilled  \n\0" as *const u8 as *const i8, gs);
@@ -835,8 +860,8 @@ unsafe fn doendpage(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcrli
     print(b"10,000,000 gold \n\0" as *const u8 as *const i8, gs);
     print(b"you pulled out  \n\0" as *const u8 as *const i8, gs);
     print(b"of the palace! \0" as *const u8 as *const i8, gs);
-    clearkeys();
-    get(gs, pas);
+    clearkeys(pcs);
+    get(gs, pas, pcs);
     drawwindow(0, 0, 17, 9, gs);
     print(b"Let us know what\n\0" as *const u8 as *const i8, gs);
     print(b"you enjoyed     \n\0" as *const u8 as *const i8, gs);
@@ -845,21 +870,26 @@ unsafe fn doendpage(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcrli
     print(b"you more of it. \n\0" as *const u8 as *const i8, gs);
     print(b"Thank you for   \n\0" as *const u8 as *const i8, gs);
     print(b"playing!\0" as *const u8 as *const i8, gs);
-    get(gs, pas);
+    get(gs, pas, pcs);
 }
 
-unsafe fn dodemo(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+unsafe fn dodemo(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     let mut i: i32 = 0;
     while !gs.exitdemo {
-        dotitlepage(gs, cps, pas);
+        dotitlepage(gs, cps, pas, pcs);
         if gs.exitdemo {
             break;
         }
         i = rnd(NUM_DEMOS - 1, pas) + 1;
-        LoadDemo(i, gs);
+        LoadDemo(i, gs, pcs);
         level = 0;
         playsetup(gs, cps);
-        playloop(gs, cps, pas);
+        playloop(gs, cps, pas, pcs);
         if gs.exitdemo {
             break;
         }
@@ -867,21 +897,21 @@ unsafe fn dodemo(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAS
         gs.gamestate = statetype::inscores;
         gs.indemo = demoenum::demoplay;
         _showhighscores(gs);
-        UpdateScreen(gs);
+        UpdateScreen(gs, pcs);
         i = 0;
         while i < 500 {
             WaitVBL(pas);
             gs.indemo = demoenum::notdemo;
-            gs.ctrl = ControlPlayer(1, gs);
+            gs.ctrl = ControlPlayer(1, gs, pcs);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
-                || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
+                || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 gs.exitdemo = true;
                 break;
             } else {
-                if bioskey(1) != 0 {
-                    dofkeys(gs, cps, pas);
+                if bioskey(1, pcs) != 0 {
+                    dofkeys(gs, cps, pas, pcs);
                 }
                 if gs.exitdemo {
                     break;
@@ -892,32 +922,37 @@ unsafe fn dodemo(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAS
     }
 }
 
-unsafe fn gameover(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+unsafe fn gameover(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     let mut i: i32 = 0;
-    expwin(11, 4, gs, pas);
+    expwin(11, 4, gs, pas, pcs);
     print(b"\n GAME OVER\n     \0" as *const u8 as *const i8, gs);
-    UpdateScreen(gs);
-    WaitEndSound(gs, pas);
+    UpdateScreen(gs, pcs);
+    WaitEndSound(gs, pas, pcs);
     i = 0;
     while i < 120 {
         WaitVBL(pas);
         i += 1;
     }
     gs.gamestate = statetype::inscores;
-    _checkhighscore(gs, pas);
+    _checkhighscore(gs, pas, pcs);
     level = 0;
     i = 0;
     while i < 500 {
         WaitVBL(pas);
-        gs.ctrl = ControlPlayer(1, gs);
+        gs.ctrl = ControlPlayer(1, gs, pcs);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
-            || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
+            || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             break;
         }
-        if bioskey(1) != 0 {
-            dofkeys(gs, cps, pas);
+        if bioskey(1, pcs) != 0 {
+            dofkeys(gs, cps, pas, pcs);
         }
         if gs.exitdemo as i32 != 0 || gs.indemo == demoenum::demoplay {
             break;
@@ -1160,6 +1195,34 @@ pub fn original_main() {
         0,
     );
 
+    let mut pcs = PcrlibCState::new(
+        0,
+        [0; 5000],
+        0,
+        0,
+        0,
+        SDL_SCANCODE_UNKNOWN,
+        0 as *const SDL_Window as *mut SDL_Window,
+        0 as *const SDL_Renderer as *mut SDL_Renderer,
+        0 as *const SDL_Texture as *mut SDL_Texture,
+        SDL_Rect {
+            x: 0,
+            y: 0,
+            w: 0,
+            h: 0,
+        },
+        [keyboard, keyboard, joystick1],
+        [0; 512],
+        [0; 3],
+        [0; 3],
+        [0; 3],
+        [0; 3],
+        0,
+        [0; 8],
+        0,
+        0,
+    );
+
     /***************************************************************************/
 
     let ver_arg_position = std::env::args().position(|arg| arg == "/VER");
@@ -1245,10 +1308,10 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
-    _setupgame(&mut gs, &mut cps, &mut pas);
+    _setupgame(&mut gs, &mut cps, &mut pas, &mut pcs);
 
     unsafe {
-        expwin(33, 13, &mut gs, &mut pas);
+        expwin(33, 13, &mut gs, &mut pas, &mut pcs);
         print(
             b"  Softdisk Publishing presents\n\n\0" as *const u8 as *const i8,
             &mut gs,
@@ -1275,9 +1338,9 @@ pub fn original_main() {
             b"         Press a key:\0" as *const u8 as *const i8,
             &mut gs,
         );
-        get(&mut gs, &mut pas);
+        get(&mut gs, &mut pas, &mut pcs);
 
-        clearkeys();
+        clearkeys(&mut pcs);
 
         gs.screencenter.x = 11;
         gs.screencenter.y = 11;
@@ -1287,17 +1350,17 @@ pub fn original_main() {
 
         // go until quit () is called
         loop {
-            dodemo(&mut gs, &mut cps, &mut pas);
+            dodemo(&mut gs, &mut cps, &mut pas, &mut pcs);
             playsetup(&mut gs, &mut cps);
             gs.indemo = demoenum::notdemo;
             gs.gamestate = statetype::ingame;
-            playloop(&mut gs, &mut cps, &mut pas);
+            playloop(&mut gs, &mut cps, &mut pas, &mut pcs);
             if gs.indemo == demoenum::notdemo {
                 gs.exitdemo = false;
                 if level > numlevels {
-                    doendpage(&mut gs, &mut cps, &mut pas); // finished all levels
+                    doendpage(&mut gs, &mut cps, &mut pas, &mut pcs); // finished all levels
                 }
-                gameover(&mut gs, &mut cps, &mut pas);
+                gameover(&mut gs, &mut cps, &mut pas, &mut pcs);
             }
         }
     }

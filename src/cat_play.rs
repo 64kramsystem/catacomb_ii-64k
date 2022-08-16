@@ -14,8 +14,9 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
-        bioskey, clearkeys, highscores, keydown, level, score, sx, sy, RecordDemo, SaveDemo,
+        bioskey, clearkeys, highscores, level, score, sx, sy, RecordDemo, SaveDemo,
     },
+    pcrlib_c_state::PcrlibCState,
     scan_codes::*,
     tag_type::tagtype::*,
 };
@@ -736,18 +737,23 @@ unsafe fn walk(gs: &mut GlobalState, pas: &mut PcrlibAState) -> boolean {
     return true as boolean;
 }
 
-unsafe fn playercmdthink(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+unsafe fn playercmdthink(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
         dir: north,
         button1: 0,
         button2: 0,
     };
-    c = ControlPlayer(1, gs);
+    c = ControlPlayer(1, gs, pcs);
     gs.obj.stage = (gs.obj.stage as i32 & 1) as u8;
     if c.button1 as i32 != 0
         && c.button2 as i32 != 0
-        && keydown[SDL_SCANCODE_Q as usize] as i32 != 0
+        && pcs.keydown[SDL_SCANCODE_Q as usize] as i32 != 0
     {
         givepotion(gs);
         givescroll(gs, pas);
@@ -856,26 +862,26 @@ unsafe fn playercmdthink(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut 
         printshotpower(gs);
     }
     if gs.indemo == demoenum::notdemo {
-        if keydown[SDL_SCANCODE_P as usize] as i32 != 0
-            || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
+        if pcs.keydown[SDL_SCANCODE_P as usize] as i32 != 0
+            || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             if (gs.obj.hp as i32) < 13 {
                 takepotion(gs, pas);
-                keydown[SDL_SCANCODE_Q as usize] = false as boolean;
-                keydown[SDL_SCANCODE_SPACE as usize] = false as boolean;
+                pcs.keydown[SDL_SCANCODE_Q as usize] = false as boolean;
+                pcs.keydown[SDL_SCANCODE_SPACE as usize] = false as boolean;
             }
-        } else if keydown[SDL_SCANCODE_B as usize] != 0 {
+        } else if pcs.keydown[SDL_SCANCODE_B as usize] != 0 {
             castbolt(gs, pas);
-            keydown[SDL_SCANCODE_B as usize] = false as boolean;
-        } else if keydown[SDL_SCANCODE_N as usize] as i32 != 0
-            || keydown[SDL_SCANCODE_RETURN as usize] as i32 != 0
+            pcs.keydown[SDL_SCANCODE_B as usize] = false as boolean;
+        } else if pcs.keydown[SDL_SCANCODE_N as usize] as i32 != 0
+            || pcs.keydown[SDL_SCANCODE_RETURN as usize] as i32 != 0
         {
             castnuke(gs, pas);
-            keydown[SDL_SCANCODE_N as usize] = false as boolean;
-            keydown[SDL_SCANCODE_RETURN as usize] = false as boolean;
+            pcs.keydown[SDL_SCANCODE_N as usize] = false as boolean;
+            pcs.keydown[SDL_SCANCODE_RETURN as usize] = false as boolean;
         }
     }
-    dofkeys(gs, cps, pas);
+    dofkeys(gs, cps, pas, pcs);
     if gs.resetgame {
         gs.resetgame = false;
         gs.playdone = true;
@@ -883,29 +889,29 @@ unsafe fn playercmdthink(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut 
     }
     match gs.indemo {
         demoenum::notdemo => {
-            if keydown[SDL_SCANCODE_C as usize] as i32 != 0
-                && keydown[SDL_SCANCODE_T as usize] as i32 != 0
-                && keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
+            if pcs.keydown[SDL_SCANCODE_C as usize] as i32 != 0
+                && pcs.keydown[SDL_SCANCODE_T as usize] as i32 != 0
+                && pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 centerwindow(16, 2, gs);
                 print(
                     b"warp to which\nlevel (1-99)?\0" as *const u8 as *const i8,
                     gs,
                 );
-                clearkeys();
-                level = _inputint(gs, pas) as i16;
+                clearkeys(pcs);
+                level = _inputint(gs, pas, pcs) as i16;
                 if (level as i32) < 1 {
                     level = 1;
                 }
                 if level as i32 > 30 {
                     level = 30;
                 }
-                restore(gs, pas);
+                restore(gs, pas, pcs);
                 gs.leveldone = true;
             }
-            if keydown[SDL_SCANCODE_C as usize] as i32 != 0
-                && keydown[SDL_SCANCODE_T as usize] as i32 != 0
-                && keydown[SDL_SCANCODE_TAB as usize] as i32 != 0
+            if pcs.keydown[SDL_SCANCODE_C as usize] as i32 != 0
+                && pcs.keydown[SDL_SCANCODE_T as usize] as i32 != 0
+                && pcs.keydown[SDL_SCANCODE_TAB as usize] as i32 != 0
             {
                 if gs.GODMODE {
                     centerwindow(13, 1, gs);
@@ -916,21 +922,21 @@ unsafe fn playercmdthink(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut 
                     print(b"God Mode On\0" as *const u8 as *const i8, gs);
                     gs.GODMODE = true;
                 }
-                UpdateScreen(gs);
-                clearkeys();
-                while bioskey(0) == 0 {
+                UpdateScreen(gs, pcs);
+                clearkeys(pcs);
+                while bioskey(0, pcs) == 0 {
                     WaitVBL(pas);
                 }
-                restore(gs, pas);
-                clearkeys();
+                restore(gs, pas, pcs);
+                clearkeys(pcs);
             }
         }
         demoenum::demoplay => {
             gs.indemo = demoenum::notdemo;
-            gs.ctrl = ControlPlayer(1, gs);
+            gs.ctrl = ControlPlayer(1, gs, pcs);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
-                || keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
+                || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 gs.indemo = demoenum::demoplay;
                 gs.exitdemo = true;
@@ -1191,13 +1197,18 @@ unsafe fn explodethink(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     }
 }
 
-unsafe fn think(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+unsafe fn think(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     if gs.obj.delay as i32 > 0 {
         gs.obj.delay = (gs.obj.delay).wrapping_sub(1);
     } else if rndt(pas) < gs.obj.speed as i32 {
         match gs.obj.think as i32 {
             0 => {
-                playercmdthink(gs, cps, pas);
+                playercmdthink(gs, cps, pas, pcs);
             }
             3 => {
                 chasethink(false as boolean, gs, pas);
@@ -1234,7 +1245,12 @@ unsafe fn think(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibASt
     }
 }
 
-pub unsafe fn doactive(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+pub unsafe fn doactive(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     if gs.obj.class as i32 != dead1 as i32
         && ((gs.obj.x as i32) < gs.origin.x - 10
             || gs.obj.x as i32 > gs.origin.x + 34
@@ -1243,7 +1259,7 @@ pub unsafe fn doactive(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pc
     {
         gs.o[gs.objecton as usize].active = false as boolean;
     } else {
-        think(gs, cps, pas);
+        think(gs, cps, pas, pcs);
         eraseobj(gs);
         if gs.playdone {
             return;
@@ -1267,7 +1283,12 @@ pub unsafe fn doinactive(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn playloop(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut PcrlibAState) {
+pub unsafe fn playloop(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
     gs.screencenter.x = 11;
     loop {
         if gs.indemo == demoenum::notdemo {
@@ -1276,29 +1297,29 @@ pub unsafe fn playloop(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pc
             printint(level as i32, gs);
             print(b"...\0" as *const u8 as *const i8, gs);
             PlaySound(17, pas);
-            WaitEndSound(gs, pas);
+            WaitEndSound(gs, pas, pcs);
         }
         clearold(&mut gs.oldtiles);
-        loadlevel(gs, pas);
+        loadlevel(gs, pas, pcs);
         gs.leveldone = false;
-        if keydown[SDL_SCANCODE_F7 as usize] as i32 != 0
-            && keydown[SDL_SCANCODE_D as usize] as i32 != 0
+        if pcs.keydown[SDL_SCANCODE_F7 as usize] as i32 != 0
+            && pcs.keydown[SDL_SCANCODE_D as usize] as i32 != 0
         {
             clearold(&mut gs.oldtiles);
-            refresh(gs, pas);
-            refresh(gs, pas);
-            clearkeys();
+            refresh(gs, pas, pcs);
+            refresh(gs, pas, pcs);
+            clearkeys(pcs);
             centerwindow(12, 1, gs);
             print(b"RECORD DEMO\0" as *const u8 as *const i8, gs);
             loop {
-                let ch = get(gs, pas) as i8;
+                let ch = get(gs, pas, pcs) as i8;
                 if !(ch != 13) {
                     break;
                 }
             }
-            RecordDemo(gs);
+            RecordDemo(gs, pcs);
             clearold(&mut gs.oldtiles);
-            clearkeys();
+            clearkeys(pcs);
         }
         gs.playdone = false;
         gs.frameon = 0;
@@ -1306,22 +1327,22 @@ pub unsafe fn playloop(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pc
         gs.shotpower = 0;
         initrndt(false as boolean, pas);
         printshotpower(gs);
-        doall(gs, cps, pas);
+        doall(gs, cps, pas, pcs);
         if gs.indemo == demoenum::recording {
-            clearkeys();
+            clearkeys(pcs);
             centerwindow(15, 1, gs);
             print(b"SAVE AS DEMO#:\0" as *const u8 as *const i8, gs);
             let mut ch;
             loop {
-                ch = get(gs, pas) as i8;
+                ch = get(gs, pas, pcs) as i8;
                 if !(ch < '0' as i8 || ch > '9' as i8) {
                     break;
                 }
             }
-            SaveDemo((ch - '0' as i8) as u8, gs);
+            SaveDemo((ch - '0' as i8) as u8, gs, pcs);
             clearold(&mut gs.oldtiles);
-            refresh(gs, pas);
-            refresh(gs, pas);
+            refresh(gs, pas, pcs);
+            refresh(gs, pas, pcs);
         }
         if gs.indemo != demoenum::notdemo {
             gs.playdone = true;
