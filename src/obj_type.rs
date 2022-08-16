@@ -1,4 +1,6 @@
-use crate::{active_obj::activeobj, class_type::classtype, extra_types::boolean};
+use crate::{
+    active_obj::activeobj, class_type::classtype, extra_types::boolean, obj_def_type::objdeftype,
+};
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
@@ -30,7 +32,7 @@ pub struct objtype {
 }
 
 impl objtype {
-    pub fn update_from_active(&mut self, active_o: activeobj) {
+    pub fn update_from_activeobj(&mut self, active_o: &activeobj) {
         self.active = active_o.active;
         self.class = active_o.class;
         self.x = active_o.x;
@@ -43,5 +45,22 @@ impl objtype {
         self.oldy = active_o.oldy;
         self.oldtile = active_o.oldtile;
         self.filler = active_o.filler;
+    }
+
+    // Updates fields from `think` onwards
+    //
+    pub fn update_from_objdeftype(&mut self, o: &objdeftype) {
+        self.think = o.think;
+        self.contact = o.contact;
+        self.solid = o.solid;
+        self.firstchar = o.firstchar;
+        self.size = o.size;
+        self.stages = o.stages;
+        self.dirmask = o.dirmask;
+        self.speed = o.speed;
+        self.hitpoints = o.hitpoints;
+        self.damage = o.damage;
+        self.points = o.points;
+        self.filler2 = o.filler;
     }
 }

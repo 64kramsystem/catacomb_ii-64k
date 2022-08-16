@@ -12,8 +12,6 @@
 #![feature(register_tool)]
 #![register_tool(c2rust)]
 
-use demo_enum::demoenum;
-
 extern crate libc;
 mod active_obj;
 mod cat_play;
@@ -22,6 +20,7 @@ mod catasm;
 mod class_type;
 mod control_struct;
 mod cpanel;
+mod cpanel_state;
 mod demo_enum;
 mod dir_type;
 mod exit_type;
@@ -30,20 +29,21 @@ mod extra_macros;
 mod extra_types;
 mod global_state;
 mod gr_type;
+mod input_type;
 mod obj_def_type;
 mod obj_type;
 mod objects;
 mod pcrlib_a;
+mod pcrlib_a_state;
 mod pcrlib_c;
 mod rleasm;
 mod safe_sdl;
+mod scan_codes;
 mod scores;
-mod sdl_scan_codes;
+mod sound_type;
 mod spkr_table;
 mod spksndtype;
 mod state_type;
 mod tag_type;
 mod think_type;
 mod vec2;
-
-static mut indemo: demoenum = demoenum::notdemo;

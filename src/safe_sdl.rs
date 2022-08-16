@@ -1,13 +1,12 @@
 // Safe wrappers around unsafe SDL calls and related routines. This will also make it easy to use a
 // Rust media library.
 
+use std::ffi::CStr;
+
 use crate::{
-    pcrlib_a::{
-        SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerCallback, SDL_TimerID, SDL_sem,
-        ShutdownEmulatedVBL,
-    },
+    pcrlib_a::{SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerCallback, SDL_TimerID, SDL_sem},
     pcrlib_c::*,
-    sdl_scan_codes::SDL_Scancode,
+    scan_codes::SDL_Scancode,
 };
 
 extern "C" {
@@ -280,8 +279,12 @@ pub fn safe_SDL_memset(dst: *mut libc::c_void, c: i32, len: u64) -> *mut libc::c
     unsafe { SDL_memset(dst, c, len) }
 }
 
-pub fn safe_SDL_GetError() -> *const i8 {
-    unsafe { SDL_GetError() }
+pub fn safe_SDL_GetError() -> String {
+    unsafe {
+        let raw_str = SDL_GetError();
+        // Assume that the string is valid UTF-8
+        CStr::from_ptr(raw_str).to_string_lossy().to_string()
+    }
 }
 
 pub fn safe_SDL_CreateMutex() -> *mut SDL_mutex {
@@ -357,11 +360,5 @@ pub fn safe_SDL_AddTimer(
 pub fn safe_register_sdl_quit_on_exit() {
     unsafe {
         atexit(Some(SDL_Quit as unsafe extern "C" fn() -> ()));
-    }
-}
-
-pub fn safe_register_shutdown_vbl_on_exit() {
-    unsafe {
-        atexit(Some(ShutdownEmulatedVBL as unsafe extern "C" fn() -> ()));
     }
 }
