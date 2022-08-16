@@ -933,6 +933,14 @@ pub unsafe fn RecordDemo(gs: &mut GlobalState) {
     gs.indemo = demoenum::recording;
 }
 
+////////////////////////
+//
+// LoadDemo / SaveDemo
+// Loads a demo from disk or
+// saves the accumulated demo command string to disk
+//
+////////////////////////
+
 pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
@@ -955,6 +963,22 @@ pub unsafe fn SaveDemo(mut demonum: i32, gs: &mut GlobalState) {
     );
     gs.indemo = demoenum::notdemo;
 }
+
+pub unsafe fn port_temp_SaveDemo(demonum: u8, gs: &mut GlobalState) {
+    let str = format!("DEMO{demonum}.{port_temp__extension}");
+
+    port_temp_SaveFile(&str, &demobuffer[..demoptr]);
+
+    gs.indemo = demoenum::notdemo;
+}
+
+////////////////////////
+//
+// StartDemo
+//
+////////////////////////
+
+/*=========================================================================*/
 
 pub unsafe fn clearkeys() {
     let mut i: i32 = 0;
