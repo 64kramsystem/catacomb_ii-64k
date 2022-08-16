@@ -18,7 +18,7 @@ use crate::{
         JoyYlow,
     },
     safe_sdl::safe_SDL_NumJoysticks,
-    sdl_scan_codes::*,
+    scan_codes::*,
 };
 
 extern "C" {

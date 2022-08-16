@@ -9,7 +9,7 @@ use crate::{
         ShutdownEmulatedVBL,
     },
     pcrlib_c::*,
-    sdl_scan_codes::SDL_Scancode,
+    scan_codes::SDL_Scancode,
 };
 
 extern "C" {

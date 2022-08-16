@@ -15,7 +15,7 @@ use crate::{
         centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
         bioskey, ch, clearkeys, highscores, keydown, level, score, sx, sy, RecordDemo, SaveDemo,
     },
-    sdl_scan_codes::*,
+    scan_codes::*,
     tag_type::tagtype::*,
 };
 

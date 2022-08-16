@@ -34,7 +34,7 @@ use crate::{
         score, sx, sy,
     },
     rleasm::port_temp_RLEExpand,
-    sdl_scan_codes::*,
+    scan_codes::*,
     sound_type::soundtype::*,
     state_type::statetype,
     vec2::Vec2,
