@@ -33,8 +33,8 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
-        _showhighscores, bar, bioskey, bloadin, centerwindow, ch, clearkeys, drawwindow, expwin,
-        get, grmode, keydown, leftedge, level, port_temp_LoadFile, print, printchartile, printint,
+        _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
+        grmode, keydown, leftedge, level, port_temp_LoadFile, print, printchartile, printint,
         score, sx, sy,
     },
     rleasm::port_temp_RLEExpand,
@@ -205,8 +205,8 @@ unsafe fn wantmore(gs: &mut GlobalState, pas: &mut PcrlibAState) -> boolean {
     print(b"(space for more/esc)\0" as *const u8 as *const i8, gs);
     sx = 12;
     sy = 21;
-    ch = get(gs, pas) as i8;
-    if ch as i32 == 27 {
+    let ch = get(gs, pas) as i8;
+    if ch == 27 {
         return false as boolean;
     }
     return true as boolean;
@@ -410,8 +410,8 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState) {
 unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     centerwindow(18, 1, gs);
     print(b"reset game (y/n)?\0" as *const u8 as *const i8, gs);
-    ch = get(gs, pas) as i8;
-    if ch as i32 == 'y' as i32 {
+    let ch = get(gs, pas) as i8;
+    if ch == 'y' as i8 {
         gs.gamexit = killed;
         gs.playdone = true;
     }
@@ -633,7 +633,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
             clearkeys();
             expwin(18, 1, gs, pas);
             print(b"RESET GAME (Y/N)?\0" as *const u8 as *const i8, gs);
-            ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
+            let ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
             if ch as i32 == 'Y' as i32 {
                 gs.resetgame = true;
             }
@@ -646,7 +646,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
                 get(gs, pas);
             } else {
                 print(b"Save as game #(1-9):\0" as *const u8 as *const i8, gs);
-                ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
+                let mut ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
                 drawchar(sx, sy, ch as i32, gs);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                     let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
@@ -717,7 +717,7 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
             clearkeys();
             expwin(22, 4, gs, pas);
             print(b"Load game #(1-9):\0" as *const u8 as *const i8, gs);
-            ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
+            let ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
             drawchar(sx, sy, ch as i32, gs);
             if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                 let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
@@ -772,8 +772,8 @@ pub unsafe fn dofkeys(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pcr
             clearkeys();
             expwin(12, 1, gs, pas);
             print(b"QUIT (Y/N)?\0" as *const u8 as *const i8, gs);
-            ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
-            if ch as i32 == 'Y' as i32 {
+            let ch = (get(gs, pas) as u8).to_ascii_uppercase() as i8;
+            if ch == 'Y' as i8 {
                 _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas);
             }
         }

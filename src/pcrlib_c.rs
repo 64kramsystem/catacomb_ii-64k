@@ -524,7 +524,6 @@ pub struct ctlpaneltype {
     pub keyB2: u8,
 }
 
-pub static mut ch: i8 = 0;
 pub static mut playermode: [inputtype; 3] = [keyboard, keyboard, joystick1];
 pub static mut keydown: [boolean; 512] = [0; 512];
 pub static mut JoyXlow: [i32; 3] = [0; 3];
@@ -1788,8 +1787,8 @@ pub unsafe fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState) {
         j = 0;
         loop {
             k = get(gs, pas);
-            ch = k as i8;
-            if ch as i32 >= ' ' as i32 && j < 3 {
+            let ch = k as i8;
+            if ch >= ' ' as i8 && j < 3 {
                 drawchar(sx, sy, ch as i32, gs);
                 sx += 1;
                 highscores[i as usize].initials[j as usize] = ch;

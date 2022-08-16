@@ -14,7 +14,7 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
-        bioskey, ch, clearkeys, highscores, keydown, level, score, sx, sy, RecordDemo, SaveDemo,
+        bioskey, clearkeys, highscores, keydown, level, score, sx, sy, RecordDemo, SaveDemo,
     },
     scan_codes::*,
     tag_type::tagtype::*,
@@ -1291,8 +1291,8 @@ pub unsafe fn playloop(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pc
             centerwindow(12, 1, gs);
             print(b"RECORD DEMO\0" as *const u8 as *const i8, gs);
             loop {
-                ch = get(gs, pas) as i8;
-                if !(ch as i32 != 13) {
+                let ch = get(gs, pas) as i8;
+                if !(ch != 13) {
                     break;
                 }
             }
@@ -1311,13 +1311,14 @@ pub unsafe fn playloop(gs: &mut GlobalState, cps: &mut CpanelState, pas: &mut Pc
             clearkeys();
             centerwindow(15, 1, gs);
             print(b"SAVE AS DEMO#:\0" as *const u8 as *const i8, gs);
+            let mut ch;
             loop {
                 ch = get(gs, pas) as i8;
-                if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
+                if !(ch < '0' as i8 || ch > '9' as i8) {
                     break;
                 }
             }
-            SaveDemo(ch as i32 - '0' as i32, gs);
+            SaveDemo((ch - '0' as i8) as i32, gs);
             clearold(&mut gs.oldtiles);
             refresh(gs, pas);
             refresh(gs, pas);
