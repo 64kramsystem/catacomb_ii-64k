@@ -523,7 +523,7 @@ pub struct ctlpaneltype {
     pub keyB2: u8,
 }
 
-pub static mut mode: SDL_DisplayMode = SDL_DisplayMode {
+static mut mode: SDL_DisplayMode = SDL_DisplayMode {
     format: 0,
     w: 0,
     h: 0,
@@ -531,7 +531,7 @@ pub static mut mode: SDL_DisplayMode = SDL_DisplayMode {
     driverdata: 0 as *const libc::c_void as *mut libc::c_void,
 };
 
-pub static mut joystick: [joyinfo_t; 3] = [joyinfo_t {
+static mut joystick: [joyinfo_t; 3] = [joyinfo_t {
     c2rust_unnamed: C2RustUnnamed_5 {
         controller: 0 as *const SDL_GameController as *mut SDL_GameController,
     },
@@ -1506,7 +1506,7 @@ unsafe fn _input(
     0
 }
 
-pub static mut scoreswap: scores = scores {
+static mut scoreswap: scores = scores {
     score: 0,
     level: 0,
     initials: [0; 4],
@@ -1528,7 +1528,7 @@ pub static mut level: i16 = 0;
 //
 // which is overwritten with "CA2" in `CATACOMB.C`.
 
-pub static mut _cgaok: boolean = true as boolean;
+static mut _cgaok: boolean = true as boolean;
 
 pub static mut _egaok: boolean = true as boolean;
 
