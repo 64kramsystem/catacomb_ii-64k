@@ -12,10 +12,6 @@ use crate::{
 };
 
 type __time_t = i64;
-type time_t = __time_t;
-type SDL_bool = u32;
-const SDL_TRUE: SDL_bool = 1;
-const SDL_FALSE: SDL_bool = 0;
 pub type SDL_sem = SDL_semaphore;
 type SDL_AudioFormat = u16;
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
@@ -233,6 +229,7 @@ pub unsafe fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
     }
 }
 
+#[allow(dead_code)]
 unsafe fn StopSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;

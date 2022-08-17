@@ -37,10 +37,6 @@ extern "C" {
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn fstat(__fd: i32, __buf: *mut stat) -> i32;
-    fn atoi(__nptr: *const i8) -> i32;
-    static mut stderr: *mut FILE;
-    fn fprintf(_: *mut FILE, _: *const i8, _: ...) -> i32;
-    fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
     fn puts(__s: *const i8) -> i32;
     fn __assert_fail(
         __assertion: *const i8,
@@ -49,7 +45,6 @@ extern "C" {
         __function: *const i8,
     ) -> !;
     fn strlen(_: *const i8) -> u64;
-    fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
@@ -124,11 +119,8 @@ pub struct _IO_FILE {
     pub _unused2: [i8; 20],
 }
 pub type _IO_lock_t = ();
-pub type FILE = _IO_FILE;
 
 pub type SDL_bool = u32;
-pub const SDL_TRUE: SDL_bool = 1;
-pub const SDL_FALSE: SDL_bool = 0;
 
 const SDL_PIXELFORMAT_ARGB8888: u32 = 372645892;
 
@@ -488,9 +480,7 @@ pub union SDL_Event {
 }
 pub type SDL_EventFilter = Option<unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32>;
 pub type C2RustUnnamed_4 = u32;
-pub const SDL_TEXTUREACCESS_TARGET: C2RustUnnamed_4 = 2;
 pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
-pub const SDL_TEXTUREACCESS_STATIC: C2RustUnnamed_4 = 0;
 
 #[derive(Copy, Clone)]
 #[repr(C)]

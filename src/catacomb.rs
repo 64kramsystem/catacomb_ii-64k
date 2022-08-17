@@ -655,6 +655,7 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     wantmore(gs, pas, pcs);
 }
 
+#[allow(dead_code)]
 unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     centerwindow(18, 1, gs, pcs);
     print(b"reset game (y/n)?\0" as *const u8 as *const i8, gs, pcs);
