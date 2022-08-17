@@ -13,8 +13,8 @@ use crate::{
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
-        centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
-        bioskey, clearkeys, port_temp_print_str, RecordDemo, SaveDemo,
+        centerwindow, get, print, ControlPlayer, UpdateScreen, _inputint, bioskey, clearkeys,
+        port_temp_print_str, RecordDemo, SaveDemo,
     },
     pcrlib_c_state::PcrlibCState,
     scan_codes::*,
@@ -116,13 +116,13 @@ unsafe fn newobject(gs: &mut GlobalState) -> i32 {
 pub unsafe fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 3;
-    printlong(pcs.score as i64, gs, pcs);
+    port_temp_print_str(&pcs.score.to_string(), gs, pcs);
 }
 
 pub unsafe fn printhighscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 5;
-    printlong(pcs.highscores[1].score as i64, gs, pcs);
+    port_temp_print_str(&{ pcs.highscores[1].score }.to_string(), gs, pcs);
 }
 
 pub unsafe fn printshotpower(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
@@ -1304,7 +1304,7 @@ pub unsafe fn playloop(
         if gs.indemo == demoenum::notdemo {
             centerwindow(11, 2, gs, pcs);
             port_temp_print_str(" Entering\nlevel ", gs, pcs);
-            printint(pcs.level as i32, gs, pcs);
+            port_temp_print_str(&pcs.level.to_string(), gs, pcs);
             port_temp_print_str("...", gs, pcs);
             PlaySound(17, pas);
             WaitEndSound(gs, pas, pcs);

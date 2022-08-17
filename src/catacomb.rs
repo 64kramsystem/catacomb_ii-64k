@@ -34,8 +34,8 @@ use crate::{
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        joyinfo_t, port_temp_LoadFile, port_temp_print_str, printchartile, printint,
-        C2RustUnnamed_5, SDL_DisplayMode, SDL_GameController, SDL_Rect,
+        joyinfo_t, port_temp_LoadFile, port_temp_print_str, printchartile, C2RustUnnamed_5,
+        SDL_DisplayMode, SDL_GameController, SDL_Rect,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -499,7 +499,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     }
     pcs.sx = 33;
     pcs.sy = 1;
-    printint(pcs.level as i32, gs, pcs);
+    port_temp_print_str(&pcs.level.to_string(), gs, pcs);
     port_temp_print_str(" ", gs, pcs);
     restore(gs, pas, pcs);
     i = 0;
@@ -536,7 +536,7 @@ unsafe fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut Pcrlib
     printscore(gs, pcs);
     pcs.sx = 33;
     pcs.sy = 1;
-    printint(pcs.level as i32, gs, pcs);
+    port_temp_print_str(&pcs.level.to_string(), gs, pcs);
     drawpic(25 * 8, 17 * 8, 13, gs, cps, pcs);
     i = 1;
     while i <= gs.items[1] as i32 && i < 11 {
@@ -608,7 +608,7 @@ pub unsafe fn repaintscreen(
             printscore(gs, pcs);
             pcs.sx = 33;
             pcs.sy = 1;
-            printint(pcs.level as i32, gs, pcs);
+            port_temp_print_str(&pcs.level.to_string(), gs, pcs);
         }
         statetype::inscores => {
             restore(gs, pas, pcs);
@@ -616,7 +616,7 @@ pub unsafe fn repaintscreen(
             printscore(gs, pcs);
             pcs.sx = 33;
             pcs.sy = 1;
-            printint(pcs.level as i32, gs, pcs);
+            port_temp_print_str(&pcs.level.to_string(), gs, pcs);
             gs.indemo = demoenum::demoplay;
         }
     };

@@ -1351,16 +1351,6 @@ pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mu
     }
 }
 
-pub unsafe fn printint(val: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let str = CString::new(format!("{val}")).unwrap();
-    print(str.as_ptr(), gs, pcs);
-}
-
-pub unsafe fn printlong(val: i64, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let str = CString::new(format!("{val}")).unwrap();
-    print(str.as_ptr(), gs, pcs);
-}
-
 pub unsafe fn _Verify(filename: *const i8) -> i64 {
     let mut handle: i32 = 0;
     let mut size: i64 = 0;
