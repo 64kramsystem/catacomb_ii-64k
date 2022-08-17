@@ -14,7 +14,7 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
-        bioskey, clearkeys, RecordDemo, SaveDemo,
+        bioskey, clearkeys, port_temp_print_str, RecordDemo, SaveDemo,
     },
     pcrlib_c_state::PcrlibCState,
     scan_codes::*,
@@ -902,11 +902,7 @@ unsafe fn playercmdthink(
                 && pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 centerwindow(16, 2, gs, pcs);
-                print(
-                    b"warp to which\nlevel (1-99)?\0" as *const u8 as *const i8,
-                    gs,
-                    pcs,
-                );
+                port_temp_print_str("warp to which\nlevel (1-99)?", gs, pcs);
                 clearkeys(pcs);
                 pcs.level = _inputint(gs, pas, pcs) as i16;
                 if (pcs.level as i32) < 1 {
@@ -924,11 +920,11 @@ unsafe fn playercmdthink(
             {
                 if gs.GODMODE {
                     centerwindow(13, 1, gs, pcs);
-                    print(b"God Mode Off\0" as *const u8 as *const i8, gs, pcs);
+                    port_temp_print_str("God Mode Off", gs, pcs);
                     gs.GODMODE = false;
                 } else {
                     centerwindow(12, 1, gs, pcs);
-                    print(b"God Mode On\0" as *const u8 as *const i8, gs, pcs);
+                    port_temp_print_str("God Mode On", gs, pcs);
                     gs.GODMODE = true;
                 }
                 UpdateScreen(gs, pcs);
@@ -1307,9 +1303,9 @@ pub unsafe fn playloop(
     loop {
         if gs.indemo == demoenum::notdemo {
             centerwindow(11, 2, gs, pcs);
-            print(b" Entering\nlevel \0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str(" Entering\nlevel ", gs, pcs);
             printint(pcs.level as i32, gs, pcs);
-            print(b"...\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("...", gs, pcs);
             PlaySound(17, pas);
             WaitEndSound(gs, pas, pcs);
         }
@@ -1324,7 +1320,7 @@ pub unsafe fn playloop(
             refresh(gs, pas, pcs);
             clearkeys(pcs);
             centerwindow(12, 1, gs, pcs);
-            print(b"RECORD DEMO\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("RECORD DEMO", gs, pcs);
             loop {
                 let ch = get(gs, pas, pcs) as i8;
                 if !(ch != 13) {
@@ -1345,7 +1341,7 @@ pub unsafe fn playloop(
         if gs.indemo == demoenum::recording {
             clearkeys(pcs);
             centerwindow(15, 1, gs, pcs);
-            print(b"SAVE AS DEMO#:\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("SAVE AS DEMO#:", gs, pcs);
             let mut ch;
             loop {
                 ch = get(gs, pas, pcs) as i8;

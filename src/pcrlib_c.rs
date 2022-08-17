@@ -1386,20 +1386,20 @@ unsafe fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut Pcrli
 }
 
 unsafe fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    print(b"$\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str("$", gs, pcs);
     _printhexb((value >> 8) as libc::c_uchar, gs, pcs);
     _printhexb((value & 0xff as i32 as u32) as libc::c_uchar, gs, pcs);
 }
 
 unsafe fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut loop_0: i32 = 0;
-    print(b"%\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str("%", gs, pcs);
     loop_0 = 0;
     while loop_0 < 16 {
         if value >> (15 - loop_0) & 1 != 0 {
-            print(b"1\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("1", gs, pcs);
         } else {
-            print(b"0\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("0", gs, pcs);
         }
         loop_0 += 1;
     }
@@ -1717,9 +1717,9 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
     centerwindow(17, 17, gs, pcs);
-    print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8, gs, pcs);
-    print(b" #  SCORE LV  BY\n\0" as *const u8 as *const i8, gs, pcs);
-    print(b" - ------ -- ---\n\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str("\n   HIGH SCORES\n\n", gs, pcs);
+    port_temp_print_str(" #  SCORE LV  BY\n", gs, pcs);
+    port_temp_print_str(" - ------ -- ---\n", gs, pcs);
     i = 0;
     while i < 5 {
         pcs.sx += 1;
