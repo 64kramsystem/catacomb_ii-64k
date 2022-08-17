@@ -1255,12 +1255,7 @@ pub unsafe fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
     safe_SDL_RenderClear(pcs.renderer);
-    safe_SDL_RenderCopy(
-        pcs.renderer,
-        pcs.sdltexture,
-        ptr::null(),
-        &mut pcs.updateRect,
-    );
+    safe_SDL_RenderCopy(pcs.renderer, pcs.sdltexture, ptr::null(), &pcs.updateRect);
     safe_SDL_RenderPresent(pcs.renderer);
 }
 

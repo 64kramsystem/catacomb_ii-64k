@@ -681,7 +681,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     let mut rle = [0; 4096];
     let mut filename = format!("LEVEL{}.CA2", pcs.level);
     port_temp_LoadFile(&filename, &mut rle);
-    port_temp_RLEExpand(&mut rle[4..], &mut sm);
+    port_temp_RLEExpand(&rle[4..], &mut sm);
     gs.numobj = 0;
     gs.o[0].x = 13;
     gs.o[0].y = 13;

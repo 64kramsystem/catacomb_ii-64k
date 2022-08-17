@@ -107,7 +107,8 @@ unsafe fn _SDL_PCPlaySound(mut sound: i32, pas: &mut PcrlibAState) {
     pas.pcPhaseTick = 0;
     pas.pcLastSample = 0;
     pas.pcLengthLeft = (((*pas.SoundData).sounds[sound as usize].start as i32
-        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32) >> 1) as u32;
+        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32)
+        >> 1) as u32;
     pas.pcSound = (pas.SoundData as *mut u8)
         .offset((*pas.SoundData).sounds[(sound - 1) as usize].start as i32 as isize)
         as *mut u16;
@@ -206,8 +207,7 @@ pub unsafe fn StartupSound(pas: &mut PcrlibAState) {
     desired.userdata = pas as *mut PcrlibAState as *mut libc::c_void;
     pas.AudioMutex = safe_SDL_CreateMutex();
     if pas.AudioMutex.is_null() || safe_SDL_InitSubSystem(0x10 as u32) < 0 || {
-        pas.AudioDev =
-            safe_SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut pas.AudioSpec, 0);
+        pas.AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut pas.AudioSpec, 0);
         pas.AudioDev == 0
     } {
         println!("Audio initialization failed: {:?}", safe_SDL_GetError());
