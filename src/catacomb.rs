@@ -38,7 +38,7 @@ use crate::{
         SDL_DisplayMode, SDL_GameController, SDL_Rect,
     },
     pcrlib_c_state::PcrlibCState,
-    rleasm::port_temp_RLEExpand,
+    rleasm::RLEExpand,
     safe_sdl::{SDL_Renderer, SDL_Texture, SDL_Window, SDL_mutex},
     scan_codes::*,
     scores::scores,
@@ -681,7 +681,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     let mut rle = [0; 4096];
     let filename = format!("LEVEL{}.CA2", pcs.level);
     port_temp_LoadFile(&filename, &mut rle);
-    port_temp_RLEExpand(&rle[4..], &mut sm);
+    RLEExpand(&rle[4..], &mut sm);
     gs.numobj = 0;
     gs.o[0].x = 13;
     gs.o[0].y = 13;
