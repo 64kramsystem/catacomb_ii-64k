@@ -44,7 +44,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    fn strlen(_: *const i8) -> u64;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
@@ -1399,9 +1398,14 @@ unsafe fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-unsafe fn _printc(string: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    pcs.sx = 1 + gs.screencenter.x - (strlen(string)).wrapping_div(2) as i32;
-    print(string, gs, pcs);
+////////////////////////////////////////////////////////////////////
+//
+// center print
+//
+////////////////////////////////////////////////////////////////////
+fn _printc(string: &CString, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    pcs.sx = 1 + gs.screencenter.x - string.as_bytes().len() as i32;
+    port_temp_print_cstr(string, gs, pcs);
 }
 
 // Rust port: Avoids importing strlen, and also, works on u8.
@@ -1755,7 +1759,7 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         i += 1;
     }
     let str = CString::new(format!("SCORE:{}", pcs.score)).unwrap();
-    _printc(str.as_ptr(), gs, pcs);
+    _printc(&str, gs, pcs);
 }
 
 pub unsafe fn _checkhighscore(
