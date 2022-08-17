@@ -107,7 +107,7 @@ unsafe fn newobject(gs: &mut GlobalState) -> i32 {
         }
         _ => {}
     }
-    gs.o[i as usize].oldtile = -(1) as i16;
+    gs.o[i as usize].oldtile = -1 as i16;
     gs.o[i as usize].oldx = 0;
     gs.o[i as usize].oldy = 0;
     return i;
@@ -326,9 +326,9 @@ unsafe fn castnuke(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrli
     base.y = gs.obj.y;
     base.oldx = base.x;
     base.oldy = base.y;
-    base.oldtile = -(1) as i16;
+    base.oldtile = -1 as i16;
     base.class = bigshot;
-    x = -(1);
+    x = -1;
     while x <= 1 {
         n = newobject(gs);
         gs.o[n as usize] = base;

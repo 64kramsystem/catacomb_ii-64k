@@ -585,7 +585,7 @@ pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
         button2: 0,
     };
     if pcs.keydown[pcs.key[north as i32 as usize] as usize] != 0 {
-        ymove = -(1);
+        ymove = -1;
     }
     if pcs.keydown[pcs.key[east as i32 as usize] as usize] != 0 {
         xmove = 1;
@@ -594,15 +594,15 @@ pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
         ymove = 1;
     }
     if pcs.keydown[pcs.key[west as i32 as usize] as usize] != 0 {
-        xmove = -(1);
+        xmove = -1;
     }
     if pcs.keydown[pcs.key[northeast as i32 as usize] as usize] != 0 {
-        ymove = -(1);
+        ymove = -1;
         xmove = 1;
     }
     if pcs.keydown[pcs.key[northwest as i32 as usize] as usize] != 0 {
-        ymove = -(1);
-        xmove = -(1);
+        ymove = -1;
+        xmove = -1;
     }
     if pcs.keydown[pcs.key[southeast as i32 as usize] as usize] != 0 {
         ymove = 1;
@@ -610,7 +610,7 @@ pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     }
     if pcs.keydown[pcs.key[southwest as i32 as usize] as usize] != 0 {
         ymove = 1;
-        xmove = -(1);
+        xmove = -1;
     }
     match ymove * 3 + xmove {
         -4 => {
@@ -667,12 +667,12 @@ pub unsafe fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
     if newx > pcs.MouseSensitivity {
         xmove = 1;
     } else if newx < -pcs.MouseSensitivity {
-        xmove = -(1);
+        xmove = -1;
     }
     if newy > pcs.MouseSensitivity {
         ymove = 1;
     } else if newy < -pcs.MouseSensitivity {
-        ymove = -(1);
+        ymove = -1;
     }
     match ymove * 3 + xmove {
         -4 => {
@@ -717,7 +717,7 @@ unsafe fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
             } else {
                 safe_SDL_JoystickClose(pcs.joystick[j as usize].c2rust_unnamed.joy);
             }
-            pcs.joystick[j as usize].device = -(1);
+            pcs.joystick[j as usize].device = -1;
         }
         j = j.wrapping_add(1);
     }
@@ -731,7 +731,7 @@ pub unsafe fn ProbeJoysticks(pcs: &mut PcrlibCState) {
     j = 1;
     while j < 3 {
         if j - 1 >= safe_SDL_NumJoysticks() {
-            pcs.joystick[j as usize].device = -(1);
+            pcs.joystick[j as usize].device = -1;
         } else {
             pcs.joystick[j as usize].device = j - 1;
             pcs.joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) as boolean;
@@ -811,12 +811,12 @@ pub unsafe fn ControlJoystick(mut joynum: i32, pcs: &mut PcrlibCState) -> Contro
     if joyx > pcs.JoyXhigh[joynum as usize] {
         xmove = 1;
     } else if joyx < pcs.JoyXlow[joynum as usize] {
-        xmove = -(1);
+        xmove = -1;
     }
     if joyy > pcs.JoyYhigh[joynum as usize] {
         ymove = 1;
     } else if joyy < pcs.JoyYlow[joynum as usize] {
-        ymove = -(1);
+        ymove = -1;
     }
     match ymove * 3 + xmove {
         -4 => {
@@ -976,7 +976,7 @@ unsafe fn filelength(mut fd: i32) -> i64 {
         __glibc_reserved: [0; 3],
     };
     if fstat(fd, &mut s) != 0 {
-        return -(1) as i64;
+        return -1 as i64;
     }
     return s.st_size;
 }
@@ -1346,7 +1346,7 @@ pub unsafe fn _Verify(mut filename: *const i8) -> i64 {
     let mut handle: i32 = 0;
     let mut size: i64 = 0;
     handle = open(filename, 0);
-    if handle == -(1) {
+    if handle == -1 {
         return 0;
     }
     size = filelength(handle);
@@ -1873,7 +1873,7 @@ pub fn _setupgame(
         h: 0,
     };
     unsafe {
-        if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs.mode) < -(1)
+        if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs.mode) < -1
             || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
         {
             eprintln!("Could not get display mode: {}", safe_SDL_GetError());
@@ -1898,7 +1898,7 @@ pub fn _setupgame(
             }) as u32,
         );
         if pcs.window.is_null() || {
-            pcs.renderer = safe_SDL_CreateRenderer(pcs.window, -(1), 0);
+            pcs.renderer = safe_SDL_CreateRenderer(pcs.window, -1, 0);
             pcs.renderer.is_null()
         } {
             eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
@@ -1928,7 +1928,7 @@ pub fn _setupgame(
         }
         gs.screenseg.fill(0);
         pcs.grmode = EGAgr;
-        pcs.joystick[2].device = -(1);
+        pcs.joystick[2].device = -1;
         pcs.joystick[1].device = pcs.joystick[2].device;
         _loadctrls(pas, pcs);
         if pcs.grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {

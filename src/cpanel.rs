@@ -590,7 +590,7 @@ pub unsafe fn controlpanel(
                     break;
                 }
                 if cps.collumn == 4 {
-                    cps.collumn = -(1);
+                    cps.collumn = -1;
                 }
             }
         }
