@@ -1363,22 +1363,26 @@ pub unsafe fn _Verify(filename: *const i8) -> i64 {
     return size;
 }
 
-unsafe fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut loop_0: i32 = 0;
-    let hexstr: [i8; 16] = *::std::mem::transmute::<&[u8; 16], &mut [i8; 16]>(b"0123456789ABCDEF");
-    let mut str_0: [i8; 2] = *::std::mem::transmute::<&[u8; 2], &mut [i8; 2]>(b"\0\0");
-    loop_0 = 0;
-    while loop_0 < 2 {
-        str_0[0] = hexstr[(value as i32 >> ((1 - loop_0) * 4) & 15) as usize];
-        print(str_0.as_mut_ptr(), gs, pcs);
-        loop_0 += 1;
-    }
+////////////////////////////////////////////////////////////////////
+//
+// print hex byte
+//
+////////////////////////////////////////////////////////////////////
+/// Rust port: Prints a byte in padded hex.
+fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let fmt_value = format!("{:02X}", value);
+    port_temp_print_str(&fmt_value, gs, pcs);
 }
 
-unsafe fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    port_temp_print_str("$", gs, pcs);
-    _printhexb((value >> 8) as libc::c_uchar, gs, pcs);
-    _printhexb((value & 0xff as i32 as u32) as libc::c_uchar, gs, pcs);
+////////////////////////////////////////////////////////////////////
+//
+// print hex
+//
+////////////////////////////////////////////////////////////////////
+/// Rust port: Prints a word in padded hex, prefixed by `$`.
+fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let fmt_value = format!("${:04X}", value);
+    port_temp_print_str(&fmt_value, gs, pcs);
 }
 
 unsafe fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
