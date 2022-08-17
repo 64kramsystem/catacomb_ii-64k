@@ -1356,21 +1356,9 @@ pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mu
 // Verify a file's existence
 //
 ////////////////////////////////////////////////////////////////////
-pub unsafe fn _Verify(filename: *const i8) -> i64 {
-    let mut handle: i32 = 0;
-    let mut size: i64 = 0;
-    handle = open(filename, 0);
-    if handle == -1 {
-        return 0;
-    }
-    size = filelength(handle);
-    close(handle);
-    return size;
-}
-
 /// Rust port: returns 0 if the file doesn't exist, otherwise its length.
 #[allow(dead_code)]
-pub fn port_temp__Verify(filename: &str) -> u64 {
+pub fn _Verify(filename: &str) -> u64 {
     let filepath = Path::new(filename);
 
     if filepath.exists() {

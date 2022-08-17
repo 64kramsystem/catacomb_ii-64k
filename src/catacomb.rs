@@ -34,8 +34,8 @@ use crate::{
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        joyinfo_t, port_temp_LoadFile, port_temp__Verify, port_temp_print_str, printchartile,
-        C2RustUnnamed_5, SDL_DisplayMode, SDL_GameController, SDL_Rect,
+        joyinfo_t, port_temp_LoadFile, port_temp_print_str, printchartile, C2RustUnnamed_5,
+        SDL_DisplayMode, SDL_GameController, SDL_Rect,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -667,7 +667,7 @@ pub unsafe fn dofkeys(
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                     let str = format!("GAME{ch}.CA2");
-                    if port_temp__Verify(&str) != 0 {
+                    if _Verify(&str) != 0 {
                         port_temp_print_str("\nGame exists,\noverwrite (Y/N)?", gs, pcs);
                         ch = get(gs, pas, pcs) as i8;
                         if ch as i32 != 'Y' as i32 && ch as i32 != 'y' as i32 {
