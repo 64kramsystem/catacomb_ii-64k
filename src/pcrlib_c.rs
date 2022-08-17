@@ -889,7 +889,7 @@ pub unsafe fn ControlPlayer(
         pcs.demoptr += 1;
         ret.button1 = (val & 1) as boolean;
         ret.button2 = ((val & 2) >> 1) as boolean;
-        ret.dir = ((val & 4 + 8 + 16 + 32) >> 2).into();
+        ret.dir = ((val & (4 + 8 + 16 + 32)) >> 2).into();
     }
     return ret;
 }
@@ -1366,7 +1366,7 @@ unsafe fn _printhexb(mut value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut P
     let mut str_0: [i8; 2] = *::std::mem::transmute::<&[u8; 2], &mut [i8; 2]>(b"\0\0");
     loop_0 = 0;
     while loop_0 < 2 {
-        str_0[0] = hexstr[(value as i32 >> (1 - loop_0) * 4 & 15) as usize];
+        str_0[0] = hexstr[(value as i32 >> ((1 - loop_0) * 4) & 15) as usize];
         print(str_0.as_mut_ptr(), gs, pcs);
         loop_0 += 1;
     }
@@ -1383,7 +1383,7 @@ unsafe fn _printbin(mut value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState
     print(b"%\0" as *const u8 as *const i8, gs, pcs);
     loop_0 = 0;
     while loop_0 < 16 {
-        if value >> 15 - loop_0 & 1 != 0 {
+        if value >> (15 - loop_0) & 1 != 0 {
             print(b"1\0" as *const u8 as *const i8, gs, pcs);
         } else {
             print(b"0\0" as *const u8 as *const i8, gs, pcs);
@@ -1429,7 +1429,7 @@ pub unsafe fn _inputint(
 
             for loop_0 in 0..16 {
                 if digit == hexstr[loop_0 as usize] {
-                    value |= (loop_0 as u8) << (digits - loop1 as isize) * 4;
+                    value |= (loop_0 as u8) << ((digits - loop1 as isize) * 4);
                     break;
                 }
             }
@@ -1443,7 +1443,7 @@ pub unsafe fn _inputint(
             if (string[loop1 + 1]) < b'0' || string[loop1 + 1] > b'1' {
                 return 0;
             }
-            value |= (string[loop1 + 1] - b'0') << digits_0 - loop1 as isize;
+            value |= (string[loop1 + 1] - b'0') << (digits_0 - loop1 as isize);
         }
     } else {
         value = String::from_utf8(string).unwrap().parse().unwrap();
@@ -1928,7 +1928,7 @@ pub fn _setupgame(
         } else {
             pcs.updateRect.h = pcs.mode.h;
             pcs.updateRect.w = pcs.mode.h * 4 / 3;
-            pcs.updateRect.x = pcs.mode.w - pcs.updateRect.w >> 1;
+            pcs.updateRect.x = (pcs.mode.w - pcs.updateRect.w) >> 1;
             pcs.updateRect.y = 0;
         }
         gs.screenseg.fill(0);

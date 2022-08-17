@@ -106,15 +106,14 @@ unsafe fn _SDL_PCPlaySound(mut sound: i32, pas: &mut PcrlibAState) {
     safe_SDL_LockMutex(pas.AudioMutex);
     pas.pcPhaseTick = 0;
     pas.pcLastSample = 0;
-    pas.pcLengthLeft = ((*pas.SoundData).sounds[sound as usize].start as i32
-        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32
-        >> 1) as u32;
+    pas.pcLengthLeft = (((*pas.SoundData).sounds[sound as usize].start as i32
+        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32) >> 1) as u32;
     pas.pcSound = (pas.SoundData as *mut u8)
         .offset((*pas.SoundData).sounds[(sound - 1) as usize].start as i32 as isize)
         as *mut u16;
     pas.SndPriority = (*pas.SoundData).sounds[(sound - 1) as usize].priority;
     pas.pcSamplesPerTick = (pas.AudioSpec.freq
-        / (1193181 * (*pas.SoundData).sounds[(sound - 1) as usize].samplerate as i32 >> 16))
+        / ((1193181 * (*pas.SoundData).sounds[(sound - 1) as usize].samplerate as i32) >> 16))
         as u32;
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
@@ -364,7 +363,7 @@ pub unsafe fn initrndt(mut randomize: boolean, pas: &mut PcrlibAState) {
 }
 
 pub unsafe fn rndt(pas: &mut PcrlibAState) -> i32 {
-    pas.rndindex = (pas.rndindex as i32 + 1 & 0xff as i32) as u16;
+    pas.rndindex = ((pas.rndindex as i32 + 1) & 0xff as i32) as u16;
     return rndtable[pas.rndindex as usize] as i32;
 }
 
