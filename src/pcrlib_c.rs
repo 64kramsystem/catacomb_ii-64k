@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::{fs, mem, ptr};
@@ -1269,6 +1269,13 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
     return safe_SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
 }
 
+/////////////////////////
+//
+// print
+// Prints a string at sx,sy.  No clipping!!!
+//
+/////////////////////////
+
 pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     loop {
         let ch_0 = *str_0;
@@ -1284,6 +1291,38 @@ pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut Pcrlib
             }
             _ => {
                 drawchar(pcs.sx, pcs.sy, ch_0 as i32, gs, pcs);
+                pcs.sx += 1;
+            }
+        }
+    }
+}
+
+/// To be the used when printing from memory.
+//
+#[allow(dead_code)]
+pub fn port_temp_print_cstr(str_0: &CStr, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    port_temp_print_str(&str_0.to_string_lossy(), gs, pcs)
+}
+
+/// Intended to be the ultimate, safe, version.
+/// Also to be used where strings are directly passed.
+//
+#[allow(dead_code)]
+pub fn port_temp_print_str(str_0: &str, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    for ch_0 in str_0.as_bytes() {
+        match ch_0 {
+            0 => break,
+            b'\n' => {
+                pcs.sy += 1;
+                pcs.sx = pcs.leftedge;
+            }
+            b'\r' => {
+                pcs.sx = pcs.leftedge;
+            }
+            _ => {
+                unsafe {
+                    drawchar(pcs.sx, pcs.sy, *ch_0 as i32, gs, pcs);
+                }
                 pcs.sx += 1;
             }
         }
