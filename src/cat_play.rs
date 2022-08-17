@@ -84,7 +84,7 @@ const opposite: [dirtype; 9] = [
 ];
 
 unsafe fn newobject(gs: &mut GlobalState) -> i32 {
-    let mut current_block: u64;
+    let current_block: u64;
     let mut i: i32 = 0;
     i = 1;
     loop {
@@ -451,7 +451,7 @@ unsafe fn opendoor(gs: &mut GlobalState, pas: &mut PcrlibAState) {
 }
 
 unsafe fn tagobject(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    let mut i: i32 = gs.altobj.hp as i32;
+    let i: i32 = gs.altobj.hp as i32;
     if gs.GODMODE && gs.altobj.class as i32 == player as i32 {
         return;
     }
@@ -960,7 +960,7 @@ unsafe fn playercmdthink(
 }
 
 unsafe fn chasethink(
-    mut diagonal: boolean,
+    diagonal: boolean,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
@@ -1133,7 +1133,7 @@ unsafe fn dragonthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pc
     };
 }
 
-unsafe fn gunthink(mut dir: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn gunthink(dir: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut n: i32 = 0;
     PlaySound(5, pas);
     gs.obj.stage = 0;
@@ -1175,7 +1175,7 @@ unsafe fn fadethink(gs: &mut GlobalState) {
     }
 }
 
-unsafe fn killnear(mut chkx_0: i32, mut chky_0: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn killnear(chkx_0: i32, chky_0: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut spot: i32 = 0;
     let mut new: i32 = 0;
     spot = gs.background[chky_0 as usize][chkx_0 as usize];

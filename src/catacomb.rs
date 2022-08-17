@@ -220,11 +220,11 @@ unsafe fn wantmore(
     return true as boolean;
 }
 unsafe fn charpic(
-    mut x: i32,
-    mut y: i32,
-    mut c: classtype,
-    mut dir: dirtype,
-    mut stage: i32,
+    x: i32,
+    y: i32,
+    c: classtype,
+    dir: dirtype,
+    stage: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
 ) {
@@ -667,7 +667,7 @@ unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCS
 
 pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
-    let mut tokens: [classtype; 26] = [
+    let tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
         secretgate, nothing, nothing, nothing, nothing, nothing, nothing, nothing, nothing,
         nothing, nothing, nothing, nothing, nothing, nothing, nothing,
@@ -679,7 +679,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     let mut btile: u8 = 0;
     let mut sm = [0; 4096];
     let mut rle = [0; 4096];
-    let mut filename = format!("LEVEL{}.CA2", pcs.level);
+    let filename = format!("LEVEL{}.CA2", pcs.level);
     port_temp_LoadFile(&filename, &mut rle);
     port_temp_RLEExpand(&rle[4..], &mut sm);
     gs.numobj = 0;
@@ -879,7 +879,7 @@ pub unsafe fn dofkeys(
     if key < SDL_SCANCODE_F1 as i32 || key > SDL_SCANCODE_F10 as i32 {
         return;
     }
-    let mut current_block_72: u64;
+    let current_block_72: u64;
     match key {
         58 => {
             clearkeys(pcs);

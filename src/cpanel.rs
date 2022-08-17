@@ -82,7 +82,7 @@ pub struct picfiletype {
 }
 
 #[inline]
-unsafe fn flatptr(mut ptr: farptr) -> u32 {
+unsafe fn flatptr(ptr: farptr) -> u32 {
     return (((ptr.seg as i32) << 4) + ptr.ofs as i32) as u32;
 }
 
@@ -90,7 +90,7 @@ const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
 
 unsafe fn calibratejoy(
-    mut joynum: i32,
+    joynum: i32,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
@@ -425,7 +425,7 @@ pub unsafe fn getconfig(cps: &mut CpanelState) {
     cps.spotok[1][2] = 0;
     cps.spotok[1][3] = 0;
     cps.spotok[1][4] = 0;
-    let mut numjoy: i32 = safe_SDL_NumJoysticks();
+    let numjoy: i32 = safe_SDL_NumJoysticks();
     cps.joy1ok = (numjoy > 0) as i32;
     cps.joy2ok = (numjoy > 1) as i32;
     cps.mouseok = 1;
@@ -668,8 +668,8 @@ pub unsafe fn controlpanel(
 }
 
 pub unsafe fn installgrfile(
-    mut filename: *const i8,
-    mut inmem: *mut libc::c_void,
+    filename: *const i8,
+    inmem: *mut libc::c_void,
     cps: &mut CpanelState,
     pcs: &mut PcrlibCState,
 ) {
