@@ -114,10 +114,6 @@ extern "C" {
 // DIRECT SDL APIS
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 
-pub fn safe_SDL_Quit() {
-    unsafe { SDL_Quit() }
-}
-
 pub fn safe_SDL_Init(flags: u32) -> i32 {
     unsafe { SDL_Init(flags) }
 }
