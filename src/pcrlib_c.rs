@@ -1270,23 +1270,22 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
 }
 
 pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut ch_0: i8 = 0;
     loop {
-        let fresh3 = str_0;
+        let ch_0 = *str_0;
         str_0 = str_0.offset(1);
-        ch_0 = *fresh3;
-        if !(ch_0 as i32 != 0) {
-            break;
-        }
-        if ch_0 as i32 == '\n' as i32 {
-            pcs.sy += 1;
-            pcs.sx = pcs.leftedge;
-        } else if ch_0 as i32 == '\r' as i32 {
-            pcs.sx = pcs.leftedge;
-        } else {
-            let fresh4 = pcs.sx;
-            pcs.sx += 1;
-            drawchar(fresh4, pcs.sy, ch_0 as u8 as i32, gs, pcs);
+        match ch_0 as u8 {
+            0 => break,
+            b'\n' => {
+                pcs.sy += 1;
+                pcs.sx = pcs.leftedge;
+            }
+            b'\r' => {
+                pcs.sx = pcs.leftedge;
+            }
+            _ => {
+                drawchar(pcs.sx, pcs.sy, ch_0 as i32, gs, pcs);
+                pcs.sx += 1;
+            }
         }
     }
 }
