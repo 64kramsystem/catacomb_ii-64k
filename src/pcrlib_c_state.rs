@@ -10,32 +10,12 @@ use crate::{
 
 // Globals previously belonging to pcrlib_c.rs.
 //
+#[rustfmt::skip]
 pub struct PcrlibCState {
-    /*
-    Private
-    */
-    pub mouseEvent: boolean,
-    pub demobuffer: [u8; 5000],
-    pub demoptr: usize,
-    pub democount: i32,
-    pub lastdemoval: i32,
-    pub lastkey: SDL_Scancode,
-    pub window: *mut SDL_Window,
-    pub renderer: *mut SDL_Renderer,
-    pub sdltexture: *mut SDL_Texture,
-    pub updateRect: SDL_Rect,
-    pub mode: SDL_DisplayMode,
-    pub joystick: [joyinfo_t; 3],
-    pub hasFocus: boolean,
-    pub win_xl: i32,
-    pub win_yl: i32,
-    pub win_xh: i32,
-    pub win_yh: i32,
-    pub conv: [u32; 64000],
+    // //////////////////////////////////////////////////////////
+    // Rust port: shared
+    // //////////////////////////////////////////////////////////
 
-    /*
-    Public
-     */
     pub playermode: [inputtype; 3],
     pub keydown: [boolean; 512],
     pub JoyXlow: [i32; 3],
@@ -58,6 +38,29 @@ pub struct PcrlibCState {
     pub highscores: [scores; 5],
     pub score: i32,
     pub level: i16,
+
+    // //////////////////////////////////////////////////////////
+    // Rust port: private to pcrlib_c.rs
+    // //////////////////////////////////////////////////////////
+
+    pub mouseEvent: boolean,
+    pub demobuffer: [u8; 5000],
+    pub demoptr: usize,
+    pub democount: i32,
+    pub lastdemoval: i32,
+    pub lastkey: SDL_Scancode,
+    pub window: *mut SDL_Window,
+    pub renderer: *mut SDL_Renderer,
+    pub sdltexture: *mut SDL_Texture,
+    pub updateRect: SDL_Rect,
+    pub mode: SDL_DisplayMode,
+    pub joystick: [joyinfo_t; 3],
+    pub hasFocus: boolean,
+    pub win_xl: i32,
+    pub win_yl: i32,
+    pub win_xh: i32,
+    pub win_yh: i32,
+    pub conv: [u32; 64000],
 }
 
 impl PcrlibCState {

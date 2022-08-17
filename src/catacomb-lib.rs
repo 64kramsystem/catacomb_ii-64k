@@ -1,16 +1,31 @@
 #![allow(clippy::all)]
-#![deny(clippy::correctness)]
-#![allow(dead_code)]
 #![allow(mutable_transmutes)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 #![allow(unused_assignments)]
-#![allow(unused_mut)]
 #![feature(extern_types)]
 #![feature(label_break_value)]
 #![feature(register_tool)]
 #![register_tool(c2rust)]
+#![deny(
+    clippy::assign_op_pattern,
+    clippy::correctness,
+    clippy::precedence,
+    clippy::unnecessary_mut_passed,
+    dead_code,
+    unused_mut
+)]
+#![allow(
+    clippy::identity_op,
+    clippy::int_plus_one,
+    clippy::missing_safety_doc,
+    clippy::needless_return,
+    clippy::nonminimal_bool,
+    clippy::unnecessary_cast,
+    clippy::wildcard_in_or_patterns,
+    clippy::zero_ptr
+)]
 
 extern crate libc;
 mod active_obj;

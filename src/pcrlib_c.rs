@@ -1,6 +1,7 @@
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
+use std::path::Path;
 use std::{fs, mem, ptr};
 
 use ::libc;
@@ -33,15 +34,10 @@ extern "C" {
     pub type _IO_wide_data;
     pub type _IO_codecvt;
     pub type _IO_marker;
-    fn SDL_Quit();
     fn close(__fd: i32) -> i32;
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn fstat(__fd: i32, __buf: *mut stat) -> i32;
-    fn atoi(__nptr: *const i8) -> i32;
-    static mut stderr: *mut FILE;
-    fn fprintf(_: *mut FILE, _: *const i8, _: ...) -> i32;
-    fn sprintf(_: *mut i8, _: *const i8, _: ...) -> i32;
     fn puts(__s: *const i8) -> i32;
     fn __assert_fail(
         __assertion: *const i8,
@@ -49,8 +45,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    fn strlen(_: *const i8) -> u64;
-    fn strcat(_: *mut i8, _: *const i8) -> *mut i8;
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
@@ -125,11 +119,8 @@ pub struct _IO_FILE {
     pub _unused2: [i8; 20],
 }
 pub type _IO_lock_t = ();
-pub type FILE = _IO_FILE;
 
 pub type SDL_bool = u32;
-pub const SDL_TRUE: SDL_bool = 1;
-pub const SDL_FALSE: SDL_bool = 0;
 
 const SDL_PIXELFORMAT_ARGB8888: u32 = 372645892;
 
@@ -489,9 +480,7 @@ pub union SDL_Event {
 }
 pub type SDL_EventFilter = Option<unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32>;
 pub type C2RustUnnamed_4 = u32;
-pub const SDL_TEXTUREACCESS_TARGET: C2RustUnnamed_4 = 2;
 pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
-pub const SDL_TEXTUREACCESS_STATIC: C2RustUnnamed_4 = 0;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -547,11 +536,8 @@ pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
     }
 }
 
-unsafe extern "C" fn WatchUIEvents(
-    mut userdata: *mut libc::c_void,
-    mut event: *mut SDL_Event,
-) -> i32 {
-    let mut userdata = userdata as *const _ as *mut (*mut PcrlibAState, *mut PcrlibCState);
+unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_Event) -> i32 {
+    let userdata = userdata as *const _ as *mut (*mut PcrlibAState, *mut PcrlibCState);
     let (pas, pcs) = (&mut *(*userdata).0, &mut *(*userdata).1);
 
     if (*event).type_0 == SDL_QUIT as i32 as u32 {
@@ -585,7 +571,7 @@ pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
         button2: 0,
     };
     if pcs.keydown[pcs.key[north as i32 as usize] as usize] != 0 {
-        ymove = -(1);
+        ymove = -1;
     }
     if pcs.keydown[pcs.key[east as i32 as usize] as usize] != 0 {
         xmove = 1;
@@ -594,15 +580,15 @@ pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
         ymove = 1;
     }
     if pcs.keydown[pcs.key[west as i32 as usize] as usize] != 0 {
-        xmove = -(1);
+        xmove = -1;
     }
     if pcs.keydown[pcs.key[northeast as i32 as usize] as usize] != 0 {
-        ymove = -(1);
+        ymove = -1;
         xmove = 1;
     }
     if pcs.keydown[pcs.key[northwest as i32 as usize] as usize] != 0 {
-        ymove = -(1);
-        xmove = -(1);
+        ymove = -1;
+        xmove = -1;
     }
     if pcs.keydown[pcs.key[southeast as i32 as usize] as usize] != 0 {
         ymove = 1;
@@ -610,7 +596,7 @@ pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     }
     if pcs.keydown[pcs.key[southwest as i32 as usize] as usize] != 0 {
         ymove = 1;
-        xmove = -(1);
+        xmove = -1;
     }
     match ymove * 3 + xmove {
         -4 => {
@@ -657,7 +643,7 @@ pub unsafe fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
         button1: 0,
         button2: 0,
     };
-    let mut buttons: i32 = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32;
+    let buttons: i32 = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32;
     action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) as boolean;
     action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) as boolean;
     if pcs.mouseEvent as i32 == false as i32 {
@@ -667,12 +653,12 @@ pub unsafe fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
     if newx > pcs.MouseSensitivity {
         xmove = 1;
     } else if newx < -pcs.MouseSensitivity {
-        xmove = -(1);
+        xmove = -1;
     }
     if newy > pcs.MouseSensitivity {
         ymove = 1;
     } else if newy < -pcs.MouseSensitivity {
-        ymove = -(1);
+        ymove = -1;
     }
     match ymove * 3 + xmove {
         -4 => {
@@ -717,7 +703,7 @@ unsafe fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
             } else {
                 safe_SDL_JoystickClose(pcs.joystick[j as usize].c2rust_unnamed.joy);
             }
-            pcs.joystick[j as usize].device = -(1);
+            pcs.joystick[j as usize].device = -1;
         }
         j = j.wrapping_add(1);
     }
@@ -731,7 +717,7 @@ pub unsafe fn ProbeJoysticks(pcs: &mut PcrlibCState) {
     j = 1;
     while j < 3 {
         if j - 1 >= safe_SDL_NumJoysticks() {
-            pcs.joystick[j as usize].device = -(1);
+            pcs.joystick[j as usize].device = -1;
         } else {
             pcs.joystick[j as usize].device = j - 1;
             pcs.joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) as boolean;
@@ -747,9 +733,9 @@ pub unsafe fn ProbeJoysticks(pcs: &mut PcrlibCState) {
 }
 
 pub unsafe fn ReadJoystick(
-    mut joynum: i32,
-    mut xcount: *mut i32,
-    mut ycount: *mut i32,
+    joynum: i32,
+    xcount: *mut i32,
+    ycount: *mut i32,
     pcs: &mut PcrlibCState,
 ) {
     let mut a1: i32 = 0;
@@ -774,7 +760,7 @@ pub unsafe fn ReadJoystick(
     *ycount = a2;
 }
 
-pub unsafe fn ControlJoystick(mut joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
+pub unsafe fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
     let mut joyx: i32 = 0;
     let mut joyy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -811,12 +797,12 @@ pub unsafe fn ControlJoystick(mut joynum: i32, pcs: &mut PcrlibCState) -> Contro
     if joyx > pcs.JoyXhigh[joynum as usize] {
         xmove = 1;
     } else if joyx < pcs.JoyXlow[joynum as usize] {
-        xmove = -(1);
+        xmove = -1;
     }
     if joyy > pcs.JoyYhigh[joynum as usize] {
         ymove = 1;
     } else if joyy < pcs.JoyYlow[joynum as usize] {
-        ymove = -(1);
+        ymove = -1;
     }
     match ymove * 3 + xmove {
         -4 => {
@@ -852,7 +838,7 @@ pub unsafe fn ControlJoystick(mut joynum: i32, pcs: &mut PcrlibCState) -> Contro
 }
 
 pub unsafe fn ControlPlayer(
-    mut player: i32,
+    player: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
 ) -> ControlStruct {
@@ -889,7 +875,7 @@ pub unsafe fn ControlPlayer(
         pcs.demoptr += 1;
         ret.button1 = (val & 1) as boolean;
         ret.button2 = ((val & 2) >> 1) as boolean;
-        ret.dir = ((val & 4 + 8 + 16 + 32) >> 2).into();
+        ret.dir = ((val & (4 + 8 + 16 + 32)) >> 2).into();
     }
     return ret;
 }
@@ -908,7 +894,7 @@ pub unsafe fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 //
 ////////////////////////
 
-pub fn LoadDemo(mut demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
 
@@ -948,7 +934,7 @@ pub unsafe fn clearkeys(pcs: &mut PcrlibCState) {
     }
 }
 
-unsafe fn filelength(mut fd: i32) -> i64 {
+unsafe fn filelength(fd: i32) -> i64 {
     let mut s: stat = stat {
         st_dev: 0,
         st_ino: 0,
@@ -976,19 +962,19 @@ unsafe fn filelength(mut fd: i32) -> i64 {
         __glibc_reserved: [0; 3],
     };
     if fstat(fd, &mut s) != 0 {
-        return -(1) as i64;
+        return -1 as i64;
     }
     return s.st_size;
 }
 
-pub unsafe fn LoadFile(mut filename: *const i8, mut buffer: *const i8) -> u64 {
+pub unsafe fn LoadFile(filename: *const i8, buffer: *const i8) -> u64 {
     let mut fd: i32 = 0;
     fd = open(filename, 0o400 as i32);
     if fd < 0 {
         return 0;
     }
-    let mut len: i64 = filelength(fd);
-    let mut bytesRead: i64 = read(fd, buffer as *mut libc::c_void, len as u64);
+    let len: i64 = filelength(fd);
+    let bytesRead: i64 = read(fd, buffer as *mut libc::c_void, len as u64);
     close(fd);
     return bytesRead as u64;
 }
@@ -1018,7 +1004,7 @@ pub fn port_temp_LoadFile(filename: &str, dest: &mut [u8]) -> usize {
 ==============================================
 */
 
-pub unsafe fn SaveFile(mut filename: *const i8, mut buffer: *const i8, mut size: i64) {
+pub unsafe fn SaveFile(filename: *const i8, buffer: *const i8, size: i64) {
     let mut fd: i32 = 0;
     // Flags: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
     fd = open(
@@ -1041,7 +1027,7 @@ pub unsafe fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
     // The file is truncated if existing (http://spike.scu.edu.au/~barry/interrupts.html#ah3c), so we just use corresponding flags.
     // Permissions are ignored (they're set in the SDL port).
 
-    let mut file = OpenOptions::new() //
+    let file = OpenOptions::new() //
         .write(true)
         .create(true)
         .truncate(true)
@@ -1073,10 +1059,10 @@ pub fn bloadin(filename: &str) -> *const u8 {
 }
 
 pub unsafe fn drawwindow(
-    mut xl: i32,
-    mut yl: i32,
-    mut xh: i32,
-    mut yh: i32,
+    xl: i32,
+    yl: i32,
+    xh: i32,
+    yh: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
 ) {
@@ -1117,11 +1103,11 @@ pub unsafe fn drawwindow(
 }
 
 pub unsafe fn bar(
-    mut xl: i32,
-    mut yl: i32,
-    mut xh: i32,
-    mut yh: i32,
-    mut ch_0: i32,
+    xl: i32,
+    yl: i32,
+    xh: i32,
+    yh: i32,
+    ch_0: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
 ) {
@@ -1144,20 +1130,15 @@ pub unsafe fn erasewindow(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     );
 }
 
-pub unsafe fn centerwindow(
-    mut width: i32,
-    mut height: i32,
-    gs: &mut GlobalState,
-    pcs: &mut PcrlibCState,
-) {
-    let mut xl: i32 = gs.screencenter.x - width / 2;
-    let mut yl: i32 = gs.screencenter.y - height / 2;
+pub unsafe fn centerwindow(width: i32, height: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let xl: i32 = gs.screencenter.x - width / 2;
+    let yl: i32 = gs.screencenter.y - height / 2;
     drawwindow(xl, yl, xl + width + 1, yl + height + 1, gs, pcs);
 }
 
 pub unsafe fn expwin(
-    mut width: i32,
-    mut height: i32,
+    width: i32,
+    height: i32,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
@@ -1177,8 +1158,8 @@ pub unsafe fn expwin(
 }
 
 unsafe fn expwinh(
-    mut width: i32,
-    mut height: i32,
+    width: i32,
+    height: i32,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
@@ -1192,8 +1173,8 @@ unsafe fn expwinh(
 }
 
 unsafe fn expwinv(
-    mut width: i32,
-    mut height: i32,
+    width: i32,
+    height: i32,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
@@ -1206,9 +1187,9 @@ unsafe fn expwinv(
     centerwindow(width, height, gs, pcs);
 }
 
-pub unsafe fn bioskey(mut cmd: i32, pcs: &mut PcrlibCState) -> i32 {
+pub unsafe fn bioskey(cmd: i32, pcs: &mut PcrlibCState) -> i32 {
     if pcs.lastkey as u64 != 0 {
-        let mut oldkey: i32 = pcs.lastkey as i32;
+        let oldkey: i32 = pcs.lastkey as i32;
         if cmd != 1 {
             pcs.lastkey = SDL_SCANCODE_UNKNOWN;
         }
@@ -1255,12 +1236,7 @@ pub unsafe fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
     safe_SDL_RenderClear(pcs.renderer);
-    safe_SDL_RenderCopy(
-        pcs.renderer,
-        pcs.sdltexture,
-        ptr::null(),
-        &mut pcs.updateRect,
-    );
+    safe_SDL_RenderCopy(pcs.renderer, pcs.sdltexture, ptr::null(), &pcs.updateRect);
     safe_SDL_RenderPresent(pcs.renderer);
 }
 
@@ -1275,7 +1251,7 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
                 break;
             }
             let fresh2 = cycle;
-            cycle = cycle + 1;
+            cycle += 1;
             drawchar(pcs.sx, pcs.sy, fresh2, gs, pcs);
             UpdateScreen(gs, pcs);
             WaitVBL(pas);
@@ -1293,24 +1269,62 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
     return safe_SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
 }
 
+/////////////////////////
+//
+// print
+// Prints a string at sx,sy.  No clipping!!!
+//
+/////////////////////////
+
 pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut ch_0: i8 = 0;
     loop {
-        let fresh3 = str_0;
+        let ch_0 = *str_0;
         str_0 = str_0.offset(1);
-        ch_0 = *fresh3;
-        if !(ch_0 as i32 != 0) {
-            break;
+        match ch_0 as u8 {
+            0 => break,
+            b'\n' => {
+                pcs.sy += 1;
+                pcs.sx = pcs.leftedge;
+            }
+            b'\r' => {
+                pcs.sx = pcs.leftedge;
+            }
+            _ => {
+                drawchar(pcs.sx, pcs.sy, ch_0 as i32, gs, pcs);
+                pcs.sx += 1;
+            }
         }
-        if ch_0 as i32 == '\n' as i32 {
-            pcs.sy += 1;
-            pcs.sx = pcs.leftedge;
-        } else if ch_0 as i32 == '\r' as i32 {
-            pcs.sx = pcs.leftedge;
-        } else {
-            let fresh4 = pcs.sx;
-            pcs.sx = pcs.sx + 1;
-            drawchar(fresh4, pcs.sy, ch_0 as u8 as i32, gs, pcs);
+    }
+}
+
+/// To be the used when printing from memory.
+//
+#[allow(dead_code)]
+pub fn port_temp_print_cstr(str_0: &CStr, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    port_temp_print_str(&str_0.to_string_lossy(), gs, pcs)
+}
+
+/// Intended to be the ultimate, safe, version.
+/// Also to be used where strings are directly passed.
+//
+#[allow(dead_code)]
+pub fn port_temp_print_str(str_0: &str, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    for ch_0 in str_0.as_bytes() {
+        match ch_0 {
+            0 => break,
+            b'\n' => {
+                pcs.sy += 1;
+                pcs.sx = pcs.leftedge;
+            }
+            b'\r' => {
+                pcs.sx = pcs.leftedge;
+            }
+            _ => {
+                unsafe {
+                    drawchar(pcs.sx, pcs.sy, *ch_0 as i32, gs, pcs);
+                }
+                pcs.sx += 1;
+            }
         }
     }
 }
@@ -1331,70 +1345,72 @@ pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mu
             pcs.sx = pcs.leftedge;
         } else {
             let fresh6 = pcs.sx;
-            pcs.sx = pcs.sx + 1;
+            pcs.sx += 1;
             drawchartile(fresh6, pcs.sy, ch_0 as u8 as i32, gs, pcs);
         }
     }
 }
 
-pub unsafe fn printint(mut val: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let str = CString::new(format!("{val}")).unwrap();
-    print(str.as_ptr(), gs, pcs);
-}
+////////////////////////////////////////////////////////////////////
+//
+// Verify a file's existence
+//
+////////////////////////////////////////////////////////////////////
+/// Rust port: returns 0 if the file doesn't exist, otherwise its length.
+#[allow(dead_code)]
+pub fn _Verify(filename: &str) -> u64 {
+    let filepath = Path::new(filename);
 
-pub unsafe fn printlong(mut val: i64, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let str = CString::new(format!("{val}")).unwrap();
-    print(str.as_ptr(), gs, pcs);
-}
-
-pub unsafe fn _Verify(mut filename: *const i8) -> i64 {
-    let mut handle: i32 = 0;
-    let mut size: i64 = 0;
-    handle = open(filename, 0);
-    if handle == -(1) {
-        return 0;
-    }
-    size = filelength(handle);
-    close(handle);
-    return size;
-}
-
-unsafe fn _printhexb(mut value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut loop_0: i32 = 0;
-    let mut hexstr: [i8; 16] =
-        *::std::mem::transmute::<&[u8; 16], &mut [i8; 16]>(b"0123456789ABCDEF");
-    let mut str_0: [i8; 2] = *::std::mem::transmute::<&[u8; 2], &mut [i8; 2]>(b"\0\0");
-    loop_0 = 0;
-    while loop_0 < 2 {
-        str_0[0] = hexstr[(value as i32 >> (1 - loop_0) * 4 & 15) as usize];
-        print(str_0.as_mut_ptr(), gs, pcs);
-        loop_0 += 1;
+    if filepath.exists() {
+        let file_meta = fs::metadata(filename);
+        // If the file exists, assume that it can be read correctly.
+        file_meta.unwrap().len()
+    } else {
+        0
     }
 }
 
-unsafe fn _printhex(mut value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    print(b"$\0" as *const u8 as *const i8, gs, pcs);
-    _printhexb((value >> 8) as libc::c_uchar, gs, pcs);
-    _printhexb((value & 0xff as i32 as u32) as libc::c_uchar, gs, pcs);
+////////////////////////////////////////////////////////////////////
+//
+// print hex byte
+//
+////////////////////////////////////////////////////////////////////
+/// Rust port: Prints a byte in padded hex.
+fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let fmt_value = format!("{:02X}", value);
+    port_temp_print_str(&fmt_value, gs, pcs);
 }
 
-unsafe fn _printbin(mut value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut loop_0: i32 = 0;
-    print(b"%\0" as *const u8 as *const i8, gs, pcs);
-    loop_0 = 0;
-    while loop_0 < 16 {
-        if value >> 15 - loop_0 & 1 != 0 {
-            print(b"1\0" as *const u8 as *const i8, gs, pcs);
-        } else {
-            print(b"0\0" as *const u8 as *const i8, gs, pcs);
-        }
-        loop_0 += 1;
-    }
+////////////////////////////////////////////////////////////////////
+//
+// print hex
+//
+////////////////////////////////////////////////////////////////////
+/// Rust port: Prints a word in padded hex, prefixed by `$`.
+fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let fmt_value = format!("${:04X}", value);
+    port_temp_print_str(&fmt_value, gs, pcs);
 }
 
-unsafe fn _printc(mut string: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    pcs.sx = 1 + gs.screencenter.x - (strlen(string)).wrapping_div(2) as i32;
-    print(string, gs, pcs);
+////////////////////////////////////////////////////////////////////
+//
+// print bin
+//
+////////////////////////////////////////////////////////////////////
+/// Rust port: Prints a word in padded binary, prefixed by `%`; dead code.
+fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let fmt_value = format!("%{:016b}", value);
+    port_temp_print_str(&fmt_value, gs, pcs);
+}
+
+////////////////////////////////////////////////////////////////////
+//
+// center print
+//
+////////////////////////////////////////////////////////////////////
+fn _printc(string: &CString, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    pcs.sx = 1 + gs.screencenter.x - string.as_bytes().len() as i32;
+    port_temp_print_cstr(string, gs, pcs);
 }
 
 // Rust port: Avoids importing strlen, and also, works on u8.
@@ -1429,7 +1445,7 @@ pub unsafe fn _inputint(
 
             for loop_0 in 0..16 {
                 if digit == hexstr[loop_0 as usize] {
-                    value |= (loop_0 as u8) << (digits - loop1 as isize) * 4;
+                    value |= (loop_0 as u8) << ((digits - loop1 as isize) * 4);
                     break;
                 }
             }
@@ -1443,7 +1459,7 @@ pub unsafe fn _inputint(
             if (string[loop1 + 1]) < b'0' || string[loop1 + 1] > b'1' {
                 return 0;
             }
-            value |= (string[loop1 + 1] - b'0') << digits_0 - loop1 as isize;
+            value |= (string[loop1 + 1] - b'0') << (digits_0 - loop1 as isize);
         }
     } else {
         value = String::from_utf8(string).unwrap().parse().unwrap();
@@ -1514,7 +1530,7 @@ pub const _egaok: boolean = true as boolean;
 
 pub const _vgaok: boolean = false as boolean;
 
-pub unsafe fn ScancodeToDOS(mut sc: SDL_Scancode) -> i32 {
+pub unsafe fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
     let mut i: i32 = 0;
     i = 0;
     while i < 128 {
@@ -1704,9 +1720,9 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
     centerwindow(17, 17, gs, pcs);
-    print(b"\n   HIGH SCORES\n\n\0" as *const u8 as *const i8, gs, pcs);
-    print(b" #  SCORE LV  BY\n\0" as *const u8 as *const i8, gs, pcs);
-    print(b" - ------ -- ---\n\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str("\n   HIGH SCORES\n\n", gs, pcs);
+    port_temp_print_str(" #  SCORE LV  BY\n", gs, pcs);
+    port_temp_print_str(" - ------ -- ---\n", gs, pcs);
     i = 0;
     while i < 5 {
         pcs.sx += 1;
@@ -1748,7 +1764,7 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         i += 1;
     }
     let str = CString::new(format!("SCORE:{}", pcs.score)).unwrap();
-    _printc(str.as_ptr(), gs, pcs);
+    _printc(&str, gs, pcs);
 }
 
 pub unsafe fn _checkhighscore(
@@ -1824,7 +1840,7 @@ pub fn _setupgame(
     }
     safe_register_sdl_quit_on_exit();
 
-    let mut userdata = Box::leak(Box::new((
+    let userdata = Box::leak(Box::new((
         pas as *mut PcrlibAState,
         pcs as *mut PcrlibCState,
     )));
@@ -1878,7 +1894,7 @@ pub fn _setupgame(
         h: 0,
     };
     unsafe {
-        if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs.mode) < -(1)
+        if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs.mode) < -1
             || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
         {
             eprintln!("Could not get display mode: {}", safe_SDL_GetError());
@@ -1903,7 +1919,7 @@ pub fn _setupgame(
             }) as u32,
         );
         if pcs.window.is_null() || {
-            pcs.renderer = safe_SDL_CreateRenderer(pcs.window, -(1), 0);
+            pcs.renderer = safe_SDL_CreateRenderer(pcs.window, -1, 0);
             pcs.renderer.is_null()
         } {
             eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
@@ -1928,12 +1944,12 @@ pub fn _setupgame(
         } else {
             pcs.updateRect.h = pcs.mode.h;
             pcs.updateRect.w = pcs.mode.h * 4 / 3;
-            pcs.updateRect.x = pcs.mode.w - pcs.updateRect.w >> 1;
+            pcs.updateRect.x = (pcs.mode.w - pcs.updateRect.w) >> 1;
             pcs.updateRect.y = 0;
         }
         gs.screenseg.fill(0);
         pcs.grmode = EGAgr;
-        pcs.joystick[2].device = -(1);
+        pcs.joystick[2].device = -1;
         pcs.joystick[1].device = pcs.joystick[2].device;
         _loadctrls(pas, pcs);
         if pcs.grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
@@ -1955,7 +1971,7 @@ pub fn _setupgame(
     }
 }
 
-pub unsafe fn _quit(mut error: *const i8, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub unsafe fn _quit(error: *const i8, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if *error == 0 {
         _savehighscores(pcs);
         _savectrls(pas, pcs);

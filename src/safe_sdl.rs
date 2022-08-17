@@ -86,7 +86,6 @@ extern "C" {
     fn SDL_LockMutex(mutex: *mut SDL_mutex) -> i32;
     fn SDL_UnlockMutex(mutex: *mut SDL_mutex) -> i32;
     fn SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_sem;
-    fn SDL_DestroySemaphore(sem: *mut SDL_sem);
     fn SDL_SemWait(sem: *mut SDL_sem) -> i32;
     fn SDL_SemPost(sem: *mut SDL_sem) -> i32;
     fn SDL_SemValue(sem: *mut SDL_sem) -> u32;
@@ -100,7 +99,6 @@ extern "C" {
     fn SDL_PauseAudioDevice(dev: SDL_AudioDeviceID, pause_on: i32);
     fn SDL_CloseAudio();
     fn SDL_InitSubSystem(flags: u32) -> i32;
-    fn SDL_RemoveTimer(id: SDL_TimerID) -> SDL_bool;
     fn SDL_AddTimer(
         interval: u32,
         callback: SDL_TimerCallback,
@@ -113,10 +111,6 @@ extern "C" {
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 // DIRECT SDL APIS
 // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn safe_SDL_Quit() {
-    unsafe { SDL_Quit() }
-}
 
 pub fn safe_SDL_Init(flags: u32) -> i32 {
     unsafe { SDL_Init(flags) }
@@ -303,10 +297,6 @@ pub fn safe_SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_sem {
     unsafe { SDL_CreateSemaphore(initial_value) }
 }
 
-pub fn safe_SDL_DestroySemaphore(sem: *mut SDL_sem) {
-    unsafe { SDL_DestroySemaphore(sem) }
-}
-
 pub fn safe_SDL_SemWait(sem: *mut SDL_sem) -> i32 {
     unsafe { SDL_SemWait(sem) }
 }
@@ -339,10 +329,6 @@ pub fn safe_SDL_CloseAudio() {
 
 pub fn safe_SDL_InitSubSystem(flags: u32) -> i32 {
     unsafe { SDL_InitSubSystem(flags) }
-}
-
-pub fn safe_SDL_RemoveTimer(id: SDL_TimerID) -> SDL_bool {
-    unsafe { SDL_RemoveTimer(id) }
 }
 
 pub fn safe_SDL_AddTimer(

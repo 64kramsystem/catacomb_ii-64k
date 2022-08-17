@@ -13,7 +13,7 @@ pub type C2RustUnnamed_0 = u32;
 pub const screenpitch: C2RustUnnamed_0 = 320;
 
 #[inline]
-unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
+unsafe fn EGA(chan: *const u8, ofs: u8) -> u8 {
     return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
         | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
         | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
@@ -139,7 +139,7 @@ pub unsafe fn doall(
     }
 }
 
-unsafe fn drawcgachartile(mut dest: *mut u8, mut tile: i32, gs: &mut GlobalState) {
+unsafe fn drawcgachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
     let mut src: *mut u8 = (gs.pics as *mut u8).offset((tile << 4) as isize);
     let mut r: u32 = 0;
     r = 0;
@@ -200,7 +200,7 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     UpdateScreen(gs, pcs);
 }
 
-unsafe fn drawegachartile(mut dest: *mut u8, mut tile: i32, gs: &mut GlobalState) {
+unsafe fn drawegachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
     let mut src: *mut u8 = (gs.pics as *mut u8).offset((tile << 5) as isize);
     let mut r: u32 = 0;
     r = 0;
@@ -268,9 +268,9 @@ pub unsafe fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 }
 
 pub unsafe fn drawchartile(
-    mut x: i32,
-    mut y: i32,
-    mut tile: i32,
+    x: i32,
+    y: i32,
+    tile: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
 ) {

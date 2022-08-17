@@ -8,10 +8,19 @@ use crate::{
 
 // Globals previously belonging to pcrlib_a.rs.
 //
+#[rustfmt::skip]
 pub struct PcrlibAState {
-    /*
-    Private
-    */
+    // //////////////////////////////////////////////////////////
+    // Rust port: shared
+    // //////////////////////////////////////////////////////////
+
+    pub SoundData: *mut SPKRtable,
+    pub soundmode: soundtype,
+
+    // //////////////////////////////////////////////////////////
+    // Rust port: private to pcrlib_a.rs
+    // //////////////////////////////////////////////////////////
+
     pub SndPriority: u8,
     pub _dontplay: i32,
     pub AudioMutex: *mut SDL_mutex,
@@ -34,11 +43,11 @@ pub struct PcrlibAState {
     pub RndArray: [u16; 17],
     pub vblsem: *mut SDL_sem,
     pub vbltimer: SDL_TimerID,
-    /*
-    Public
-     */
-    pub SoundData: *mut SPKRtable,
-    pub soundmode: soundtype,
+
+    // //////////////////////////////////////////////////////////
+    // Rust port: private to cpanel.rs
+    // //////////////////////////////////////////////////////////
+
     pub xormask: i32,
 }
 impl PcrlibAState {

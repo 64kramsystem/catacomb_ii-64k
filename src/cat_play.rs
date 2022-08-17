@@ -13,8 +13,8 @@ use crate::{
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
-        centerwindow, get, print, printint, printlong, ControlPlayer, UpdateScreen, _inputint,
-        bioskey, clearkeys, RecordDemo, SaveDemo,
+        centerwindow, get, print, ControlPlayer, UpdateScreen, _inputint, bioskey, clearkeys,
+        port_temp_print_str, RecordDemo, SaveDemo,
     },
     pcrlib_c_state::PcrlibCState,
     scan_codes::*,
@@ -84,7 +84,7 @@ const opposite: [dirtype; 9] = [
 ];
 
 unsafe fn newobject(gs: &mut GlobalState) -> i32 {
-    let mut current_block: u64;
+    let current_block: u64;
     let mut i: i32 = 0;
     i = 1;
     loop {
@@ -107,7 +107,7 @@ unsafe fn newobject(gs: &mut GlobalState) -> i32 {
         }
         _ => {}
     }
-    gs.o[i as usize].oldtile = -(1) as i16;
+    gs.o[i as usize].oldtile = -1 as i16;
     gs.o[i as usize].oldx = 0;
     gs.o[i as usize].oldy = 0;
     return i;
@@ -116,13 +116,13 @@ unsafe fn newobject(gs: &mut GlobalState) -> i32 {
 pub unsafe fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 3;
-    printlong(pcs.score as i64, gs, pcs);
+    port_temp_print_str(&pcs.score.to_string(), gs, pcs);
 }
 
 pub unsafe fn printhighscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 5;
-    printlong(pcs.highscores[1].score as i64, gs, pcs);
+    port_temp_print_str(&{ pcs.highscores[1].score }.to_string(), gs, pcs);
 }
 
 pub unsafe fn printshotpower(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
@@ -326,9 +326,9 @@ unsafe fn castnuke(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrli
     base.y = gs.obj.y;
     base.oldx = base.x;
     base.oldy = base.y;
-    base.oldtile = -(1) as i16;
+    base.oldtile = -1 as i16;
     base.class = bigshot;
-    x = -(1);
+    x = -1;
     while x <= 1 {
         n = newobject(gs);
         gs.o[n as usize] = base;
@@ -451,7 +451,7 @@ unsafe fn opendoor(gs: &mut GlobalState, pas: &mut PcrlibAState) {
 }
 
 unsafe fn tagobject(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    let mut i: i32 = gs.altobj.hp as i32;
+    let i: i32 = gs.altobj.hp as i32;
     if gs.GODMODE && gs.altobj.class as i32 == player as i32 {
         return;
     }
@@ -465,7 +465,7 @@ unsafe fn tagobject(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrl
             gs.playdone = true;
             gs.gamexit = killed;
         } else {
-            pcs.score = pcs.score + gs.altobj.points as i32;
+            pcs.score += gs.altobj.points as i32;
             printscore(gs, pcs);
             PlaySound(9, pas);
         }
@@ -735,8 +735,8 @@ unsafe fn walk(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
                 return false as boolean;
             }
         }
-        gs.chkx = gs.chkx + deltax;
-        gs.chky = gs.chky + deltay;
+        gs.chkx += deltax;
+        gs.chky += deltay;
         i += 1;
     }
     gs.obj.x = newx as u8;
@@ -902,11 +902,7 @@ unsafe fn playercmdthink(
                 && pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 centerwindow(16, 2, gs, pcs);
-                print(
-                    b"warp to which\nlevel (1-99)?\0" as *const u8 as *const i8,
-                    gs,
-                    pcs,
-                );
+                port_temp_print_str("warp to which\nlevel (1-99)?", gs, pcs);
                 clearkeys(pcs);
                 pcs.level = _inputint(gs, pas, pcs) as i16;
                 if (pcs.level as i32) < 1 {
@@ -924,11 +920,11 @@ unsafe fn playercmdthink(
             {
                 if gs.GODMODE {
                     centerwindow(13, 1, gs, pcs);
-                    print(b"God Mode Off\0" as *const u8 as *const i8, gs, pcs);
+                    port_temp_print_str("God Mode Off", gs, pcs);
                     gs.GODMODE = false;
                 } else {
                     centerwindow(12, 1, gs, pcs);
-                    print(b"God Mode On\0" as *const u8 as *const i8, gs, pcs);
+                    port_temp_print_str("God Mode On", gs, pcs);
                     gs.GODMODE = true;
                 }
                 UpdateScreen(gs, pcs);
@@ -960,7 +956,7 @@ unsafe fn playercmdthink(
 }
 
 unsafe fn chasethink(
-    mut diagonal: boolean,
+    diagonal: boolean,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
@@ -1133,7 +1129,7 @@ unsafe fn dragonthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pc
     };
 }
 
-unsafe fn gunthink(mut dir: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn gunthink(dir: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut n: i32 = 0;
     PlaySound(5, pas);
     gs.obj.stage = 0;
@@ -1175,7 +1171,7 @@ unsafe fn fadethink(gs: &mut GlobalState) {
     }
 }
 
-unsafe fn killnear(mut chkx_0: i32, mut chky_0: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
+unsafe fn killnear(chkx_0: i32, chky_0: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut spot: i32 = 0;
     let mut new: i32 = 0;
     spot = gs.background[chky_0 as usize][chkx_0 as usize];
@@ -1307,9 +1303,9 @@ pub unsafe fn playloop(
     loop {
         if gs.indemo == demoenum::notdemo {
             centerwindow(11, 2, gs, pcs);
-            print(b" Entering\nlevel \0" as *const u8 as *const i8, gs, pcs);
-            printint(pcs.level as i32, gs, pcs);
-            print(b"...\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str(" Entering\nlevel ", gs, pcs);
+            port_temp_print_str(&pcs.level.to_string(), gs, pcs);
+            port_temp_print_str("...", gs, pcs);
             PlaySound(17, pas);
             WaitEndSound(gs, pas, pcs);
         }
@@ -1324,7 +1320,7 @@ pub unsafe fn playloop(
             refresh(gs, pas, pcs);
             clearkeys(pcs);
             centerwindow(12, 1, gs, pcs);
-            print(b"RECORD DEMO\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("RECORD DEMO", gs, pcs);
             loop {
                 let ch = get(gs, pas, pcs) as i8;
                 if !(ch != 13) {
@@ -1345,7 +1341,7 @@ pub unsafe fn playloop(
         if gs.indemo == demoenum::recording {
             clearkeys(pcs);
             centerwindow(15, 1, gs, pcs);
-            print(b"SAVE AS DEMO#:\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("SAVE AS DEMO#:", gs, pcs);
             let mut ch;
             loop {
                 ch = get(gs, pas, pcs) as i8;

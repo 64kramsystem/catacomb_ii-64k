@@ -12,10 +12,6 @@ use crate::{
 };
 
 type __time_t = i64;
-type time_t = __time_t;
-type SDL_bool = u32;
-const SDL_TRUE: SDL_bool = 1;
-const SDL_FALSE: SDL_bool = 0;
 pub type SDL_sem = SDL_semaphore;
 type SDL_AudioFormat = u16;
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
@@ -59,7 +55,7 @@ type C2RustUnnamed_2 = u32;
 const VBL_TIME: C2RustUnnamed_2 = 14;
 
 #[inline]
-unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
+unsafe fn EGA(chan: *const u8, ofs: u8) -> u8 {
     return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
         | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
         | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
@@ -67,7 +63,7 @@ unsafe fn EGA(mut chan: *const u8, mut ofs: u8) -> u8 {
 }
 
 #[inline]
-unsafe fn _SDL_turnOnPCSpeaker(mut pcSample: u16, pas: &mut PcrlibAState) {
+unsafe fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
     // There is a bug in the SDL port; the data types used don't cover the range of values.
     // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
@@ -102,19 +98,19 @@ unsafe fn _SDL_PCService(pas: &mut PcrlibAState) {
     }
 }
 
-unsafe fn _SDL_PCPlaySound(mut sound: i32, pas: &mut PcrlibAState) {
+unsafe fn _SDL_PCPlaySound(sound: i32, pas: &mut PcrlibAState) {
     safe_SDL_LockMutex(pas.AudioMutex);
     pas.pcPhaseTick = 0;
     pas.pcLastSample = 0;
-    pas.pcLengthLeft = ((*pas.SoundData).sounds[sound as usize].start as i32
-        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32
+    pas.pcLengthLeft = (((*pas.SoundData).sounds[sound as usize].start as i32
+        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32)
         >> 1) as u32;
     pas.pcSound = (pas.SoundData as *mut u8)
         .offset((*pas.SoundData).sounds[(sound - 1) as usize].start as i32 as isize)
         as *mut u16;
     pas.SndPriority = (*pas.SoundData).sounds[(sound - 1) as usize].priority;
     pas.pcSamplesPerTick = (pas.AudioSpec.freq
-        / (1193181 * (*pas.SoundData).sounds[(sound - 1) as usize].samplerate as i32 >> 16))
+        / ((1193181 * (*pas.SoundData).sounds[(sound - 1) as usize].samplerate as i32) >> 16))
         as u32;
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
@@ -130,11 +126,7 @@ unsafe fn _SDL_ShutPC(pas: &mut PcrlibAState) {
     _SDL_PCStopSound(pas);
 }
 
-unsafe extern "C" fn UpdateSPKR(
-    mut userdata: *mut libc::c_void,
-    mut stream: *mut u8,
-    mut len: i32,
-) {
+unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, len: i32) {
     let pas = &mut *(userdata as *mut PcrlibAState);
     if pas.soundmode as u32 != spkr as i32 as u32 {
         stream.write_bytes(0, len as usize);
@@ -207,8 +199,7 @@ pub unsafe fn StartupSound(pas: &mut PcrlibAState) {
     desired.userdata = pas as *mut PcrlibAState as *mut libc::c_void;
     pas.AudioMutex = safe_SDL_CreateMutex();
     if pas.AudioMutex.is_null() || safe_SDL_InitSubSystem(0x10 as u32) < 0 || {
-        pas.AudioDev =
-            safe_SDL_OpenAudioDevice(0 as *const i8, 0, &mut desired, &mut pas.AudioSpec, 0);
+        pas.AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut pas.AudioSpec, 0);
         pas.AudioDev == 0
     } {
         println!("Audio initialization failed: {:?}", safe_SDL_GetError());
@@ -229,7 +220,7 @@ pub unsafe fn ShutdownSound(pas: &mut PcrlibAState) {
     safe_SDL_CloseAudio();
 }
 
-pub unsafe fn PlaySound(mut sound: i32, pas: &mut PcrlibAState) {
+pub unsafe fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -238,6 +229,7 @@ pub unsafe fn PlaySound(mut sound: i32, pas: &mut PcrlibAState) {
     }
 }
 
+#[allow(dead_code)]
 unsafe fn StopSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
@@ -302,7 +294,7 @@ const baseRndArray: [u16; 17] = [
     1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
 
-pub unsafe fn initrnd(mut randomize: boolean, pas: &mut PcrlibAState) {
+pub unsafe fn initrnd(randomize: boolean, pas: &mut PcrlibAState) {
     pas.RndArray.copy_from_slice(&baseRndArray);
     pas.LastRnd = 0;
     pas.indexi = 17;
@@ -318,7 +310,7 @@ pub unsafe fn initrnd(mut randomize: boolean, pas: &mut PcrlibAState) {
     rnd(0xffff as i32 as u16, pas);
 }
 
-pub unsafe fn rnd(mut maxval: u16, pas: &mut PcrlibAState) -> i32 {
+pub unsafe fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     let mut mask: u16 = 0;
     let mut shift: u16 = 0;
     let mut val: i32 = 0;
@@ -352,7 +344,7 @@ pub unsafe fn rnd(mut maxval: u16, pas: &mut PcrlibAState) -> i32 {
     return val;
 }
 
-pub unsafe fn initrndt(mut randomize: boolean, pas: &mut PcrlibAState) {
+pub unsafe fn initrndt(randomize: boolean, pas: &mut PcrlibAState) {
     pas.rndindex = (if randomize as i32 != 0 {
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -364,11 +356,11 @@ pub unsafe fn initrndt(mut randomize: boolean, pas: &mut PcrlibAState) {
 }
 
 pub unsafe fn rndt(pas: &mut PcrlibAState) -> i32 {
-    pas.rndindex = (pas.rndindex as i32 + 1 & 0xff as i32) as u16;
+    pas.rndindex = ((pas.rndindex as i32 + 1) & 0xff as i32) as u16;
     return rndtable[pas.rndindex as usize] as i32;
 }
 
-unsafe extern "C" fn VBLCallback(mut _interval: u32, mut param: *mut libc::c_void) -> u32 {
+unsafe extern "C" fn VBLCallback(mut _interval: u32, param: *mut libc::c_void) -> u32 {
     let pas = &mut *(param as *mut PcrlibAState);
     safe_SDL_SemPost(pas.vblsem);
     return VBL_TIME as i32 as u32;
@@ -406,13 +398,7 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
     }
 }
 
-pub unsafe fn drawchar(
-    mut x: i32,
-    mut y: i32,
-    mut charnum: i32,
-    gs: &mut GlobalState,
-    pcs: &mut PcrlibCState,
-) {
+pub unsafe fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut vbuf: *mut u8 = gs
         .screenseg
         .as_mut_ptr()
@@ -503,9 +489,9 @@ pub unsafe fn drawchar(
 }
 
 pub unsafe fn drawpic(
-    mut x: i32,
-    mut y: i32,
-    mut picnum: i32,
+    x: i32,
+    y: i32,
+    picnum: i32,
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pcs: &mut PcrlibCState,
@@ -517,7 +503,7 @@ pub unsafe fn drawpic(
         .offset(x as isize);
     let mut src: *mut u8 = ptr::null_mut();
     let mut i: u32 = 0;
-    let mut picwidth: u32 = cps.pictable[picnum as usize].width as u32;
+    let picwidth: u32 = cps.pictable[picnum as usize].width as u32;
     let mut picheight: u32 = cps.pictable[picnum as usize].height as u32;
     src = (pcs.picptr as *mut u8).offset(cps.pictable[picnum as usize].shapeptr as isize);
     match pcs.grmode as u32 {

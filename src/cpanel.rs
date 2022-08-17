@@ -16,8 +16,8 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen, _egaok, _vgaok,
-        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, print, CheckMouseMode,
-        ControlJoystick,
+        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_print_str,
+        print, CheckMouseMode, ControlJoystick,
     },
     pcrlib_c_state::PcrlibCState,
     safe_sdl::safe_SDL_NumJoysticks,
@@ -82,7 +82,7 @@ pub struct picfiletype {
 }
 
 #[inline]
-unsafe fn flatptr(mut ptr: farptr) -> u32 {
+unsafe fn flatptr(ptr: farptr) -> u32 {
     return (((ptr.seg as i32) << 4) + ptr.ofs as i32) as u32;
 }
 
@@ -90,7 +90,7 @@ const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
 
 unsafe fn calibratejoy(
-    mut joynum: i32,
+    joynum: i32,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
@@ -109,23 +109,11 @@ unsafe fn calibratejoy(
         button2: 0,
     };
     expwin(24, 9, gs, pas, pcs);
-    print(
-        b" Joystick Configuration\n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(
-        b" ----------------------\n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(
-        b"Hold the joystick in the\n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(b"upper left\n\r\0" as *const u8 as *const i8, gs, pcs);
-    print(b"corner and hit fire:\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str(" Joystick Configuration\n\r", gs, pcs);
+    port_temp_print_str(" ----------------------\n\r", gs, pcs);
+    port_temp_print_str("Hold the joystick in the\n\r", gs, pcs);
+    port_temp_print_str("upper left\n\r", gs, pcs);
+    port_temp_print_str("corner and hit fire:", gs, pcs);
     stage = 15;
     loop {
         drawchar(pcs.sx, pcs.sy, stage, gs, pcs);
@@ -161,13 +149,9 @@ unsafe fn calibratejoy(
             UpdateScreen(gs, pcs);
             WaitVBL(pas);
             WaitVBL(pas);
-            print(
-                b"\n\n\rHold the joystick in the\n\r\0" as *const u8 as *const i8,
-                gs,
-                pcs,
-            );
-            print(b"lower right\n\r\0" as *const u8 as *const i8, gs, pcs);
-            print(b"corner and hit fire:\0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("\n\n\rHold the joystick in the\n\r", gs, pcs);
+            port_temp_print_str("lower right\n\r", gs, pcs);
+            port_temp_print_str("corner and hit fire:", gs, pcs);
             loop {
                 drawchar(pcs.sx, pcs.sy, stage, gs, pcs);
                 UpdateScreen(gs, pcs);
@@ -219,27 +203,11 @@ unsafe fn calibratejoy(
 unsafe fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ch: i8 = 0;
     expwin(24, 5, gs, pas, pcs);
-    print(
-        b"  Mouse Configuration   \n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(
-        b"  -------------------   \n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(
-        b"Choose the sensitivity  \n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(
-        b"of the mouse, 1 being   \n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(b"slow, 9 being fast:\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str("  Mouse Configuration   \n\r", gs, pcs);
+    port_temp_print_str("  -------------------   \n\r", gs, pcs);
+    port_temp_print_str("Choose the sensitivity  \n\r", gs, pcs);
+    port_temp_print_str("of the mouse, 1 being   \n\r", gs, pcs);
+    port_temp_print_str("slow, 9 being fast:", gs, pcs);
     loop {
         ch = (get(gs, pas, pcs) % 256) as i8;
         if ch as i32 == 27 {
@@ -267,53 +235,53 @@ const chartable: [char; 128] = [
 unsafe fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     sc = ScancodeToDOS(sc as SDL_Scancode);
     if sc == 1 {
-        print(b"ESC\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("ESC", gs, pcs);
     } else if sc == 0xe as i32 {
-        print(b"BKSP\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("BKSP", gs, pcs);
     } else if sc == 0xf as i32 {
-        print(b"TAB\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("TAB", gs, pcs);
     } else if sc == 0x1d as i32 {
-        print(b"CTRL\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("CTRL", gs, pcs);
     } else if sc == 0x2a as i32 {
-        print(b"LSHIFT\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("LSHIFT", gs, pcs);
     } else if sc == 0x39 as i32 {
-        print(b"SPACE\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("SPACE", gs, pcs);
     } else if sc == 0x3a as i32 {
-        print(b"CAPSLK\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("CAPSLK", gs, pcs);
     } else if sc >= 0x3b as i32 && sc <= 0x44 as i32 {
         let str = CString::new(format!("F{}", sc - 0x3a as i32)).unwrap();
         print(str.as_ptr(), gs, pcs);
     } else if sc == 0x57 as i32 {
-        print(b"F11\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("F11", gs, pcs);
     } else if sc == 0x59 as i32 {
-        print(b"F12\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("F12", gs, pcs);
     } else if sc == 0x46 as i32 {
-        print(b"SCRLLK\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("SCRLLK", gs, pcs);
     } else if sc == 0x1c as i32 {
-        print(b"ENTER\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("ENTER", gs, pcs);
     } else if sc == 0x36 as i32 {
-        print(b"RSHIFT\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("RSHIFT", gs, pcs);
     } else if sc == 0x37 as i32 {
-        print(b"PRTSC\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("PRTSC", gs, pcs);
     } else if sc == 0x38 as i32 {
-        print(b"ALT\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("ALT", gs, pcs);
     } else if sc == 0x47 as i32 {
-        print(b"HOME\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("HOME", gs, pcs);
     } else if sc == 0x49 as i32 {
-        print(b"PGUP\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("PGUP", gs, pcs);
     } else if sc == 0x4f as i32 {
-        print(b"END\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("END", gs, pcs);
     } else if sc == 0x51 as i32 {
-        print(b"PGDN\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("PGDN", gs, pcs);
     } else if sc == 0x52 as i32 {
-        print(b"INS\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("INS", gs, pcs);
     } else if sc == 0x53 as i32 {
-        print(b"DEL\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("DEL", gs, pcs);
     } else if sc == 0x45 as i32 {
-        print(b"NUMLK\0" as *const u8 as *const i8, gs, pcs);
+        port_temp_print_str("NUMLK", gs, pcs);
     } else {
         let fresh0 = pcs.sx;
-        pcs.sx = pcs.sx + 1;
+        pcs.sx += 1;
         drawchar(fresh0, pcs.sy, chartable[sc as usize] as i32, gs, pcs);
     };
 }
@@ -326,31 +294,19 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     let mut select: i32 = 0;
     let mut new: i32 = 0;
     expwin(22, 15, gs, pas, pcs);
-    print(
-        b"Keyboard Configuration\n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(
-        b"----------------------\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(b"\n\r0 north    :\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r1 east     :\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r2 south    :\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r3 west     :\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r4 northeast:\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r5 southeast:\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r6 southwest:\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r7 northwest:\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r8 button1  :\0" as *const u8 as *const i8, gs, pcs);
-    print(b"\n\r9 button2  :\0" as *const u8 as *const i8, gs, pcs);
-    print(
-        b"\n\n\rModify which action:\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
+    port_temp_print_str("Keyboard Configuration\n\r", gs, pcs);
+    port_temp_print_str("----------------------", gs, pcs);
+    port_temp_print_str("\n\r0 north    :", gs, pcs);
+    port_temp_print_str("\n\r1 east     :", gs, pcs);
+    port_temp_print_str("\n\r2 south    :", gs, pcs);
+    port_temp_print_str("\n\r3 west     :", gs, pcs);
+    port_temp_print_str("\n\r4 northeast:", gs, pcs);
+    port_temp_print_str("\n\r5 southeast:", gs, pcs);
+    port_temp_print_str("\n\r6 southwest:", gs, pcs);
+    port_temp_print_str("\n\r7 northwest:", gs, pcs);
+    port_temp_print_str("\n\r8 button1  :", gs, pcs);
+    port_temp_print_str("\n\r9 button2  :", gs, pcs);
+    port_temp_print_str("\n\n\rModify which action:", gs, pcs);
     hx = pcs.sx;
     hy = pcs.sy;
     i = 0;
@@ -374,11 +330,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
             select = ch as i32 - '0' as i32;
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
             select = ch as i32 - '0' as i32;
-            print(
-                b"\n\rPress the new key:\0" as *const u8 as *const i8,
-                gs,
-                pcs,
-            );
+            port_temp_print_str("\n\rPress the new key:", gs, pcs);
             clearkeys(pcs);
             UpdateScreen(gs, pcs);
             loop {
@@ -389,7 +341,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
                 WaitVBL(pas);
             }
             clearkeys(pcs);
-            print(b"\r                  \0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("\r                  ", gs, pcs);
             if select < 8 {
                 pcs.key[select as usize] = new;
             }
@@ -401,7 +353,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
             }
             pcs.sy = select + 7;
             pcs.sx = 22;
-            print(b"        \0" as *const u8 as *const i8, gs, pcs);
+            port_temp_print_str("        ", gs, pcs);
             pcs.sx = 22;
             printscan(new, gs, pcs);
             ch = '0' as i32 as i8;
@@ -425,7 +377,7 @@ pub unsafe fn getconfig(cps: &mut CpanelState) {
     cps.spotok[1][2] = 0;
     cps.spotok[1][3] = 0;
     cps.spotok[1][4] = 0;
-    let mut numjoy: i32 = safe_SDL_NumJoysticks();
+    let numjoy: i32 = safe_SDL_NumJoysticks();
     cps.joy1ok = (numjoy > 0) as i32;
     cps.joy2ok = (numjoy > 1) as i32;
     cps.mouseok = 1;
@@ -446,15 +398,11 @@ unsafe fn drawpanel(
     pas.xormask = 0;
     pcs.sx = 8;
     pcs.sy = 2;
-    print(
-        b"       Control Panel      \n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
+    port_temp_print_str("       Control Panel      \n\r", gs, pcs);
     getconfig(cps);
     pcs.sy = rowy[0] + 2;
     pcs.sx = 2;
-    print(b"VIDEO:\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str("VIDEO:", gs, pcs);
     drawpic(collumnx[0] * 8, rowy[0] * 8, 0, gs, cps, pcs);
     if _egaok != 0 {
         drawpic(collumnx[1] * 8, rowy[0] * 8, 1, gs, cps, pcs);
@@ -463,12 +411,12 @@ unsafe fn drawpanel(
     }
     pcs.sy = rowy[1] + 2;
     pcs.sx = 2;
-    print(b"SOUND:\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str("SOUND:", gs, pcs);
     drawpic(collumnx[0] * 8, rowy[1] * 8, 5, gs, cps, pcs);
     drawpic(collumnx[1] * 8, rowy[1] * 8, 6, gs, cps, pcs);
     pcs.sy = rowy[2] + 2;
     pcs.sx = 2;
-    print(b"CONTROL:\0" as *const u8 as *const i8, gs, pcs);
+    port_temp_print_str("CONTROL:", gs, pcs);
     drawpic(collumnx[0] * 8, rowy[2] * 8, 7, gs, cps, pcs);
     if cps.mouseok != 0 {
         drawpic(collumnx[1] * 8, rowy[2] * 8, 10, gs, cps, pcs);
@@ -508,21 +456,9 @@ unsafe fn drawpanel(
     );
     pcs.sy = 21;
     pcs.sx = 1;
-    print(
-        b"  Move the cursor with the arrow keys \n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(
-        b"   Make decisions with the ENTER key  \n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    print(
-        b"       ESC to return to your game     \n\r\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
+    port_temp_print_str("  Move the cursor with the arrow keys \n\r", gs, pcs);
+    port_temp_print_str("   Make decisions with the ENTER key  \n\r", gs, pcs);
+    port_temp_print_str("       ESC to return to your game     \n\r", gs, pcs);
 }
 
 pub unsafe fn controlpanel(
@@ -590,7 +526,7 @@ pub unsafe fn controlpanel(
                     break;
                 }
                 if cps.collumn == 4 {
-                    cps.collumn = -(1);
+                    cps.collumn = -1;
                 }
             }
         }
@@ -668,8 +604,8 @@ pub unsafe fn controlpanel(
 }
 
 pub unsafe fn installgrfile(
-    mut filename: *const i8,
-    mut inmem: *mut libc::c_void,
+    filename: *const i8,
+    inmem: *mut libc::c_void,
     cps: &mut CpanelState,
     pcs: &mut PcrlibCState,
 ) {
