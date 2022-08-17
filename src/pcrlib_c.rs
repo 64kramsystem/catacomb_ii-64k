@@ -1275,7 +1275,7 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
                 break;
             }
             let fresh2 = cycle;
-            cycle = cycle + 1;
+            cycle += 1;
             drawchar(pcs.sx, pcs.sy, fresh2, gs, pcs);
             UpdateScreen(gs, pcs);
             WaitVBL(pas);
@@ -1309,7 +1309,7 @@ pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut Pcrlib
             pcs.sx = pcs.leftedge;
         } else {
             let fresh4 = pcs.sx;
-            pcs.sx = pcs.sx + 1;
+            pcs.sx += 1;
             drawchar(fresh4, pcs.sy, ch_0 as u8 as i32, gs, pcs);
         }
     }
@@ -1331,7 +1331,7 @@ pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mu
             pcs.sx = pcs.leftedge;
         } else {
             let fresh6 = pcs.sx;
-            pcs.sx = pcs.sx + 1;
+            pcs.sx += 1;
             drawchartile(fresh6, pcs.sy, ch_0 as u8 as i32, gs, pcs);
         }
     }

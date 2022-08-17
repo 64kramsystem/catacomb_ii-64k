@@ -313,7 +313,7 @@ unsafe fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         print(b"NUMLK\0" as *const u8 as *const i8, gs, pcs);
     } else {
         let fresh0 = pcs.sx;
-        pcs.sx = pcs.sx + 1;
+        pcs.sx += 1;
         drawchar(fresh0, pcs.sy, chartable[sc as usize] as i32, gs, pcs);
     };
 }

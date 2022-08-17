@@ -245,7 +245,7 @@ unsafe fn charpic(
         xx = x;
         while xx <= x + size - 1 {
             let fresh0 = tilenum;
-            tilenum = tilenum + 1;
+            tilenum += 1;
             drawchartile(xx, yy, fresh0, gs, pcs);
             xx += 1;
         }

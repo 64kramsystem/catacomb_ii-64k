@@ -465,7 +465,7 @@ unsafe fn tagobject(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrl
             gs.playdone = true;
             gs.gamexit = killed;
         } else {
-            pcs.score = pcs.score + gs.altobj.points as i32;
+            pcs.score += gs.altobj.points as i32;
             printscore(gs, pcs);
             PlaySound(9, pas);
         }
@@ -735,8 +735,8 @@ unsafe fn walk(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
                 return false as boolean;
             }
         }
-        gs.chkx = gs.chkx + deltax;
-        gs.chky = gs.chky + deltay;
+        gs.chkx += deltax;
+        gs.chky += deltay;
         i += 1;
     }
     gs.obj.x = newx as u8;
