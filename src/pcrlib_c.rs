@@ -1,6 +1,7 @@
 use std::ffi::{CStr, CString};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
+use std::path::Path;
 use std::{fs, mem, ptr};
 
 use ::libc;
@@ -1350,6 +1351,11 @@ pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mu
     }
 }
 
+////////////////////////////////////////////////////////////////////
+//
+// Verify a file's existence
+//
+////////////////////////////////////////////////////////////////////
 pub unsafe fn _Verify(filename: *const i8) -> i64 {
     let mut handle: i32 = 0;
     let mut size: i64 = 0;
@@ -1360,6 +1366,20 @@ pub unsafe fn _Verify(filename: *const i8) -> i64 {
     size = filelength(handle);
     close(handle);
     return size;
+}
+
+/// Rust port: returns 0 if the file doesn't exist, otherwise its length.
+#[allow(dead_code)]
+pub fn port_temp__Verify(filename: &str) -> u64 {
+    let filepath = Path::new(filename);
+
+    if filepath.exists() {
+        let file_meta = fs::metadata(filename);
+        // If the file exists, assume that it can be read correctly.
+        file_meta.unwrap().len()
+    } else {
+        0
+    }
 }
 
 ////////////////////////////////////////////////////////////////////
