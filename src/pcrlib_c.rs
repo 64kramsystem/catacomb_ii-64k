@@ -1384,18 +1384,15 @@ fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     port_temp_print_str(&fmt_value, gs, pcs);
 }
 
-unsafe fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut loop_0: i32 = 0;
-    port_temp_print_str("%", gs, pcs);
-    loop_0 = 0;
-    while loop_0 < 16 {
-        if value >> (15 - loop_0) & 1 != 0 {
-            port_temp_print_str("1", gs, pcs);
-        } else {
-            port_temp_print_str("0", gs, pcs);
-        }
-        loop_0 += 1;
-    }
+////////////////////////////////////////////////////////////////////
+//
+// print bin
+//
+////////////////////////////////////////////////////////////////////
+/// Rust port: Prints a word in padded binary, prefixed by `%`; dead code.
+fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let fmt_value = format!("%{:016b}", value);
+    port_temp_print_str(&fmt_value, gs, pcs);
 }
 
 ////////////////////////////////////////////////////////////////////
