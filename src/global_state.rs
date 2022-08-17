@@ -4,9 +4,13 @@ use crate::{
 };
 
 /// Includes most of the former globals.
+#[rustfmt::skip]
 pub struct GlobalState {
-    pub gamexit: exittype, /*determines what to do after playloop*/
+    // //////////////////////////////////////////////////////////
+    // Rust port: shared
+    // //////////////////////////////////////////////////////////
 
+    pub gamexit: exittype,           /*determines what to do after playloop*/
     pub oldtiles: [i32; 576],        /*tile displayed last refresh*/
     pub background: [[i32; 86]; 87], /*base map*/
     pub view: [[i32; 86]; 87],       /*base map with objects drawn in*/
@@ -14,63 +18,67 @@ pub struct GlobalState {
     pub priority: [u8; 2048],        /*tile draw overlap priorities*/
 
     pub items: [i16; 6],
-    pub saveitems: [i16; 6],
     pub shotpower: i32, /*0-13 characters in power meter*/
     pub side: i32,      /*which side shots come from*/
-    pub boltsleft: i32, /*number of shots left in a bolt*/
 
-    pub o: [activeobj; 201],   /*everything that moves is here*/
-    pub saveo: [activeobj; 1], // ^^
-    pub obj: objtype,          /*total info about objecton and alt*/
-    pub altobj: objtype,       // ^^
-    pub altnum: i32,           /*o[#] of altobj*/
-    pub numobj: i32,           /*number of objects in o now*/
-    pub objecton: i32,         // ^^
+    pub o: [activeobj; 201], /*everything that moves is here*/
+    pub obj: objtype,        /*total info about objecton and alt*/
+    pub numobj: i32,         /*number of objects in o now*/
+    pub objecton: i32,       // ^^
 
     pub objdef: [objdeftype; 23],
 
     pub playdone: bool,
     pub leveldone: bool,
 
-    /* Rust port: unused
-     pub tempb: bool,
-     pub tempp: *mut i8,
-    */
-    pub chkx: i32,    /*spot being checked by walk*/
-    pub chky: i32,    // ^^
-    pub chkspot: i32, // ^^
-
     pub frameon: u16,
 
-    /* Rust port: unused
-    pub grmem: *mut i8,
-    pub VGAPAL: i32,  // just to make pcrlib happy
-     */
     pub exitdemo: bool,
     pub resetgame: bool,
-    pub gamestate: statetype,
 
     pub ctrl: ControlStruct,
 
     pub pics: *mut i8,
-    pub picsexact: *mut i8,
-
-    /* Rust port: unused
-    EGADATASTART: u32,
-     */
-    pub savescore: i32,
-
-    // NOLAN ADDED
-    pub GODMODE: bool,
 
     // loaded into ES in the draw routines
     // should be adjusted after grmode
     // switches, page flipping, and scrolls
     pub screenseg: [u8; 64000],
-
     pub screencenter: Vec2,
 
     pub indemo: demoenum,
+
+    // //////////////////////////////////////////////////////////
+    // Rust port: Private to catacomb.rs
+    // //////////////////////////////////////////////////////////
+
+    pub saveitems: [i16; 6],
+    pub saveo: [activeobj; 1], // ^^
+    pub gamestate: statetype,
+    pub picsexact: *mut i8,
+    pub savescore: i32,
+
+    // //////////////////////////////////////////////////////////
+    // Rust port: Private to cat_play.rs
+    // //////////////////////////////////////////////////////////
+
+    pub boltsleft: i32,  /*number of shots left in a bolt*/
+    pub altobj: objtype, /*total info about objecton and alt*/
+    pub altnum: i32,     /*o[#] of altobj*/
+    pub chkx: i32,       /*spot being checked by walk*/
+    pub chky: i32,       // ^^
+    pub chkspot: i32,    // ^^
+    pub GODMODE: bool,   // NOLAN ADDED
+
+    // //////////////////////////////////////////////////////////
+    // Rust port: unused
+    // //////////////////////////////////////////////////////////
+
+    // pub tempb: bool,
+    // pub tempp: *mut i8,
+    // pub grmem: *mut i8,
+    // pub VGAPAL: i32,  // just to make pcrlib happy
+    // EGADATASTART: u32
 }
 
 impl GlobalState {
