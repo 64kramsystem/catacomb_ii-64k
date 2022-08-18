@@ -537,8 +537,8 @@ pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
 }
 
 unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_Event) -> i32 {
-    let userdata = userdata as *mut (*mut PcrlibAState, *mut PcrlibCState);
-    let (pas, pcs) = (&mut *(*userdata).0, &mut *(*userdata).1);
+    let userdata = userdata as *mut SDLEventPayload;
+    let (pas, pcs) = (&mut *(*userdata).pas, &mut *(*userdata).pcs);
 
     if (*event).type_0 == SDL_QUIT as i32 as u32 {
         _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas, pcs);
@@ -1828,6 +1828,11 @@ pub unsafe fn _checkhighscore(
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
+pub struct SDLEventPayload {
+    pub pas: *mut PcrlibAState,
+    pub pcs: *mut PcrlibCState,
+}
+
 pub fn _setupgame(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
@@ -1840,10 +1845,7 @@ pub fn _setupgame(
     }
     safe_register_sdl_quit_on_exit();
 
-    let userdata = Box::into_raw(Box::new((
-        pas as *mut PcrlibAState,
-        pcs as *mut PcrlibCState,
-    )));
+    let userdata = Box::into_raw(Box::new(SDLEventPayload { pas, pcs }));
 
     safe_SDL_AddEventWatch(
         Some(WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32),
