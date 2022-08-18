@@ -537,8 +537,8 @@ pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
 }
 
 unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_Event) -> i32 {
-    let userdata = userdata as *mut SDLEventPayload;
-    let (pas, pcs) = (&mut *(*userdata).pas, &mut *(*userdata).pcs);
+    let userdata = &*(userdata as *mut SDLEventPayload);
+    let (pas, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
 
     if (*event).type_0 == SDL_QUIT as i32 as u32 {
         _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas, pcs);
