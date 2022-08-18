@@ -537,7 +537,7 @@ pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
 }
 
 unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_Event) -> i32 {
-    let userdata = userdata as *const _ as *mut (*mut PcrlibAState, *mut PcrlibCState);
+    let userdata = userdata as *mut (*mut PcrlibAState, *mut PcrlibCState);
     let (pas, pcs) = (&mut *(*userdata).0, &mut *(*userdata).1);
 
     if (*event).type_0 == SDL_QUIT as i32 as u32 {
@@ -1840,14 +1840,14 @@ pub fn _setupgame(
     }
     safe_register_sdl_quit_on_exit();
 
-    let userdata = Box::leak(Box::new((
+    let userdata = Box::into_raw(Box::new((
         pas as *mut PcrlibAState,
         pcs as *mut PcrlibCState,
     )));
 
     safe_SDL_AddEventWatch(
         Some(WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32),
-        userdata as *const _ as *mut libc::c_void,
+        userdata as *mut libc::c_void,
     );
 
     let mut windowed = false;
