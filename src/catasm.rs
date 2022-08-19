@@ -194,40 +194,33 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 }
 
 unsafe fn drawegachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
-    let mut src: *mut u8 = (gs.pics as *mut u8).offset((tile << 5) as isize);
-    let mut r: u32 = 0;
-    r = 0;
-    while r < 8 {
+    let mut src = (gs.pics as *mut u8).offset((tile << 5) as isize);
+
+    for _ in 0..8 {
         let chan: [u8; 4] = [
             *src.offset(0),
             *src.offset(8),
             *src.offset(16),
             *src.offset(24),
         ];
-        let fresh11 = dest;
+        *dest = EGA(chan.as_ptr(), 7);
         dest = dest.offset(1);
-        *fresh11 = EGA(chan.as_ptr(), 7);
-        let fresh12 = dest;
+        *dest = EGA(chan.as_ptr(), 6);
         dest = dest.offset(1);
-        *fresh12 = EGA(chan.as_ptr(), 6);
-        let fresh13 = dest;
+        *dest = EGA(chan.as_ptr(), 5);
         dest = dest.offset(1);
-        *fresh13 = EGA(chan.as_ptr(), 5);
-        let fresh14 = dest;
+        *dest = EGA(chan.as_ptr(), 4);
         dest = dest.offset(1);
-        *fresh14 = EGA(chan.as_ptr(), 4);
-        let fresh15 = dest;
+        *dest = EGA(chan.as_ptr(), 3);
         dest = dest.offset(1);
-        *fresh15 = EGA(chan.as_ptr(), 3);
-        let fresh16 = dest;
+        *dest = EGA(chan.as_ptr(), 2);
         dest = dest.offset(1);
-        *fresh16 = EGA(chan.as_ptr(), 2);
-        let fresh17 = dest;
+        *dest = EGA(chan.as_ptr(), 1);
         dest = dest.offset(1);
-        *fresh17 = EGA(chan.as_ptr(), 1);
         *dest = EGA(chan.as_ptr(), 0);
-        dest = dest.offset((screenpitch as i32 - 7) as isize);
-        r = r.wrapping_add(1);
+
+        dest = dest.offset((screenpitch - 7) as isize);
+
         src = src.offset(1);
     }
 }
