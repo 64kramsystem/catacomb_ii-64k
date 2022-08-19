@@ -55,7 +55,6 @@ pub struct GlobalState {
     pub saveitems: [i16; 6],
     pub saveo: [activeobj; 1], // ^^
     pub gamestate: statetype,
-    pub picsexact: *mut i8,
     pub savescore: i32,
 
     // //////////////////////////////////////////////////////////
@@ -106,7 +105,6 @@ impl GlobalState {
         gamestate: statetype,
         ctrl: ControlStruct,
         pics: *mut i8,
-        picsexact: *mut i8,
         savescore: i32,
         GODMODE: bool,
         side: i32,
@@ -144,7 +142,6 @@ impl GlobalState {
             gamestate,
             ctrl,
             pics,
-            picsexact,
             savescore,
             GODMODE,
             side,

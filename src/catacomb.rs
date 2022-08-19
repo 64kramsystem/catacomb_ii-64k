@@ -170,12 +170,11 @@ unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
 }
 
 pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
-    if !gs.picsexact.is_null() {
-        free(gs.picsexact as *mut libc::c_void);
+    if !gs.pics.is_null() {
+        free(gs.pics as *mut libc::c_void);
     }
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
         gs.pics = bloadin("CGACHARS.CA2") as *mut i8;
-        gs.picsexact = gs.pics;
         installgrfile(
             b"CGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
@@ -184,7 +183,6 @@ pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut
         );
     } else {
         gs.pics = bloadin("EGACHARS.CA2") as *mut i8;
-        gs.picsexact = gs.pics;
         installgrfile(
             b"EGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
@@ -1087,7 +1085,6 @@ pub fn original_main() {
             button1: 0,
             button2: 0,
         },
-        ptr::null_mut(),
         ptr::null_mut(),
         0,
         false,
