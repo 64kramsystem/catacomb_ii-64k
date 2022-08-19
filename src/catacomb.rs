@@ -33,8 +33,8 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
-        _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        joyinfo_t, port_temp_LoadFile, port_temp_print_str, printchartile, C2RustUnnamed_5,
+        _showhighscores, bar, bioskey, centerwindow, clearkeys, drawwindow, expwin, get, joyinfo_t,
+        port_temp_LoadFile, port_temp_bloadin, port_temp_print_str, printchartile, C2RustUnnamed_5,
         SDL_DisplayMode, SDL_GameController, SDL_Rect,
     },
     pcrlib_c_state::PcrlibCState,
@@ -50,7 +50,6 @@ extern "C" {
     fn close(__fd: i32) -> i32;
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
-    fn free(_: *mut libc::c_void);
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
 
@@ -170,11 +169,8 @@ unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
 }
 
 pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
-    if !gs.pics.is_null() {
-        free(gs.pics as *mut libc::c_void);
-    }
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
-        gs.pics = bloadin("CGACHARS.CA2") as *mut i8;
+        gs.pics = port_temp_bloadin("CGACHARS.CA2").unwrap();
         installgrfile(
             b"CGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
@@ -182,7 +178,7 @@ pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut
             pcs,
         );
     } else {
-        gs.pics = bloadin("EGACHARS.CA2") as *mut i8;
+        gs.pics = port_temp_bloadin("EGACHARS.CA2").unwrap();
         installgrfile(
             b"EGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
             0 as *mut libc::c_void,
@@ -1085,7 +1081,7 @@ pub fn original_main() {
             button1: 0,
             button2: 0,
         },
-        ptr::null_mut(),
+        vec![],
         0,
         false,
         0,

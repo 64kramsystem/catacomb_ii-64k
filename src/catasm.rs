@@ -140,28 +140,28 @@ pub unsafe fn doall(
 }
 
 unsafe fn drawcgachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
-    let mut src = (gs.pics as *mut u8).offset((tile << 4) as isize);
+    let mut src = &gs.pics[(tile << 4) as usize..];
 
     for _ in 0..8 {
-        *dest = (*src.offset(0) >> 6 & 3) as u8;
+        *dest = src[0] >> 6 & 3;
         dest = dest.offset(1);
-        *dest = (*src.offset(0) >> 4 & 3) as u8;
+        *dest = src[0] >> 4 & 3;
         dest = dest.offset(1);
-        *dest = (*src.offset(0) >> 2 & 3) as u8;
+        *dest = src[0] >> 2 & 3;
         dest = dest.offset(1);
-        *dest = (*src.offset(0) >> 0 & 3) as u8;
+        *dest = src[0] >> 0 & 3;
         dest = dest.offset(1);
-        *dest = (*src.offset(1) >> 6 & 3) as u8;
+        *dest = src[1] >> 6 & 3;
         dest = dest.offset(1);
-        *dest = (*src.offset(1) >> 4 & 3) as u8;
+        *dest = src[1] >> 4 & 3;
         dest = dest.offset(1);
-        *dest = (*src.offset(1) >> 2 & 3) as u8;
+        *dest = src[1] >> 2 & 3;
         dest = dest.offset(1);
-        *dest = (*src.offset(1) >> 0 & 3) as u8;
+        *dest = src[1] >> 0 & 3;
 
         dest = dest.offset((screenpitch - 7) as isize);
 
-        src = src.offset(2);
+        src = &src[2..];
     }
 }
 
@@ -194,15 +194,11 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 }
 
 unsafe fn drawegachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
-    let mut src = (gs.pics as *mut u8).offset((tile << 5) as isize);
+    let mut src = &gs.pics[(tile << 5) as usize..];
 
     for _ in 0..8 {
-        let chan: [u8; 4] = [
-            *src.offset(0),
-            *src.offset(8),
-            *src.offset(16),
-            *src.offset(24),
-        ];
+        let chan: [u8; 4] = [src[0], src[8], src[16], src[24]];
+
         *dest = EGA(chan.as_ptr(), 7);
         dest = dest.offset(1);
         *dest = EGA(chan.as_ptr(), 6);
@@ -221,7 +217,7 @@ unsafe fn drawegachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
 
         dest = dest.offset((screenpitch - 7) as isize);
 
-        src = src.offset(1);
+        src = &src[1..];
     }
 }
 

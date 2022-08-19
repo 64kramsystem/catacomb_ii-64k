@@ -1,6 +1,6 @@
 use std::ffi::{CStr, CString};
 use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::path::Path;
 use std::{fs, mem, ptr};
 
@@ -1056,6 +1056,16 @@ pub fn bloadin(filename: &str) -> *const u8 {
     } else {
         ptr::null_mut()
     }
+}
+
+pub fn port_temp_bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
+    let file_meta = fs::metadata(filename);
+
+    let mut buffer = vec![0; file_meta?.len() as usize];
+
+    port_temp_LoadFile(filename, &mut buffer);
+
+    Ok(buffer)
 }
 
 pub unsafe fn drawwindow(
