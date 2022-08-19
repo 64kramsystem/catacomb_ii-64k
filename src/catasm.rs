@@ -140,34 +140,27 @@ pub unsafe fn doall(
 }
 
 unsafe fn drawcgachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
-    let mut src: *mut u8 = (gs.pics as *mut u8).offset((tile << 4) as isize);
-    let mut r: u32 = 0;
-    r = 0;
-    while r < 8 {
-        let fresh4 = dest;
+    let mut src = (gs.pics as *mut u8).offset((tile << 4) as isize);
+
+    for _ in 0..8 {
+        *dest = (*src.offset(0) >> 6 & 3) as u8;
         dest = dest.offset(1);
-        *fresh4 = (*src.offset(0) as i32 >> 6 & 3) as u8;
-        let fresh5 = dest;
+        *dest = (*src.offset(0) >> 4 & 3) as u8;
         dest = dest.offset(1);
-        *fresh5 = (*src.offset(0) as i32 >> 4 & 3) as u8;
-        let fresh6 = dest;
+        *dest = (*src.offset(0) >> 2 & 3) as u8;
         dest = dest.offset(1);
-        *fresh6 = (*src.offset(0) as i32 >> 2 & 3) as u8;
-        let fresh7 = dest;
+        *dest = (*src.offset(0) >> 0 & 3) as u8;
         dest = dest.offset(1);
-        *fresh7 = (*src.offset(0) as i32 >> 0 & 3) as u8;
-        let fresh8 = dest;
+        *dest = (*src.offset(1) >> 6 & 3) as u8;
         dest = dest.offset(1);
-        *fresh8 = (*src.offset(1) as i32 >> 6 & 3) as u8;
-        let fresh9 = dest;
+        *dest = (*src.offset(1) >> 4 & 3) as u8;
         dest = dest.offset(1);
-        *fresh9 = (*src.offset(1) as i32 >> 4 & 3) as u8;
-        let fresh10 = dest;
+        *dest = (*src.offset(1) >> 2 & 3) as u8;
         dest = dest.offset(1);
-        *fresh10 = (*src.offset(1) as i32 >> 2 & 3) as u8;
-        *dest = (*src.offset(1) as i32 >> 0 & 3) as u8;
-        dest = dest.offset((screenpitch as i32 - 7) as isize);
-        r = r.wrapping_add(1);
+        *dest = (*src.offset(1) >> 0 & 3) as u8;
+
+        dest = dest.offset((screenpitch - 7) as isize);
+
         src = src.offset(2);
     }
 }
