@@ -538,11 +538,21 @@ pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
 
 unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_Event) -> i32 {
     let userdata = &*(userdata as *mut SDLEventPayload);
-    let (pas, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
 
     if (*event).type_0 == SDL_QUIT as i32 as u32 {
-        _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas, pcs);
+        // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
+        // This approach works because we're not in a multithreaded contenxt, so this function is
+        // invoked only once a a time.
+        let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
+
+        _quit(
+            b"\0" as *const u8 as *const i8 as *mut i8,
+            &mut *userdata.pas,
+            &mut *userdata.pcs,
+        );
     } else if (*event).type_0 == SDL_WINDOWEVENT as i32 as u32 {
+        let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
+
         match (*event).window.event as i32 {
             13 => {
                 pcs.hasFocus = false as boolean;
