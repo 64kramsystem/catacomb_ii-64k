@@ -139,36 +139,30 @@ pub unsafe fn doall(
     }
 }
 
-unsafe fn drawcgachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
-    let mut src: *mut u8 = (gs.pics as *mut u8).offset((tile << 4) as isize);
-    let mut r: u32 = 0;
-    r = 0;
-    while r < 8 {
-        let fresh4 = dest;
-        dest = dest.offset(1);
-        *fresh4 = (*src.offset(0) as i32 >> 6 & 3) as u8;
-        let fresh5 = dest;
-        dest = dest.offset(1);
-        *fresh5 = (*src.offset(0) as i32 >> 4 & 3) as u8;
-        let fresh6 = dest;
-        dest = dest.offset(1);
-        *fresh6 = (*src.offset(0) as i32 >> 2 & 3) as u8;
-        let fresh7 = dest;
-        dest = dest.offset(1);
-        *fresh7 = (*src.offset(0) as i32 >> 0 & 3) as u8;
-        let fresh8 = dest;
-        dest = dest.offset(1);
-        *fresh8 = (*src.offset(1) as i32 >> 6 & 3) as u8;
-        let fresh9 = dest;
-        dest = dest.offset(1);
-        *fresh9 = (*src.offset(1) as i32 >> 4 & 3) as u8;
-        let fresh10 = dest;
-        dest = dest.offset(1);
-        *fresh10 = (*src.offset(1) as i32 >> 2 & 3) as u8;
-        *dest = (*src.offset(1) as i32 >> 0 & 3) as u8;
-        dest = dest.offset((screenpitch as i32 - 7) as isize);
-        r = r.wrapping_add(1);
-        src = src.offset(2);
+fn drawcgachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
+    let mut src = &gs.pics[(tile << 4) as usize..];
+    let mut dest = &mut gs.screenseg[screenseg_ofs..];
+
+    for _ in 0..8 {
+        dest[0] = src[0] >> 6 & 3;
+        dest = &mut dest[1..];
+        dest[0] = src[0] >> 4 & 3;
+        dest = &mut dest[1..];
+        dest[0] = src[0] >> 2 & 3;
+        dest = &mut dest[1..];
+        dest[0] = src[0] >> 0 & 3;
+        dest = &mut dest[1..];
+        dest[0] = src[1] >> 6 & 3;
+        dest = &mut dest[1..];
+        dest[0] = src[1] >> 4 & 3;
+        dest = &mut dest[1..];
+        dest[0] = src[1] >> 2 & 3;
+        dest = &mut dest[1..];
+        dest[0] = src[1] >> 0 & 3;
+
+        dest = &mut dest[(screenpitch - 7) as usize..];
+
+        src = &src[2..];
     }
 }
 
@@ -177,16 +171,16 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
     let mut endofrow: u32 = ofs.wrapping_add(24);
-    let mut vbuf: *mut u8 = gs.screenseg.as_mut_ptr();
+    let mut screenseg_ofs = 0;
     loop {
         tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
         if tile != gs.oldtiles[i as usize] {
             gs.oldtiles[i as usize] = tile;
-            drawcgachartile(vbuf, tile, gs);
+            drawcgachartile(screenseg_ofs, tile, gs);
         }
         i = i.wrapping_add(1);
         ofs = ofs.wrapping_add(1);
-        vbuf = vbuf.offset(8);
+        screenseg_ofs += 8;
         if !(ofs == endofrow) {
             continue;
         }
@@ -195,47 +189,37 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         }
         ofs = ofs.wrapping_add((86 - 24) as u32);
         endofrow = endofrow.wrapping_add(86);
-        vbuf = vbuf.offset((screenpitch as i32 * 8 - 24 * 8) as isize);
+        screenseg_ofs += screenpitch as usize * 8 - 24 * 8;
     }
     UpdateScreen(gs, pcs);
 }
 
-unsafe fn drawegachartile(mut dest: *mut u8, tile: i32, gs: &mut GlobalState) {
-    let mut src: *mut u8 = (gs.pics as *mut u8).offset((tile << 5) as isize);
-    let mut r: u32 = 0;
-    r = 0;
-    while r < 8 {
-        let chan: [u8; 4] = [
-            *src.offset(0),
-            *src.offset(8),
-            *src.offset(16),
-            *src.offset(24),
-        ];
-        let fresh11 = dest;
-        dest = dest.offset(1);
-        *fresh11 = EGA(chan.as_ptr(), 7);
-        let fresh12 = dest;
-        dest = dest.offset(1);
-        *fresh12 = EGA(chan.as_ptr(), 6);
-        let fresh13 = dest;
-        dest = dest.offset(1);
-        *fresh13 = EGA(chan.as_ptr(), 5);
-        let fresh14 = dest;
-        dest = dest.offset(1);
-        *fresh14 = EGA(chan.as_ptr(), 4);
-        let fresh15 = dest;
-        dest = dest.offset(1);
-        *fresh15 = EGA(chan.as_ptr(), 3);
-        let fresh16 = dest;
-        dest = dest.offset(1);
-        *fresh16 = EGA(chan.as_ptr(), 2);
-        let fresh17 = dest;
-        dest = dest.offset(1);
-        *fresh17 = EGA(chan.as_ptr(), 1);
-        *dest = EGA(chan.as_ptr(), 0);
-        dest = dest.offset((screenpitch as i32 - 7) as isize);
-        r = r.wrapping_add(1);
-        src = src.offset(1);
+unsafe fn drawegachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
+    let mut src = &gs.pics[(tile << 5) as usize..];
+    let mut dest = &mut gs.screenseg[screenseg_ofs..];
+
+    for _ in 0..8 {
+        let chan: [u8; 4] = [src[0], src[8], src[16], src[24]];
+
+        dest[0] = EGA(chan.as_ptr(), 7);
+        dest = &mut dest[1..];
+        dest[0] = EGA(chan.as_ptr(), 6);
+        dest = &mut dest[1..];
+        dest[0] = EGA(chan.as_ptr(), 5);
+        dest = &mut dest[1..];
+        dest[0] = EGA(chan.as_ptr(), 4);
+        dest = &mut dest[1..];
+        dest[0] = EGA(chan.as_ptr(), 3);
+        dest = &mut dest[1..];
+        dest[0] = EGA(chan.as_ptr(), 2);
+        dest = &mut dest[1..];
+        dest[0] = EGA(chan.as_ptr(), 1);
+        dest = &mut dest[1..];
+        dest[0] = EGA(chan.as_ptr(), 0);
+
+        dest = &mut dest[(screenpitch - 7) as usize..];
+
+        src = &src[1..];
     }
 }
 
@@ -244,16 +228,16 @@ pub unsafe fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut tile: i32 = 0;
     let mut i: u32 = 0;
     let mut endofrow: u32 = ofs.wrapping_add(24);
-    let mut vbuf: *mut u8 = gs.screenseg.as_mut_ptr();
+    let mut screenseg_ofs = 0;
     loop {
         tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
         if tile != gs.oldtiles[i as usize] {
             gs.oldtiles[i as usize] = tile;
-            drawegachartile(vbuf, tile, gs);
+            drawegachartile(screenseg_ofs, tile, gs);
         }
         i = i.wrapping_add(1);
         ofs = ofs.wrapping_add(1);
-        vbuf = vbuf.offset(8);
+        screenseg_ofs += 8;
         if !(ofs == endofrow) {
             continue;
         }
@@ -262,7 +246,7 @@ pub unsafe fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         }
         ofs = ofs.wrapping_add((86 - 24) as u32);
         endofrow = endofrow.wrapping_add(86);
-        vbuf = vbuf.offset((screenpitch as i32 * 8 - 24 * 8) as isize);
+        screenseg_ofs += screenpitch as usize * 8 - 24 * 8;
     }
     UpdateScreen(gs, pcs);
 }
@@ -277,20 +261,14 @@ pub unsafe fn drawchartile(
     match pcs.grmode as u32 {
         1 => {
             drawcgachartile(
-                gs.screenseg
-                    .as_mut_ptr()
-                    .offset(((y << 3) * screenpitch as i32) as isize)
-                    .offset((x << 3) as isize),
+                ((y << 3) * screenpitch as i32 + (x << 3)) as usize,
                 tile,
                 gs,
             );
         }
         2 | _ => {
             drawegachartile(
-                gs.screenseg
-                    .as_mut_ptr()
-                    .offset(((y << 3) * screenpitch as i32) as isize)
-                    .offset((x << 3) as isize),
+                ((y << 3) * screenpitch as i32 + (x << 3)) as usize,
                 tile,
                 gs,
             );

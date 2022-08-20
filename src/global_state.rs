@@ -38,7 +38,7 @@ pub struct GlobalState {
 
     pub ctrl: ControlStruct,
 
-    pub pics: *mut i8,
+    pub pics: Vec<u8>,
 
     // loaded into ES in the draw routines
     // should be adjusted after grmode
@@ -55,7 +55,6 @@ pub struct GlobalState {
     pub saveitems: [i16; 6],
     pub saveo: [activeobj; 1], // ^^
     pub gamestate: statetype,
-    pub picsexact: *mut i8,
     pub savescore: i32,
 
     // //////////////////////////////////////////////////////////
@@ -105,8 +104,7 @@ impl GlobalState {
         resetgame: bool,
         gamestate: statetype,
         ctrl: ControlStruct,
-        pics: *mut i8,
-        picsexact: *mut i8,
+        pics: Vec<u8>,
         savescore: i32,
         GODMODE: bool,
         side: i32,
@@ -144,7 +142,6 @@ impl GlobalState {
             gamestate,
             ctrl,
             pics,
-            picsexact,
             savescore,
             GODMODE,
             side,
