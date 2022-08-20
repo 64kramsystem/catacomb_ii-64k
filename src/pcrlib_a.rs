@@ -1,5 +1,5 @@
 use std::{
-    ptr,
+    ptr, slice,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -7,8 +7,8 @@ use ::libc;
 
 use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, extra_types::boolean,
-    global_state::GlobalState, pcrlib_a_state::PcrlibAState, pcrlib_c::UpdateScreen,
-    pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*,
+    global_state::GlobalState, gr_type::grtype::*, pcrlib_a_state::PcrlibAState,
+    pcrlib_c::UpdateScreen, pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*,
 };
 
 type __time_t = i64;
@@ -49,8 +49,7 @@ struct pictype {
     pub shapeptr: u32,
     pub name: [i8; 8],
 }
-type C2RustUnnamed_1 = u32;
-const screenpitch: C2RustUnnamed_1 = 320;
+const screenpitch: usize = 320;
 type C2RustUnnamed_2 = u32;
 const VBL_TIME: C2RustUnnamed_2 = 14;
 
@@ -399,90 +398,77 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
 }
 
 pub unsafe fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut vbuf: *mut u8 = gs
-        .screenseg
-        .as_mut_ptr()
-        .offset(((y << 3) * screenpitch as i32) as isize)
-        .offset((x << 3) as isize);
-    let mut src: *mut u8 = ptr::null_mut();
-    let mut i: u32 = 0;
-    match pcs.grmode as u32 {
-        1 => {
-            src = (pcs.charptr as *mut u8).offset((charnum * 16) as isize);
-            i = 0;
-            while i < 8 {
-                let fresh10 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh10 = (*src.offset(0) as i32 >> 6 & 3) as u8;
-                let fresh11 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh11 = (*src.offset(0) as i32 >> 4 & 3) as u8;
-                let fresh12 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh12 = (*src.offset(0) as i32 >> 2 & 3) as u8;
-                let fresh13 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh13 = (*src.offset(0) as i32 >> 0 & 3) as u8;
-                let fresh14 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh14 = (*src.offset(1) as i32 >> 6 & 3) as u8;
-                let fresh15 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh15 = (*src.offset(1) as i32 >> 4 & 3) as u8;
-                let fresh16 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh16 = (*src.offset(1) as i32 >> 2 & 3) as u8;
-                *vbuf = (*src.offset(1) as i32 >> 0 & 3) as u8;
-                vbuf = vbuf.offset((screenpitch as i32 - 7) as isize);
-                i = i.wrapping_add(1);
-                src = src.offset(2);
+    let src_arrays_size = gs.screenseg.len();
+    let src = slice::from_raw_parts(pcs.charptr as *mut u8, src_arrays_size);
+
+    let vbuf = &mut gs.screenseg;
+    let mut vbuf_i = (((y as usize) << 3) * screenpitch) + ((x as usize) << 3);
+
+    match pcs.grmode {
+        CGAgr => {
+            let mut src_i = charnum as usize * 16;
+
+            for _ in 0..8 {
+                vbuf[vbuf_i] = src[src_i] >> 6 & 3;
+                vbuf_i += 1;
+                vbuf[vbuf_i] = src[src_i] >> 4 & 3;
+                vbuf_i += 1;
+                vbuf[vbuf_i] = src[src_i] >> 2 & 3;
+                vbuf_i += 1;
+                vbuf[vbuf_i] = src[src_i] >> 0 & 3;
+                vbuf_i += 1;
+                vbuf[vbuf_i] = src[src_i + 1] >> 6 & 3;
+                vbuf_i += 1;
+                vbuf[vbuf_i] = src[src_i + 1] >> 4 & 3;
+                vbuf_i += 1;
+                vbuf[vbuf_i] = src[src_i + 1] >> 2 & 3;
+                vbuf_i += 1;
+                vbuf[vbuf_i] = src[src_i + 1] >> 0 & 3;
+
+                src_i += 2;
+                vbuf_i += screenpitch - 7;
             }
         }
-        3 => {
-            src = (pcs.charptr as *mut u8).offset((charnum * 64) as isize);
-            i = 0;
-            while i < 8 {
-                *(vbuf as *mut u64) = *(src as *mut u64);
-                i = i.wrapping_add(1);
-                src = src.offset(8);
-                vbuf = vbuf.offset((screenpitch as i32 - 7) as isize);
+        VGAgr => {
+            let mut src_i = charnum as usize * 64;
+
+            for _ in 0..8 {
+                // [BL] More or less guessing here since we don't have VGA files to
+                // test against.
+                vbuf[vbuf_i..vbuf_i + 8].copy_from_slice(&src[src_i..src_i + 8]);
+
+                src_i += 8;
+                vbuf_i += screenpitch - 7;
             }
         }
-        2 | _ => {
-            src = (pcs.charptr as *mut u8).offset((charnum * 8) as isize);
-            i = 0;
-            while i < 8 {
+        EGAgr | _ => {
+            let mut src_i = charnum as usize * 8;
+
+            for _ in 0..8 {
                 let chan: [u8; 4] = [
-                    *src.offset(pcs.egaplaneofs[0] as isize),
-                    *src.offset(pcs.egaplaneofs[1] as isize),
-                    *src.offset(pcs.egaplaneofs[2] as isize),
-                    *src.offset(pcs.egaplaneofs[3] as isize),
+                    src[src_i + pcs.egaplaneofs[0] as usize],
+                    src[src_i + pcs.egaplaneofs[1] as usize],
+                    src[src_i + pcs.egaplaneofs[2] as usize],
+                    src[src_i + pcs.egaplaneofs[3] as usize],
                 ];
-                let fresh3 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh3 = EGA(chan.as_ptr(), 7);
-                let fresh4 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh4 = EGA(chan.as_ptr(), 6);
-                let fresh5 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh5 = EGA(chan.as_ptr(), 5);
-                let fresh6 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh6 = EGA(chan.as_ptr(), 4);
-                let fresh7 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh7 = EGA(chan.as_ptr(), 3);
-                let fresh8 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh8 = EGA(chan.as_ptr(), 2);
-                let fresh9 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh9 = EGA(chan.as_ptr(), 1);
-                *vbuf = EGA(chan.as_ptr(), 0);
-                vbuf = vbuf.offset((screenpitch as i32 - 7) as isize);
-                i = i.wrapping_add(1);
-                src = src.offset(1);
+                vbuf[vbuf_i] = EGA(chan.as_ptr(), 7);
+                vbuf_i += 1;
+                vbuf[vbuf_i] = EGA(chan.as_ptr(), 6);
+                vbuf_i += 1;
+                vbuf[vbuf_i] = EGA(chan.as_ptr(), 5);
+                vbuf_i += 1;
+                vbuf[vbuf_i] = EGA(chan.as_ptr(), 4);
+                vbuf_i += 1;
+                vbuf[vbuf_i] = EGA(chan.as_ptr(), 3);
+                vbuf_i += 1;
+                vbuf[vbuf_i] = EGA(chan.as_ptr(), 2);
+                vbuf_i += 1;
+                vbuf[vbuf_i] = EGA(chan.as_ptr(), 1);
+                vbuf_i += 1;
+                vbuf[vbuf_i] = EGA(chan.as_ptr(), 0);
+
+                src_i += 1;
+                vbuf_i += screenpitch - 7;
             }
         }
     };
