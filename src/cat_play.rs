@@ -8,6 +8,7 @@ use crate::{
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
+    extra_constants::maxobj,
     extra_types::boolean,
     global_state::GlobalState,
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
@@ -83,34 +84,37 @@ const opposite: [dirtype; 9] = [
     south, west, north, east, southwest, northwest, northeast, southeast, nodir,
 ];
 
-unsafe fn newobject(gs: &mut GlobalState) -> i32 {
-    let current_block: u64;
-    let mut i: i32 = 0;
-    i = 1;
-    loop {
-        if !(i <= gs.numobj) {
-            current_block = 10680521327981672866;
+/*=====================================*/
+/*				       */
+/* newobject                           */
+/* returns the number of a free object */
+/*				       */
+/*=====================================*/
+
+fn newobject(gs: &mut GlobalState) -> i32 {
+    let mut found_i = None;
+
+    for i in 1..=gs.numobj {
+        if { gs.o[i as usize].class } == nothing {
+            found_i = Some(i);
             break;
         }
-        if gs.o[i as usize].class as i32 == nothing as i32 {
-            current_block = 15327184191433388822;
-            break;
-        }
-        i += 1;
     }
-    match current_block {
-        10680521327981672866 => {
-            if gs.numobj < 200 {
-                gs.numobj += 1;
-            }
-            i = gs.numobj;
+
+    if found_i.is_none() {
+        if gs.numobj < maxobj {
+            gs.numobj += 1;
         }
-        _ => {}
+        found_i = Some(gs.numobj);
     }
-    gs.o[i as usize].oldtile = -1 as i16;
-    gs.o[i as usize].oldx = 0;
-    gs.o[i as usize].oldy = 0;
-    return i;
+
+    let found_i = found_i.unwrap();
+
+    gs.o[found_i as usize].oldtile = -1;
+    gs.o[found_i as usize].oldx = 0;
+    gs.o[found_i as usize].oldy = 0;
+
+    found_i
 }
 
 pub unsafe fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
