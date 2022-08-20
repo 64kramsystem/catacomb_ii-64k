@@ -54,11 +54,11 @@ type C2RustUnnamed_2 = u32;
 const VBL_TIME: C2RustUnnamed_2 = 14;
 
 #[inline]
-unsafe fn EGA(chan: *const u8, ofs: u8) -> u8 {
-    return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
-        | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
-        | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
-        | *chan.offset(0) as i32 >> ofs as i32 & 1) as u8;
+fn EGA(chan: &[u8], ofs: u8) -> u8 {
+    (chan[3] >> ofs & 1) << 3
+        | (chan[2] >> ofs & 1) << 2
+        | (chan[1] >> ofs & 1) << 1
+        | (chan[0] >> ofs & 1) << 0
 }
 
 #[inline]
@@ -451,21 +451,21 @@ pub unsafe fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: 
                     src[src_i + pcs.egaplaneofs[2] as usize],
                     src[src_i + pcs.egaplaneofs[3] as usize],
                 ];
-                vbuf[vbuf_i] = EGA(chan.as_ptr(), 7);
+                vbuf[vbuf_i] = EGA(&chan, 7);
                 vbuf_i += 1;
-                vbuf[vbuf_i] = EGA(chan.as_ptr(), 6);
+                vbuf[vbuf_i] = EGA(&chan, 6);
                 vbuf_i += 1;
-                vbuf[vbuf_i] = EGA(chan.as_ptr(), 5);
+                vbuf[vbuf_i] = EGA(&chan, 5);
                 vbuf_i += 1;
-                vbuf[vbuf_i] = EGA(chan.as_ptr(), 4);
+                vbuf[vbuf_i] = EGA(&chan, 4);
                 vbuf_i += 1;
-                vbuf[vbuf_i] = EGA(chan.as_ptr(), 3);
+                vbuf[vbuf_i] = EGA(&chan, 3);
                 vbuf_i += 1;
-                vbuf[vbuf_i] = EGA(chan.as_ptr(), 2);
+                vbuf[vbuf_i] = EGA(&chan, 2);
                 vbuf_i += 1;
-                vbuf[vbuf_i] = EGA(chan.as_ptr(), 1);
+                vbuf[vbuf_i] = EGA(&chan, 1);
                 vbuf_i += 1;
-                vbuf[vbuf_i] = EGA(chan.as_ptr(), 0);
+                vbuf[vbuf_i] = EGA(&chan, 0);
 
                 src_i += 1;
                 vbuf_i += screenpitch - 7;
@@ -551,28 +551,28 @@ pub unsafe fn drawpic(
                 src = src.offset(1);
                 let fresh17 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh17 = EGA(chan.as_ptr(), 7);
+                *fresh17 = EGA(&chan, 7);
                 let fresh18 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh18 = EGA(chan.as_ptr(), 6);
+                *fresh18 = EGA(&chan, 6);
                 let fresh19 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh19 = EGA(chan.as_ptr(), 5);
+                *fresh19 = EGA(&chan, 5);
                 let fresh20 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh20 = EGA(chan.as_ptr(), 4);
+                *fresh20 = EGA(&chan, 4);
                 let fresh21 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh21 = EGA(chan.as_ptr(), 3);
+                *fresh21 = EGA(&chan, 3);
                 let fresh22 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh22 = EGA(chan.as_ptr(), 2);
+                *fresh22 = EGA(&chan, 2);
                 let fresh23 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh23 = EGA(chan.as_ptr(), 1);
+                *fresh23 = EGA(&chan, 1);
                 let fresh24 = vbuf;
                 vbuf = vbuf.offset(1);
-                *fresh24 = EGA(chan.as_ptr(), 0);
+                *fresh24 = EGA(&chan, 0);
                 i = i.wrapping_sub(1);
                 if !(i != 0) {
                     break;
