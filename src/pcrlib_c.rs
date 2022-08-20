@@ -1318,18 +1318,21 @@ pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut Pcrlib
 }
 
 /// To be the used when printing from memory.
-//
-#[allow(dead_code)]
+///
 pub fn port_temp_print_cstr(str_0: &CStr, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     port_temp_print_str(&str_0.to_string_lossy(), gs, pcs)
 }
 
-/// Intended to be the ultimate, safe, version.
-/// Also to be used where strings are directly passed.
-//
-#[allow(dead_code)]
+/// Convenience.
+///
 pub fn port_temp_print_str(str_0: &str, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    for ch_0 in str_0.as_bytes() {
+    port_temp_print_arr(str_0.as_bytes(), gs, pcs);
+}
+
+/// Reference print routine. &[u8] is used, because this in not necessarily a textual string.
+///
+pub fn port_temp_print_arr(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    for ch_0 in str_0 {
         match ch_0 {
             0 => break,
             b'\n' => {
