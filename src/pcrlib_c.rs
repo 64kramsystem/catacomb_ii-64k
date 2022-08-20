@@ -1767,23 +1767,18 @@ pub unsafe fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         if h < 10 {
             pcs.sx += 1;
         }
-        let str = CString::new(format!("{h}")).unwrap();
-        print(str.as_ptr(), gs, pcs);
+        port_temp_print_str(&h.to_string(), gs, pcs);
         pcs.sx += 1;
         if (pcs.highscores[i as usize].level as i32) < 10 {
             pcs.sx += 1;
         }
-        // Rust port: Interesting, if this is passed as format! parameter, it will cause a warning.
-        let highscore = pcs.highscores[i as usize].level;
-        let str = CString::new(highscore.to_string()).unwrap();
-        print(str.as_ptr(), gs, pcs);
+        let str = { pcs.highscores[i as usize].level }.to_string();
+        port_temp_print_str(&str, gs, pcs);
         pcs.sx += 1;
         // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
         let highscore_bytes = &pcs.highscores[i as usize].initials.map(|f| f as u8)[0..=2];
-        let str = CString::new(highscore_bytes).unwrap();
-        print(str.as_ptr(), gs, pcs);
-        let str = CString::new("\n\n").unwrap();
-        print(str.as_ptr(), gs, pcs);
+        port_temp_print_arr(highscore_bytes, gs, pcs);
+        port_temp_print_str("\n\n", gs, pcs);
         i += 1;
     }
     let str = CString::new(format!("SCORE:{}", pcs.score)).unwrap();
