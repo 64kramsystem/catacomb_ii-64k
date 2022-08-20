@@ -95,6 +95,13 @@ fn newobject(gs: &mut GlobalState) -> i32 {
     found_i
 }
 
+/*=================================*/
+/*				   */
+/* printscore / printhighscore     */
+/* prints the scores to the screen */
+/*				   */
+/*=================================*/
+
 pub fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 3;
@@ -106,6 +113,14 @@ pub fn printhighscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sy = 5;
     port_temp_print_str(&{ pcs.highscores[1].score }.to_string(), gs, pcs);
 }
+
+/*======================================*/
+/*				        */
+/* printshotpower                       */
+/* printbody                            */
+/* draws the meter to the current value */
+/*				        */
+/*======================================*/
 
 pub fn printshotpower(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 25;
