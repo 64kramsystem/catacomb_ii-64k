@@ -465,7 +465,7 @@ pub unsafe extern "C" fn doall() {
             b"/home/saverio/code/catacomb_ii-64k/source_project/catasm.c\0" as *const u8
                 as *const libc::c_char,
             119 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<&[u8; 13], &[libc::c_char; 13]>(b"void doall()\0")).as_ptr(),
+            (*::core::mem::transmute::<&[u8; 13], &[libc::c_char; 13]>(b"void doall()\0")).as_ptr(),
         );
     }
     loop {
@@ -475,14 +475,14 @@ pub unsafe extern "C" fn doall() {
                 &mut obj as *mut objtype as *mut libc::c_void,
                 &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
                     as *const libc::c_void,
-                ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+                ::core::mem::size_of::<activeobj>() as libc::c_ulong,
             );
             if obj.class as libc::c_int != nothing as libc::c_int {
                 memcpy(
                     &mut obj.think as *mut byte as *mut libc::c_void,
                     &mut *objdef.as_mut_ptr().offset(obj.class as isize) as *mut objdeftype
                         as *const libc::c_void,
-                    ::std::mem::size_of::<objdeftype>() as libc::c_ulong,
+                    ::core::mem::size_of::<objdeftype>() as libc::c_ulong,
                 );
                 if obj.active != 0 {
                     doactive();

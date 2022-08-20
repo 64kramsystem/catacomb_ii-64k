@@ -537,7 +537,7 @@ pub unsafe extern "C" fn StartupSound() {
     SDL_memset(
         &mut desired as *mut SDL_AudioSpec as *mut libc::c_void,
         0 as libc::c_int,
-        ::std::mem::size_of::<SDL_AudioSpec>() as libc::c_ulong,
+        ::core::mem::size_of::<SDL_AudioSpec>() as libc::c_ulong,
     );
     desired.freq = 48000 as libc::c_int;
     desired.format = 0x8010 as libc::c_int as SDL_AudioFormat;
@@ -940,7 +940,7 @@ pub unsafe extern "C" fn initrnd(mut randomize: boolean) {
     memcpy(
         RndArray.as_mut_ptr() as *mut libc::c_void,
         baseRndArray.as_mut_ptr() as *const libc::c_void,
-        ::std::mem::size_of::<[word; 17]>() as libc::c_ulong,
+        ::core::mem::size_of::<[word; 17]>() as libc::c_ulong,
     );
     LastRnd = 0 as libc::c_int as word;
     indexi = 17 as libc::c_int as word;

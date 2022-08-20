@@ -1939,7 +1939,7 @@ pub unsafe extern "C" fn clearold() {
     memset(
         &mut oldtiles as *mut [libc::c_int; 576] as *mut libc::c_void,
         0xff as libc::c_int,
-        ::std::mem::size_of::<[libc::c_int; 576]>() as libc::c_ulong,
+        ::core::mem::size_of::<[libc::c_int; 576]>() as libc::c_ulong,
     );
 }
 #[no_mangle]
@@ -2459,7 +2459,7 @@ pub unsafe extern "C" fn dofkeys() {
                         );
                         ch = get() as libc::c_char;
                         if ch as libc::c_int != 'Y' as i32 && ch as libc::c_int != 'y' as i32 {
-                            current_block_72 = 919954187481050311;
+                            current_block_72 = 13303144130133872306;
                         } else {
                             sx = leftedge;
                             print(b"                    \0" as *const u8 as *const libc::c_char);
@@ -2468,13 +2468,13 @@ pub unsafe extern "C" fn dofkeys() {
                             print(b"                    \0" as *const u8 as *const libc::c_char);
                             sx = leftedge;
                             sy -= 1;
-                            current_block_72 = 1836292691772056875;
+                            current_block_72 = 16924917904204750491;
                         }
                     } else {
-                        current_block_72 = 1836292691772056875;
+                        current_block_72 = 16924917904204750491;
                     }
                     match current_block_72 {
-                        919954187481050311 => {}
+                        13303144130133872306 => {}
                         _ => {
                             handle = open(
                                 str.as_mut_ptr(),
@@ -2490,24 +2490,24 @@ pub unsafe extern "C" fn dofkeys() {
                             write(
                                 handle,
                                 &mut saveitems as *mut [sword; 6] as *const libc::c_void,
-                                ::std::mem::size_of::<[sword; 6]>() as libc::c_ulong,
+                                ::core::mem::size_of::<[sword; 6]>() as libc::c_ulong,
                             );
                             write(
                                 handle,
                                 &mut savescore as *mut sdword as *const libc::c_void,
-                                ::std::mem::size_of::<sdword>() as libc::c_ulong,
+                                ::core::mem::size_of::<sdword>() as libc::c_ulong,
                             );
                             write(
                                 handle,
                                 &mut level as *mut sword as *const libc::c_void,
-                                ::std::mem::size_of::<sword>() as libc::c_ulong,
+                                ::core::mem::size_of::<sword>() as libc::c_ulong,
                             );
                             write(
                                 handle,
                                 &mut *saveo.as_mut_ptr().offset(0 as libc::c_int as isize)
                                     as *mut activeobj
                                     as *const libc::c_void,
-                                ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+                                ::core::mem::size_of::<activeobj>() as libc::c_ulong,
                             );
                             close(handle);
                             print(b"\nGame saved.  Hit F5\n\0" as *const u8 as *const libc::c_char);
@@ -2543,23 +2543,23 @@ pub unsafe extern "C" fn dofkeys() {
                     read(
                         handle,
                         &mut items as *mut [sword; 6] as *mut libc::c_void,
-                        ::std::mem::size_of::<[sword; 6]>() as libc::c_ulong,
+                        ::core::mem::size_of::<[sword; 6]>() as libc::c_ulong,
                     );
                     read(
                         handle,
                         &mut score as *mut sdword as *mut libc::c_void,
-                        ::std::mem::size_of::<sdword>() as libc::c_ulong,
+                        ::core::mem::size_of::<sdword>() as libc::c_ulong,
                     );
                     read(
                         handle,
                         &mut level as *mut sword as *mut libc::c_void,
-                        ::std::mem::size_of::<sword>() as libc::c_ulong,
+                        ::core::mem::size_of::<sword>() as libc::c_ulong,
                     );
                     read(
                         handle,
                         &mut *o.as_mut_ptr().offset(0 as libc::c_int as isize) as *mut activeobj
                             as *mut libc::c_void,
-                        ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+                        ::core::mem::size_of::<activeobj>() as libc::c_ulong,
                     );
                     close(handle);
                     exitdemo = true_0 as libc::c_int as boolean;
@@ -2830,7 +2830,7 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> lib
     memset(
         &mut priority as *mut [byte; 2048] as *mut libc::c_void,
         99 as libc::c_int,
-        ::std::mem::size_of::<[byte; 2048]>() as libc::c_ulong,
+        ::core::mem::size_of::<[byte; 2048]>() as libc::c_ulong,
     );
     priority[128 as libc::c_int as usize] = 0 as libc::c_int as byte;
     i = objdef[teleporter as libc::c_int as usize].firstchar as libc::c_int;
@@ -2955,7 +2955,7 @@ pub fn main() {
                 .into_raw(),
         );
     }
-    args.push(::std::ptr::null_mut());
+    args.push(::core::ptr::null_mut());
     unsafe {
         ::std::process::exit(main_0(
             (args.len() - 1) as libc::c_int,
