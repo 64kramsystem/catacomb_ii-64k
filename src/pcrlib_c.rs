@@ -512,7 +512,7 @@ pub struct ctlpaneltype {
     pub keyB2: u8,
 }
 
-pub unsafe fn SetupKBD(pcs: &mut PcrlibCState) {
+pub fn SetupKBD(pcs: &mut PcrlibCState) {
     let mut i: u32 = 0;
     i = 0;
     while i < 128 {
@@ -572,7 +572,7 @@ unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_
     return 0;
 }
 
-pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
+pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     let mut xmove: i32 = 0;
     let mut ymove: i32 = 0;
     let mut action: ControlStruct = ControlStruct {
@@ -643,7 +643,7 @@ pub unsafe fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     return action;
 }
 
-pub unsafe fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
+pub fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
     let mut newx: i32 = 0;
     let mut newy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -890,7 +890,7 @@ pub unsafe fn ControlPlayer(
     return ret;
 }
 
-pub unsafe fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.demobuffer[0] = pcs.level as u8;
     pcs.demoptr = 1;
     gs.indemo = demoenum::recording;
@@ -916,7 +916,7 @@ pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     gs.indemo = demoenum::demoplay;
 }
 
-pub unsafe fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let str = format!("DEMO{demonum}.{port_temp__extension}");
 
     port_temp_SaveFile(&str, &pcs.demobuffer[..pcs.demoptr]);
@@ -1029,7 +1029,7 @@ pub unsafe fn SaveFile(filename: *const i8, buffer: *const i8, size: i64) {
     close(fd);
 }
 
-pub unsafe fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
+pub fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
     // Flags originally used: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
     //
     // Rust port: In the original project, this is written in ASM (https://github.com/64kramsystem/catacomb_ii-64k/blob/db8017c1aba84823cb5116ca2f819e5c77636c9e/original_project/PCRLIB_C.C#L649).
@@ -1078,7 +1078,7 @@ pub fn port_temp_bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
     Ok(buffer)
 }
 
-pub unsafe fn drawwindow(
+pub fn drawwindow(
     xl: i32,
     yl: i32,
     xh: i32,
@@ -1122,7 +1122,7 @@ pub unsafe fn drawwindow(
     pcs.sy = yl + 1;
 }
 
-pub unsafe fn bar(
+pub fn bar(
     xl: i32,
     yl: i32,
     xh: i32,
@@ -1144,13 +1144,13 @@ pub unsafe fn bar(
     }
 }
 
-pub unsafe fn erasewindow(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn erasewindow(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     bar(
         pcs.win_xl, pcs.win_yl, pcs.win_xh, pcs.win_yh, ' ' as i32, gs, pcs,
     );
 }
 
-pub unsafe fn centerwindow(width: i32, height: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn centerwindow(width: i32, height: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let xl: i32 = gs.screencenter.x - width / 2;
     let yl: i32 = gs.screencenter.y - height / 2;
     drawwindow(xl, yl, xl + width + 1, yl + height + 1, gs, pcs);
@@ -1234,7 +1234,7 @@ const EGAPalette: [u32; 16] = [
 ];
 const CGAPalette: [u32; 4] = [0, 0x55ffff, 0xff55ff, 0xffffff];
 
-pub unsafe fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: u64 = 0;
     if pcs.grmode as u32 == EGAgr as i32 as u32 {
         while i < ::std::mem::size_of::<[u8; 64000]>() as u64 {
@@ -1343,9 +1343,7 @@ pub fn port_temp_print_arr(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibC
                 pcs.sx = pcs.leftedge;
             }
             _ => {
-                unsafe {
-                    drawchar(pcs.sx, pcs.sy, *ch_0 as i32, gs, pcs);
-                }
+                drawchar(pcs.sx, pcs.sy, *ch_0 as i32, gs, pcs);
                 pcs.sx += 1;
             }
         }
@@ -1553,7 +1551,7 @@ pub const _egaok: boolean = true as boolean;
 
 pub const _vgaok: boolean = false as boolean;
 
-pub unsafe fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
+pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
     let mut i: i32 = 0;
     i = 0;
     while i < 128 {
@@ -1565,7 +1563,7 @@ pub unsafe fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
     return 0;
 }
 
-pub unsafe fn CheckMouseMode(pcs: &mut PcrlibCState) {
+pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
     safe_SDL_SetRelativeMouseMode(
         (pcs.hasFocus as i32 != 0
             && (pcs.playermode[1] as u32 == mouse as i32 as u32
@@ -1739,7 +1737,7 @@ pub unsafe fn _savehighscores(pcs: &mut PcrlibCState) {
     );
 }
 
-pub unsafe fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
     centerwindow(17, 17, gs, pcs);

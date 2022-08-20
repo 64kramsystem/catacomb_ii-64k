@@ -397,7 +397,7 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
     }
 }
 
-pub unsafe fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let src = &pcs.picfile;
     let mut src_i = pcs.charptr_i;
 
