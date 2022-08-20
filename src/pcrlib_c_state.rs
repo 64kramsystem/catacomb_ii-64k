@@ -27,10 +27,10 @@ pub struct PcrlibCState {
     pub keyB1: i32,
     pub keyB2: i32,
     pub grmode: grtype,
-    pub charptr: *mut libc::c_void,
-    pub tileptr: *mut libc::c_void,
-    pub picptr: *mut libc::c_void,
-    pub spriteptr: *mut libc::c_void,
+    pub charptr: *mut libc::c_void,   // 8*8 tileset
+    pub tileptr: *mut libc::c_void,   // 16*16 tileset
+    pub picptr: *mut libc::c_void,    // any size picture set
+    pub spriteptr: *mut libc::c_void, // any size masked and hit rect sprites
     pub egaplaneofs: [u32; 4],
     pub sx: i32,
     pub sy: i32,
