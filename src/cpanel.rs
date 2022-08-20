@@ -78,9 +78,11 @@ pub struct picfiletype {
     pub numsprites: i16,
 }
 
+/// Rust port: Converted to isize for convenience.
+///
 #[inline]
-unsafe fn flatptr(ptr: farptr) -> u32 {
-    return (((ptr.seg as i32) << 4) + ptr.ofs as i32) as u32;
+fn flatptr(ptr: farptr) -> isize {
+    (((ptr.seg as isize) << 4) + ptr.ofs as isize) as isize
 }
 
 const rowy: [i32; 4] = [4, 9, 14, 19];
@@ -624,21 +626,16 @@ pub unsafe fn installgrfile(
     cps.numtiles = (*picfile).numtiles as i32;
     cps.numpics = (*picfile).numpics as i32;
     cps.numsprites = (*picfile).numsprites as i32;
-    pcs.charptr =
-        (picfile as *mut u8).offset(flatptr((*picfile).charptr) as isize) as *mut libc::c_void;
-    pcs.tileptr =
-        (picfile as *mut u8).offset(flatptr((*picfile).tileptr) as isize) as *mut libc::c_void;
-    pcs.picptr =
-        (picfile as *mut u8).offset(flatptr((*picfile).picptr) as isize) as *mut libc::c_void;
-    pcs.spriteptr =
-        (picfile as *mut u8).offset(flatptr((*picfile).spriteptr) as isize) as *mut libc::c_void;
-    pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0])).wrapping_sub(flatptr((*picfile).charptr));
-    pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1])).wrapping_sub(flatptr((*picfile).charptr));
-    pcs.egaplaneofs[2] = (flatptr((*picfile).plane[2])).wrapping_sub(flatptr((*picfile).charptr));
-    pcs.egaplaneofs[3] = (flatptr((*picfile).plane[3])).wrapping_sub(flatptr((*picfile).charptr));
-    picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr) as isize) as *mut ptype;
-    spriteinfile =
-        (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr) as isize) as *mut stype;
+    pcs.charptr = (picfile as *mut u8).offset(flatptr((*picfile).charptr)) as *mut libc::c_void;
+    pcs.tileptr = (picfile as *mut u8).offset(flatptr((*picfile).tileptr)) as *mut libc::c_void;
+    pcs.picptr = (picfile as *mut u8).offset(flatptr((*picfile).picptr)) as *mut libc::c_void;
+    pcs.spriteptr = (picfile as *mut u8).offset(flatptr((*picfile).spriteptr)) as *mut libc::c_void;
+    pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0]) - flatptr((*picfile).charptr)) as u32;
+    pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1]) - flatptr((*picfile).charptr)) as u32;
+    pcs.egaplaneofs[2] = (flatptr((*picfile).plane[2]) - flatptr((*picfile).charptr)) as u32;
+    pcs.egaplaneofs[3] = (flatptr((*picfile).plane[3]) - flatptr((*picfile).charptr)) as u32;
+    picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr)) as *mut ptype;
+    spriteinfile = (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr)) as *mut stype;
     i = 0;
     while i < 64 {
         cps.pictable[i as usize] = (*picinfile)[i as usize];
