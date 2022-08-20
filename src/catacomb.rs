@@ -1122,7 +1122,6 @@ pub fn original_main() {
             yh: 0,
             name: [0; 12],
         }; 10],
-        ptr::null_mut(),
         0,
         0,
         0,

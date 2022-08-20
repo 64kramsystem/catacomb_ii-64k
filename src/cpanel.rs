@@ -21,10 +21,6 @@ use crate::{
     scan_codes::*,
 };
 
-extern "C" {
-    fn free(_: *mut libc::c_void);
-}
-
 const SDLK_UP: u32 = 1073741906;
 const SDLK_DOWN: u32 = 1073741905;
 const SDLK_LEFT: u32 = 1073741904;
@@ -615,11 +611,7 @@ pub unsafe fn installgrfile(
     if filename.is_empty() {
         picfile = inmem as *mut picfiletype;
     } else {
-        if cps.lastgrpic as i64 != 0 {
-            free(cps.lastgrpic);
-        }
         picfile = bloadin(&filename) as *mut picfiletype;
-        cps.lastgrpic = picfile as *mut libc::c_void;
     }
     cps.numchars = (*picfile).numchars as i32;
     cps.numtiles = (*picfile).numtiles as i32;
