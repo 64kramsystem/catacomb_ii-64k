@@ -3,7 +3,7 @@ use num_derive::FromPrimitive;
 
 /// In the original, this is an enum, (automatically) narrowed down to u16 on assignment.
 #[repr(u16)]
-#[derive(Clone, Copy, FromPrimitive)]
+#[derive(Clone, Copy, FromPrimitive, PartialEq)]
 pub enum classtype {
     lastclass = 23,
     guns = 22,
