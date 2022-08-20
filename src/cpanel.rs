@@ -1,4 +1,4 @@
-use std::{ffi::CStr, ptr};
+use std::ptr;
 
 use ::libc;
 
@@ -603,7 +603,7 @@ pub unsafe fn controlpanel(
 }
 
 pub unsafe fn installgrfile(
-    filename: *const i8,
+    filename: &str,
     inmem: *mut libc::c_void,
     cps: &mut CpanelState,
     pcs: &mut PcrlibCState,
@@ -612,13 +612,12 @@ pub unsafe fn installgrfile(
     let mut picfile: *mut picfiletype = ptr::null_mut();
     let mut spriteinfile: *mut stype = ptr::null_mut();
     let mut picinfile: *mut ptype = ptr::null_mut();
-    if *filename.offset(0) == 0 {
+    if filename.is_empty() {
         picfile = inmem as *mut picfiletype;
     } else {
         if cps.lastgrpic as i64 != 0 {
             free(cps.lastgrpic);
         }
-        let filename = CStr::from_ptr(filename).to_string_lossy().to_string();
         picfile = bloadin(&filename) as *mut picfiletype;
         cps.lastgrpic = picfile as *mut libc::c_void;
     }
