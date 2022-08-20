@@ -1,5 +1,5 @@
 use std::{
-    ptr, slice,
+    ptr,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -398,15 +398,15 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
 }
 
 pub unsafe fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let src_arrays_size = gs.screenseg.len();
-    let src = slice::from_raw_parts(pcs.charptr as *mut u8, src_arrays_size);
+    let src = &pcs.picfile;
+    let mut src_i = pcs.charptr_i;
 
     let vbuf = &mut gs.screenseg;
     let mut vbuf_i = (((y as usize) << 3) * screenpitch) + ((x as usize) << 3);
 
     match pcs.grmode {
         CGAgr => {
-            let mut src_i = charnum as usize * 16;
+            src_i += charnum as usize * 16;
 
             for _ in 0..8 {
                 vbuf[vbuf_i] = src[src_i] >> 6 & 3;
@@ -430,7 +430,7 @@ pub unsafe fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: 
             }
         }
         VGAgr => {
-            let mut src_i = charnum as usize * 64;
+            src_i += charnum as usize * 64;
 
             for _ in 0..8 {
                 // [BL] More or less guessing here since we don't have VGA files to
@@ -442,7 +442,7 @@ pub unsafe fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: 
             }
         }
         EGAgr | _ => {
-            let mut src_i = charnum as usize * 8;
+            src_i += charnum as usize * 8;
 
             for _ in 0..8 {
                 let chan: [u8; 4] = [

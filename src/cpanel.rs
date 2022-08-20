@@ -13,8 +13,8 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen, _egaok, _vgaok,
-        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_print_str,
-        CheckMouseMode, ControlJoystick,
+        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_bloadin,
+        port_temp_print_str, CheckMouseMode, ControlJoystick,
     },
     pcrlib_c_state::PcrlibCState,
     safe_sdl::safe_SDL_NumJoysticks,
@@ -603,11 +603,13 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     let mut spriteinfile: *mut stype = ptr::null_mut();
     let mut picinfile: *mut ptype = ptr::null_mut();
     let picfile = bloadin(&filename) as *mut picfiletype;
+    let picfile_new = port_temp_bloadin(&filename).unwrap();
     cps.numchars = (*picfile).numchars as i32;
     cps.numtiles = (*picfile).numtiles as i32;
     cps.numpics = (*picfile).numpics as i32;
     cps.numsprites = (*picfile).numsprites as i32;
-    pcs.charptr = (picfile as *mut u8).offset(flatptr((*picfile).charptr)) as *mut libc::c_void;
+    pcs.picfile = picfile_new;
+    pcs.charptr_i = flatptr((*picfile).charptr) as usize;
     pcs.tileptr = (picfile as *mut u8).offset(flatptr((*picfile).tileptr)) as *mut libc::c_void;
     pcs.picptr = (picfile as *mut u8).offset(flatptr((*picfile).picptr)) as *mut libc::c_void;
     pcs.spriteptr = (picfile as *mut u8).offset(flatptr((*picfile).spriteptr)) as *mut libc::c_void;
