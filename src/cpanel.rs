@@ -1,7 +1,4 @@
-use std::{
-    ffi::{CStr, CString},
-    ptr,
-};
+use std::{ffi::CStr, ptr};
 
 use ::libc;
 
@@ -17,7 +14,7 @@ use crate::{
     pcrlib_c::{
         ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen, _egaok, _vgaok,
         bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_print_str,
-        print, CheckMouseMode, ControlJoystick,
+        CheckMouseMode, ControlJoystick,
     },
     pcrlib_c_state::PcrlibCState,
     safe_sdl::safe_SDL_NumJoysticks,
@@ -249,8 +246,8 @@ unsafe fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     } else if sc == 0x3a as i32 {
         port_temp_print_str("CAPSLK", gs, pcs);
     } else if sc >= 0x3b as i32 && sc <= 0x44 as i32 {
-        let str = CString::new(format!("F{}", sc - 0x3a as i32)).unwrap();
-        print(str.as_ptr(), gs, pcs);
+        let str = format!("F{}", sc - 0x3a as i32);
+        port_temp_print_str(&str, gs, pcs);
     } else if sc == 0x57 as i32 {
         port_temp_print_str("F11", gs, pcs);
     } else if sc == 0x59 as i32 {

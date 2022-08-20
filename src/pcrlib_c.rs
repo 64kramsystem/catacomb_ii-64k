@@ -1296,7 +1296,7 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
 //
 /////////////////////////
 
-pub unsafe fn print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub unsafe fn _print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     loop {
         let ch_0 = *str_0;
         str_0 = str_0.offset(1);
