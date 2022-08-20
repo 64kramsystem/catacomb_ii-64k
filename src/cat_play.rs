@@ -479,17 +479,17 @@ pub unsafe extern "C" fn newobject() -> libc::c_int {
     i = 1 as libc::c_int;
     loop {
         if !(i <= numobj) {
-            current_block = 10680521327981672866;
+            current_block = 12675440807659640239;
             break;
         }
         if o[i as usize].class as libc::c_int == nothing as libc::c_int {
-            current_block = 15327184191433388822;
+            current_block = 2118292289288785552;
             break;
         }
         i += 1;
     }
     match current_block {
-        10680521327981672866 => {
+        12675440807659640239 => {
             if numobj < 200 as libc::c_int {
                 numobj += 1;
             }
@@ -869,14 +869,14 @@ pub unsafe extern "C" fn intomonster() -> boolean {
             &mut altobj.active as *mut boolean as *mut libc::c_void,
             &mut *o.as_mut_ptr().offset(altnum as isize) as *mut activeobj
                 as *const libc::c_void,
-            ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+            ::core::mem::size_of::<activeobj>() as libc::c_ulong,
         );
         if altobj.class as libc::c_int > nothing as libc::c_int && altnum != objecton {
             memcpy(
                 &mut altobj.think as *mut byte as *mut libc::c_void,
                 &mut *objdef.as_mut_ptr().offset(altobj.class as isize)
                     as *mut objdeftype as *const libc::c_void,
-                ::std::mem::size_of::<objdeftype>() as libc::c_ulong,
+                ::core::mem::size_of::<objdeftype>() as libc::c_ulong,
             );
             if chkx >= altobj.x as libc::c_int
                 && (chkx - altobj.x as libc::c_int) < altobj.size as libc::c_int
@@ -1656,7 +1656,7 @@ pub unsafe extern "C" fn doactive() {
             &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
                 as *mut libc::c_void,
             &mut obj as *mut objtype as *const libc::c_void,
-            ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+            ::core::mem::size_of::<activeobj>() as libc::c_ulong,
         );
     };
 }
@@ -1673,7 +1673,7 @@ pub unsafe extern "C" fn doinactive() {
             &mut *o.as_mut_ptr().offset(objecton as isize) as *mut activeobj
                 as *mut libc::c_void,
             &mut obj.active as *mut boolean as *const libc::c_void,
-            ::std::mem::size_of::<activeobj>() as libc::c_ulong,
+            ::core::mem::size_of::<activeobj>() as libc::c_ulong,
         );
     }
 }

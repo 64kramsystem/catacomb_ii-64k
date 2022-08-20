@@ -722,16 +722,16 @@ pub unsafe extern "C" fn calibratejoy(mut joynum: libc::c_int) {
         ReadJoystick(joynum, &mut xl, &mut yl);
         ctr = ControlJoystick(joynum);
         if keydown[SDL_SCANCODE_ESCAPE as libc::c_int as usize] != 0 {
-            current_block = 15976468122069307450;
+            current_block = 14120442811839315979;
             break;
         }
         if !(ctr.button1 as libc::c_int != 1 as libc::c_int) {
-            current_block = 8457315219000651999;
+            current_block = 4166486009154926805;
             break;
         }
     }
     match current_block {
-        8457315219000651999 => {
+        4166486009154926805 => {
             drawchar(sx, sy, ' ' as i32);
             loop {
                 ctr = ControlJoystick(joynum);
@@ -762,16 +762,16 @@ pub unsafe extern "C" fn calibratejoy(mut joynum: libc::c_int) {
                 ReadJoystick(joynum, &mut xh, &mut yh);
                 ctr = ControlJoystick(joynum);
                 if keydown[SDL_SCANCODE_ESCAPE as libc::c_int as usize] != 0 {
-                    current_block = 15976468122069307450;
+                    current_block = 14120442811839315979;
                     break;
                 }
                 if !(ctr.button1 as libc::c_int != 1 as libc::c_int) {
-                    current_block = 15597372965620363352;
+                    current_block = 4488286894823169796;
                     break;
                 }
             }
             match current_block {
-                15976468122069307450 => {}
+                14120442811839315979 => {}
                 _ => {
                     drawchar(sx, sy, ' ' as i32);
                     loop {

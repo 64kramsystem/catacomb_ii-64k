@@ -1865,12 +1865,12 @@ pub unsafe extern "C" fn UpdateScreen() {
     static mut conv: [Uint32; 64000] = [0; 64000];
     let mut i: size_t = 0 as libc::c_int as size_t;
     if grmode as libc::c_uint == EGAgr as libc::c_int as libc::c_uint {
-        while i < ::std::mem::size_of::<[byte; 64000]>() as libc::c_ulong {
+        while i < ::core::mem::size_of::<[byte; 64000]>() as libc::c_ulong {
             conv[i as usize] = EGAPalette[screenseg[i as usize] as usize];
             i = i.wrapping_add(1);
         }
     } else if grmode as libc::c_uint == CGAgr as libc::c_int as libc::c_uint {
-        while i < ::std::mem::size_of::<[byte; 64000]>() as libc::c_ulong {
+        while i < ::core::mem::size_of::<[byte; 64000]>() as libc::c_ulong {
             conv[i as usize] = CGAPalette[screenseg[i as usize] as usize];
             i = i.wrapping_add(1);
         }
@@ -1882,10 +1882,10 @@ pub unsafe extern "C" fn UpdateScreen() {
         __assert_fail(
             b"false && \"VGA Palette conversion not implemented.\"\0" as *const u8
                 as *const libc::c_char,
-            b"/home/saverio/code/catacomb_ii_sdl-dev/source_project/pcrlib_c.c\0"
+            b"/home/saverio/code/catacomb_ii-64k/source_project/pcrlib_c.c\0"
                 as *const u8 as *const libc::c_char,
             865 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<
+            (*::core::mem::transmute::<
                 &[u8; 20],
                 &[libc::c_char; 20],
             >(b"void UpdateScreen()\0"))
@@ -1897,7 +1897,7 @@ pub unsafe extern "C" fn UpdateScreen() {
         0 as *const SDL_Rect,
         conv.as_mut_ptr() as *const libc::c_void,
         (320 as libc::c_int as libc::c_ulong)
-            .wrapping_mul(::std::mem::size_of::<Uint32>() as libc::c_ulong)
+            .wrapping_mul(::core::mem::size_of::<Uint32>() as libc::c_ulong)
             as libc::c_int,
     );
     SDL_RenderClear(renderer);
@@ -2002,11 +2002,11 @@ pub unsafe extern "C" fn _Verify(mut filename: *mut libc::c_char) -> libc::c_lon
 #[no_mangle]
 pub unsafe extern "C" fn _printhexb(mut value: libc::c_uchar) {
     let mut loop_0: libc::c_int = 0;
-    let mut hexstr: [libc::c_char; 16] = *::std::mem::transmute::<
+    let mut hexstr: [libc::c_char; 16] = *::core::mem::transmute::<
         &[u8; 16],
         &mut [libc::c_char; 16],
     >(b"0123456789ABCDEF");
-    let mut str_0: [libc::c_char; 2] = *::std::mem::transmute::<
+    let mut str_0: [libc::c_char; 2] = *::core::mem::transmute::<
         &[u8; 2],
         &mut [libc::c_char; 2],
     >(b"\0\0");
@@ -2049,12 +2049,12 @@ pub unsafe extern "C" fn _printc(mut string: *mut libc::c_char) {
 }
 #[no_mangle]
 pub unsafe extern "C" fn _inputint() -> libc::c_uint {
-    let mut string: [libc::c_char; 18] = *::std::mem::transmute::<
+    let mut string: [libc::c_char; 18] = *::core::mem::transmute::<
         &[u8; 18],
         &mut [libc::c_char; 18],
     >(b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
     let mut digit: libc::c_char = 0;
-    let mut hexstr: [libc::c_char; 16] = *::std::mem::transmute::<
+    let mut hexstr: [libc::c_char; 16] = *::core::mem::transmute::<
         &[u8; 16],
         &mut [libc::c_char; 16],
     >(b"0123456789ABCDEF");
@@ -2393,7 +2393,7 @@ pub unsafe extern "C" fn _loadctrls() {
         read(
             handle,
             &mut ctlpanel as *mut ctlpaneltype as *mut libc::c_void,
-            ::std::mem::size_of::<ctlpaneltype>() as libc::c_ulong,
+            ::core::mem::size_of::<ctlpaneltype>() as libc::c_ulong,
         );
         close(handle);
         grmode = ctlpanel.grmode as grtype;
@@ -2492,7 +2492,7 @@ pub unsafe extern "C" fn _savectrls() {
     write(
         handle,
         &mut ctlpanel as *mut ctlpaneltype as *const libc::c_void,
-        ::std::mem::size_of::<ctlpaneltype>() as libc::c_ulong,
+        ::core::mem::size_of::<ctlpaneltype>() as libc::c_ulong,
     );
     close(handle);
 }
@@ -2523,7 +2523,7 @@ pub unsafe extern "C" fn _savehighscores() {
     SaveFile(
         str.as_mut_ptr(),
         highscores.as_mut_ptr() as *mut libc::c_char,
-        ::std::mem::size_of::<[scores; 5]>() as libc::c_ulong as libc::c_long,
+        ::core::mem::size_of::<[scores; 5]>() as libc::c_ulong as libc::c_long,
     );
 }
 #[no_mangle]
@@ -2775,7 +2775,7 @@ pub unsafe extern "C" fn _setupgame() {
     memset(
         screenseg.as_mut_ptr() as *mut libc::c_void,
         0 as libc::c_int,
-        ::std::mem::size_of::<[byte; 64000]>() as libc::c_ulong,
+        ::core::mem::size_of::<[byte; 64000]>() as libc::c_ulong,
     );
     grmode = EGAgr;
     joystick[2 as libc::c_int as usize].device = -(1 as libc::c_int);
