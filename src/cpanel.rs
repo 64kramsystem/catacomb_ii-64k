@@ -1,7 +1,4 @@
-use std::{
-    ffi::{CStr, CString},
-    ptr,
-};
+use std::ptr;
 
 use ::libc;
 
@@ -16,17 +13,13 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen, _egaok, _vgaok,
-        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_print_str,
-        print, CheckMouseMode, ControlJoystick,
+        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_bloadin,
+        port_temp_print_str, CheckMouseMode, ControlJoystick,
     },
     pcrlib_c_state::PcrlibCState,
     safe_sdl::safe_SDL_NumJoysticks,
     scan_codes::*,
 };
-
-extern "C" {
-    fn free(_: *mut libc::c_void);
-}
 
 const SDLK_UP: u32 = 1073741906;
 const SDLK_DOWN: u32 = 1073741905;
@@ -81,9 +74,11 @@ pub struct picfiletype {
     pub numsprites: i16,
 }
 
+/// Rust port: Converted to isize for convenience.
+///
 #[inline]
-unsafe fn flatptr(ptr: farptr) -> u32 {
-    return (((ptr.seg as i32) << 4) + ptr.ofs as i32) as u32;
+fn flatptr(ptr: farptr) -> isize {
+    (((ptr.seg as isize) << 4) + ptr.ofs as isize) as isize
 }
 
 const rowy: [i32; 4] = [4, 9, 14, 19];
@@ -249,8 +244,8 @@ unsafe fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     } else if sc == 0x3a as i32 {
         port_temp_print_str("CAPSLK", gs, pcs);
     } else if sc >= 0x3b as i32 && sc <= 0x44 as i32 {
-        let str = CString::new(format!("F{}", sc - 0x3a as i32)).unwrap();
-        print(str.as_ptr(), gs, pcs);
+        let str = format!("F{}", sc - 0x3a as i32);
+        port_temp_print_str(&str, gs, pcs);
     } else if sc == 0x57 as i32 {
         port_temp_print_str("F11", gs, pcs);
     } else if sc == 0x59 as i32 {
@@ -603,45 +598,27 @@ pub unsafe fn controlpanel(
     ContinueSound(pas);
 }
 
-pub unsafe fn installgrfile(
-    filename: *const i8,
-    inmem: *mut libc::c_void,
-    cps: &mut CpanelState,
-    pcs: &mut PcrlibCState,
-) {
+pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
-    let mut picfile: *mut picfiletype = ptr::null_mut();
     let mut spriteinfile: *mut stype = ptr::null_mut();
     let mut picinfile: *mut ptype = ptr::null_mut();
-    if *filename.offset(0) == 0 {
-        picfile = inmem as *mut picfiletype;
-    } else {
-        if cps.lastgrpic as i64 != 0 {
-            free(cps.lastgrpic);
-        }
-        let filename = CStr::from_ptr(filename).to_string_lossy().to_string();
-        picfile = bloadin(&filename) as *mut picfiletype;
-        cps.lastgrpic = picfile as *mut libc::c_void;
-    }
+    let picfile = bloadin(&filename) as *mut picfiletype;
+    let picfile_new = port_temp_bloadin(&filename).unwrap();
     cps.numchars = (*picfile).numchars as i32;
     cps.numtiles = (*picfile).numtiles as i32;
     cps.numpics = (*picfile).numpics as i32;
     cps.numsprites = (*picfile).numsprites as i32;
-    pcs.charptr =
-        (picfile as *mut u8).offset(flatptr((*picfile).charptr) as isize) as *mut libc::c_void;
-    pcs.tileptr =
-        (picfile as *mut u8).offset(flatptr((*picfile).tileptr) as isize) as *mut libc::c_void;
-    pcs.picptr =
-        (picfile as *mut u8).offset(flatptr((*picfile).picptr) as isize) as *mut libc::c_void;
-    pcs.spriteptr =
-        (picfile as *mut u8).offset(flatptr((*picfile).spriteptr) as isize) as *mut libc::c_void;
-    pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0])).wrapping_sub(flatptr((*picfile).charptr));
-    pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1])).wrapping_sub(flatptr((*picfile).charptr));
-    pcs.egaplaneofs[2] = (flatptr((*picfile).plane[2])).wrapping_sub(flatptr((*picfile).charptr));
-    pcs.egaplaneofs[3] = (flatptr((*picfile).plane[3])).wrapping_sub(flatptr((*picfile).charptr));
-    picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr) as isize) as *mut ptype;
-    spriteinfile =
-        (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr) as isize) as *mut stype;
+    pcs.picfile = picfile_new;
+    pcs.charptr_i = flatptr((*picfile).charptr) as usize;
+    pcs.tileptr = (picfile as *mut u8).offset(flatptr((*picfile).tileptr)) as *mut libc::c_void;
+    pcs.picptr = (picfile as *mut u8).offset(flatptr((*picfile).picptr)) as *mut libc::c_void;
+    pcs.spriteptr = (picfile as *mut u8).offset(flatptr((*picfile).spriteptr)) as *mut libc::c_void;
+    pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0]) - flatptr((*picfile).charptr)) as u32;
+    pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1]) - flatptr((*picfile).charptr)) as u32;
+    pcs.egaplaneofs[2] = (flatptr((*picfile).plane[2]) - flatptr((*picfile).charptr)) as u32;
+    pcs.egaplaneofs[3] = (flatptr((*picfile).plane[3]) - flatptr((*picfile).charptr)) as u32;
+    picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr)) as *mut ptype;
+    spriteinfile = (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr)) as *mut stype;
     i = 0;
     while i < 64 {
         cps.pictable[i as usize] = (*picinfile)[i as usize];

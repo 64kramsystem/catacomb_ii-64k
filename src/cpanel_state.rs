@@ -27,7 +27,9 @@ pub struct CpanelState {
     pub egaplane: [u32; 4],
     pub image: spritetype,
     pub spritetable: [spritetype; 10],
-    pub lastgrpic: *mut libc::c_void,
+    // Rust port: There wasn't any obvious purpose for this varaible; when `pics` was loaded, this
+    // was deallocated (if valid), and replaced with a copy of the `pics` pointer.
+    // pub lastgrpic: *mut libc::c_void,
     pub numchars: i32,
     pub numtiles: i32,
     pub numpics: i32,
@@ -55,7 +57,6 @@ impl CpanelState {
         egaplane: [u32; 4],
         image: spritetype,
         spritetable: [spritetype; 10],
-        lastgrpic: *mut libc::c_void,
         numchars: i32,
         numtiles: i32,
         numpics: i32,
@@ -78,7 +79,6 @@ impl CpanelState {
             egaplane,
             image,
             spritetable,
-            lastgrpic,
             numchars,
             numtiles,
             numpics,

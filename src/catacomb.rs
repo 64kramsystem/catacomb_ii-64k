@@ -171,20 +171,10 @@ unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
 pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
         gs.pics = port_temp_bloadin("CGACHARS.CA2").unwrap();
-        installgrfile(
-            b"CGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
-            0 as *mut libc::c_void,
-            cps,
-            pcs,
-        );
+        installgrfile("CGAPICS.CA2", cps, pcs);
     } else {
         gs.pics = port_temp_bloadin("EGACHARS.CA2").unwrap();
-        installgrfile(
-            b"EGAPICS.CA2\0" as *const u8 as *const i8 as *mut i8,
-            0 as *mut libc::c_void,
-            cps,
-            pcs,
-        );
+        installgrfile("EGAPICS.CA2", cps, pcs);
     };
 }
 
@@ -432,11 +422,11 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     let mut xx: i32 = 0;
     let mut yy: i32 = 0;
     let mut btile: u8 = 0;
-    let mut sm = [0; 4096];
+    let mut sm = vec![];
     let mut rle = [0; 4096];
     let filename = format!("LEVEL{}.CA2", pcs.level);
-    port_temp_LoadFile(&filename, &mut rle);
-    RLEExpand(&rle[4..], &mut sm);
+    let filesize = port_temp_LoadFile(&filename, &mut rle);
+    RLEExpand(&rle[4..], filesize, &mut sm);
     gs.numobj = 0;
     gs.o[0].x = 13;
     gs.o[0].y = 13;
@@ -1132,7 +1122,6 @@ pub fn original_main() {
             yh: 0,
             name: [0; 12],
         }; 10],
-        ptr::null_mut(),
         0,
         0,
         0,
@@ -1235,7 +1224,8 @@ pub fn original_main() {
         0,
         [0; 64000],
         text,
-        ptr::null_mut(),
+        vec![],
+        usize::MAX,
         ptr::null_mut(),
         ptr::null_mut(),
         ptr::null_mut(),

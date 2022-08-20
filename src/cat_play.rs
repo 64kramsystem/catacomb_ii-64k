@@ -8,140 +8,137 @@ use crate::{
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
+    extra_constants::maxobj,
     extra_types::boolean,
     global_state::GlobalState,
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
-        centerwindow, get, print, ControlPlayer, UpdateScreen, _inputint, bioskey, clearkeys,
-        port_temp_print_str, RecordDemo, SaveDemo,
+        centerwindow, get, ControlPlayer, UpdateScreen, _inputint, bioskey, clearkeys,
+        port_temp_print_arr, port_temp_print_str, RecordDemo, SaveDemo,
     },
     pcrlib_c_state::PcrlibCState,
     scan_codes::*,
     tag_type::tagtype::*,
 };
 
-const altmeters: [[i8; 14]; 14] = [
-    [
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        23, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        23, 25, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        23, 24, 25, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        23, 24, 24, 25, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        23, 24, 24, 24, 25, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [23, 24, 24, 24, 24, 25, 127, 127, 127, 127, 127, 127, 127, 0],
-    [23, 24, 24, 24, 24, 24, 25, 127, 127, 127, 127, 127, 127, 0],
-    [23, 24, 24, 24, 24, 24, 24, 25, 127, 127, 127, 127, 127, 0],
-    [23, 24, 24, 24, 24, 24, 24, 24, 25, 127, 127, 127, 127, 0],
-    [23, 24, 24, 24, 24, 24, 24, 24, 24, 25, 127, 127, 127, 0],
-    [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 127, 127, 0],
-    [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 127, 0],
-    [23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 25, 0],
+#[rustfmt::skip]
+const altmeters: [[u8; 13]; 14] = [
+    [127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [23,  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [23,  25,  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [23,  24,  25,  127, 127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [23,  24,  24,  25,  127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [23,  24,  24,  24,  25,  127, 127, 127, 127, 127, 127, 127, 127],
+    [23,  24,  24,  24,  24,  25,  127, 127, 127, 127, 127, 127, 127],
+    [23,  24,  24,  24,  24,  24,  25,  127, 127, 127, 127, 127, 127],
+    [23,  24,  24,  24,  24,  24,  24,  25,  127, 127, 127, 127, 127],
+    [23,  24,  24,  24,  24,  24,  24,  24,  25,  127, 127, 127, 127],
+    [23,  24,  24,  24,  24,  24,  24,  24,  24,  25,  127, 127, 127],
+    [23,  24,  24,  24,  24,  24,  24,  24,  24,  24,  24,  25,  127],
+    [23,  24,  24,  24,  24,  24,  24,  24,  24,  24,  25,  127, 127],
+    [23,  24,  24,  24,  24,  24,  24,  24,  24,  24,  24,  24,  25 ],
 ];
 
-const meters: [[i8; 14]; 14] = [
-    [
-        127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        26, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        26, 28, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        26, 27, 28, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        26, 27, 27, 28, 127, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [
-        26, 27, 27, 27, 28, 127, 127, 127, 127, 127, 127, 127, 127, 0,
-    ],
-    [26, 27, 27, 27, 27, 28, 127, 127, 127, 127, 127, 127, 127, 0],
-    [26, 27, 27, 27, 27, 27, 28, 127, 127, 127, 127, 127, 127, 0],
-    [26, 27, 27, 27, 27, 27, 27, 28, 127, 127, 127, 127, 127, 0],
-    [26, 27, 27, 27, 27, 27, 27, 27, 28, 127, 127, 127, 127, 0],
-    [26, 27, 27, 27, 27, 27, 27, 27, 27, 28, 127, 127, 127, 0],
-    [26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 127, 127, 0],
-    [26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 127, 0],
-    [26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 0],
+#[rustfmt::skip]
+const meters: [[u8; 13]; 14] = [
+    [127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [26,  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [26,  28,  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [26,  27,  28,  127, 127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [26,  27,  27,  28,  127, 127, 127, 127, 127, 127, 127, 127, 127],
+    [26,  27,  27,  27,  28,  127, 127, 127, 127, 127, 127, 127, 127],
+    [26,  27,  27,  27,  27,  28,  127, 127, 127, 127, 127, 127, 127],
+    [26,  27,  27,  27,  27,  27,  28,  127, 127, 127, 127, 127, 127],
+    [26,  27,  27,  27,  27,  27,  27,  28,  127, 127, 127, 127, 127],
+    [26,  27,  27,  27,  27,  27,  27,  27,  28,  127, 127, 127, 127],
+    [26,  27,  27,  27,  27,  27,  27,  27,  27,  28,  127, 127, 127],
+    [26,  27,  27,  27,  27,  27,  27,  27,  27,  27,  28,  127, 127],
+    [26,  27,  27,  27,  27,  27,  27,  27,  27,  27,  27,  28,  127],
+    [26,  27,  27,  27,  27,  27,  27,  27,  27,  27,  27,  27,  28 ],
 ];
 
 const opposite: [dirtype; 9] = [
     south, west, north, east, southwest, northwest, northeast, southeast, nodir,
 ];
 
-unsafe fn newobject(gs: &mut GlobalState) -> i32 {
-    let current_block: u64;
-    let mut i: i32 = 0;
-    i = 1;
-    loop {
-        if !(i <= gs.numobj) {
-            current_block = 10680521327981672866;
+/*=====================================*/
+/*				       */
+/* newobject                           */
+/* returns the number of a free object */
+/*				       */
+/*=====================================*/
+
+fn newobject(gs: &mut GlobalState) -> i32 {
+    let mut found_i = None;
+
+    for i in 1..=gs.numobj {
+        if { gs.o[i as usize].class } == nothing {
+            found_i = Some(i);
             break;
         }
-        if gs.o[i as usize].class as i32 == nothing as i32 {
-            current_block = 15327184191433388822;
-            break;
-        }
-        i += 1;
     }
-    match current_block {
-        10680521327981672866 => {
-            if gs.numobj < 200 {
-                gs.numobj += 1;
-            }
-            i = gs.numobj;
+
+    if found_i.is_none() {
+        if gs.numobj < maxobj {
+            gs.numobj += 1;
         }
-        _ => {}
+        found_i = Some(gs.numobj);
     }
-    gs.o[i as usize].oldtile = -1 as i16;
-    gs.o[i as usize].oldx = 0;
-    gs.o[i as usize].oldy = 0;
-    return i;
+
+    let found_i = found_i.unwrap();
+
+    gs.o[found_i as usize].oldtile = -1;
+    gs.o[found_i as usize].oldx = 0;
+    gs.o[found_i as usize].oldy = 0;
+
+    found_i
 }
 
-pub unsafe fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+/*=================================*/
+/*				   */
+/* printscore / printhighscore     */
+/* prints the scores to the screen */
+/*				   */
+/*=================================*/
+
+pub fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 3;
     port_temp_print_str(&pcs.score.to_string(), gs, pcs);
 }
 
-pub unsafe fn printhighscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn printhighscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 5;
     port_temp_print_str(&{ pcs.highscores[1].score }.to_string(), gs, pcs);
 }
 
-pub unsafe fn printshotpower(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+/*======================================*/
+/*				        */
+/* printshotpower                       */
+/* printbody                            */
+/* draws the meter to the current value */
+/*				        */
+/*======================================*/
+
+pub fn printshotpower(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 25;
     pcs.sy = 13;
     if gs.shotpower == 13 {
-        print(altmeters[13].as_ptr(), gs, pcs);
+        port_temp_print_arr(&altmeters[13], gs, pcs);
     } else {
-        print(meters[gs.shotpower as usize].as_ptr(), gs, pcs);
+        port_temp_print_arr(&meters[gs.shotpower as usize], gs, pcs);
     };
 }
 
-pub unsafe fn printbody(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn printbody(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 25;
     pcs.sy = 16;
     if gs.o[0].hp as i32 > 6 {
-        print(meters[gs.o[0].hp as usize].as_ptr(), gs, pcs);
+        port_temp_print_arr(&meters[gs.o[0].hp as usize], gs, pcs);
     } else {
-        print(altmeters[gs.o[0].hp as usize].as_ptr(), gs, pcs);
+        port_temp_print_arr(&altmeters[gs.o[0].hp as usize], gs, pcs);
     };
 }
 
@@ -168,7 +165,7 @@ pub unsafe fn printbody(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 // Interestingly, this a corrupting off-by-one error, and it was not easily detected because the atoi()
 // API ignores trailing junk (🤦).
 //
-unsafe fn levelcleared(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+fn levelcleared(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut warp: Vec<u8> = vec![0; 2];
 
     gs.leveldone = true;
