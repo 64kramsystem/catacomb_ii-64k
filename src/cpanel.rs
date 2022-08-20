@@ -598,21 +598,11 @@ pub unsafe fn controlpanel(
     ContinueSound(pas);
 }
 
-pub unsafe fn installgrfile(
-    filename: &str,
-    inmem: *mut libc::c_void,
-    cps: &mut CpanelState,
-    pcs: &mut PcrlibCState,
-) {
+pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
-    let mut picfile: *mut picfiletype = ptr::null_mut();
     let mut spriteinfile: *mut stype = ptr::null_mut();
     let mut picinfile: *mut ptype = ptr::null_mut();
-    if filename.is_empty() {
-        picfile = inmem as *mut picfiletype;
-    } else {
-        picfile = bloadin(&filename) as *mut picfiletype;
-    }
+    let picfile = bloadin(&filename) as *mut picfiletype;
     cps.numchars = (*picfile).numchars as i32;
     cps.numtiles = (*picfile).numtiles as i32;
     cps.numpics = (*picfile).numpics as i32;

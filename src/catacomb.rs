@@ -171,10 +171,10 @@ unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
 pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
         gs.pics = port_temp_bloadin("CGACHARS.CA2").unwrap();
-        installgrfile("CGAPICS.CA2", 0 as *mut libc::c_void, cps, pcs);
+        installgrfile("CGAPICS.CA2", cps, pcs);
     } else {
         gs.pics = port_temp_bloadin("EGACHARS.CA2").unwrap();
-        installgrfile("EGAPICS.CA2", 0 as *mut libc::c_void, cps, pcs);
+        installgrfile("EGAPICS.CA2", cps, pcs);
     };
 }
 
