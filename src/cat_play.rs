@@ -117,13 +117,13 @@ fn newobject(gs: &mut GlobalState) -> i32 {
     found_i
 }
 
-pub unsafe fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 3;
     port_temp_print_str(&pcs.score.to_string(), gs, pcs);
 }
 
-pub unsafe fn printhighscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn printhighscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 5;
     port_temp_print_str(&{ pcs.highscores[1].score }.to_string(), gs, pcs);
@@ -172,7 +172,7 @@ pub unsafe fn printbody(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 // Interestingly, this a corrupting off-by-one error, and it was not easily detected because the atoi()
 // API ignores trailing junk (🤦).
 //
-unsafe fn levelcleared(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+fn levelcleared(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut warp: Vec<u8> = vec![0; 2];
 
     gs.leveldone = true;
