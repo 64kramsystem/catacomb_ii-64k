@@ -508,11 +508,7 @@ fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState)
         pcs.sy += 1;
     }
     drawwindow(24, 0, 38, 23, gs, pcs);
-    port_temp_print_str(
-        "  pcs.level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n",
-        gs,
-        pcs,
-    );
+    port_temp_print_str("  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n", gs, pcs);
     port_temp_print_str(" shot power\n\n\n    body\n\n\n", gs, pcs);
     printhighscore(gs, pcs);
     printbody(gs, pcs);
