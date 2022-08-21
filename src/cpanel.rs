@@ -46,8 +46,6 @@ pub struct pictype {
     pub shapeptr: u32,
     pub name: [i8; 8],
 }
-pub type stype = [spritetype; 10];
-pub type ptype = [pictype; 64];
 
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
@@ -580,9 +578,10 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     pcs.egaplaneofs[1] = ((*picfile).plane[1].flatptr() - (*picfile).charptr.flatptr()) as u32;
     pcs.egaplaneofs[2] = ((*picfile).plane[2].flatptr() - (*picfile).charptr.flatptr()) as u32;
     pcs.egaplaneofs[3] = ((*picfile).plane[3].flatptr() - (*picfile).charptr.flatptr()) as u32;
-    let picinfile = (picfile as *mut u8).offset((*picfile).pictableptr.flatptr()) as *mut ptype;
+    let picinfile =
+        (picfile as *mut u8).offset((*picfile).pictableptr.flatptr()) as *mut [pictype; 64];
     let spriteinfile =
-        (picfile as *mut u8).offset((*picfile).spritetableptr.flatptr()) as *mut stype;
+        (picfile as *mut u8).offset((*picfile).spritetableptr.flatptr()) as *mut [spritetype; 10];
     for i in 0..64 {
         cps.pictable[i as usize] = (*picinfile)[i as usize];
     }
