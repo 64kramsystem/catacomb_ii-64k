@@ -1,5 +1,6 @@
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
+use p_m_serde::Deserialize;
+
+#[derive(Clone, Copy)]
 pub struct pictype {
     pub width: i16,
     pub height: i16,

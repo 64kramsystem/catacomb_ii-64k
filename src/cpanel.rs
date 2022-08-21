@@ -1,3 +1,7 @@
+use std::mem;
+
+use p_m_serde::Deserialize;
+
 use crate::{
     catacomb::{loadgrfiles, repaintscreen},
     control_struct::ControlStruct,
@@ -558,13 +562,18 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     pcs.egaplaneofs[1] = ((*picfile).plane[1].flatptr() - (*picfile).charptr.flatptr()) as u32;
     pcs.egaplaneofs[2] = ((*picfile).plane[2].flatptr() - (*picfile).charptr.flatptr()) as u32;
     pcs.egaplaneofs[3] = ((*picfile).plane[3].flatptr() - (*picfile).charptr.flatptr()) as u32;
-    let picinfile =
-        (picfile as *mut u8).offset((*picfile).pictableptr.flatptr()) as *mut [pictype; 64];
+
+    for i in 0..64 {
+        let start = (*picfile).pictableptr.flatptr() as usize + i * mem::size_of::<pictype>();
+        let end = start + mem::size_of::<pictype>();
+
+        let picinfile = Deserialize::deserialize(&pcs.picfile[start..end]);
+        cps.pictable[i as usize] = picinfile;
+    }
+
     let spriteinfile =
         (picfile as *mut u8).offset((*picfile).spritetableptr.flatptr()) as *mut [spritetype; 10];
-    for i in 0..64 {
-        cps.pictable[i as usize] = (*picinfile)[i as usize];
-    }
+
     for i in 0..10 {
         cps.spritetable[i as usize] = (*spriteinfile)[i as usize];
     }
