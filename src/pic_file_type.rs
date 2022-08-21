@@ -1,4 +1,17 @@
-use crate::cpanel::farptr;
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct farptr {
+    pub ofs: u16,
+    pub seg: u16,
+}
+
+impl farptr {
+    /// Rust port: Converted to isize for convenience.
+    ///
+    pub fn flatptr(&self) -> isize {
+        (((self.seg as isize) << 4) + self.ofs as isize) as isize
+    }
+}
 
 #[derive(Copy, Clone)]
 #[repr(C)]

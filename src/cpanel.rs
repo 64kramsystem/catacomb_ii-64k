@@ -13,6 +13,7 @@ use crate::{
         port_temp_print_str, CheckMouseMode, ControlJoystick,
     },
     pcrlib_c_state::PcrlibCState,
+    pic_file_type::picfiletype,
     safe_sdl::safe_SDL_NumJoysticks,
     scan_codes::*,
 };
@@ -23,21 +24,6 @@ const SDLK_LEFT: u32 = 1073741904;
 const SDLK_RIGHT: u32 = 1073741903;
 const SDLK_ESCAPE: u32 = 27;
 const SDLK_RETURN: u32 = 13;
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct farptr {
-    pub ofs: u16,
-    pub seg: u16,
-}
-
-impl farptr {
-    /// Rust port: Converted to isize for convenience.
-    ///
-    pub fn flatptr(&self) -> isize {
-        (((self.seg as isize) << 4) + self.ofs as isize) as isize
-    }
-}
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
@@ -62,21 +48,6 @@ pub struct pictype {
 }
 pub type stype = [spritetype; 10];
 pub type ptype = [pictype; 64];
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct picfiletype {
-    pub charptr: farptr,
-    // pub tileptr: farptr, // Rust port: this is actually unused
-    pub picptr: farptr,
-    pub spriteptr: farptr,
-    pub pictableptr: farptr,
-    pub spritetableptr: farptr,
-    pub plane: [farptr; 4],
-    pub numchars: i16,
-    pub numtiles: i16,
-    pub numpics: i16,
-    pub numsprites: i16,
-}
 
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];

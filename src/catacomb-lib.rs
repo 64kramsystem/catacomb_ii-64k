@@ -52,6 +52,7 @@ mod pcrlib_a;
 mod pcrlib_a_state;
 mod pcrlib_c;
 mod pcrlib_c_state;
+mod pic_file_type;
 mod rleasm;
 mod safe_sdl;
 mod scan_codes;
