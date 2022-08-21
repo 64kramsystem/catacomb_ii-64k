@@ -1,0 +1,10 @@
+[package]
+name = "p_m_serde"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+name = "p_m_serde"
+path = "src/lib.rs"
+
+[dependencies]

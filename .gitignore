@@ -23,5 +23,5 @@ sdl_port_project/compile_commands.json
 
 # Rust
 
-/Cargo.lock
-/target
+Cargo.lock
+target/
