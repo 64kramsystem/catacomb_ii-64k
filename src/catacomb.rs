@@ -1228,7 +1228,6 @@ pub fn original_main() {
         usize::MAX,
         ptr::null_mut(),
         ptr::null_mut(),
-        ptr::null_mut(),
         [0; 4],
         0,
         0,

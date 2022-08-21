@@ -62,7 +62,7 @@ pub type ptype = [pictype; 64];
 #[repr(C)]
 pub struct picfiletype {
     pub charptr: farptr,
-    pub tileptr: farptr,
+    // pub tileptr: farptr, // Rust port: this is actually unused
     pub picptr: farptr,
     pub spriteptr: farptr,
     pub pictableptr: farptr,
@@ -610,7 +610,6 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     cps.numsprites = (*picfile).numsprites as i32;
     pcs.picfile = picfile_new;
     pcs.charptr = flatptr((*picfile).charptr) as usize;
-    pcs.tileptr = (picfile as *mut u8).offset(flatptr((*picfile).tileptr)) as *mut libc::c_void;
     pcs.picptr = (picfile as *mut u8).offset(flatptr((*picfile).picptr)) as *mut libc::c_void;
     pcs.spriteptr = (picfile as *mut u8).offset(flatptr((*picfile).spriteptr)) as *mut libc::c_void;
     pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0]) - flatptr((*picfile).charptr)) as u32;
