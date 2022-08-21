@@ -1,7 +1,5 @@
 use std::ptr;
 
-use ::libc;
-
 use crate::{
     catacomb::{loadgrfiles, repaintscreen},
     control_struct::ControlStruct,
@@ -611,7 +609,6 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     pcs.picfile = picfile_new;
     pcs.charptr = flatptr((*picfile).charptr) as usize;
     pcs.picptr = flatptr((*picfile).picptr) as usize;
-    pcs.spriteptr = (picfile as *mut u8).offset(flatptr((*picfile).spriteptr)) as *mut libc::c_void;
     pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0]) - flatptr((*picfile).charptr)) as u32;
     pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1]) - flatptr((*picfile).charptr)) as u32;
     pcs.egaplaneofs[2] = (flatptr((*picfile).plane[2]) - flatptr((*picfile).charptr)) as u32;

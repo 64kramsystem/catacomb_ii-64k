@@ -31,7 +31,7 @@ pub struct PcrlibCState {
     pub charptr: usize,               // 8*8 tileset; Rust port: refers to `picfile`
     // pub tileptr: usize,            // 16*16 tileset; Rust port: unused
     pub picptr: usize,                // any size picture set; Rust port: refers to `picfile`
-    pub spriteptr: *mut libc::c_void, // any size masked and hit rect sprites
+    // pub spriteptr: usize,          // any size masked and hit rect sprites; Rust port: unused
     pub egaplaneofs: [u32; 4],
     pub sx: i32,
     pub sy: i32,
@@ -98,7 +98,6 @@ impl PcrlibCState {
         picfile: Vec<u8>,
         charptr: usize,
         picptr: usize,
-        spriteptr: *mut libc::c_void,
         egaplaneofs: [u32; 4],
         sx: i32,
         sy: i32,
@@ -140,7 +139,6 @@ impl PcrlibCState {
             picfile,
             charptr,
             picptr,
-            spriteptr,
             egaplaneofs,
             sx,
             sy,
