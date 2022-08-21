@@ -609,7 +609,7 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     cps.numpics = (*picfile).numpics as i32;
     cps.numsprites = (*picfile).numsprites as i32;
     pcs.picfile = picfile_new;
-    pcs.charptr_i = flatptr((*picfile).charptr) as usize;
+    pcs.charptr = flatptr((*picfile).charptr) as usize;
     pcs.tileptr = (picfile as *mut u8).offset(flatptr((*picfile).tileptr)) as *mut libc::c_void;
     pcs.picptr = (picfile as *mut u8).offset(flatptr((*picfile).picptr)) as *mut libc::c_void;
     pcs.spriteptr = (picfile as *mut u8).offset(flatptr((*picfile).spriteptr)) as *mut libc::c_void;

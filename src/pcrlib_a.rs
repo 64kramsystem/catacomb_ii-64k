@@ -399,7 +399,7 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
 
 pub fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let src = &pcs.picfile;
-    let mut src_i = pcs.charptr_i;
+    let mut src_i = pcs.charptr;
 
     let vbuf = &mut gs.screenseg;
     let mut vbuf_i = (((y as usize) << 3) * screenpitch) + ((x as usize) << 3);
