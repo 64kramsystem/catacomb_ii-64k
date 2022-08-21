@@ -495,7 +495,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     gs.saveo[0] = gs.o[0];
 }
 
-unsafe fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
+fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     pcs.sx = 0;
     while pcs.sx < 40 {

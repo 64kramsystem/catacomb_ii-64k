@@ -361,7 +361,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     erasewindow(gs, pcs);
 }
 
-pub unsafe fn getconfig(cps: &mut CpanelState) {
+pub fn getconfig(cps: &mut CpanelState) {
     cps.spotok[0][0] = 1;
     cps.spotok[0][1] = _egaok as i32;
     cps.spotok[0][2] = _vgaok as i32;
@@ -383,7 +383,7 @@ pub unsafe fn getconfig(cps: &mut CpanelState) {
     cps.spotok[2][4] = 0;
 }
 
-unsafe fn drawpanel(
+fn drawpanel(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
