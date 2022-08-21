@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "p_m_serde"]
+
 [package]
 name = "catacomb"
 version = "0.1.0"
@@ -17,3 +20,4 @@ libc = "0.2"
 num = "0.4.0"
 num-derive = "0.3"
 num-traits = "0.2.15"
+p_m_serde = { path = "./p_m_serde" }
