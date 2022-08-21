@@ -1226,7 +1226,7 @@ pub fn original_main() {
         text,
         vec![],
         usize::MAX,
-        ptr::null_mut(),
+        usize::MAX,
         ptr::null_mut(),
         [0; 4],
         0,

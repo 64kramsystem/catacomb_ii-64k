@@ -610,7 +610,7 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     cps.numsprites = (*picfile).numsprites as i32;
     pcs.picfile = picfile_new;
     pcs.charptr = flatptr((*picfile).charptr) as usize;
-    pcs.picptr = (picfile as *mut u8).offset(flatptr((*picfile).picptr)) as *mut libc::c_void;
+    pcs.picptr = flatptr((*picfile).picptr) as usize;
     pcs.spriteptr = (picfile as *mut u8).offset(flatptr((*picfile).spriteptr)) as *mut libc::c_void;
     pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0]) - flatptr((*picfile).charptr)) as u32;
     pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1]) - flatptr((*picfile).charptr)) as u32;
