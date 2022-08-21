@@ -17,6 +17,7 @@ use crate::{
     pic_type::pictype,
     safe_sdl::safe_SDL_NumJoysticks,
     scan_codes::*,
+    sprite_type::spritetype,
 };
 
 const SDLK_UP: u32 = 1073741906;
@@ -25,20 +26,6 @@ const SDLK_LEFT: u32 = 1073741904;
 const SDLK_RIGHT: u32 = 1073741903;
 const SDLK_ESCAPE: u32 = 27;
 const SDLK_RETURN: u32 = 13;
-
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct spritetype {
-    pub width: i16,
-    pub height: i16,
-    pub shapeptr: u32,
-    pub maskptr: u32,
-    pub xl: i16,
-    pub yl: i16,
-    pub xh: i16,
-    pub yh: i16,
-    pub name: [i8; 12],
-}
 
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];

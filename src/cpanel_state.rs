@@ -1,6 +1,6 @@
 use crate::{
-    cpanel::spritetype, gr_type::grtype, input_type::inputtype, pic_type::pictype,
-    sound_type::soundtype,
+    gr_type::grtype, input_type::inputtype, pic_type::pictype, sound_type::soundtype,
+    sprite_type::spritetype,
 };
 
 // Globals previously belonging to cpanel.rs.

@@ -11,7 +11,7 @@ use crate::{
     catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
     control_struct::ControlStruct,
-    cpanel::{controlpanel, installgrfile, spritetype},
+    cpanel::{controlpanel, installgrfile},
     cpanel_state::CpanelState,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
@@ -44,6 +44,7 @@ use crate::{
     scan_codes::*,
     scores::scores,
     sound_type::soundtype::*,
+    sprite_type::spritetype,
     state_type::statetype,
     vec2::Vec2,
 };

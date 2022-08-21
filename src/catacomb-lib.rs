@@ -61,6 +61,7 @@ mod scores;
 mod sound_type;
 mod spkr_table;
 mod spksndtype;
+mod sprite_type;
 mod state_type;
 mod tag_type;
 mod think_type;
