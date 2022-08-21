@@ -31,6 +31,14 @@ pub struct farptr {
     pub seg: u16,
 }
 
+impl farptr {
+    /// Rust port: Converted to isize for convenience.
+    ///
+    pub fn flatptr(&self) -> isize {
+        (((self.seg as isize) << 4) + self.ofs as isize) as isize
+    }
+}
+
 #[derive(Copy, Clone)]
 #[repr(C, packed)]
 pub struct spritetype {
@@ -68,13 +76,6 @@ pub struct picfiletype {
     pub numtiles: i16,
     pub numpics: i16,
     pub numsprites: i16,
-}
-
-/// Rust port: Converted to isize for convenience.
-///
-#[inline]
-fn flatptr(ptr: farptr) -> isize {
-    (((ptr.seg as isize) << 4) + ptr.ofs as isize) as isize
 }
 
 const rowy: [i32; 4] = [4, 9, 14, 19];
@@ -602,15 +603,15 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     cps.numpics = (*picfile).numpics as i32;
     cps.numsprites = (*picfile).numsprites as i32;
     pcs.picfile = picfile_new;
-    pcs.charptr = flatptr((*picfile).charptr) as usize;
-    pcs.picptr = flatptr((*picfile).picptr) as usize;
-    pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0]) - flatptr((*picfile).charptr)) as u32;
-    pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1]) - flatptr((*picfile).charptr)) as u32;
-    pcs.egaplaneofs[2] = (flatptr((*picfile).plane[2]) - flatptr((*picfile).charptr)) as u32;
-    pcs.egaplaneofs[3] = (flatptr((*picfile).plane[3]) - flatptr((*picfile).charptr)) as u32;
-    let picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr)) as *mut ptype;
+    pcs.charptr = (*picfile).charptr.flatptr() as usize;
+    pcs.picptr = (*picfile).picptr.flatptr() as usize;
+    pcs.egaplaneofs[0] = ((*picfile).plane[0].flatptr() - (*picfile).charptr.flatptr()) as u32;
+    pcs.egaplaneofs[1] = ((*picfile).plane[1].flatptr() - (*picfile).charptr.flatptr()) as u32;
+    pcs.egaplaneofs[2] = ((*picfile).plane[2].flatptr() - (*picfile).charptr.flatptr()) as u32;
+    pcs.egaplaneofs[3] = ((*picfile).plane[3].flatptr() - (*picfile).charptr.flatptr()) as u32;
+    let picinfile = (picfile as *mut u8).offset((*picfile).pictableptr.flatptr()) as *mut ptype;
     let spriteinfile =
-        (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr)) as *mut stype;
+        (picfile as *mut u8).offset((*picfile).spritetableptr.flatptr()) as *mut stype;
     for i in 0..64 {
         cps.pictable[i as usize] = (*picinfile)[i as usize];
     }
