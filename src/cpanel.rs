@@ -1,5 +1,3 @@
-use std::ptr;
-
 use crate::{
     catacomb::{loadgrfiles, repaintscreen},
     control_struct::ControlStruct,
@@ -597,9 +595,6 @@ pub unsafe fn controlpanel(
 }
 
 pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
-    let mut i: i32 = 0;
-    let mut spriteinfile: *mut stype = ptr::null_mut();
-    let mut picinfile: *mut ptype = ptr::null_mut();
     let picfile = bloadin(&filename) as *mut picfiletype;
     let picfile_new = port_temp_bloadin(&filename).unwrap();
     cps.numchars = (*picfile).numchars as i32;
@@ -613,16 +608,13 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1]) - flatptr((*picfile).charptr)) as u32;
     pcs.egaplaneofs[2] = (flatptr((*picfile).plane[2]) - flatptr((*picfile).charptr)) as u32;
     pcs.egaplaneofs[3] = (flatptr((*picfile).plane[3]) - flatptr((*picfile).charptr)) as u32;
-    picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr)) as *mut ptype;
-    spriteinfile = (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr)) as *mut stype;
-    i = 0;
-    while i < 64 {
+    let picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr)) as *mut ptype;
+    let spriteinfile =
+        (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr)) as *mut stype;
+    for i in 0..64 {
         cps.pictable[i as usize] = (*picinfile)[i as usize];
-        i += 1;
     }
-    i = 0;
-    while i < 10 {
+    for i in 0..10 {
         cps.spritetable[i as usize] = (*spriteinfile)[i as usize];
-        i += 1;
     }
 }
