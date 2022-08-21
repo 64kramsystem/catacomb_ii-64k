@@ -14,6 +14,7 @@ use crate::{
     },
     pcrlib_c_state::PcrlibCState,
     pic_file_type::picfiletype,
+    pic_type::pictype,
     safe_sdl::safe_SDL_NumJoysticks,
     scan_codes::*,
 };
@@ -37,14 +38,6 @@ pub struct spritetype {
     pub xh: i16,
     pub yh: i16,
     pub name: [i8; 12],
-}
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct pictype {
-    pub width: i16,
-    pub height: i16,
-    pub shapeptr: u32,
-    pub name: [i8; 8],
 }
 
 const rowy: [i32; 4] = [4, 9, 14, 19];

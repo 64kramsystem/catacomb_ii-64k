@@ -1,7 +1,5 @@
 use crate::{
-    cpanel::{pictype, spritetype},
-    gr_type::grtype,
-    input_type::inputtype,
+    cpanel::spritetype, gr_type::grtype, input_type::inputtype, pic_type::pictype,
     sound_type::soundtype,
 };
 
