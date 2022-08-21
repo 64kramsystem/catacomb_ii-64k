@@ -11,7 +11,7 @@ use crate::{
     catasm::{cgarefresh, drawchartile, egarefresh},
     class_type::classtype::{self, *},
     control_struct::ControlStruct,
-    cpanel::{controlpanel, installgrfile, pictype, spritetype},
+    cpanel::{controlpanel, installgrfile},
     cpanel_state::CpanelState,
     demo_enum::demoenum,
     dir_type::dirtype::{self, *},
@@ -38,11 +38,13 @@ use crate::{
         SDL_DisplayMode, SDL_GameController, SDL_Rect,
     },
     pcrlib_c_state::PcrlibCState,
+    pic_type::pictype,
     rleasm::RLEExpand,
     safe_sdl::{SDL_Renderer, SDL_Texture, SDL_Window, SDL_mutex},
     scan_codes::*,
     scores::scores,
     sound_type::soundtype::*,
+    sprite_type::spritetype,
     state_type::statetype,
     vec2::Vec2,
 };
@@ -495,7 +497,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     gs.saveo[0] = gs.o[0];
 }
 
-unsafe fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
+fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     pcs.sx = 0;
     while pcs.sx < 40 {
@@ -508,11 +510,7 @@ unsafe fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut Pcrlib
         pcs.sy += 1;
     }
     drawwindow(24, 0, 38, 23, gs, pcs);
-    port_temp_print_str(
-        "  pcs.level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n",
-        gs,
-        pcs,
-    );
+    port_temp_print_str("  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n", gs, pcs);
     port_temp_print_str(" shot power\n\n\n    body\n\n\n", gs, pcs);
     printhighscore(gs, pcs);
     printbody(gs, pcs);
@@ -1226,9 +1224,7 @@ pub fn original_main() {
         text,
         vec![],
         usize::MAX,
-        ptr::null_mut(),
-        ptr::null_mut(),
-        ptr::null_mut(),
+        usize::MAX,
         [0; 4],
         0,
         0,

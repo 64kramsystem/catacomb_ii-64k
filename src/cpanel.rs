@@ -1,6 +1,6 @@
-use std::ptr;
+use std::mem;
 
-use ::libc;
+use p_m_serde::Deserialize;
 
 use crate::{
     catacomb::{loadgrfiles, repaintscreen},
@@ -17,8 +17,11 @@ use crate::{
         port_temp_print_str, CheckMouseMode, ControlJoystick,
     },
     pcrlib_c_state::PcrlibCState,
+    pic_file_type::picfiletype,
+    pic_type::pictype,
     safe_sdl::safe_SDL_NumJoysticks,
     scan_codes::*,
+    sprite_type::spritetype,
 };
 
 const SDLK_UP: u32 = 1073741906;
@@ -27,59 +30,6 @@ const SDLK_LEFT: u32 = 1073741904;
 const SDLK_RIGHT: u32 = 1073741903;
 const SDLK_ESCAPE: u32 = 27;
 const SDLK_RETURN: u32 = 13;
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct farptr {
-    pub ofs: u16,
-    pub seg: u16,
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct spritetype {
-    pub width: i16,
-    pub height: i16,
-    pub shapeptr: u32,
-    pub maskptr: u32,
-    pub xl: i16,
-    pub yl: i16,
-    pub xh: i16,
-    pub yh: i16,
-    pub name: [i8; 12],
-}
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct pictype {
-    pub width: i16,
-    pub height: i16,
-    pub shapeptr: u32,
-    pub name: [i8; 8],
-}
-pub type stype = [spritetype; 10];
-pub type ptype = [pictype; 64];
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct picfiletype {
-    pub charptr: farptr,
-    pub tileptr: farptr,
-    pub picptr: farptr,
-    pub spriteptr: farptr,
-    pub pictableptr: farptr,
-    pub spritetableptr: farptr,
-    pub plane: [farptr; 4],
-    pub numchars: i16,
-    pub numtiles: i16,
-    pub numpics: i16,
-    pub numsprites: i16,
-}
-
-/// Rust port: Converted to isize for convenience.
-///
-#[inline]
-fn flatptr(ptr: farptr) -> isize {
-    (((ptr.seg as isize) << 4) + ptr.ofs as isize) as isize
-}
 
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
@@ -361,7 +311,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     erasewindow(gs, pcs);
 }
 
-pub unsafe fn getconfig(cps: &mut CpanelState) {
+pub fn getconfig(cps: &mut CpanelState) {
     cps.spotok[0][0] = 1;
     cps.spotok[0][1] = _egaok as i32;
     cps.spotok[0][2] = _vgaok as i32;
@@ -383,7 +333,7 @@ pub unsafe fn getconfig(cps: &mut CpanelState) {
     cps.spotok[2][4] = 0;
 }
 
-unsafe fn drawpanel(
+fn drawpanel(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -599,9 +549,6 @@ pub unsafe fn controlpanel(
 }
 
 pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
-    let mut i: i32 = 0;
-    let mut spriteinfile: *mut stype = ptr::null_mut();
-    let mut picinfile: *mut ptype = ptr::null_mut();
     let picfile = bloadin(&filename) as *mut picfiletype;
     let picfile_new = port_temp_bloadin(&filename).unwrap();
     cps.numchars = (*picfile).numchars as i32;
@@ -609,24 +556,25 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
     cps.numpics = (*picfile).numpics as i32;
     cps.numsprites = (*picfile).numsprites as i32;
     pcs.picfile = picfile_new;
-    pcs.charptr_i = flatptr((*picfile).charptr) as usize;
-    pcs.tileptr = (picfile as *mut u8).offset(flatptr((*picfile).tileptr)) as *mut libc::c_void;
-    pcs.picptr = (picfile as *mut u8).offset(flatptr((*picfile).picptr)) as *mut libc::c_void;
-    pcs.spriteptr = (picfile as *mut u8).offset(flatptr((*picfile).spriteptr)) as *mut libc::c_void;
-    pcs.egaplaneofs[0] = (flatptr((*picfile).plane[0]) - flatptr((*picfile).charptr)) as u32;
-    pcs.egaplaneofs[1] = (flatptr((*picfile).plane[1]) - flatptr((*picfile).charptr)) as u32;
-    pcs.egaplaneofs[2] = (flatptr((*picfile).plane[2]) - flatptr((*picfile).charptr)) as u32;
-    pcs.egaplaneofs[3] = (flatptr((*picfile).plane[3]) - flatptr((*picfile).charptr)) as u32;
-    picinfile = (picfile as *mut u8).offset(flatptr((*picfile).pictableptr)) as *mut ptype;
-    spriteinfile = (picfile as *mut u8).offset(flatptr((*picfile).spritetableptr)) as *mut stype;
-    i = 0;
-    while i < 64 {
-        cps.pictable[i as usize] = (*picinfile)[i as usize];
-        i += 1;
+    pcs.charptr = (*picfile).charptr.flatptr() as usize;
+    pcs.picptr = (*picfile).picptr.flatptr() as usize;
+    pcs.egaplaneofs[0] = ((*picfile).plane[0].flatptr() - (*picfile).charptr.flatptr()) as u32;
+    pcs.egaplaneofs[1] = ((*picfile).plane[1].flatptr() - (*picfile).charptr.flatptr()) as u32;
+    pcs.egaplaneofs[2] = ((*picfile).plane[2].flatptr() - (*picfile).charptr.flatptr()) as u32;
+    pcs.egaplaneofs[3] = ((*picfile).plane[3].flatptr() - (*picfile).charptr.flatptr()) as u32;
+
+    for i in 0..64 {
+        let start = (*picfile).pictableptr.flatptr() as usize + i * mem::size_of::<pictype>();
+        let end = start + mem::size_of::<pictype>();
+
+        let picinfile = Deserialize::deserialize(&pcs.picfile[start..end]);
+        cps.pictable[i as usize] = picinfile;
     }
-    i = 0;
-    while i < 10 {
+
+    let spriteinfile =
+        (picfile as *mut u8).offset((*picfile).spritetableptr.flatptr()) as *mut [spritetype; 10];
+
+    for i in 0..10 {
         cps.spritetable[i as usize] = (*spriteinfile)[i as usize];
-        i += 1;
     }
 }

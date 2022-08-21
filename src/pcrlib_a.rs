@@ -399,7 +399,7 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
 
 pub fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let src = &pcs.picfile;
-    let mut src_i = pcs.charptr_i;
+    let mut src_i = pcs.charptr;
 
     let vbuf = &mut gs.screenseg;
     let mut vbuf_i = (((y as usize) << 3) * screenpitch) + ((x as usize) << 3);
@@ -474,7 +474,7 @@ pub fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut Pc
     };
 }
 
-pub unsafe fn drawpic(
+pub fn drawpic(
     x: i32,
     y: i32,
     picnum: i32,
@@ -482,107 +482,72 @@ pub unsafe fn drawpic(
     cps: &mut CpanelState,
     pcs: &mut PcrlibCState,
 ) {
-    let mut vbuf: *mut u8 = gs
-        .screenseg
-        .as_mut_ptr()
-        .offset((y * screenpitch as i32) as isize)
-        .offset(x as isize);
-    let mut src: *mut u8 = ptr::null_mut();
-    let mut i: u32 = 0;
-    let picwidth: u32 = cps.pictable[picnum as usize].width as u32;
-    let mut picheight: u32 = cps.pictable[picnum as usize].height as u32;
-    src = (pcs.picptr as *mut u8).offset(cps.pictable[picnum as usize].shapeptr as isize);
-    match pcs.grmode as u32 {
-        1 => loop {
-            i = picwidth;
-            loop {
-                let fresh25 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh25 = (*src.offset(0) as i32 >> 6 & 3) as u8;
-                let fresh26 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh26 = (*src.offset(0) as i32 >> 4 & 3) as u8;
-                let fresh27 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh27 = (*src.offset(0) as i32 >> 2 & 3) as u8;
-                let fresh28 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh28 = (*src.offset(0) as i32 >> 0 & 3) as u8;
-                src = src.offset(1);
-                i = i.wrapping_sub(1);
-                if !(i != 0) {
-                    break;
+    let vbuf = &mut gs.screenseg;
+    let mut vbuf_i = y as usize * screenpitch + x as usize;
+    let picwidth = cps.pictable[picnum as usize].width;
+    let picheight = cps.pictable[picnum as usize].height;
+    let src = &mut pcs.picfile;
+    let mut src_i = pcs.picptr + cps.pictable[picnum as usize].shapeptr as usize;
+    match pcs.grmode {
+        CGAgr => {
+            for _ in 0..picheight {
+                for _ in 0..picwidth {
+                    vbuf[vbuf_i] = (src[src_i] >> 6) & 3;
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = (src[src_i] >> 4) & 3;
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = (src[src_i] >> 2) & 3;
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = (src[src_i] >> 0) & 3;
+                    vbuf_i += 1;
+
+                    src_i += 1;
                 }
+                vbuf_i += screenpitch - (picwidth << 2) as usize;
             }
-            vbuf = vbuf.offset((screenpitch as i32 as u32).wrapping_sub(picwidth << 2) as isize);
-            picheight = picheight.wrapping_sub(1);
-            if !(picheight != 0) {
-                break;
-            }
-        },
-        3 => loop {
-            i = picwidth;
-            loop {
-                let fresh29 = src;
-                src = src.offset(1);
-                let fresh30 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh30 = *fresh29;
-                i = i.wrapping_sub(1);
-                if !(i != 0) {
-                    break;
+        }
+        VGAgr => {
+            // [BL] My best guess.
+            for _ in 0..picheight {
+                for _ in 0..picwidth {
+                    vbuf[vbuf_i] = src[src_i];
+
+                    src_i += 1;
+                    vbuf_i += 1;
                 }
+                vbuf_i += screenpitch - picwidth as usize;
             }
-            vbuf = vbuf.offset((screenpitch as i32 as u32).wrapping_sub(picwidth) as isize);
-            picheight = picheight.wrapping_sub(1);
-            if !(picheight != 0) {
-                break;
-            }
-        },
-        2 | _ => loop {
-            i = picwidth;
-            loop {
-                let chan: [u8; 4] = [
-                    *src.offset(pcs.egaplaneofs[0] as isize),
-                    *src.offset(pcs.egaplaneofs[1] as isize),
-                    *src.offset(pcs.egaplaneofs[2] as isize),
-                    *src.offset(pcs.egaplaneofs[3] as isize),
-                ];
-                src = src.offset(1);
-                let fresh17 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh17 = EGA(&chan, 7);
-                let fresh18 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh18 = EGA(&chan, 6);
-                let fresh19 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh19 = EGA(&chan, 5);
-                let fresh20 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh20 = EGA(&chan, 4);
-                let fresh21 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh21 = EGA(&chan, 3);
-                let fresh22 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh22 = EGA(&chan, 2);
-                let fresh23 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh23 = EGA(&chan, 1);
-                let fresh24 = vbuf;
-                vbuf = vbuf.offset(1);
-                *fresh24 = EGA(&chan, 0);
-                i = i.wrapping_sub(1);
-                if !(i != 0) {
-                    break;
+        }
+        EGAgr | _ => {
+            for _ in 0..picheight {
+                for _ in 0..picwidth {
+                    let chan = [
+                        src[src_i + pcs.egaplaneofs[0] as usize],
+                        src[src_i + pcs.egaplaneofs[1] as usize],
+                        src[src_i + pcs.egaplaneofs[2] as usize],
+                        src[src_i + pcs.egaplaneofs[3] as usize],
+                    ];
+                    src_i += 1;
+
+                    vbuf[vbuf_i] = EGA(&chan, 7);
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = EGA(&chan, 6);
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = EGA(&chan, 5);
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = EGA(&chan, 4);
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = EGA(&chan, 3);
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = EGA(&chan, 2);
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = EGA(&chan, 1);
+                    vbuf_i += 1;
+                    vbuf[vbuf_i] = EGA(&chan, 0);
+                    vbuf_i += 1;
                 }
+                vbuf_i += screenpitch - (picwidth << 3) as usize;
             }
-            vbuf = vbuf.offset((screenpitch as i32 as u32).wrapping_sub(picwidth << 3) as isize);
-            picheight = picheight.wrapping_sub(1);
-            if !(picheight != 0) {
-                break;
-            }
-        },
+        }
     };
 }
