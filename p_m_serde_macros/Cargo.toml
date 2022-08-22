@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2018"
 
 [lib]
-name = "p_m_serde_macros_lib"
 proc-macro = true
 
 [dependencies]

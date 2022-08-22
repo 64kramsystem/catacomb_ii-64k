@@ -3,8 +3,5 @@ name = "p_m_serde"
 version = "0.1.0"
 edition = "2018"
 
-[lib]
-name = "p_m_serde"
-
 [dependencies]
 p_m_serde_macros = { path = "../p_m_serde_macros" }

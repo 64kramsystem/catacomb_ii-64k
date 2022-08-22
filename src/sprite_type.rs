@@ -1,4 +1,4 @@
-use p_m_serde_macros_lib::Deserialize;
+use p_m_serde_macros::Deserialize;
 
 #[derive(Clone, Copy, Deserialize)]
 pub struct spritetype {
