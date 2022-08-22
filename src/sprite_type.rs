@@ -1,5 +1,6 @@
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
+use p_m_serde_macros_lib::Deserialize;
+
+#[derive(Clone, Copy, Deserialize)]
 pub struct spritetype {
     pub width: i16,
     pub height: i16,

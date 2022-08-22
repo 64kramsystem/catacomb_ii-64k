@@ -571,10 +571,11 @@ pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut Pcr
         cps.pictable[i as usize] = picinfile;
     }
 
-    let spriteinfile =
-        (picfile as *mut u8).offset((*picfile).spritetableptr.flatptr()) as *mut [spritetype; 10];
-
     for i in 0..10 {
-        cps.spritetable[i as usize] = (*spriteinfile)[i as usize];
+        let start = (*picfile).spritetableptr.flatptr() as usize + i * mem::size_of::<spritetype>();
+        let end = start + mem::size_of::<spritetype>();
+
+        let spriteinfile = Deserialize::deserialize(&pcs.picfile[start..end]);
+        cps.spritetable[i] = spriteinfile
     }
 }
