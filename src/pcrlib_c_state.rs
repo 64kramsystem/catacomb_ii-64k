@@ -1,10 +1,10 @@
 use crate::{
     extra_types::boolean,
-    gr_type::grtype,
-    input_type::inputtype,
-    pcrlib_c::{joyinfo_t, SDL_DisplayMode, SDL_Rect},
+    gr_type::grtype::{self, *},
+    input_type::inputtype::{self, *},
+    pcrlib_c::{joyinfo_t, C2RustUnnamed_5, SDL_DisplayMode, SDL_GameController, SDL_Rect},
     safe_sdl::{SDL_Renderer, SDL_Texture, SDL_Window},
-    scan_codes::SDL_Scancode,
+    scan_codes::{SDL_Scancode, SDL_SCANCODE_UNKNOWN},
     scores::scores,
 };
 
@@ -27,7 +27,7 @@ pub struct PcrlibCState {
     pub keyB1: i32,
     pub keyB2: i32,
     pub grmode: grtype,
-    pub picfile: Vec<u8>,             // Rust port: Added
+    pub picfile_data: Vec<u8>,             // Rust port: Added
     pub charptr: usize,               // 8*8 tileset; Rust port: refers to `picfile`
     // pub tileptr: usize,            // 16*16 tileset; Rust port: unused
     pub picptr: usize,                // any size picture set; Rust port: refers to `picfile`
@@ -136,7 +136,7 @@ impl PcrlibCState {
             win_yh,
             conv,
             grmode,
-            picfile,
+            picfile_data: picfile,
             charptr,
             picptr,
             egaplaneofs,
@@ -147,5 +147,72 @@ impl PcrlibCState {
             score,
             level,
         }
+    }
+}
+
+impl Default for PcrlibCState {
+    fn default() -> Self {
+        Self::new(
+            0,
+            [0; 5000],
+            0,
+            0,
+            0,
+            SDL_SCANCODE_UNKNOWN,
+            0 as *const SDL_Window as *mut SDL_Window,
+            0 as *const SDL_Renderer as *mut SDL_Renderer,
+            0 as *const SDL_Texture as *mut SDL_Texture,
+            SDL_Rect {
+                x: 0,
+                y: 0,
+                w: 0,
+                h: 0,
+            },
+            [keyboard, keyboard, joystick1],
+            [0; 512],
+            [0; 3],
+            [0; 3],
+            [0; 3],
+            [0; 3],
+            0,
+            [0; 8],
+            0,
+            0,
+            SDL_DisplayMode {
+                format: 0,
+                w: 0,
+                h: 0,
+                refresh_rate: 0,
+                driverdata: 0 as *const libc::c_void as *mut libc::c_void,
+            },
+            [joyinfo_t {
+                c2rust_unnamed: C2RustUnnamed_5 {
+                    controller: 0 as *const SDL_GameController as *mut SDL_GameController,
+                },
+                device: 0,
+                isgamecontroller: 0,
+            }; 3],
+            true as boolean,
+            0,
+            0,
+            0,
+            0,
+            [0; 64000],
+            text,
+            vec![],
+            usize::MAX,
+            usize::MAX,
+            [0; 4],
+            0,
+            0,
+            0,
+            [scores {
+                score: 0,
+                level: 0,
+                initials: [0; 3],
+            }; 5],
+            0,
+            0,
+        )
     }
 }

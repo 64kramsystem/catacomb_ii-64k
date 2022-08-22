@@ -33,7 +33,7 @@ int _dontplay = 0; // set to 1 to avoid all interrupt and timer stuff
 
 static SDL_mutex *AudioMutex;
 static SDL_AudioSpec AudioSpec;
-static SDL_AudioDeviceID AudioDev;
+static u32 AudioDev;
 
 /*
 =============================================================================
@@ -466,8 +466,8 @@ int rndt() {
 }
 
 enum { VBL_TIME = 1000 / 70 };
-SDL_sem *vblsem;
-SDL_TimerID vbltimer;
+SDL_semaphore *vblsem;
+i32 vbltimer;
 static Uint32 VBLCallback(Uint32 interval, void *usr) {
   SDL_SemPost(vblsem);
   return VBL_TIME;

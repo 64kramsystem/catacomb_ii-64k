@@ -1,5 +1,6 @@
-#[derive(Copy, Clone)]
-#[repr(C)]
+use serdine_macros::Deserialize;
+
+#[derive(Debug, Deserialize)]
 pub struct farptr {
     pub ofs: u16,
     pub seg: u16,
@@ -13,8 +14,7 @@ impl farptr {
     }
 }
 
-#[derive(Copy, Clone)]
-#[repr(C)]
+#[derive(Deserialize)]
 pub struct picfiletype {
     pub charptr: farptr,
     pub tileptr: farptr, // Rust port: this is actually unused

@@ -1,0 +1,7 @@
+[package]
+name = "serdine"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+serdine_macros = { path = "../serdine_macros" }

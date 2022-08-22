@@ -1,6 +1,6 @@
 use std::mem;
 
-use p_m_serde::Deserialize;
+use serdine::Deserialize;
 
 use crate::{
     catacomb::{loadgrfiles, repaintscreen},
@@ -13,7 +13,7 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen, _egaok, _vgaok,
-        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_bloadin,
+        bioskey, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_bloadin,
         port_temp_print_str, CheckMouseMode, ControlJoystick,
     },
     pcrlib_c_state::PcrlibCState,
@@ -548,33 +548,40 @@ pub unsafe fn controlpanel(
     ContinueSound(pas);
 }
 
-pub unsafe fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
-    let picfile = bloadin(&filename) as *mut picfiletype;
-    let picfile_new = port_temp_bloadin(&filename).unwrap();
-    cps.numchars = (*picfile).numchars as i32;
-    cps.numtiles = (*picfile).numtiles as i32;
-    cps.numpics = (*picfile).numpics as i32;
-    cps.numsprites = (*picfile).numsprites as i32;
-    pcs.picfile = picfile_new;
-    pcs.charptr = (*picfile).charptr.flatptr() as usize;
-    pcs.picptr = (*picfile).picptr.flatptr() as usize;
-    pcs.egaplaneofs[0] = ((*picfile).plane[0].flatptr() - (*picfile).charptr.flatptr()) as u32;
-    pcs.egaplaneofs[1] = ((*picfile).plane[1].flatptr() - (*picfile).charptr.flatptr()) as u32;
-    pcs.egaplaneofs[2] = ((*picfile).plane[2].flatptr() - (*picfile).charptr.flatptr()) as u32;
-    pcs.egaplaneofs[3] = ((*picfile).plane[3].flatptr() - (*picfile).charptr.flatptr()) as u32;
+pub fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
+    // Rust port: we divide the pic data in parts:
+    //
+    // - metadata (picfiletype)
+    // - char data (currently retained inside picfile_data)
+    // - pic data (currently retained inside picfile_data)
+    //
+    let picfile_data = port_temp_bloadin(&filename).unwrap();
+    let picfile: picfiletype = Deserialize::deserialize(&picfile_data[..]);
+    cps.numchars = picfile.numchars as i32;
+    cps.numtiles = picfile.numtiles as i32;
+    cps.numpics = picfile.numpics as i32;
+    cps.numsprites = picfile.numsprites as i32;
+    pcs.picfile_data = picfile_data;
+    pcs.charptr = picfile.charptr.flatptr() as usize;
+    pcs.picptr = picfile.picptr.flatptr() as usize;
+    pcs.egaplaneofs[0] = (picfile.plane[0].flatptr() - picfile.charptr.flatptr()) as u32;
+    pcs.egaplaneofs[1] = (picfile.plane[1].flatptr() - picfile.charptr.flatptr()) as u32;
+    pcs.egaplaneofs[2] = (picfile.plane[2].flatptr() - picfile.charptr.flatptr()) as u32;
+    pcs.egaplaneofs[3] = (picfile.plane[3].flatptr() - picfile.charptr.flatptr()) as u32;
 
     for i in 0..64 {
-        let start = (*picfile).pictableptr.flatptr() as usize + i * mem::size_of::<pictype>();
+        let start = picfile.pictableptr.flatptr() as usize + i * mem::size_of::<pictype>();
         let end = start + mem::size_of::<pictype>();
 
-        let picinfile = Deserialize::deserialize(&pcs.picfile[start..end]);
+        let picinfile = Deserialize::deserialize(&pcs.picfile_data[start..end]);
         cps.pictable[i as usize] = picinfile;
     }
 
-    let spriteinfile =
-        (picfile as *mut u8).offset((*picfile).spritetableptr.flatptr()) as *mut [spritetype; 10];
-
     for i in 0..10 {
-        cps.spritetable[i as usize] = (*spriteinfile)[i as usize];
+        let start = picfile.spritetableptr.flatptr() as usize + i * mem::size_of::<spritetype>();
+        let end = start + mem::size_of::<spritetype>();
+
+        let spriteinfile = Deserialize::deserialize(&pcs.picfile_data[start..end]);
+        cps.spritetable[i] = spriteinfile
     }
 }

@@ -11,15 +11,14 @@ use crate::{
     pcrlib_c::UpdateScreen, pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*,
 };
 
-type __time_t = i64;
-pub type SDL_sem = SDL_semaphore;
-type SDL_AudioFormat = u16;
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
+pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SDL_AudioSpec {
     pub freq: i32,
-    pub format: SDL_AudioFormat,
+    pub format: u16,
     pub channels: u8,
     pub silence: u8,
     pub samples: u16,
@@ -28,9 +27,6 @@ pub struct SDL_AudioSpec {
     pub callback: SDL_AudioCallback,
     pub userdata: *mut libc::c_void,
 }
-pub type SDL_AudioDeviceID = u32;
-pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
-pub type SDL_TimerID = i32;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -71,7 +67,7 @@ unsafe fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
 }
 
 #[inline]
-unsafe fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAState) {
+fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAState) {
     pas.pcActive = false as boolean;
     pas.pcPhaseTick = 0;
 }
@@ -114,17 +110,18 @@ unsafe fn _SDL_PCPlaySound(sound: i32, pas: &mut PcrlibAState) {
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-unsafe fn _SDL_PCStopSound(pas: &mut PcrlibAState) {
+fn _SDL_PCStopSound(pas: &mut PcrlibAState) {
     safe_SDL_LockMutex(pas.AudioMutex);
     pas.pcSound = ptr::null_mut();
     _SDL_turnOffPCSpeaker(pas);
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-unsafe fn _SDL_ShutPC(pas: &mut PcrlibAState) {
+fn _SDL_ShutPC(pas: &mut PcrlibAState) {
     _SDL_PCStopSound(pas);
 }
 
+#[no_mangle]
 unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, len: i32) {
     let pas = &mut *(userdata as *mut PcrlibAState);
     if pas.soundmode as u32 != spkr as i32 as u32 {
@@ -172,7 +169,7 @@ unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, le
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-pub unsafe fn StartupSound(pas: &mut PcrlibAState) {
+pub fn StartupSound(pas: &mut PcrlibAState) {
     let mut desired: SDL_AudioSpec = SDL_AudioSpec {
         freq: 0,
         format: 0,
@@ -190,7 +187,7 @@ pub unsafe fn StartupSound(pas: &mut PcrlibAState) {
         ::std::mem::size_of::<SDL_AudioSpec>() as u64,
     );
     desired.freq = 48000;
-    desired.format = 0x8010 as i32 as SDL_AudioFormat;
+    desired.format = 0x8010 as i32 as u16;
     desired.channels = 1 as u8;
     desired.samples = 4096 as u16;
     desired.callback =
@@ -211,7 +208,7 @@ pub unsafe fn StartupSound(pas: &mut PcrlibAState) {
     safe_SDL_PauseAudioDevice(pas.AudioDev, 0);
 }
 
-pub unsafe fn ShutdownSound(pas: &mut PcrlibAState) {
+pub fn ShutdownSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -229,14 +226,14 @@ pub unsafe fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
 }
 
 #[allow(dead_code)]
-unsafe fn StopSound(pas: &mut PcrlibAState) {
+fn StopSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
     _SDL_PCStopSound(pas);
 }
 
-pub unsafe fn PauseSound(pas: &mut PcrlibAState) {
+pub fn PauseSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -252,7 +249,7 @@ pub unsafe fn PauseSound(pas: &mut PcrlibAState) {
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-pub unsafe fn ContinueSound(pas: &mut PcrlibAState) {
+pub fn ContinueSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -264,7 +261,7 @@ pub unsafe fn ContinueSound(pas: &mut PcrlibAState) {
     pas.pcSound = pas.SavedSound.pcSound;
 }
 
-pub unsafe fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -388,7 +385,7 @@ pub unsafe fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
     // safe_register_shutdown_vbl_on_exit();
 }
 
-pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
+pub fn WaitVBL(pas: &mut PcrlibAState) {
     loop {
         safe_SDL_SemWait(pas.vblsem);
         if !(safe_SDL_SemValue(pas.vblsem) != 0) {
@@ -398,7 +395,7 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
 }
 
 pub fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let src = &pcs.picfile;
+    let src = &pcs.picfile_data;
     let mut src_i = pcs.charptr;
 
     let vbuf = &mut gs.screenseg;
@@ -486,7 +483,7 @@ pub fn drawpic(
     let mut vbuf_i = y as usize * screenpitch + x as usize;
     let picwidth = cps.pictable[picnum as usize].width;
     let picheight = cps.pictable[picnum as usize].height;
-    let src = &mut pcs.picfile;
+    let src = &mut pcs.picfile_data;
     let mut src_i = pcs.picptr + cps.pictable[picnum as usize].shapeptr as usize;
     match pcs.grmode {
         CGAgr => {

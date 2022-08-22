@@ -1,10 +1,12 @@
 use crate::{
     extra_types::boolean,
-    pcrlib_a::{SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerID, SDL_sem, SavedSoundStruct},
-    safe_sdl::SDL_mutex,
+    pcrlib_a::{SDL_AudioSpec, SavedSoundStruct},
+    safe_sdl::{SDL_mutex, SDL_semaphore},
     sound_type::soundtype,
+    sound_type::soundtype::*,
     spkr_table::SPKRtable,
 };
+use std::ptr;
 
 // Globals previously belonging to pcrlib_a.rs.
 //
@@ -25,7 +27,7 @@ pub struct PcrlibAState {
     pub _dontplay: i32,
     pub AudioMutex: *mut SDL_mutex,
     pub AudioSpec: SDL_AudioSpec,
-    pub AudioDev: SDL_AudioDeviceID,
+    pub AudioDev: u32,
     pub pcVolume: libc::c_short,
     pub pcPhaseTick: u32,
     pub pcPhaseLength: u32,
@@ -41,8 +43,8 @@ pub struct PcrlibAState {
     pub indexj: u16,
     pub LastRnd: u16,
     pub RndArray: [u16; 17],
-    pub vblsem: *mut SDL_sem,
-    pub vbltimer: SDL_TimerID,
+    pub vblsem: *mut SDL_semaphore,
+    pub vbltimer: i32,
 
     // //////////////////////////////////////////////////////////
     // Rust port: private to cpanel.rs
@@ -56,7 +58,7 @@ impl PcrlibAState {
         _dontplay: i32,
         AudioMutex: *mut SDL_mutex,
         AudioSpec: SDL_AudioSpec,
-        AudioDev: SDL_AudioDeviceID,
+        AudioDev: u32,
         pcVolume: libc::c_short,
         pcPhaseTick: u32,
         pcPhaseLength: u32,
@@ -72,8 +74,8 @@ impl PcrlibAState {
         indexj: u16,
         LastRnd: u16,
         RndArray: [u16; 17],
-        vblsem: *mut SDL_sem,
-        vbltimer: SDL_TimerID,
+        vblsem: *mut SDL_semaphore,
+        vbltimer: i32,
         SoundData: *mut SPKRtable,
         soundmode: soundtype,
         xormask: i32,
@@ -105,5 +107,52 @@ impl PcrlibAState {
             soundmode,
             xormask,
         }
+    }
+}
+
+impl Default for PcrlibAState {
+    fn default() -> Self {
+        Self::new(
+            0,
+            0,
+            0 as *mut SDL_mutex,
+            SDL_AudioSpec {
+                freq: 0,
+                format: 0,
+                channels: 0,
+                silence: 0,
+                samples: 0,
+                padding: 0,
+                size: 0,
+                callback: None,
+                userdata: ptr::null_mut(),
+            },
+            0,
+            5000,
+            0,
+            0,
+            false as boolean,
+            0,
+            0,
+            0,
+            0,
+            ptr::null_mut(),
+            SavedSoundStruct {
+                SndPriority: 0,
+                pcSamplesPerTick: 0,
+                pcLengthLeft: 0,
+                pcSound: 0 as *const u16 as *mut u16,
+            },
+            0,
+            0,
+            0,
+            0,
+            [0; 17],
+            0 as *mut SDL_semaphore,
+            0,
+            ptr::null_mut(),
+            spkr,
+            0,
+        )
     }
 }
