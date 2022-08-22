@@ -4,9 +4,21 @@ use std::fmt::Debug;
 use crate::macros::impl_for_numeric;
 use crate::Deserialize;
 
-impl_for_numeric!(Deserialize, i8, i16, u16, u32);
+impl_for_numeric!(
+    Deserialize,
+    i8,
+    i16,
+    i32,
+    i64,
+    i128,
+    u8,
+    u16,
+    u32,
+    u64,
+    u128
+);
 
-impl_for_numeric!(Serialize, i8, i16, u16, u32);
+impl_for_numeric!(Serialize, i8, i16, i32, i64, i128, u8, u16, u32, u64, u128);
 
 impl<T, const N: usize> Deserialize for [T; N]
 where
