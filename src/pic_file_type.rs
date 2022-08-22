@@ -1,4 +1,4 @@
-use p_m_serde_macros::Deserialize;
+use serdine_macros::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct farptr {

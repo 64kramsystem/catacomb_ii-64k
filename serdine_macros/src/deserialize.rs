@@ -86,7 +86,7 @@ fn impl_deserialize_trait(
                     Ident::new(&deserialization_fn.value(), deserialization_fn.span());
                 quote! { #deserialization_fn(&mut r) }
             } else {
-                quote! { p_m_serde::Deserialize::deserialize(&mut r) }
+                quote! { serdine::Deserialize::deserialize(&mut r) }
             };
 
             quote! { let #field = #quoted_deserialization_fn; }
@@ -98,7 +98,7 @@ fn impl_deserialize_trait(
         .map(|FieldData { field, .. }| quote! { #field, });
 
     Ok(quote!(
-        impl p_m_serde::Deserialize for #type_name {
+        impl serdine::Deserialize for #type_name {
             fn deserialize<R: std::io::Read>(mut r: R) -> Self {
                 #(#fields_deserialization)*
 

@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "p_m_serde"]
+members = [".", "serdine"]
 
 [package]
 name = "catacomb"
@@ -20,5 +20,5 @@ libc = "0.2"
 num = "0.4.0"
 num-derive = "0.3"
 num-traits = "0.2.15"
-p_m_serde = { path = "./p_m_serde" }
-p_m_serde_macros = { path = "./p_m_serde_macros" }
+serdine = { path = "./serdine" }
+serdine_macros = { path = "./serdine_macros" }

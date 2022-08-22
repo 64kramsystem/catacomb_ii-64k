@@ -1,6 +1,6 @@
 use std::mem;
 
-use p_m_serde::Deserialize;
+use serdine::Deserialize;
 
 use crate::{
     catacomb::{loadgrfiles, repaintscreen},
