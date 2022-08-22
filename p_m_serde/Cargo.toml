@@ -5,6 +5,6 @@ edition = "2018"
 
 [lib]
 name = "p_m_serde"
-path = "src/lib.rs"
 
 [dependencies]
+p_m_serde_macros = { path = "../p_m_serde_macros" }
