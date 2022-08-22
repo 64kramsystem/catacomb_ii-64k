@@ -17,9 +17,9 @@ macro_rules! bail {
 
 #[proc_macro_derive(Deserialize)]
 pub fn deserialize(input: TokenStream) -> TokenStream {
-    let my_actor_based_impl = impl_deserialize(input);
+    let deserialize_impl = impl_deserialize(input);
 
-    my_actor_based_impl
+    deserialize_impl
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
@@ -49,7 +49,7 @@ fn find_fields(ast: &'_ DeriveInput) -> syn::Result<Vec<Ident>> {
             .collect::<Vec<_>>();
         Ok(field_names)
     } else {
-        bail!("Unexpected input")
+        bail!("Unexpected input; named fields expected")
     }
 }
 
