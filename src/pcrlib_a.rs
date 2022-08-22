@@ -398,7 +398,7 @@ pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
 }
 
 pub fn drawchar(x: i32, y: i32, charnum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let src = &pcs.picfile;
+    let src = &pcs.picfile_data;
     let mut src_i = pcs.charptr;
 
     let vbuf = &mut gs.screenseg;
@@ -486,7 +486,7 @@ pub fn drawpic(
     let mut vbuf_i = y as usize * screenpitch + x as usize;
     let picwidth = cps.pictable[picnum as usize].width;
     let picheight = cps.pictable[picnum as usize].height;
-    let src = &mut pcs.picfile;
+    let src = &mut pcs.picfile_data;
     let mut src_i = pcs.picptr + cps.pictable[picnum as usize].shapeptr as usize;
     match pcs.grmode {
         CGAgr => {
