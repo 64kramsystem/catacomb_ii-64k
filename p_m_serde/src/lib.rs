@@ -2,6 +2,7 @@
 
 mod builtin_types;
 mod deserialize;
+mod macros;
 mod serialize;
 
 pub use deserialize::Deserialize;

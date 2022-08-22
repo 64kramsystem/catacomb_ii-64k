@@ -1,39 +1,12 @@
 use std::convert::TryInto;
 use std::fmt::Debug;
 
-use super::Deserialize;
+use crate::macros::impl_for_numeric;
+use crate::Deserialize;
 
-impl Deserialize for u16 {
-    fn deserialize<R: std::io::Read>(mut r: R) -> Self {
-        let mut buffer = [0; 2];
-        r.read_exact(&mut buffer).unwrap();
-        u16::from_le_bytes(buffer)
-    }
-}
+impl_for_numeric!(Deserialize, i8, i16, u16, u32);
 
-impl Deserialize for u32 {
-    fn deserialize<R: std::io::Read>(mut r: R) -> Self {
-        let mut buffer = [0; 4];
-        r.read_exact(&mut buffer).unwrap();
-        u32::from_le_bytes(buffer)
-    }
-}
-
-impl Deserialize for i8 {
-    fn deserialize<R: std::io::Read>(mut r: R) -> Self {
-        let mut buffer = [0; 1];
-        r.read_exact(&mut buffer).unwrap();
-        i8::from_le_bytes(buffer)
-    }
-}
-
-impl Deserialize for i16 {
-    fn deserialize<R: std::io::Read>(mut r: R) -> Self {
-        let mut buffer = [0; 2];
-        r.read_exact(&mut buffer).unwrap();
-        i16::from_le_bytes(buffer)
-    }
-}
+impl_for_numeric!(Serialize, i8, i16, u16, u32);
 
 impl<T, const N: usize> Deserialize for [T; N]
 where
