@@ -71,7 +71,7 @@ unsafe fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
 }
 
 #[inline]
-unsafe fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAState) {
+fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAState) {
     pas.pcActive = false as boolean;
     pas.pcPhaseTick = 0;
 }
@@ -114,17 +114,18 @@ unsafe fn _SDL_PCPlaySound(sound: i32, pas: &mut PcrlibAState) {
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-unsafe fn _SDL_PCStopSound(pas: &mut PcrlibAState) {
+fn _SDL_PCStopSound(pas: &mut PcrlibAState) {
     safe_SDL_LockMutex(pas.AudioMutex);
     pas.pcSound = ptr::null_mut();
     _SDL_turnOffPCSpeaker(pas);
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-unsafe fn _SDL_ShutPC(pas: &mut PcrlibAState) {
+fn _SDL_ShutPC(pas: &mut PcrlibAState) {
     _SDL_PCStopSound(pas);
 }
 
+#[no_mangle]
 unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, len: i32) {
     let pas = &mut *(userdata as *mut PcrlibAState);
     if pas.soundmode as u32 != spkr as i32 as u32 {
@@ -172,7 +173,7 @@ unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, le
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-pub unsafe fn StartupSound(pas: &mut PcrlibAState) {
+pub fn StartupSound(pas: &mut PcrlibAState) {
     let mut desired: SDL_AudioSpec = SDL_AudioSpec {
         freq: 0,
         format: 0,
@@ -211,7 +212,7 @@ pub unsafe fn StartupSound(pas: &mut PcrlibAState) {
     safe_SDL_PauseAudioDevice(pas.AudioDev, 0);
 }
 
-pub unsafe fn ShutdownSound(pas: &mut PcrlibAState) {
+pub fn ShutdownSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -229,14 +230,14 @@ pub unsafe fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
 }
 
 #[allow(dead_code)]
-unsafe fn StopSound(pas: &mut PcrlibAState) {
+fn StopSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
     _SDL_PCStopSound(pas);
 }
 
-pub unsafe fn PauseSound(pas: &mut PcrlibAState) {
+pub fn PauseSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -252,7 +253,7 @@ pub unsafe fn PauseSound(pas: &mut PcrlibAState) {
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
-pub unsafe fn ContinueSound(pas: &mut PcrlibAState) {
+pub fn ContinueSound(pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -264,7 +265,7 @@ pub unsafe fn ContinueSound(pas: &mut PcrlibAState) {
     pas.pcSound = pas.SavedSound.pcSound;
 }
 
-pub unsafe fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if pas._dontplay != 0 {
         return;
     }
@@ -388,7 +389,7 @@ pub unsafe fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
     // safe_register_shutdown_vbl_on_exit();
 }
 
-pub unsafe fn WaitVBL(pas: &mut PcrlibAState) {
+pub fn WaitVBL(pas: &mut PcrlibAState) {
     loop {
         safe_SDL_SemWait(pas.vblsem);
         if !(safe_SDL_SemValue(pas.vblsem) != 0) {
