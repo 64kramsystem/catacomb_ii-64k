@@ -1,5 +1,8 @@
 use crate::{
-    gr_type::grtype, input_type::inputtype, pic_type::pictype, sound_type::soundtype,
+    gr_type::grtype::{self, *},
+    input_type::inputtype::{self, *},
+    pic_type::pictype,
+    sound_type::soundtype::{self, *},
     sprite_type::spritetype,
 };
 
@@ -83,5 +86,57 @@ impl CpanelState {
             numsprites,
             pictable,
         }
+    }
+}
+
+impl Default for CpanelState {
+    fn default() -> Self {
+        Self::new(
+            [[0; 5]; 4],
+            0,
+            0,
+            text,
+            text,
+            off,
+            off,
+            [keyboard; 3],
+            [keyboard; 3],
+            0,
+            0,
+            0,
+            [0; 4],
+            spritetype {
+                width: 0,
+                height: 0,
+                shapeptr: 0,
+                maskptr: 0,
+                xl: 0,
+                yl: 0,
+                xh: 0,
+                yh: 0,
+                name: [0; 12],
+            },
+            [spritetype {
+                width: 0,
+                height: 0,
+                shapeptr: 0,
+                maskptr: 0,
+                xl: 0,
+                yl: 0,
+                xh: 0,
+                yh: 0,
+                name: [0; 12],
+            }; 10],
+            0,
+            0,
+            0,
+            0,
+            [pictype {
+                width: 0,
+                height: 0,
+                shapeptr: 0,
+                name: [0; 8],
+            }; 64],
+        )
     }
 }

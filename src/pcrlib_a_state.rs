@@ -1,8 +1,11 @@
+use std::ptr;
+
 use crate::{
     extra_types::boolean,
     pcrlib_a::{SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerID, SDL_sem, SavedSoundStruct},
     safe_sdl::SDL_mutex,
     sound_type::soundtype,
+    sound_type::soundtype::*,
     spkr_table::SPKRtable,
 };
 
@@ -105,5 +108,52 @@ impl PcrlibAState {
             soundmode,
             xormask,
         }
+    }
+}
+
+impl Default for PcrlibAState {
+    fn default() -> Self {
+        Self::new(
+            0,
+            0,
+            0 as *mut SDL_mutex,
+            SDL_AudioSpec {
+                freq: 0,
+                format: 0,
+                channels: 0,
+                silence: 0,
+                samples: 0,
+                padding: 0,
+                size: 0,
+                callback: None,
+                userdata: ptr::null_mut(),
+            },
+            0,
+            5000,
+            0,
+            0,
+            false as boolean,
+            0,
+            0,
+            0,
+            0,
+            ptr::null_mut(),
+            SavedSoundStruct {
+                SndPriority: 0,
+                pcSamplesPerTick: 0,
+                pcLengthLeft: 0,
+                pcSound: 0 as *const u16 as *mut u16,
+            },
+            0,
+            0,
+            0,
+            0,
+            [0; 17],
+            0 as *mut SDL_sem,
+            0,
+            ptr::null_mut(),
+            spkr,
+            0,
+        )
     }
 }
