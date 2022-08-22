@@ -209,7 +209,7 @@ impl Default for PcrlibCState {
             [scores {
                 score: 0,
                 level: 0,
-                initials: [0; 4],
+                initials: [0; 3],
             }; 5],
             0,
             0,

@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::ffi::{CStr, CString};
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
@@ -45,7 +46,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
 
@@ -1704,15 +1704,10 @@ pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
 pub unsafe fn _loadhighscores(pcs: &mut PcrlibCState) {
     let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
     if LoadFile(str.as_ptr(), pcs.highscores.as_mut_ptr() as *mut i8) == 0 {
-        let mut i = 0;
-        while i < 5 {
-            pcs.highscores[i as usize].score = 100;
-            pcs.highscores[i as usize].level = 1;
-            strcpy(
-                (pcs.highscores[i as usize].initials).as_mut_ptr(),
-                b"PCR\0" as *const u8 as *const i8,
-            );
-            i += 1;
+        for i in 0..5 {
+            pcs.highscores[i].score = 100;
+            pcs.highscores[i].level = 1;
+            pcs.highscores[i].initials = "PCR".as_bytes().try_into().unwrap();
         }
     }
 }
@@ -1791,10 +1786,7 @@ pub unsafe fn _checkhighscore(
             }
             pcs.highscores[i as usize].score = pcs.score;
             pcs.highscores[i as usize].level = pcs.level;
-            strcpy(
-                (pcs.highscores[i as usize].initials).as_mut_ptr(),
-                b"   \0" as *const u8 as *const i8,
-            );
+            pcs.highscores[i as usize].initials = b"   ".to_owned();
             break;
         } else {
             i += 1;
@@ -1814,7 +1806,7 @@ pub unsafe fn _checkhighscore(
             if ch >= ' ' as i8 && j < 3 {
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
                 pcs.sx += 1;
-                pcs.highscores[i as usize].initials[j as usize] = ch;
+                pcs.highscores[i as usize].initials[j as usize] = ch as u8;
                 j += 1;
             }
             if ch as i32 == 8 || k == 19200 {
