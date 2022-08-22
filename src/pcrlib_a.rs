@@ -11,15 +11,14 @@ use crate::{
     pcrlib_c::UpdateScreen, pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*,
 };
 
-type __time_t = i64;
-pub type SDL_sem = SDL_semaphore;
-type SDL_AudioFormat = u16;
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
+pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SDL_AudioSpec {
     pub freq: i32,
-    pub format: SDL_AudioFormat,
+    pub format: u16,
     pub channels: u8,
     pub silence: u8,
     pub samples: u16,
@@ -28,9 +27,6 @@ pub struct SDL_AudioSpec {
     pub callback: SDL_AudioCallback,
     pub userdata: *mut libc::c_void,
 }
-pub type SDL_AudioDeviceID = u32;
-pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
-pub type SDL_TimerID = i32;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -191,7 +187,7 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
         ::std::mem::size_of::<SDL_AudioSpec>() as u64,
     );
     desired.freq = 48000;
-    desired.format = 0x8010 as i32 as SDL_AudioFormat;
+    desired.format = 0x8010 as i32 as u16;
     desired.channels = 1 as u8;
     desired.samples = 4096 as u16;
     desired.callback =

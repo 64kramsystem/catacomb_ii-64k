@@ -4,7 +4,7 @@
 use std::ffi::CStr;
 
 use crate::{
-    pcrlib_a::{SDL_AudioDeviceID, SDL_AudioSpec, SDL_TimerCallback, SDL_TimerID, SDL_sem},
+    pcrlib_a::{SDL_AudioSpec, SDL_TimerCallback},
     pcrlib_c::*,
     scan_codes::SDL_Scancode,
 };
@@ -85,25 +85,21 @@ extern "C" {
     fn SDL_CreateMutex() -> *mut SDL_mutex;
     fn SDL_LockMutex(mutex: *mut SDL_mutex) -> i32;
     fn SDL_UnlockMutex(mutex: *mut SDL_mutex) -> i32;
-    fn SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_sem;
-    fn SDL_SemWait(sem: *mut SDL_sem) -> i32;
-    fn SDL_SemPost(sem: *mut SDL_sem) -> i32;
-    fn SDL_SemValue(sem: *mut SDL_sem) -> u32;
+    fn SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_semaphore;
+    fn SDL_SemWait(sem: *mut SDL_semaphore) -> i32;
+    fn SDL_SemPost(sem: *mut SDL_semaphore) -> i32;
+    fn SDL_SemValue(sem: *mut SDL_semaphore) -> u32;
     fn SDL_OpenAudioDevice(
         device: *const i8,
         iscapture: i32,
         desired: *const SDL_AudioSpec,
         obtained: *mut SDL_AudioSpec,
         allowed_changes: i32,
-    ) -> SDL_AudioDeviceID;
-    fn SDL_PauseAudioDevice(dev: SDL_AudioDeviceID, pause_on: i32);
+    ) -> u32;
+    fn SDL_PauseAudioDevice(dev: u32, pause_on: i32);
     fn SDL_CloseAudio();
     fn SDL_InitSubSystem(flags: u32) -> i32;
-    fn SDL_AddTimer(
-        interval: u32,
-        callback: SDL_TimerCallback,
-        param: *mut libc::c_void,
-    ) -> SDL_TimerID;
+    fn SDL_AddTimer(interval: u32, callback: SDL_TimerCallback, param: *mut libc::c_void) -> i32;
 
     fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
 }
@@ -293,19 +289,19 @@ pub fn safe_SDL_UnlockMutex(mutex: *mut SDL_mutex) -> i32 {
     unsafe { SDL_UnlockMutex(mutex) }
 }
 
-pub fn safe_SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_sem {
+pub fn safe_SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_semaphore {
     unsafe { SDL_CreateSemaphore(initial_value) }
 }
 
-pub fn safe_SDL_SemWait(sem: *mut SDL_sem) -> i32 {
+pub fn safe_SDL_SemWait(sem: *mut SDL_semaphore) -> i32 {
     unsafe { SDL_SemWait(sem) }
 }
 
-pub fn safe_SDL_SemPost(sem: *mut SDL_sem) -> i32 {
+pub fn safe_SDL_SemPost(sem: *mut SDL_semaphore) -> i32 {
     unsafe { SDL_SemPost(sem) }
 }
 
-pub fn safe_SDL_SemValue(sem: *mut SDL_sem) -> u32 {
+pub fn safe_SDL_SemValue(sem: *mut SDL_semaphore) -> u32 {
     unsafe { SDL_SemValue(sem) }
 }
 
@@ -315,11 +311,11 @@ pub fn safe_SDL_OpenAudioDevice(
     desired: *const SDL_AudioSpec,
     obtained: *mut SDL_AudioSpec,
     allowed_changes: i32,
-) -> SDL_AudioDeviceID {
+) -> u32 {
     unsafe { SDL_OpenAudioDevice(device, iscapture, desired, obtained, allowed_changes) }
 }
 
-pub fn safe_SDL_PauseAudioDevice(dev: SDL_AudioDeviceID, pause_on: i32) {
+pub fn safe_SDL_PauseAudioDevice(dev: u32, pause_on: i32) {
     unsafe { SDL_PauseAudioDevice(dev, pause_on) }
 }
 
@@ -335,7 +331,7 @@ pub fn safe_SDL_AddTimer(
     interval: u32,
     callback: SDL_TimerCallback,
     param: *mut libc::c_void,
-) -> SDL_TimerID {
+) -> i32 {
     unsafe { SDL_AddTimer(interval, callback, param) }
 }
 

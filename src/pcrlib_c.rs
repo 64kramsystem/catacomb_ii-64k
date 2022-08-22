@@ -48,42 +48,31 @@ extern "C" {
     fn strcpy(_: *mut i8, _: *const i8) -> *mut i8;
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
-pub type __dev_t = u64;
-pub type __uid_t = u32;
-pub type __gid_t = u32;
-pub type __ino_t = u64;
-pub type __mode_t = u32;
-pub type __nlink_t = u64;
-pub type __off_t = i64;
-pub type __off64_t = i64;
-pub type __time_t = i64;
-pub type __blksize_t = i64;
-pub type __blkcnt_t = i64;
-pub type __syscall_slong_t = i64;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct timespec {
-    pub tv_sec: __time_t,
-    pub tv_nsec: __syscall_slong_t,
+    pub tv_sec: i64,
+    pub tv_nsec: i64,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct stat {
-    pub st_dev: __dev_t,
-    pub st_ino: __ino_t,
-    pub st_nlink: __nlink_t,
-    pub st_mode: __mode_t,
-    pub st_uid: __uid_t,
-    pub st_gid: __gid_t,
+    pub st_dev: u64,
+    pub st_ino: u64,
+    pub st_nlink: u64,
+    pub st_mode: u32,
+    pub st_uid: u32,
+    pub st_gid: u32,
     pub __pad0: i32,
-    pub st_rdev: __dev_t,
-    pub st_size: __off_t,
-    pub st_blksize: __blksize_t,
-    pub st_blocks: __blkcnt_t,
+    pub st_rdev: u64,
+    pub st_size: i64,
+    pub st_blksize: i64,
+    pub st_blocks: i64,
     pub st_atim: timespec,
     pub st_mtim: timespec,
     pub st_ctim: timespec,
-    pub __glibc_reserved: [__syscall_slong_t; 3],
+    pub __glibc_reserved: [i64; 3],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -104,12 +93,12 @@ pub struct _IO_FILE {
     pub _chain: *mut _IO_FILE,
     pub _fileno: i32,
     pub _flags2: i32,
-    pub _old_offset: __off_t,
+    pub _old_offset: i64,
     pub _cur_column: libc::c_ushort,
     pub _vtable_offset: libc::c_schar,
     pub _shortbuf: [i8; 1],
     pub _lock: *mut libc::c_void,
-    pub _offset: __off64_t,
+    pub _offset: i64,
     pub _codecvt: *mut _IO_codecvt,
     pub _wide_data: *mut _IO_wide_data,
     pub _freeres_list: *mut _IO_FILE,
