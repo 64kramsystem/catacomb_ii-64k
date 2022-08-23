@@ -205,7 +205,7 @@ fn levelcleared(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-unsafe fn givekey(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+fn givekey(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     i = gs.items[1] as i32 + 1;
     gs.items[1] = i as i16;
@@ -214,7 +214,7 @@ unsafe fn givekey(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn givepotion(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn givepotion(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     i = gs.items[2] as i32 + 1;
     gs.items[2] = i as i16;
@@ -223,7 +223,7 @@ pub unsafe fn givepotion(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn givebolt(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn givebolt(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     i = gs.items[3] as i32 + 1;
     gs.items[3] = i as i16;
@@ -232,7 +232,7 @@ pub unsafe fn givebolt(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn givenuke(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn givenuke(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     i = gs.items[5] as i32 + 1;
     gs.items[5] = i as i16;

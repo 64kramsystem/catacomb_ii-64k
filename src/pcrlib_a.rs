@@ -340,7 +340,7 @@ pub unsafe fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     return val;
 }
 
-pub unsafe fn initrndt(randomize: boolean, pas: &mut PcrlibAState) {
+pub fn initrndt(randomize: boolean, pas: &mut PcrlibAState) {
     pas.rndindex = (if randomize as i32 != 0 {
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -351,7 +351,7 @@ pub unsafe fn initrndt(randomize: boolean, pas: &mut PcrlibAState) {
     }) as u16;
 }
 
-pub unsafe fn rndt(pas: &mut PcrlibAState) -> i32 {
+pub fn rndt(pas: &mut PcrlibAState) -> i32 {
     pas.rndindex = ((pas.rndindex as i32 + 1) & 0xff as i32) as u16;
     return rndtable[pas.rndindex as usize] as i32;
 }
