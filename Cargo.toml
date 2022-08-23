@@ -1,6 +1,3 @@
-[workspace]
-members = [".", "serdine"]
-
 [package]
 name = "catacomb"
 version = "0.1.0"
@@ -20,5 +17,4 @@ libc = "0.2"
 num = "0.4.0"
 num-derive = "0.3"
 num-traits = "0.2.15"
-serdine = { path = "./serdine" }
-serdine_macros = { path = "./serdine_macros" }
+serdine = "0.1.0"
