@@ -195,31 +195,38 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 }
 
 unsafe fn drawegachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
-    let mut src = &gs.pics[(tile << 5) as usize..];
-    let mut dest = &mut gs.screenseg[screenseg_ofs..];
+    let src = &gs.pics;
+    let dest = &mut gs.screenseg;
+
+    let mut src_i = (tile << 5) as usize;
+    let mut dest_i = screenseg_ofs;
 
     for _ in 0..8 {
-        let chan: [u8; 4] = [src[0], src[8], src[16], src[24]];
+        let chan: [u8; 4] = [
+            src[src_i + 0],
+            src[src_i + 8],
+            src[src_i + 16],
+            src[src_i + 24],
+        ];
 
-        dest[0] = EGA(chan.as_ptr(), 7);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 6);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 5);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 4);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 3);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 2);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 1);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 0);
+        dest[dest_i] = EGA(chan.as_ptr(), 7);
+        dest_i += 1;
+        dest[dest_i] = EGA(chan.as_ptr(), 6);
+        dest_i += 1;
+        dest[dest_i] = EGA(chan.as_ptr(), 5);
+        dest_i += 1;
+        dest[dest_i] = EGA(chan.as_ptr(), 4);
+        dest_i += 1;
+        dest[dest_i] = EGA(chan.as_ptr(), 3);
+        dest_i += 1;
+        dest[dest_i] = EGA(chan.as_ptr(), 2);
+        dest_i += 1;
+        dest[dest_i] = EGA(chan.as_ptr(), 1);
+        dest_i += 1;
+        dest[dest_i] = EGA(chan.as_ptr(), 0);
 
-        dest = &mut dest[(screenpitch - 7) as usize..];
-
-        src = &src[1..];
+        src_i += 1;
+        dest_i += screenpitch as usize - 7;
     }
 }
 
