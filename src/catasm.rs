@@ -62,33 +62,36 @@ pub fn drawobj(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn eraseobj(gs: &mut GlobalState) {
-    let mut tilenum: i32 = gs.obj.oldtile as i32;
-    let mut ofs: u32 = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as u32;
-    let mut x: u32 = 0;
-    let mut y: u32 = 0;
-    y = gs.obj.size as u32;
-    loop {
-        let fresh2 = y;
-        y = y.wrapping_sub(1);
-        if !(fresh2 > 0) {
-            break;
-        }
-        x = gs.obj.size as u32;
-        loop {
-            let fresh3 = x;
-            x = x.wrapping_sub(1);
-            if !(fresh3 > 0) {
-                break;
-            }
-            if *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) == tilenum {
-                *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) =
-                    *(gs.background.as_mut_ptr() as *mut i32).offset(ofs as isize);
+//=======================================================================
+
+//=======================================
+//
+// ERASEOBJ
+// Erases the current object by copying
+// the background onto the view where the
+// object is standing
+//
+//=======================================
+
+pub fn eraseobj(gs: &mut GlobalState) {
+    // only erase chars that match what was drawn by the last drawobj
+    let mut tilenum = gs.obj.oldtile;
+
+    let mut ofs = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as usize; // View is 86*86
+
+    for _y in 0..gs.obj.size {
+        for _x in 0..gs.obj.size {
+            let (ofs_row, ofs_col) = ofs.div_mod_floor(&86);
+            let view_obj = &mut gs.view[ofs_row][ofs_col];
+            // don't erase if its not part of the shape
+            if *view_obj == tilenum as i32 {
+                *view_obj = gs.background[ofs_row][ofs_col]; // erase it
             }
             tilenum += 1;
-            ofs = ofs.wrapping_add(1);
+            ofs += 1;
         }
-        ofs = ofs.wrapping_add((86 - gs.obj.size as i32) as u32);
+        // position destination at start of next line
+        ofs += 86 - gs.obj.size as usize;
     }
 }
 
