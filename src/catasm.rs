@@ -6,6 +6,7 @@ use crate::{
     class_type::classtype::*,
     cpanel_state::CpanelState,
     global_state::GlobalState,
+    gr_type::grtype::*,
     pcrlib_a::{screenpitch, EGA},
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen,
@@ -271,22 +272,16 @@ pub fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     UpdateScreen(gs, pcs);
 }
 
-pub unsafe fn drawchartile(
-    x: i32,
-    y: i32,
-    tile: i32,
-    gs: &mut GlobalState,
-    pcs: &mut PcrlibCState,
-) {
-    match pcs.grmode as u32 {
-        1 => {
+pub fn drawchartile(x: i32, y: i32, tile: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    match pcs.grmode {
+        CGAgr => {
             drawcgachartile(
                 ((y << 3) * screenpitch as i32 + (x << 3)) as usize,
                 tile,
                 gs,
             );
         }
-        2 | _ => {
+        EGAgr | _ => {
             drawegachartile(
                 ((y << 3) * screenpitch as i32 + (x << 3)) as usize,
                 tile,
