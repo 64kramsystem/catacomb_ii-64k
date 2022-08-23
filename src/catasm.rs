@@ -4,14 +4,11 @@ use crate::{
     class_type::classtype::*,
     cpanel_state::CpanelState,
     global_state::GlobalState,
-    pcrlib_a::EGA,
+    pcrlib_a::{screenpitch, EGA},
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen,
     pcrlib_c_state::PcrlibCState,
 };
-
-pub type C2RustUnnamed_0 = u32;
-pub const screenpitch: C2RustUnnamed_0 = 320;
 
 const squares: [u8; 9] = [0, 1, 4, 9, 16, 25, 36, 49, 64];
 
@@ -182,7 +179,7 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         }
         ofs = ofs.wrapping_add((86 - 24) as u32);
         endofrow = endofrow.wrapping_add(86);
-        screenseg_ofs += screenpitch as usize * 8 - 24 * 8;
+        screenseg_ofs += screenpitch * 8 - 24 * 8;
     }
     UpdateScreen(gs, pcs);
 }
@@ -219,7 +216,7 @@ fn drawegachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
         dest[dest_i] = EGA(&chan, 0);
 
         src_i += 1;
-        dest_i += screenpitch as usize - 7;
+        dest_i += screenpitch - 7;
     }
 }
 
@@ -246,7 +243,7 @@ pub unsafe fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         }
         ofs = ofs.wrapping_add((86 - 24) as u32);
         endofrow = endofrow.wrapping_add(86);
-        screenseg_ofs += screenpitch as usize * 8 - 24 * 8;
+        screenseg_ofs += screenpitch * 8 - 24 * 8;
     }
     UpdateScreen(gs, pcs);
 }

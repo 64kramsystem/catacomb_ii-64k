@@ -45,7 +45,7 @@ struct pictype {
     pub shapeptr: u32,
     pub name: [i8; 8],
 }
-const screenpitch: usize = 320;
+pub const screenpitch: usize = 320;
 type C2RustUnnamed_2 = u32;
 const VBL_TIME: C2RustUnnamed_2 = 14;
 
