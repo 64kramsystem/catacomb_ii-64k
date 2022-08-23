@@ -50,7 +50,7 @@ type C2RustUnnamed_2 = u32;
 const VBL_TIME: C2RustUnnamed_2 = 14;
 
 #[inline]
-fn EGA(chan: &[u8], ofs: u8) -> u8 {
+pub fn EGA(chan: &[u8], ofs: u8) -> u8 {
     (chan[3] >> ofs & 1) << 3
         | (chan[2] >> ofs & 1) << 2
         | (chan[1] >> ofs & 1) << 1

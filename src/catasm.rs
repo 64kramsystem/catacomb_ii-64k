@@ -4,6 +4,7 @@ use crate::{
     class_type::classtype::*,
     cpanel_state::CpanelState,
     global_state::GlobalState,
+    pcrlib_a::EGA,
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen,
     pcrlib_c_state::PcrlibCState,
@@ -11,14 +12,6 @@ use crate::{
 
 pub type C2RustUnnamed_0 = u32;
 pub const screenpitch: C2RustUnnamed_0 = 320;
-
-#[inline]
-unsafe fn EGA(chan: *const u8, ofs: u8) -> u8 {
-    return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
-        | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
-        | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
-        | *chan.offset(0) as i32 >> ofs as i32 & 1) as u8;
-}
 
 const squares: [u8; 9] = [0, 1, 4, 9, 16, 25, 36, 49, 64];
 
@@ -194,7 +187,7 @@ pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     UpdateScreen(gs, pcs);
 }
 
-unsafe fn drawegachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
+fn drawegachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
     let src = &gs.pics;
     let dest = &mut gs.screenseg;
 
@@ -209,21 +202,21 @@ unsafe fn drawegachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState)
             src[src_i + 24],
         ];
 
-        dest[dest_i] = EGA(chan.as_ptr(), 7);
+        dest[dest_i] = EGA(&chan, 7);
         dest_i += 1;
-        dest[dest_i] = EGA(chan.as_ptr(), 6);
+        dest[dest_i] = EGA(&chan, 6);
         dest_i += 1;
-        dest[dest_i] = EGA(chan.as_ptr(), 5);
+        dest[dest_i] = EGA(&chan, 5);
         dest_i += 1;
-        dest[dest_i] = EGA(chan.as_ptr(), 4);
+        dest[dest_i] = EGA(&chan, 4);
         dest_i += 1;
-        dest[dest_i] = EGA(chan.as_ptr(), 3);
+        dest[dest_i] = EGA(&chan, 3);
         dest_i += 1;
-        dest[dest_i] = EGA(chan.as_ptr(), 2);
+        dest[dest_i] = EGA(&chan, 2);
         dest_i += 1;
-        dest[dest_i] = EGA(chan.as_ptr(), 1);
+        dest[dest_i] = EGA(&chan, 1);
         dest_i += 1;
-        dest[dest_i] = EGA(chan.as_ptr(), 0);
+        dest[dest_i] = EGA(&chan, 0);
 
         src_i += 1;
         dest_i += screenpitch as usize - 7;
