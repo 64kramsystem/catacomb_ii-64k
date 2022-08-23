@@ -41,6 +41,15 @@ extern "C" {
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
 
+/*==============================*/
+/*			        */
+/* xxxrefresh                   */
+/* refresh the changed areas of */
+/* the tiles map in the various */
+/* graphics modes.              */
+/*			        */
+/*==============================*/
+
 const demowin: [[u8; 16]; 5] = [
     [
         14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 16,
@@ -59,46 +68,35 @@ const demowin: [[u8; 16]; 5] = [
     ],
 ];
 
-pub unsafe fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    let mut x: i32 = 0;
-    let mut y: i32 = 0;
-    let mut basex: i32 = 0;
-    let mut basey: i32 = 0;
-    let mut underwin: [[u16; 16]; 5] = [[0; 16]; 5];
-    basex = gs.origin.x + 4;
-    basey = gs.origin.y + 17;
+pub fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+    let mut underwin = [[0; 16]; 5];
+
+    let basex = gs.origin.x as usize + 4;
+    let basey = gs.origin.y as usize + 17;
     if gs.indemo != notdemo {
-        y = 0;
-        while y <= 4 {
-            x = 0;
-            while x <= 15 {
-                underwin[y as usize][x as usize] =
-                    gs.view[(y + basey) as usize][(x + basex) as usize] as u16;
-                gs.view[(y + basey) as usize][(x + basex) as usize] =
-                    demowin[y as usize][x as usize] as i32;
-                x += 1;
+        for y in 0..=4 {
+            for x in 0..=15 {
+                underwin[y][x] = gs.view[(y + basey)][(x + basex)] as u16;
+                gs.view[(y + basey)][(x + basex)] = demowin[y][x] as i32;
             }
-            y += 1;
         }
     }
+
     WaitVBL(pas);
-    if pcs.grmode as u32 == CGAgr as i32 as u32 {
+    if pcs.grmode == CGAgr {
         cgarefresh(gs, pcs);
     } else {
         egarefresh(gs, pcs);
     }
+
     if gs.indemo != notdemo {
-        y = 0;
-        while y <= 4 {
-            x = 0;
-            while x <= 15 {
-                gs.view[(y + basey) as usize][(x + basex) as usize] =
-                    underwin[y as usize][x as usize] as i32;
-                x += 1;
+        for y in 0..=4 {
+            for x in 0..=15 {
+                gs.view[y + basey][x + basex] = underwin[y][x] as i32;
             }
-            y += 1;
         }
     }
+
     WaitVBL(pas);
 }
 
