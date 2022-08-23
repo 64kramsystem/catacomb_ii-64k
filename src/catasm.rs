@@ -1,3 +1,5 @@
+use num::Integer;
+
 use crate::{
     cat_play::{doactive, doinactive},
     catacomb::refresh,
@@ -10,6 +12,16 @@ use crate::{
     pcrlib_c_state::PcrlibCState,
 };
 
+//========================================================================
+
+//=========================================
+//
+// DRAWOBJ
+// Draws the object to TILES in the proper
+// direction and state.
+//
+//=========================================
+
 const squares: [u8; 9] = [0, 1, 4, 9, 16, 25, 36, 49, 64];
 
 const table86: [u16; 87] = [
@@ -21,41 +33,32 @@ const table86: [u16; 87] = [
     7052, 7138, 7224, 7310, 7396,
 ];
 
-pub unsafe fn drawobj(gs: &mut GlobalState) {
-    let mut tilenum: i32 = gs.obj.firstchar as i32
+pub fn drawobj(gs: &mut GlobalState) {
+    let mut tilenum = gs.obj.firstchar as i32
         + squares[gs.obj.size as usize] as i32
             * ((gs.obj.dir as i32 & gs.obj.dirmask as i32) * gs.obj.stages as i32
                 + gs.obj.stage as i32);
     gs.obj.oldtile = tilenum as i16;
     gs.obj.oldy = gs.obj.y;
     gs.obj.oldx = gs.obj.x;
-    let objpri: u8 = gs.priority[tilenum as usize];
-    let mut ofs: u32 = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as u32;
-    let mut x: u32 = 0;
-    let mut y: u32 = 0;
-    y = gs.obj.size as u32;
-    loop {
-        let fresh0 = y;
-        y = y.wrapping_sub(1);
-        if !(fresh0 > 0) {
-            break;
-        }
-        x = gs.obj.size as u32;
-        loop {
-            let fresh1 = x;
-            x = x.wrapping_sub(1);
-            if !(fresh1 > 0) {
-                break;
-            }
-            if gs.priority[*(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize] as i32
-                <= objpri as i32
-            {
-                *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) = tilenum;
+
+    let objpri = gs.priority[tilenum as usize]; // entire object has same priority
+    let mut ofs = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as usize; // View is 86*86
+
+    for _y in 0..gs.obj.size {
+        for _x in 0..gs.obj.size {
+            let (ofs_row, ofs_col) = ofs.div_mod_floor(&86);
+            let view_obj = &mut gs.view[ofs_row][ofs_col];
+            // check tiles priority level
+            // don't draw if lower than what's there
+            if gs.priority[*view_obj as usize] <= objpri {
+                *view_obj = tilenum;
             }
             tilenum += 1;
-            ofs = ofs.wrapping_add(1);
+            ofs += 1;
         }
-        ofs = ofs.wrapping_add((86 - gs.obj.size as i32) as u32);
+        // position destination at start of next line
+        ofs += 86 - gs.obj.size as usize;
     }
 }
 
