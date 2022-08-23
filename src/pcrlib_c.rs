@@ -1196,25 +1196,36 @@ unsafe fn expwinv(
     centerwindow(width, height, gs, pcs);
 }
 
-pub unsafe fn bioskey(cmd: i32, pcs: &mut PcrlibCState) -> i32 {
-    if pcs.lastkey as u64 != 0 {
-        let oldkey: i32 = pcs.lastkey as i32;
+/////////////////////////
+//
+// get
+// Flash a cursor at sx,sy and waits for a user bioskey
+//
+/////////////////////////
+
+pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState) -> u32 {
+    if pcs.lastkey != 0 {
+        let oldkey = pcs.lastkey;
         if cmd != 1 {
             pcs.lastkey = SDL_SCANCODE_UNKNOWN;
         }
         return oldkey;
     }
-    let mut event: SDL_Event = SDL_Event { type_0: 0 };
+
+    let mut event = SDL_Event { type_0: 0 };
     while safe_SDL_PollEvent(&mut event) != 0 {
-        if event.type_0 == SDL_KEYDOWN as i32 as u32 {
-            if cmd == 1 {
-                pcs.lastkey = event.key.keysym.scancode;
-                return pcs.lastkey as i32;
+        unsafe {
+            if event.type_0 == SDL_KEYDOWN {
+                if cmd == 1 {
+                    pcs.lastkey = event.key.keysym.scancode;
+                    return pcs.lastkey;
+                } else {
+                    return event.key.keysym.scancode;
+                };
             }
-            return event.key.keysym.scancode as i32;
         }
     }
-    return pcs.lastkey as i32;
+    pcs.lastkey
 }
 
 const EGAPalette: [u32; 16] = [
@@ -1251,7 +1262,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> i32 {
     let mut cycle: i32 = 0;
-    let mut key_0: i32 = 0;
+    let mut key_0 = 0;
     loop {
         cycle = 9;
         loop {
@@ -1583,16 +1594,16 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         pcs.JoyYhigh[2] = 60;
         pcs.JoyYhigh[1] = pcs.JoyYhigh[2];
         pcs.MouseSensitivity = 5;
-        pcs.key[north as usize] = SDL_SCANCODE_UP as i32;
-        pcs.key[northeast as usize] = SDL_SCANCODE_PAGEUP as i32;
-        pcs.key[east as usize] = SDL_SCANCODE_RIGHT as i32;
-        pcs.key[southeast as usize] = SDL_SCANCODE_PAGEDOWN as i32;
-        pcs.key[south as usize] = SDL_SCANCODE_DOWN as i32;
-        pcs.key[southwest as usize] = SDL_SCANCODE_END as i32;
-        pcs.key[west as usize] = SDL_SCANCODE_LEFT as i32;
-        pcs.key[northwest as usize] = SDL_SCANCODE_HOME as i32;
-        pcs.keyB1 = SDL_SCANCODE_LCTRL as i32;
-        pcs.keyB2 = SDL_SCANCODE_LALT as i32;
+        pcs.key[north as usize] = SDL_SCANCODE_UP;
+        pcs.key[northeast as usize] = SDL_SCANCODE_PAGEUP;
+        pcs.key[east as usize] = SDL_SCANCODE_RIGHT;
+        pcs.key[southeast as usize] = SDL_SCANCODE_PAGEDOWN;
+        pcs.key[south as usize] = SDL_SCANCODE_DOWN;
+        pcs.key[southwest as usize] = SDL_SCANCODE_END;
+        pcs.key[west as usize] = SDL_SCANCODE_LEFT;
+        pcs.key[northwest as usize] = SDL_SCANCODE_HOME;
+        pcs.keyB1 = SDL_SCANCODE_LCTRL;
+        pcs.keyB2 = SDL_SCANCODE_LALT;
     } else {
         let mut ctlpanel: ctlpaneltype = ctlpaneltype {
             grmode: text,
@@ -1643,11 +1654,11 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         pcs.MouseSensitivity = ctlpanel.MouseSensitivity as i32;
         i = 0;
         while i < 8 {
-            pcs.key[i as usize] = DOSScanCodeMap[ctlpanel.key[i as usize] as usize] as i32;
+            pcs.key[i as usize] = DOSScanCodeMap[ctlpanel.key[i as usize] as usize];
             i = i.wrapping_add(1);
         }
-        pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize] as i32;
-        pcs.keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize] as i32;
+        pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize];
+        pcs.keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize];
     };
 }
 

@@ -45,12 +45,12 @@ struct pictype {
     pub shapeptr: u32,
     pub name: [i8; 8],
 }
-const screenpitch: usize = 320;
+pub const screenpitch: usize = 320;
 type C2RustUnnamed_2 = u32;
 const VBL_TIME: C2RustUnnamed_2 = 14;
 
 #[inline]
-fn EGA(chan: &[u8], ofs: u8) -> u8 {
+pub fn EGA(chan: &[u8], ofs: u8) -> u8 {
     (chan[3] >> ofs & 1) << 3
         | (chan[2] >> ofs & 1) << 2
         | (chan[1] >> ofs & 1) << 1
@@ -340,7 +340,7 @@ pub unsafe fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     return val;
 }
 
-pub unsafe fn initrndt(randomize: boolean, pas: &mut PcrlibAState) {
+pub fn initrndt(randomize: boolean, pas: &mut PcrlibAState) {
     pas.rndindex = (if randomize as i32 != 0 {
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -351,7 +351,7 @@ pub unsafe fn initrndt(randomize: boolean, pas: &mut PcrlibAState) {
     }) as u16;
 }
 
-pub unsafe fn rndt(pas: &mut PcrlibAState) -> i32 {
+pub fn rndt(pas: &mut PcrlibAState) -> i32 {
     pas.rndindex = ((pas.rndindex as i32 + 1) & 0xff as i32) as u16;
     return rndtable[pas.rndindex as usize] as i32;
 }

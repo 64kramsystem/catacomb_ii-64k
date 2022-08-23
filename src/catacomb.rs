@@ -12,7 +12,7 @@ use crate::{
     class_type::classtype::{self, *},
     cpanel::{controlpanel, installgrfile},
     cpanel_state::CpanelState,
-    demo_enum::demoenum,
+    demo_enum::demoenum::*,
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
     extra_constants::{
@@ -41,6 +41,15 @@ extern "C" {
     fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
 
+/*==============================*/
+/*			        */
+/* xxxrefresh                   */
+/* refresh the changed areas of */
+/* the tiles map in the various */
+/* graphics modes.              */
+/*			        */
+/*==============================*/
+
 const demowin: [[u8; 16]; 5] = [
     [
         14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 16,
@@ -59,50 +68,39 @@ const demowin: [[u8; 16]; 5] = [
     ],
 ];
 
-pub unsafe fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    let mut x: i32 = 0;
-    let mut y: i32 = 0;
-    let mut basex: i32 = 0;
-    let mut basey: i32 = 0;
-    let mut underwin: [[u16; 16]; 5] = [[0; 16]; 5];
-    basex = gs.origin.x + 4;
-    basey = gs.origin.y + 17;
-    if gs.indemo != demoenum::notdemo {
-        y = 0;
-        while y <= 4 {
-            x = 0;
-            while x <= 15 {
-                underwin[y as usize][x as usize] =
-                    gs.view[(y + basey) as usize][(x + basex) as usize] as u16;
-                gs.view[(y + basey) as usize][(x + basex) as usize] =
-                    demowin[y as usize][x as usize] as i32;
-                x += 1;
+pub fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+    let mut underwin = [[0; 16]; 5];
+
+    let basex = gs.origin.x as usize + 4;
+    let basey = gs.origin.y as usize + 17;
+    if gs.indemo != notdemo {
+        for y in 0..=4 {
+            for x in 0..=15 {
+                underwin[y][x] = gs.view[(y + basey)][(x + basex)] as u16;
+                gs.view[(y + basey)][(x + basex)] = demowin[y][x] as i32;
             }
-            y += 1;
         }
     }
+
     WaitVBL(pas);
-    if pcs.grmode as u32 == CGAgr as i32 as u32 {
+    if pcs.grmode == CGAgr {
         cgarefresh(gs, pcs);
     } else {
         egarefresh(gs, pcs);
     }
-    if gs.indemo != demoenum::notdemo {
-        y = 0;
-        while y <= 4 {
-            x = 0;
-            while x <= 15 {
-                gs.view[(y + basey) as usize][(x + basex) as usize] =
-                    underwin[y as usize][x as usize] as i32;
-                x += 1;
+
+    if gs.indemo != notdemo {
+        for y in 0..=4 {
+            for x in 0..=15 {
+                gs.view[y + basey][x + basex] = underwin[y][x] as i32;
             }
-            y += 1;
         }
     }
+
     WaitVBL(pas);
 }
 
-unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     WaitVBL(pas);
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
         cgarefresh(gs, pcs);
@@ -111,7 +109,17 @@ unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     };
 }
 
-pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
+/*
+===================
+=
+= loadgrfiles
+=
+= Loads the tiles and sprites, and sets up the pointers and tables
+=
+===================
+*/
+
+pub fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
         gs.pics = port_temp_bloadin("CGACHARS.CA2").unwrap();
         installgrfile("CGAPICS.CA2", cps, pcs);
@@ -121,11 +129,20 @@ pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut
     };
 }
 
+/*======================================*/
+/*				        */
+/* restore                              */
+/* redraws every tile on the tiled area */
+/* by setting oldtiles to -1.  used to  */
+/* erase any temporary windows.         */
+/*				        */
+/*======================================*/
+
 pub fn clearold(oldtiles: &mut [i32; 576]) {
-    oldtiles.fill(0xff);
+    oldtiles.fill(0xff); /*clear all oldtiles*/
 }
 
-pub unsafe fn restore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn restore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     clearold(&mut gs.oldtiles);
     simplerefresh(gs, pas, pcs);
 }
@@ -146,6 +163,7 @@ unsafe fn wantmore(
     }
     return true as boolean;
 }
+
 unsafe fn charpic(
     x: i32,
     y: i32,
@@ -342,6 +360,9 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     wantmore(gs, pas, pcs);
 }
 
+/*       */
+/* reset */
+/*       */
 #[allow(dead_code)]
 unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     centerwindow(18, 1, gs, pcs);
@@ -540,7 +561,7 @@ pub unsafe fn repaintscreen(
             pcs.sx = 33;
             pcs.sy = 1;
             port_temp_print_str(&pcs.level.to_string(), gs, pcs);
-            gs.indemo = demoenum::demoplay;
+            gs.indemo = demoplay;
         }
     };
 }
@@ -552,11 +573,11 @@ pub unsafe fn dofkeys(
     pcs: &mut PcrlibCState,
 ) {
     let mut handle: i32 = 0;
-    let mut key: i32 = bioskey(1, pcs);
-    if key == SDL_SCANCODE_ESCAPE as i32 {
-        key = SDL_SCANCODE_F10 as i32;
+    let mut key = bioskey(1, pcs);
+    if key == SDL_SCANCODE_ESCAPE {
+        key = SDL_SCANCODE_F10;
     }
-    if key < SDL_SCANCODE_F1 as i32 || key > SDL_SCANCODE_F10 as i32 {
+    if key < SDL_SCANCODE_F1 || key > SDL_SCANCODE_F10 {
         return;
     }
     let current_block_72: u64;
@@ -581,7 +602,7 @@ pub unsafe fn dofkeys(
         61 => {
             clearkeys(pcs);
             expwin(22, 4, gs, pas, pcs);
-            if gs.indemo != demoenum::notdemo {
+            if gs.indemo != notdemo {
                 port_temp_print_str("Can't save game here!", gs, pcs);
                 get(gs, pas, pcs);
             } else {
@@ -692,7 +713,7 @@ pub unsafe fn dofkeys(
                     );
                     close(handle);
                     gs.exitdemo = true;
-                    if gs.indemo != demoenum::notdemo {
+                    if gs.indemo != notdemo {
                         gs.playdone = true;
                     }
                     drawside(gs, cps, pcs);
@@ -735,7 +756,7 @@ unsafe fn dotitlepage(
     i = 0;
     while i < 300 {
         WaitVBL(pas);
-        gs.indemo = demoenum::notdemo;
+        gs.indemo = notdemo;
         gs.ctrl = ControlPlayer(1, gs, pcs);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
@@ -745,7 +766,7 @@ unsafe fn dotitlepage(
             gs.exitdemo = true;
             break;
         } else {
-            gs.indemo = demoenum::demoplay;
+            gs.indemo = demoplay;
             if bioskey(1, pcs) != 0 {
                 dofkeys(gs, cps, pas, pcs);
                 UpdateScreen(gs, pcs);
@@ -818,13 +839,13 @@ unsafe fn dodemo(
         }
         pcs.level = 0;
         gs.gamestate = statetype::inscores;
-        gs.indemo = demoenum::demoplay;
+        gs.indemo = demoplay;
         _showhighscores(gs, pcs);
         UpdateScreen(gs, pcs);
         i = 0;
         while i < 500 {
             WaitVBL(pas);
-            gs.indemo = demoenum::notdemo;
+            gs.indemo = notdemo;
             gs.ctrl = ControlPlayer(1, gs, pcs);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
@@ -877,7 +898,7 @@ unsafe fn gameover(
         if bioskey(1, pcs) != 0 {
             dofkeys(gs, cps, pas, pcs);
         }
-        if gs.exitdemo as i32 != 0 || gs.indemo == demoenum::demoplay {
+        if gs.exitdemo as i32 != 0 || gs.indemo == demoplay {
             break;
         }
         i += 1;
@@ -1010,10 +1031,10 @@ pub fn original_main() {
         loop {
             dodemo(&mut gs, &mut cps, &mut pas, &mut pcs);
             playsetup(&mut gs, &mut cps, &mut pcs);
-            gs.indemo = demoenum::notdemo;
+            gs.indemo = notdemo;
             gs.gamestate = statetype::ingame;
             playloop(&mut gs, &mut cps, &mut pas, &mut pcs);
-            if gs.indemo == demoenum::notdemo {
+            if gs.indemo == notdemo {
                 gs.exitdemo = false;
                 if pcs.level > numlevels {
                     doendpage(&mut gs, &mut cps, &mut pas, &mut pcs); // finished all levels

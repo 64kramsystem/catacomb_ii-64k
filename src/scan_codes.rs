@@ -1,5 +1,5 @@
-/// This could be an usize; the problem is that it'd be semantically inconsistent, because SDL
-/// returns a u32.
+/// Rust port: This could be an usize; the problem is that it'd be semantically inconsistent, because
+/// SDL returns a u32.
 pub type SDL_Scancode = u32;
 
 pub const SDL_SCANCODE_RSHIFT: SDL_Scancode = 229;

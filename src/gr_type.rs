@@ -3,7 +3,7 @@ use num_derive::FromPrimitive;
 
 /// In the original, this is an enum, stored as u16.
 #[repr(u16)]
-#[derive(Clone, Copy, FromPrimitive)]
+#[derive(Clone, Copy, FromPrimitive, PartialEq)]
 pub enum grtype {
     VGAgr = 3,
     EGAgr = 2,

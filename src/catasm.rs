@@ -1,24 +1,27 @@
+use num::Integer;
+
 use crate::{
     cat_play::{doactive, doinactive},
     catacomb::refresh,
     class_type::classtype::*,
     cpanel_state::CpanelState,
     global_state::GlobalState,
+    gr_type::grtype::*,
+    pcrlib_a::{screenpitch, EGA},
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen,
     pcrlib_c_state::PcrlibCState,
 };
 
-pub type C2RustUnnamed_0 = u32;
-pub const screenpitch: C2RustUnnamed_0 = 320;
+//========================================================================
 
-#[inline]
-unsafe fn EGA(chan: *const u8, ofs: u8) -> u8 {
-    return ((*chan.offset(3) as i32 >> ofs as i32 & 1) << 3
-        | (*chan.offset(2) as i32 >> ofs as i32 & 1) << 2
-        | (*chan.offset(1) as i32 >> ofs as i32 & 1) << 1
-        | *chan.offset(0) as i32 >> ofs as i32 & 1) as u8;
-}
+//=========================================
+//
+// DRAWOBJ
+// Draws the object to TILES in the proper
+// direction and state.
+//
+//=========================================
 
 const squares: [u8; 9] = [0, 1, 4, 9, 16, 25, 36, 49, 64];
 
@@ -31,71 +34,65 @@ const table86: [u16; 87] = [
     7052, 7138, 7224, 7310, 7396,
 ];
 
-pub unsafe fn drawobj(gs: &mut GlobalState) {
-    let mut tilenum: i32 = gs.obj.firstchar as i32
+pub fn drawobj(gs: &mut GlobalState) {
+    let mut tilenum = gs.obj.firstchar as i32
         + squares[gs.obj.size as usize] as i32
             * ((gs.obj.dir as i32 & gs.obj.dirmask as i32) * gs.obj.stages as i32
                 + gs.obj.stage as i32);
     gs.obj.oldtile = tilenum as i16;
     gs.obj.oldy = gs.obj.y;
     gs.obj.oldx = gs.obj.x;
-    let objpri: u8 = gs.priority[tilenum as usize];
-    let mut ofs: u32 = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as u32;
-    let mut x: u32 = 0;
-    let mut y: u32 = 0;
-    y = gs.obj.size as u32;
-    loop {
-        let fresh0 = y;
-        y = y.wrapping_sub(1);
-        if !(fresh0 > 0) {
-            break;
-        }
-        x = gs.obj.size as u32;
-        loop {
-            let fresh1 = x;
-            x = x.wrapping_sub(1);
-            if !(fresh1 > 0) {
-                break;
-            }
-            if gs.priority[*(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) as usize] as i32
-                <= objpri as i32
-            {
-                *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) = tilenum;
+
+    let objpri = gs.priority[tilenum as usize]; // entire object has same priority
+    let mut ofs = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as usize; // View is 86*86
+
+    for _y in 0..gs.obj.size {
+        for _x in 0..gs.obj.size {
+            let (ofs_row, ofs_col) = ofs.div_mod_floor(&86);
+            let view_obj = &mut gs.view[ofs_row][ofs_col];
+            // check tiles priority level
+            // don't draw if lower than what's there
+            if gs.priority[*view_obj as usize] <= objpri {
+                *view_obj = tilenum;
             }
             tilenum += 1;
-            ofs = ofs.wrapping_add(1);
+            ofs += 1;
         }
-        ofs = ofs.wrapping_add((86 - gs.obj.size as i32) as u32);
+        // position destination at start of next line
+        ofs += 86 - gs.obj.size as usize;
     }
 }
 
-pub unsafe fn eraseobj(gs: &mut GlobalState) {
-    let mut tilenum: i32 = gs.obj.oldtile as i32;
-    let mut ofs: u32 = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as u32;
-    let mut x: u32 = 0;
-    let mut y: u32 = 0;
-    y = gs.obj.size as u32;
-    loop {
-        let fresh2 = y;
-        y = y.wrapping_sub(1);
-        if !(fresh2 > 0) {
-            break;
-        }
-        x = gs.obj.size as u32;
-        loop {
-            let fresh3 = x;
-            x = x.wrapping_sub(1);
-            if !(fresh3 > 0) {
-                break;
-            }
-            if *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) == tilenum {
-                *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize) =
-                    *(gs.background.as_mut_ptr() as *mut i32).offset(ofs as isize);
+//=======================================================================
+
+//=======================================
+//
+// ERASEOBJ
+// Erases the current object by copying
+// the background onto the view where the
+// object is standing
+//
+//=======================================
+
+pub fn eraseobj(gs: &mut GlobalState) {
+    // only erase chars that match what was drawn by the last drawobj
+    let mut tilenum = gs.obj.oldtile;
+
+    let mut ofs = (table86[gs.obj.oldy as usize] as i32 + gs.obj.oldx as i32) as usize; // View is 86*86
+
+    for _y in 0..gs.obj.size {
+        for _x in 0..gs.obj.size {
+            let (ofs_row, ofs_col) = ofs.div_mod_floor(&86);
+            let view_obj = &mut gs.view[ofs_row][ofs_col];
+            // don't erase if its not part of the shape
+            if *view_obj == tilenum as i32 {
+                *view_obj = gs.background[ofs_row][ofs_col]; // erase it
             }
             tilenum += 1;
-            ofs = ofs.wrapping_add(1);
+            ofs += 1;
         }
-        ofs = ofs.wrapping_add((86 - gs.obj.size as i32) as u32);
+        // position destination at start of next line
+        ofs += 86 - gs.obj.size as usize;
     }
 }
 
@@ -166,107 +163,125 @@ fn drawcgachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut ofs: u32 = (gs.origin.y * 86 + gs.origin.x) as u32;
-    let mut tile: i32 = 0;
-    let mut i: u32 = 0;
-    let mut endofrow: u32 = ofs.wrapping_add(24);
+//=========
+//
+// CGAREFRESH redraws the tiles that have changed in the tiled screen area
+//
+//=========
+
+pub fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let mut ofs = (gs.origin.y * 86 + gs.origin.x) as usize;
+
+    let mut i = 0;
+    let mut endofrow = ofs + 24;
     let mut screenseg_ofs = 0;
     loop {
-        tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
-        if tile != gs.oldtiles[i as usize] {
-            gs.oldtiles[i as usize] = tile;
+        let (ofs_row, ofs_col) = ofs.div_mod_floor(&86);
+        let tile = gs.view[ofs_row][ofs_col];
+        if tile != gs.oldtiles[i] {
+            gs.oldtiles[i] = tile;
             drawcgachartile(screenseg_ofs, tile, gs);
         }
-        i = i.wrapping_add(1);
-        ofs = ofs.wrapping_add(1);
+        i += 1;
+        ofs += 1;
         screenseg_ofs += 8;
-        if !(ofs == endofrow) {
-            continue;
+
+        if ofs == endofrow {
+            if i == 24 * 24 {
+                break;
+            }
+            ofs += 86 - 24;
+            endofrow += 86;
+            screenseg_ofs += screenpitch * 8 - 24 * 8;
         }
-        if i == (24 * 24) as u32 {
-            break;
-        }
-        ofs = ofs.wrapping_add((86 - 24) as u32);
-        endofrow = endofrow.wrapping_add(86);
-        screenseg_ofs += screenpitch as usize * 8 - 24 * 8;
     }
+
     UpdateScreen(gs, pcs);
 }
 
-unsafe fn drawegachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
-    let mut src = &gs.pics[(tile << 5) as usize..];
-    let mut dest = &mut gs.screenseg[screenseg_ofs..];
+fn drawegachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
+    let src = &gs.pics;
+    let dest = &mut gs.screenseg;
+
+    let mut src_i = (tile << 5) as usize;
+    let mut dest_i = screenseg_ofs;
 
     for _ in 0..8 {
-        let chan: [u8; 4] = [src[0], src[8], src[16], src[24]];
+        let chan: [u8; 4] = [
+            src[src_i + 0],
+            src[src_i + 8],
+            src[src_i + 16],
+            src[src_i + 24],
+        ];
 
-        dest[0] = EGA(chan.as_ptr(), 7);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 6);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 5);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 4);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 3);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 2);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 1);
-        dest = &mut dest[1..];
-        dest[0] = EGA(chan.as_ptr(), 0);
+        dest[dest_i] = EGA(&chan, 7);
+        dest_i += 1;
+        dest[dest_i] = EGA(&chan, 6);
+        dest_i += 1;
+        dest[dest_i] = EGA(&chan, 5);
+        dest_i += 1;
+        dest[dest_i] = EGA(&chan, 4);
+        dest_i += 1;
+        dest[dest_i] = EGA(&chan, 3);
+        dest_i += 1;
+        dest[dest_i] = EGA(&chan, 2);
+        dest_i += 1;
+        dest[dest_i] = EGA(&chan, 1);
+        dest_i += 1;
+        dest[dest_i] = EGA(&chan, 0);
 
-        dest = &mut dest[(screenpitch - 7) as usize..];
-
-        src = &src[1..];
+        src_i += 1;
+        dest_i += screenpitch - 7;
     }
 }
 
-pub unsafe fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut ofs: u32 = (gs.origin.y * 86 + gs.origin.x) as u32;
-    let mut tile: i32 = 0;
-    let mut i: u32 = 0;
-    let mut endofrow: u32 = ofs.wrapping_add(24);
+//=========
+//
+// EGAREFRESH redraws the tiles that have changed in the tiled screen area
+//
+//=========
+
+// Rust port: Identical to cgarefresh, with the exception that it calls drawegachartile().
+pub fn egarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let mut ofs = (gs.origin.y * 86 + gs.origin.x) as usize;
+
+    let mut i = 0;
+    let mut endofrow = ofs + 24;
     let mut screenseg_ofs = 0;
     loop {
-        tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
-        if tile != gs.oldtiles[i as usize] {
-            gs.oldtiles[i as usize] = tile;
+        let (ofs_row, ofs_col) = ofs.div_mod_floor(&86);
+        let tile = gs.view[ofs_row][ofs_col];
+        if tile != gs.oldtiles[i] {
+            gs.oldtiles[i] = tile;
             drawegachartile(screenseg_ofs, tile, gs);
         }
-        i = i.wrapping_add(1);
-        ofs = ofs.wrapping_add(1);
+        i += 1;
+        ofs += 1;
         screenseg_ofs += 8;
-        if !(ofs == endofrow) {
-            continue;
+
+        if ofs == endofrow {
+            if i == 24 * 24 {
+                break;
+            }
+            ofs += 86 - 24;
+            endofrow += 86;
+            screenseg_ofs += screenpitch * 8 - 24 * 8;
         }
-        if i == (24 * 24) as u32 {
-            break;
-        }
-        ofs = ofs.wrapping_add((86 - 24) as u32);
-        endofrow = endofrow.wrapping_add(86);
-        screenseg_ofs += screenpitch as usize * 8 - 24 * 8;
     }
+
     UpdateScreen(gs, pcs);
 }
 
-pub unsafe fn drawchartile(
-    x: i32,
-    y: i32,
-    tile: i32,
-    gs: &mut GlobalState,
-    pcs: &mut PcrlibCState,
-) {
-    match pcs.grmode as u32 {
-        1 => {
+pub fn drawchartile(x: i32, y: i32, tile: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    match pcs.grmode {
+        CGAgr => {
             drawcgachartile(
                 ((y << 3) * screenpitch as i32 + (x << 3)) as usize,
                 tile,
                 gs,
             );
         }
-        2 | _ => {
+        EGAgr | _ => {
             drawegachartile(
                 ((y << 3) * screenpitch as i32 + (x << 3)) as usize,
                 tile,

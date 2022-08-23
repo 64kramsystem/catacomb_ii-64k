@@ -5,7 +5,7 @@ use crate::{
     class_type::classtype::*,
     control_struct::ControlStruct,
     cpanel_state::CpanelState,
-    demo_enum::demoenum,
+    demo_enum::demoenum::*,
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
     extra_constants::maxobj,
@@ -205,7 +205,7 @@ fn levelcleared(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-unsafe fn givekey(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+fn givekey(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     i = gs.items[1] as i32 + 1;
     gs.items[1] = i as i16;
@@ -214,7 +214,7 @@ unsafe fn givekey(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn givepotion(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn givepotion(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     i = gs.items[2] as i32 + 1;
     gs.items[2] = i as i16;
@@ -223,7 +223,7 @@ pub unsafe fn givepotion(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn givebolt(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn givebolt(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     i = gs.items[3] as i32 + 1;
     gs.items[3] = i as i16;
@@ -232,7 +232,7 @@ pub unsafe fn givebolt(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn givenuke(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn givenuke(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     i = gs.items[5] as i32 + 1;
     gs.items[5] = i as i16;
@@ -866,7 +866,7 @@ unsafe fn playercmdthink(
         gs.shotpower = 0;
         printshotpower(gs, pcs);
     }
-    if gs.indemo == demoenum::notdemo {
+    if gs.indemo == notdemo {
         if pcs.keydown[SDL_SCANCODE_P as usize] as i32 != 0
             || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
@@ -893,7 +893,7 @@ unsafe fn playercmdthink(
         return;
     }
     match gs.indemo {
-        demoenum::notdemo => {
+        notdemo => {
             if pcs.keydown[SDL_SCANCODE_C as usize] as i32 != 0
                 && pcs.keydown[SDL_SCANCODE_T as usize] as i32 != 0
                 && pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -933,20 +933,20 @@ unsafe fn playercmdthink(
                 clearkeys(pcs);
             }
         }
-        demoenum::demoplay => {
-            gs.indemo = demoenum::notdemo;
+        demoplay => {
+            gs.indemo = notdemo;
             gs.ctrl = ControlPlayer(1, gs, pcs);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
                 || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
-                gs.indemo = demoenum::demoplay;
+                gs.indemo = demoplay;
                 gs.exitdemo = true;
                 gs.leveldone = true;
                 pcs.level = 0;
                 return;
             }
-            gs.indemo = demoenum::demoplay;
+            gs.indemo = demoplay;
         }
         _ => {}
     };
@@ -1298,7 +1298,7 @@ pub unsafe fn playloop(
 ) {
     gs.screencenter.x = 11;
     loop {
-        if gs.indemo == demoenum::notdemo {
+        if gs.indemo == notdemo {
             centerwindow(11, 2, gs, pcs);
             port_temp_print_str(" Entering\nlevel ", gs, pcs);
             port_temp_print_str(&pcs.level.to_string(), gs, pcs);
@@ -1335,7 +1335,7 @@ pub unsafe fn playloop(
         initrndt(false as boolean, pas);
         printshotpower(gs, pcs);
         doall(gs, cps, pas, pcs);
-        if gs.indemo == demoenum::recording {
+        if gs.indemo == recording {
             clearkeys(pcs);
             centerwindow(15, 1, gs, pcs);
             port_temp_print_str("SAVE AS DEMO#:", gs, pcs);
@@ -1351,7 +1351,7 @@ pub unsafe fn playloop(
             refresh(gs, pas, pcs);
             refresh(gs, pas, pcs);
         }
-        if gs.indemo != demoenum::notdemo {
+        if gs.indemo != notdemo {
             gs.playdone = true;
         }
         if gs.playdone {

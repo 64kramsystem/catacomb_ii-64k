@@ -1,4 +1,4 @@
-use serdine_macros::Deserialize;
+use serdine::derive::Deserialize;
 
 #[derive(Clone, Copy, Deserialize)]
 pub struct spritetype {
