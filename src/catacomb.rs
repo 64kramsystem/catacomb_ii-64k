@@ -573,11 +573,11 @@ pub unsafe fn dofkeys(
     pcs: &mut PcrlibCState,
 ) {
     let mut handle: i32 = 0;
-    let mut key: i32 = bioskey(1, pcs);
-    if key == SDL_SCANCODE_ESCAPE as i32 {
-        key = SDL_SCANCODE_F10 as i32;
+    let mut key = bioskey(1, pcs);
+    if key == SDL_SCANCODE_ESCAPE {
+        key = SDL_SCANCODE_F10;
     }
-    if key < SDL_SCANCODE_F1 as i32 || key > SDL_SCANCODE_F10 as i32 {
+    if key < SDL_SCANCODE_F1 || key > SDL_SCANCODE_F10 {
         return;
     }
     let current_block_72: u64;

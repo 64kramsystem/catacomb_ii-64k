@@ -237,7 +237,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     let mut hy: i32 = 0;
     let mut i: i32 = 0;
     let mut select: i32 = 0;
-    let mut new: i32 = 0;
+    let mut new = 0;
     expwin(22, 15, gs, pas, pcs);
     port_temp_print_str("Keyboard Configuration\n\r", gs, pcs);
     port_temp_print_str("----------------------", gs, pcs);
@@ -258,15 +258,15 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     while i < 8 {
         pcs.sx = 22;
         pcs.sy = 7 + i;
-        printscan(pcs.key[i as usize], gs, pcs);
+        printscan(pcs.key[i as usize] as i32, gs, pcs);
         i += 1;
     }
     pcs.sx = 22;
     pcs.sy = 15;
-    printscan(pcs.keyB1, gs, pcs);
+    printscan(pcs.keyB1 as i32, gs, pcs);
     pcs.sx = 22;
     pcs.sy = 16;
-    printscan(pcs.keyB2, gs, pcs);
+    printscan(pcs.keyB2 as i32, gs, pcs);
     loop {
         pcs.sx = hx;
         pcs.sy = hy;
@@ -300,7 +300,7 @@ unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
             pcs.sx = 22;
             port_temp_print_str("        ", gs, pcs);
             pcs.sx = 22;
-            printscan(new, gs, pcs);
+            printscan(new as i32, gs, pcs);
             ch = '0' as i32 as i8;
             clearkeys(pcs);
         }
