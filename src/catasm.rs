@@ -162,31 +162,38 @@ fn drawcgachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
     }
 }
 
+//=========
+//
+// CGAREFRESH redraws the tiles that have changed in the tiled screen area
+//
+//=========
+
 pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut ofs: u32 = (gs.origin.y * 86 + gs.origin.x) as u32;
-    let mut tile: i32 = 0;
-    let mut i: u32 = 0;
-    let mut endofrow: u32 = ofs.wrapping_add(24);
+    let mut ofs = gs.origin.y * 86 + gs.origin.x;
+
+    let mut i = 0;
+    let mut endofrow = ofs + 24;
     let mut screenseg_ofs = 0;
     loop {
-        tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
-        if tile != gs.oldtiles[i as usize] {
-            gs.oldtiles[i as usize] = tile;
+        let tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
+        if tile != gs.oldtiles[i] {
+            gs.oldtiles[i] = tile;
             drawcgachartile(screenseg_ofs, tile, gs);
         }
-        i = i.wrapping_add(1);
-        ofs = ofs.wrapping_add(1);
+        i += 1;
+        ofs += 1;
         screenseg_ofs += 8;
-        if !(ofs == endofrow) {
-            continue;
+
+        if ofs == endofrow {
+            if i == 24 * 24 {
+                break;
+            }
+            ofs += 86 - 24;
+            endofrow += 86;
+            screenseg_ofs += screenpitch * 8 - 24 * 8;
         }
-        if i == (24 * 24) as u32 {
-            break;
-        }
-        ofs = ofs.wrapping_add((86 - 24) as u32);
-        endofrow = endofrow.wrapping_add(86);
-        screenseg_ofs += screenpitch * 8 - 24 * 8;
     }
+
     UpdateScreen(gs, pcs);
 }
 
