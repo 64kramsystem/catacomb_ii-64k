@@ -1196,25 +1196,36 @@ unsafe fn expwinv(
     centerwindow(width, height, gs, pcs);
 }
 
-pub unsafe fn bioskey(cmd: i32, pcs: &mut PcrlibCState) -> i32 {
-    if pcs.lastkey as u64 != 0 {
-        let oldkey: i32 = pcs.lastkey as i32;
+/////////////////////////
+//
+// get
+// Flash a cursor at sx,sy and waits for a user bioskey
+//
+/////////////////////////
+
+pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState) -> i32 {
+    if pcs.lastkey != 0 {
+        let oldkey = pcs.lastkey as i32;
         if cmd != 1 {
             pcs.lastkey = SDL_SCANCODE_UNKNOWN;
         }
         return oldkey;
     }
-    let mut event: SDL_Event = SDL_Event { type_0: 0 };
+
+    let mut event = SDL_Event { type_0: 0 };
     while safe_SDL_PollEvent(&mut event) != 0 {
-        if event.type_0 == SDL_KEYDOWN as i32 as u32 {
-            if cmd == 1 {
-                pcs.lastkey = event.key.keysym.scancode;
-                return pcs.lastkey as i32;
+        unsafe {
+            if event.type_0 == SDL_KEYDOWN {
+                if cmd == 1 {
+                    pcs.lastkey = event.key.keysym.scancode;
+                    return pcs.lastkey as i32;
+                } else {
+                    return event.key.keysym.scancode as i32;
+                };
             }
-            return event.key.keysym.scancode as i32;
         }
     }
-    return pcs.lastkey as i32;
+    pcs.lastkey as i32
 }
 
 const EGAPalette: [u32; 16] = [
