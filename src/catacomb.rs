@@ -100,7 +100,7 @@ pub fn refresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     WaitVBL(pas);
 }
 
-unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     WaitVBL(pas);
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
         cgarefresh(gs, pcs);
@@ -109,7 +109,17 @@ unsafe fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     };
 }
 
-pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
+/*
+===================
+=
+= loadgrfiles
+=
+= Loads the tiles and sprites, and sets up the pointers and tables
+=
+===================
+*/
+
+pub fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
         gs.pics = port_temp_bloadin("CGACHARS.CA2").unwrap();
         installgrfile("CGAPICS.CA2", cps, pcs);
@@ -119,11 +129,20 @@ pub unsafe fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut
     };
 }
 
+/*======================================*/
+/*				        */
+/* restore                              */
+/* redraws every tile on the tiled area */
+/* by setting oldtiles to -1.  used to  */
+/* erase any temporary windows.         */
+/*				        */
+/*======================================*/
+
 pub fn clearold(oldtiles: &mut [i32; 576]) {
-    oldtiles.fill(0xff);
+    oldtiles.fill(0xff); /*clear all oldtiles*/
 }
 
-pub unsafe fn restore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn restore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     clearold(&mut gs.oldtiles);
     simplerefresh(gs, pas, pcs);
 }
@@ -144,6 +163,7 @@ unsafe fn wantmore(
     }
     return true as boolean;
 }
+
 unsafe fn charpic(
     x: i32,
     y: i32,
@@ -340,6 +360,9 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     wantmore(gs, pas, pcs);
 }
 
+/*       */
+/* reset */
+/*       */
 #[allow(dead_code)]
 unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     centerwindow(18, 1, gs, pcs);
