@@ -168,14 +168,15 @@ fn drawcgachartile(screenseg_ofs: usize, tile: i32, gs: &mut GlobalState) {
 //
 //=========
 
-pub unsafe fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut ofs = gs.origin.y * 86 + gs.origin.x;
+pub fn cgarefresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    let mut ofs = (gs.origin.y * 86 + gs.origin.x) as usize;
 
     let mut i = 0;
     let mut endofrow = ofs + 24;
     let mut screenseg_ofs = 0;
     loop {
-        let tile = *(gs.view.as_mut_ptr() as *mut i32).offset(ofs as isize);
+        let (ofs_row, ofs_col) = ofs.div_mod_floor(&86);
+        let tile = gs.view[ofs_row][ofs_col];
         if tile != gs.oldtiles[i] {
             gs.oldtiles[i] = tile;
             drawcgachartile(screenseg_ofs, tile, gs);
