@@ -13,8 +13,8 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ProbeJoysticks, ProcessEvents, ReadJoystick, ScancodeToDOS, UpdateScreen, _egaok, _vgaok,
-        bioskey, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_bloadin,
-        port_temp_print_str, CheckMouseMode, ControlJoystick,
+        bioskey, bloadin, clearkeys, drawwindow, erasewindow, expwin, get, port_temp_print_str,
+        CheckMouseMode, ControlJoystick,
     },
     pcrlib_c_state::PcrlibCState,
     pic_file_type::picfiletype,
@@ -555,7 +555,7 @@ pub fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCSta
     // - char data (currently retained inside picfile_data)
     // - pic data (currently retained inside picfile_data)
     //
-    let picfile_data = port_temp_bloadin(&filename).unwrap();
+    let picfile_data = bloadin(&filename).unwrap();
     let picfile: picfiletype = Deserialize::deserialize(&picfile_data[..]);
     cps.numchars = picfile.numchars as i32;
     cps.numtiles = picfile.numtiles as i32;

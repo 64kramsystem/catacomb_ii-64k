@@ -26,8 +26,8 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
-        _showhighscores, bar, bioskey, centerwindow, clearkeys, drawwindow, expwin, get,
-        port_temp_LoadFile, port_temp_bloadin, port_temp_print_str, printchartile,
+        _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
+        port_temp_LoadFile, port_temp_print_str, printchartile,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -121,10 +121,10 @@ fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
 
 pub fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
-        gs.pics = port_temp_bloadin("CGACHARS.CA2").unwrap();
+        gs.pics = bloadin("CGACHARS.CA2").unwrap();
         installgrfile("CGAPICS.CA2", cps, pcs);
     } else {
-        gs.pics = port_temp_bloadin("EGACHARS.CA2").unwrap();
+        gs.pics = bloadin("EGACHARS.CA2").unwrap();
         installgrfile("EGAPICS.CA2", cps, pcs);
     };
 }

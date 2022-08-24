@@ -1040,7 +1040,7 @@ pub fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
 
 //==========================================================================
 
-pub fn port_temp_bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
+pub fn bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
     let file_meta = fs::metadata(filename);
 
     let mut buffer = vec![0; file_meta?.len() as usize];
@@ -1953,7 +1953,7 @@ pub fn _setupgame(
             pcs.grmode = CGAgr;
         }
         let filename = format!("SOUNDS.{port_temp__extension}");
-        let sound_data_buffer = port_temp_bloadin(&filename).unwrap();
+        let sound_data_buffer = bloadin(&filename).unwrap();
         pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
         StartupSound(pas);
         SetupKBD(pcs);
