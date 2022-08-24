@@ -1,6 +1,8 @@
+use serdine::derive::Deserialize;
+
 use crate::spksndtype::spksndtype;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Deserialize)]
 #[repr(C, packed)]
 pub struct SPKRtable {
     pub id: [i8; 4],
