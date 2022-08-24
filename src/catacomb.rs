@@ -27,7 +27,7 @@ use crate::{
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        port_temp_LoadFile, port_temp_print_str, printchartile,
+        loadFile, port_temp_print_str, printchartile,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -389,7 +389,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     let mut sm = vec![];
     let mut rle = [0; 4096];
     let filename = format!("LEVEL{}.CA2", pcs.level);
-    let filesize = port_temp_LoadFile(&filename, &mut rle);
+    let filesize = loadFile(&filename, &mut rle);
     RLEExpand(&rle[4..], filesize, &mut sm);
     gs.numobj = 0;
     gs.o[0].x = 13;

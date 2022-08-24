@@ -39,7 +39,6 @@ extern "C" {
     fn close(__fd: i32) -> i32;
     fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
-    fn fstat(__fd: i32, __buf: *mut stat) -> i32;
     fn puts(__s: *const i8) -> i32;
     fn __assert_fail(
         __assertion: *const i8,
@@ -898,7 +897,7 @@ pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
 
-    port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
+    loadFile(&filename, &mut temp_port_demobuffer);
     pcs.demobuffer
         .copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
     pcs.level = pcs.demobuffer[0] as i16;
@@ -934,55 +933,19 @@ pub unsafe fn clearkeys(pcs: &mut PcrlibCState) {
     }
 }
 
-unsafe fn filelength(fd: i32) -> i64 {
-    let mut s: stat = stat {
-        st_dev: 0,
-        st_ino: 0,
-        st_nlink: 0,
-        st_mode: 0,
-        st_uid: 0,
-        st_gid: 0,
-        __pad0: 0,
-        st_rdev: 0,
-        st_size: 0,
-        st_blksize: 0,
-        st_blocks: 0,
-        st_atim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        st_mtim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        st_ctim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        __glibc_reserved: [0; 3],
-    };
-    if fstat(fd, &mut s) != 0 {
-        return -1 as i64;
-    }
-    return s.st_size;
-}
-
-pub unsafe fn LoadFile(filename: *const i8, buffer: *const i8) -> u64 {
-    let mut fd: i32 = 0;
-    fd = open(filename, 0o400 as i32);
-    if fd < 0 {
-        return 0;
-    }
-    let len: i64 = filelength(fd);
-    let bytesRead: i64 = read(fd, buffer as *mut libc::c_void, len as u64);
-    close(fd);
-    return bytesRead as u64;
-}
+/*
+==============================================
+=
+= Load a *LARGE* file into a FAR buffer!
+= by John Romero (C) 1990 PCRcade
+=
+==============================================
+*/
 
 /// Using a Vec as dest buffer would be more convenient and idiomatic, however, routines may rely on
 /// a certain buffer length.
 /// An alternative is to pass the intended destination length, but there isn't a significant difference.
-pub fn port_temp_LoadFile(filename: &str, dest: &mut [u8]) -> usize {
+pub fn loadFile(filename: &str, dest: &mut [u8]) -> usize {
     if let Ok(mut file) = File::open(filename) {
         let mut buffer = Vec::new();
         let bytes_read = file.read_to_end(&mut buffer).unwrap();
@@ -1055,7 +1018,7 @@ pub fn bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
 
     let mut buffer = vec![0; file_meta?.len() as usize];
 
-    port_temp_LoadFile(filename, &mut buffer);
+    loadFile(filename, &mut buffer);
 
     Ok(buffer)
 }
@@ -1715,7 +1678,7 @@ pub fn _loadhighscores(pcs: &mut PcrlibCState) {
     let filename = format!("SCORES.{port_temp__extension}");
     let mut buffer = [0_u8; mem::size_of::<[scores; 5]>()];
 
-    let bytes_loaded = port_temp_LoadFile(&filename, &mut buffer);
+    let bytes_loaded = loadFile(&filename, &mut buffer);
 
     if bytes_loaded > 0 {
         // Rust port: there isn't a type for the whole scores data (file), so we deserialize in
