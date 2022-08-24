@@ -1258,42 +1258,9 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
 //
 /////////////////////////
 
-pub unsafe fn _print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    loop {
-        let ch_0 = *str_0;
-        str_0 = str_0.offset(1);
-        match ch_0 as u8 {
-            0 => break,
-            b'\n' => {
-                pcs.sy += 1;
-                pcs.sx = pcs.leftedge;
-            }
-            b'\r' => {
-                pcs.sx = pcs.leftedge;
-            }
-            _ => {
-                drawchar(pcs.sx, pcs.sy, ch_0 as i32, gs, pcs);
-                pcs.sx += 1;
-            }
-        }
-    }
-}
-
-/// To be the used when printing from memory.
-///
-pub fn port_temp_print_cstr(str_0: &CStr, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    port_temp_print_str(&str_0.to_string_lossy(), gs, pcs)
-}
-
-/// Convenience.
-///
-pub fn port_temp_print_str(str_0: &str, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    port_temp_print_arr(str_0.as_bytes(), gs, pcs);
-}
-
 /// Reference print routine. &[u8] is used, because this in not necessarily a textual string.
 ///
-pub fn port_temp_print_arr(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn print(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     for ch_0 in str_0 {
         match ch_0 {
             0 => break,
@@ -1310,6 +1277,12 @@ pub fn port_temp_print_arr(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibC
             }
         }
     }
+}
+
+/// Rust port: convenience.
+///
+pub fn print_str(str_0: &str, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    print(str_0.as_bytes(), gs, pcs);
 }
 
 pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
@@ -1361,7 +1334,7 @@ pub fn _Verify(filename: &str) -> u64 {
 /// Rust port: Prints a byte in padded hex.
 fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("{:02X}", value);
-    port_temp_print_str(&fmt_value, gs, pcs);
+    print_str(&fmt_value, gs, pcs);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1372,7 +1345,7 @@ fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState
 /// Rust port: Prints a word in padded hex, prefixed by `$`.
 fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("${:04X}", value);
-    port_temp_print_str(&fmt_value, gs, pcs);
+    print_str(&fmt_value, gs, pcs);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1383,7 +1356,7 @@ fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 /// Rust port: Prints a word in padded binary, prefixed by `%`; dead code.
 fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("%{:016b}", value);
-    port_temp_print_str(&fmt_value, gs, pcs);
+    print_str(&fmt_value, gs, pcs);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1393,7 +1366,7 @@ fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 ////////////////////////////////////////////////////////////////////
 fn _printc(string: &CString, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 1 + gs.screencenter.x - string.as_bytes().len() as i32;
-    port_temp_print_cstr(string, gs, pcs);
+    print(string.as_bytes(), gs, pcs);
 }
 
 // Rust port: Avoids importing strlen, and also, works on u8.
@@ -1712,9 +1685,9 @@ pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
     centerwindow(17, 17, gs, pcs);
-    port_temp_print_str("\n   HIGH SCORES\n\n", gs, pcs);
-    port_temp_print_str(" #  SCORE LV  BY\n", gs, pcs);
-    port_temp_print_str(" - ------ -- ---\n", gs, pcs);
+    print_str("\n   HIGH SCORES\n\n", gs, pcs);
+    print_str(" #  SCORE LV  BY\n", gs, pcs);
+    print_str(" - ------ -- ---\n", gs, pcs);
     i = 0;
     while i < 5 {
         pcs.sx += 1;
@@ -1736,18 +1709,18 @@ pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         if h < 10 {
             pcs.sx += 1;
         }
-        port_temp_print_str(&h.to_string(), gs, pcs);
+        print_str(&h.to_string(), gs, pcs);
         pcs.sx += 1;
         if (pcs.highscores[i as usize].level as i32) < 10 {
             pcs.sx += 1;
         }
         let str = { pcs.highscores[i as usize].level }.to_string();
-        port_temp_print_str(&str, gs, pcs);
+        print_str(&str, gs, pcs);
         pcs.sx += 1;
         // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
         let highscore_bytes = &pcs.highscores[i as usize].initials.map(|f| f as u8)[0..=2];
-        port_temp_print_arr(highscore_bytes, gs, pcs);
-        port_temp_print_str("\n\n", gs, pcs);
+        print(highscore_bytes, gs, pcs);
+        print_str("\n\n", gs, pcs);
         i += 1;
     }
     let str = CString::new(format!("SCORE:{}", pcs.score)).unwrap();

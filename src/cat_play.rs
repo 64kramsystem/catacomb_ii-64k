@@ -14,8 +14,8 @@ use crate::{
     pcrlib_a::{drawchar, initrndt, rndt, PlaySound, WaitEndSound, WaitVBL},
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
-        centerwindow, get, ControlPlayer, UpdateScreen, _inputint, bioskey, clearkeys,
-        port_temp_print_arr, port_temp_print_str, RecordDemo, SaveDemo,
+        centerwindow, get, ControlPlayer, UpdateScreen, _inputint, bioskey, clearkeys, print,
+        print_str, RecordDemo, SaveDemo,
     },
     pcrlib_c_state::PcrlibCState,
     scan_codes::*,
@@ -105,13 +105,13 @@ fn newobject(gs: &mut GlobalState) -> i32 {
 pub fn printscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 3;
-    port_temp_print_str(&pcs.score.to_string(), gs, pcs);
+    print_str(&pcs.score.to_string(), gs, pcs);
 }
 
 pub fn printhighscore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 31;
     pcs.sy = 5;
-    port_temp_print_str(&{ pcs.highscores[1].score }.to_string(), gs, pcs);
+    print_str(&{ pcs.highscores[1].score }.to_string(), gs, pcs);
 }
 
 /*======================================*/
@@ -126,9 +126,9 @@ pub fn printshotpower(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 25;
     pcs.sy = 13;
     if gs.shotpower == 13 {
-        port_temp_print_arr(&altmeters[13], gs, pcs);
+        print(&altmeters[13], gs, pcs);
     } else {
-        port_temp_print_arr(&meters[gs.shotpower as usize], gs, pcs);
+        print(&meters[gs.shotpower as usize], gs, pcs);
     };
 }
 
@@ -136,9 +136,9 @@ pub fn printbody(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 25;
     pcs.sy = 16;
     if gs.o[0].hp as i32 > 6 {
-        port_temp_print_arr(&meters[gs.o[0].hp as usize], gs, pcs);
+        print(&meters[gs.o[0].hp as usize], gs, pcs);
     } else {
-        port_temp_print_arr(&altmeters[gs.o[0].hp as usize], gs, pcs);
+        print(&altmeters[gs.o[0].hp as usize], gs, pcs);
     };
 }
 
@@ -891,7 +891,7 @@ unsafe fn playercmdthink(
                 && pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
             {
                 centerwindow(16, 2, gs, pcs);
-                port_temp_print_str("warp to which\nlevel (1-99)?", gs, pcs);
+                print_str("warp to which\nlevel (1-99)?", gs, pcs);
                 clearkeys(pcs);
                 pcs.level = _inputint(gs, pas, pcs) as i16;
                 if (pcs.level as i32) < 1 {
@@ -909,11 +909,11 @@ unsafe fn playercmdthink(
             {
                 if gs.GODMODE {
                     centerwindow(13, 1, gs, pcs);
-                    port_temp_print_str("God Mode Off", gs, pcs);
+                    print_str("God Mode Off", gs, pcs);
                     gs.GODMODE = false;
                 } else {
                     centerwindow(12, 1, gs, pcs);
-                    port_temp_print_str("God Mode On", gs, pcs);
+                    print_str("God Mode On", gs, pcs);
                     gs.GODMODE = true;
                 }
                 UpdateScreen(gs, pcs);
@@ -1292,9 +1292,9 @@ pub unsafe fn playloop(
     loop {
         if gs.indemo == notdemo {
             centerwindow(11, 2, gs, pcs);
-            port_temp_print_str(" Entering\nlevel ", gs, pcs);
-            port_temp_print_str(&pcs.level.to_string(), gs, pcs);
-            port_temp_print_str("...", gs, pcs);
+            print_str(" Entering\nlevel ", gs, pcs);
+            print_str(&pcs.level.to_string(), gs, pcs);
+            print_str("...", gs, pcs);
             PlaySound(17, pas);
             WaitEndSound(gs, pas, pcs);
         }
@@ -1309,7 +1309,7 @@ pub unsafe fn playloop(
             refresh(gs, pas, pcs);
             clearkeys(pcs);
             centerwindow(12, 1, gs, pcs);
-            port_temp_print_str("RECORD DEMO", gs, pcs);
+            print_str("RECORD DEMO", gs, pcs);
             loop {
                 let ch = get(gs, pas, pcs) as i8;
                 if !(ch != 13) {
@@ -1330,7 +1330,7 @@ pub unsafe fn playloop(
         if gs.indemo == recording {
             clearkeys(pcs);
             centerwindow(15, 1, gs, pcs);
-            port_temp_print_str("SAVE AS DEMO#:", gs, pcs);
+            print_str("SAVE AS DEMO#:", gs, pcs);
             let mut ch;
             loop {
                 ch = get(gs, pas, pcs) as i8;
