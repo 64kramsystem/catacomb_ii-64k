@@ -1,6 +1,6 @@
 use crate::{gr_type::grtype, sound_type::soundtype};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C, packed)]
 pub struct ctlpaneltype {
     pub grmode: grtype,

@@ -1531,19 +1531,7 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         pcs.keyB1 = SDL_SCANCODE_LCTRL;
         pcs.keyB2 = SDL_SCANCODE_LALT;
     } else {
-        let ctlpanel = ctlpaneltype {
-            grmode: text,
-            soundmode: off,
-            playermode: [0; 3],
-            JoyXlow: [0; 3],
-            JoyYlow: [0; 3],
-            JoyXhigh: [0; 3],
-            JoyYhigh: [0; 3],
-            MouseSensitivity: 0,
-            key: [0; 8],
-            keyB1: 0,
-            keyB2: 0,
-        };
+        let ctlpanel = ctlpaneltype::default();
 
         pcs.grmode = ctlpanel.grmode as grtype;
         pas.soundmode = ctlpanel.soundmode as soundtype;
@@ -1577,19 +1565,7 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
 }
 
 pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    let mut ctlpanel: ctlpaneltype = ctlpaneltype {
-        grmode: text,
-        soundmode: off,
-        playermode: [0; 3],
-        JoyXlow: [0; 3],
-        JoyYlow: [0; 3],
-        JoyXhigh: [0; 3],
-        JoyYhigh: [0; 3],
-        MouseSensitivity: 0,
-        key: [0; 8],
-        keyB1: 0,
-        keyB2: 0,
-    };
+    let mut ctlpanel = ctlpaneltype::default();
     let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
     let handle = open(
         str.as_ptr(),

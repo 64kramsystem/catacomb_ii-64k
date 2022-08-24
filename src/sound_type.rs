@@ -1,11 +1,12 @@
 use num::FromPrimitive;
 use num_derive::FromPrimitive;
 
-#[derive(Clone, Copy, FromPrimitive)]
+#[derive(Clone, Copy, Default, FromPrimitive)]
 #[repr(u16)]
 pub enum soundtype {
     sdlib = 2,
     spkr = 1,
+    #[default]
     off = 0,
 }
 
