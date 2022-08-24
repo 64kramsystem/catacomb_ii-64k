@@ -1,5 +1,5 @@
 use std::convert::TryInto;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
@@ -1285,27 +1285,27 @@ pub fn print_str(str_0: &str, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     print(str_0.as_bytes(), gs, pcs);
 }
 
-pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut ch_0: i8 = 0;
-    loop {
-        let fresh5 = str_0;
-        str_0 = str_0.offset(1);
-        ch_0 = *fresh5;
-        if !(ch_0 as i32 != 0) {
-            break;
-        }
-        if ch_0 as i32 == '\n' as i32 {
-            pcs.sy += 1;
-            pcs.sx = pcs.leftedge;
-        } else if ch_0 as i32 == '\r' as i32 {
-            pcs.sx = pcs.leftedge;
-        } else {
-            let fresh6 = pcs.sx;
-            pcs.sx += 1;
-            drawchartile(fresh6, pcs.sy, ch_0 as u8 as i32, gs, pcs);
+// For help screen
+pub fn printchartile(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    for ch_0 in str_0 {
+        match ch_0 {
+            0 => break,
+            b'\n' => {
+                pcs.sy += 1;
+                pcs.sx = pcs.leftedge;
+            }
+            b'\r' => {
+                pcs.sx = pcs.leftedge;
+            }
+            _ => {
+                drawchartile(pcs.sx, pcs.sy, *ch_0 as i32, gs, pcs);
+                pcs.sx += 1;
+            }
         }
     }
 }
+
+/*========================================================================*/
 
 ////////////////////////////////////////////////////////////////////
 //

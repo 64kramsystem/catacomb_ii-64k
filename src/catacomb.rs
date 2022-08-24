@@ -317,46 +317,14 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     print_str("it a panic button   \n", gs, pcs);
     print_str("when you are being  \n", gs, pcs);
     print_str("mobbed by monsters! \n\n", gs, pcs);
-    printchartile(
-        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"POTIONS:       \x80\xA2\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"SCROLLS:       \x80\xA3\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b" (BOLTS/NUKES) \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"TREASURE:      \x80\xA7\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b" (POINTS)      \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
+    printchartile(b"               \x80\x80\x80\n\0", gs, pcs);
+    printchartile(b"POTIONS:       \x80\xA2\x80\n\0", gs, pcs);
+    printchartile(b"               \x80\x80\x80\n\0", gs, pcs);
+    printchartile(b"SCROLLS:       \x80\xA3\x80\n\0", gs, pcs);
+    printchartile(b" (BOLTS/NUKES) \x80\x80\x80\n\0", gs, pcs);
+    printchartile(b"TREASURE:      \x80\xA7\x80\n\0", gs, pcs);
+    printchartile(b" (POINTS)      \x80\x80\x80\n\0", gs, pcs);
+    printchartile(b"               \x80\x80\x80\n\0", gs, pcs);
     wantmore(gs, pas, pcs);
 }
 
