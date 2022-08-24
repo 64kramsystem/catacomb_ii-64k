@@ -8,7 +8,7 @@
 #![feature(label_break_value)]
 #![feature(register_tool)]
 #![register_tool(c2rust)]
-#![deny(
+#![warn(
     clippy::assign_op_pattern,
     clippy::correctness,
     clippy::precedence,
