@@ -26,8 +26,8 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
-        _showhighscores, bar, bioskey, centerwindow, clearkeys, drawwindow, expwin, get,
-        port_temp_LoadFile, port_temp_bloadin, port_temp_print_str, printchartile,
+        _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
+        loadFile, print_str, printchartile,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -121,10 +121,10 @@ fn simplerefresh(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
 
 pub fn loadgrfiles(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     if pcs.grmode as u32 == CGAgr as i32 as u32 {
-        gs.pics = port_temp_bloadin("CGACHARS.CA2").unwrap();
+        gs.pics = bloadin("CGACHARS.CA2").unwrap();
         installgrfile("CGAPICS.CA2", cps, pcs);
     } else {
-        gs.pics = port_temp_bloadin("EGACHARS.CA2").unwrap();
+        gs.pics = bloadin("EGACHARS.CA2").unwrap();
         installgrfile("EGAPICS.CA2", cps, pcs);
     };
 }
@@ -154,7 +154,7 @@ unsafe fn wantmore(
 ) -> boolean {
     pcs.sx = 2;
     pcs.sy = 20;
-    port_temp_print_str("(space for more/esc)", gs, pcs);
+    print_str("(space for more/esc)", gs, pcs);
     pcs.sx = 12;
     pcs.sy = 21;
     let ch = get(gs, pas, pcs) as i8;
@@ -164,7 +164,7 @@ unsafe fn wantmore(
     return true as boolean;
 }
 
-unsafe fn charpic(
+fn charpic(
     x: i32,
     y: i32,
     c: classtype,
@@ -202,45 +202,45 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     centerwindow(20, 20, gs, pcs);
-    port_temp_print_str("  C A T A C O M B   \n", gs, pcs);
-    port_temp_print_str("   - - - - - - -    \n", gs, pcs);
-    port_temp_print_str(" by John Carmack    \n", gs, pcs);
-    port_temp_print_str("                    \n", gs, pcs);
-    port_temp_print_str("\n", gs, pcs);
-    port_temp_print_str("f1 = help           \n", gs, pcs);
-    port_temp_print_str("f2 = control panel  \n", gs, pcs);
-    port_temp_print_str("f3 = game reset     \n", gs, pcs);
-    port_temp_print_str("f4 = save game      \n", gs, pcs);
-    port_temp_print_str("f5 = load saved game\n", gs, pcs);
-    port_temp_print_str("f9 = pause          \n", gs, pcs);
-    port_temp_print_str("f10 / ESC = quit    \n", gs, pcs);
-    port_temp_print_str("\n", gs, pcs);
-    port_temp_print_str("hit fire at the demo\n", gs, pcs);
-    port_temp_print_str("to begin playing.   \n", gs, pcs);
+    print_str("  C A T A C O M B   \n", gs, pcs);
+    print_str("   - - - - - - -    \n", gs, pcs);
+    print_str(" by John Carmack    \n", gs, pcs);
+    print_str("                    \n", gs, pcs);
+    print_str("\n", gs, pcs);
+    print_str("f1 = help           \n", gs, pcs);
+    print_str("f2 = control panel  \n", gs, pcs);
+    print_str("f3 = game reset     \n", gs, pcs);
+    print_str("f4 = save game      \n", gs, pcs);
+    print_str("f5 = load saved game\n", gs, pcs);
+    print_str("f9 = pause          \n", gs, pcs);
+    print_str("f10 / ESC = quit    \n", gs, pcs);
+    print_str("\n", gs, pcs);
+    print_str("hit fire at the demo\n", gs, pcs);
+    print_str("to begin playing.   \n", gs, pcs);
     if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs, pcs);
-    port_temp_print_str("\nKeyboard controls:  \n\n", gs, pcs);
-    port_temp_print_str("move    : arrows    \n", gs, pcs);
-    port_temp_print_str("button1 : ctrl      \n", gs, pcs);
-    port_temp_print_str("button2 : alt       \n", gs, pcs);
-    port_temp_print_str("\nTo switch to mouse \n", gs, pcs);
-    port_temp_print_str("or joystick control,\n", gs, pcs);
-    port_temp_print_str("hit f2             \n", gs, pcs);
+    print_str("\nKeyboard controls:  \n\n", gs, pcs);
+    print_str("move    : arrows    \n", gs, pcs);
+    print_str("button1 : ctrl      \n", gs, pcs);
+    print_str("button2 : alt       \n", gs, pcs);
+    print_str("\nTo switch to mouse \n", gs, pcs);
+    print_str("or joystick control,\n", gs, pcs);
+    print_str("hit f2             \n", gs, pcs);
     if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs, pcs);
-    port_temp_print_str("Button 1 / ctrl key:\n", gs, pcs);
-    port_temp_print_str("Builds shot power.  \n", gs, pcs);
-    port_temp_print_str("If the shot power   \n", gs, pcs);
-    port_temp_print_str("meter is full when  \n", gs, pcs);
-    port_temp_print_str("the button is       \n", gs, pcs);
-    port_temp_print_str("released, a super   \n", gs, pcs);
-    port_temp_print_str("shot will be        \n", gs, pcs);
-    port_temp_print_str("launched.           \n", gs, pcs);
-    port_temp_print_str("\n", gs, pcs);
+    print_str("Button 1 / ctrl key:\n", gs, pcs);
+    print_str("Builds shot power.  \n", gs, pcs);
+    print_str("If the shot power   \n", gs, pcs);
+    print_str("meter is full when  \n", gs, pcs);
+    print_str("the button is       \n", gs, pcs);
+    print_str("released, a super   \n", gs, pcs);
+    print_str("shot will be        \n", gs, pcs);
+    print_str("launched.           \n", gs, pcs);
+    print_str("\n", gs, pcs);
     y = 11;
     while y <= 18 {
         x = 3;
@@ -259,13 +259,13 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
         return;
     }
     centerwindow(20, 20, gs, pcs);
-    port_temp_print_str("Button 2 / alt key:\n", gs, pcs);
-    port_temp_print_str("Allows you to move  \n", gs, pcs);
-    port_temp_print_str("without changing the\n", gs, pcs);
-    port_temp_print_str("direction you are   \n", gs, pcs);
-    port_temp_print_str("facing.  Good for   \n", gs, pcs);
-    port_temp_print_str("searching walls and \n", gs, pcs);
-    port_temp_print_str("fighting retreats.  \n", gs, pcs);
+    print_str("Button 2 / alt key:\n", gs, pcs);
+    print_str("Allows you to move  \n", gs, pcs);
+    print_str("without changing the\n", gs, pcs);
+    print_str("direction you are   \n", gs, pcs);
+    print_str("facing.  Good for   \n", gs, pcs);
+    print_str("searching walls and \n", gs, pcs);
+    print_str("fighting retreats.  \n", gs, pcs);
     y = 11;
     while y <= 18 {
         x = 3;
@@ -284,79 +284,47 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     charpic(6, 13, player, south, 2, gs, pcs);
     pcs.sx = 6;
     pcs.sy = 15;
-    port_temp_print_str("\x1D\x1D\x1E\x1E\x1F\x1F", gs, pcs);
+    print_str("\x1D\x1D\x1E\x1E\x1F\x1F", gs, pcs);
     if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs, pcs);
-    port_temp_print_str("\"P\" or \"space\" will \n", gs, pcs);
-    port_temp_print_str("take a healing      \n", gs, pcs);
-    port_temp_print_str("potion if you have  \n", gs, pcs);
-    port_temp_print_str("one.  This restores \n", gs, pcs);
-    port_temp_print_str("the body meter to   \n", gs, pcs);
-    port_temp_print_str("full strength.  Keep\n", gs, pcs);
-    port_temp_print_str("a sharp eye on the  \n", gs, pcs);
-    port_temp_print_str("meter, because when \n", gs, pcs);
-    port_temp_print_str("it runs out, you are\n", gs, pcs);
-    port_temp_print_str("dead!               \n\n", gs, pcs);
-    port_temp_print_str("\"B\" will cast a bolt\n", gs, pcs);
-    port_temp_print_str("spell if you have   \n", gs, pcs);
-    port_temp_print_str("any.  You can mow   \n", gs, pcs);
-    port_temp_print_str("down a lot of       \n", gs, pcs);
-    port_temp_print_str("monsters with a bit \n", gs, pcs);
-    port_temp_print_str("of skill.           \n", gs, pcs);
+    print_str("\"P\" or \"space\" will \n", gs, pcs);
+    print_str("take a healing      \n", gs, pcs);
+    print_str("potion if you have  \n", gs, pcs);
+    print_str("one.  This restores \n", gs, pcs);
+    print_str("the body meter to   \n", gs, pcs);
+    print_str("full strength.  Keep\n", gs, pcs);
+    print_str("a sharp eye on the  \n", gs, pcs);
+    print_str("meter, because when \n", gs, pcs);
+    print_str("it runs out, you are\n", gs, pcs);
+    print_str("dead!               \n\n", gs, pcs);
+    print_str("\"B\" will cast a bolt\n", gs, pcs);
+    print_str("spell if you have   \n", gs, pcs);
+    print_str("any.  You can mow   \n", gs, pcs);
+    print_str("down a lot of       \n", gs, pcs);
+    print_str("monsters with a bit \n", gs, pcs);
+    print_str("of skill.           \n", gs, pcs);
     if wantmore(gs, pas, pcs) == 0 {
         return;
     }
     centerwindow(20, 20, gs, pcs);
-    port_temp_print_str("\"N\" or \"enter\" will \n", gs, pcs);
-    port_temp_print_str("cast a nuke spell.  \n", gs, pcs);
-    port_temp_print_str("This usually wipes  \n", gs, pcs);
-    port_temp_print_str("out all the monsters\n", gs, pcs);
-    port_temp_print_str("near you.  Consider \n", gs, pcs);
-    port_temp_print_str("it a panic button   \n", gs, pcs);
-    port_temp_print_str("when you are being  \n", gs, pcs);
-    port_temp_print_str("mobbed by monsters! \n\n", gs, pcs);
-    printchartile(
-        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"POTIONS:       \x80\xA2\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"SCROLLS:       \x80\xA3\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b" (BOLTS/NUKES) \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"TREASURE:      \x80\xA7\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b" (POINTS)      \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
-    printchartile(
-        b"               \x80\x80\x80\n\0" as *const u8 as *const i8,
-        gs,
-        pcs,
-    );
+    print_str("\"N\" or \"enter\" will \n", gs, pcs);
+    print_str("cast a nuke spell.  \n", gs, pcs);
+    print_str("This usually wipes  \n", gs, pcs);
+    print_str("out all the monsters\n", gs, pcs);
+    print_str("near you.  Consider \n", gs, pcs);
+    print_str("it a panic button   \n", gs, pcs);
+    print_str("when you are being  \n", gs, pcs);
+    print_str("mobbed by monsters! \n\n", gs, pcs);
+    printchartile(b"               \x80\x80\x80\n\0", gs, pcs);
+    printchartile(b"POTIONS:       \x80\xA2\x80\n\0", gs, pcs);
+    printchartile(b"               \x80\x80\x80\n\0", gs, pcs);
+    printchartile(b"SCROLLS:       \x80\xA3\x80\n\0", gs, pcs);
+    printchartile(b" (BOLTS/NUKES) \x80\x80\x80\n\0", gs, pcs);
+    printchartile(b"TREASURE:      \x80\xA7\x80\n\0", gs, pcs);
+    printchartile(b" (POINTS)      \x80\x80\x80\n\0", gs, pcs);
+    printchartile(b"               \x80\x80\x80\n\0", gs, pcs);
     wantmore(gs, pas, pcs);
 }
 
@@ -366,7 +334,7 @@ unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
 #[allow(dead_code)]
 unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     centerwindow(18, 1, gs, pcs);
-    port_temp_print_str("reset game (y/n)?", gs, pcs);
+    print_str("reset game (y/n)?", gs, pcs);
     let ch = get(gs, pas, pcs) as i8;
     if ch == 'y' as i8 {
         gs.gamexit = killed;
@@ -374,7 +342,7 @@ unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCS
     }
 }
 
-pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
@@ -389,7 +357,7 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     let mut sm = vec![];
     let mut rle = [0; 4096];
     let filename = format!("LEVEL{}.CA2", pcs.level);
-    let filesize = port_temp_LoadFile(&filename, &mut rle);
+    let filesize = loadFile(&filename, &mut rle);
     RLEExpand(&rle[4..], filesize, &mut sm);
     gs.numobj = 0;
     gs.o[0].x = 13;
@@ -447,8 +415,8 @@ pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut 
     }
     pcs.sx = 33;
     pcs.sy = 1;
-    port_temp_print_str(&pcs.level.to_string(), gs, pcs);
-    port_temp_print_str(" ", gs, pcs);
+    print_str(&pcs.level.to_string(), gs, pcs);
+    print_str(" ", gs, pcs);
     restore(gs, pas, pcs);
     i = 0;
     while i < 6 {
@@ -472,15 +440,15 @@ fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState)
         pcs.sy += 1;
     }
     drawwindow(24, 0, 38, 23, gs, pcs);
-    port_temp_print_str("  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n", gs, pcs);
-    port_temp_print_str(" shot power\n\n\n    body\n\n\n", gs, pcs);
+    print_str("  level\n\nscore:\n\ntop  :\n\nk:\np:\nb:\nn:\n\n", gs, pcs);
+    print_str(" shot power\n\n\n    body\n\n\n", gs, pcs);
     printhighscore(gs, pcs);
     printbody(gs, pcs);
     printshotpower(gs, pcs);
     printscore(gs, pcs);
     pcs.sx = 33;
     pcs.sy = 1;
-    port_temp_print_str(&pcs.level.to_string(), gs, pcs);
+    print_str(&pcs.level.to_string(), gs, pcs);
     drawpic(25 * 8, 17 * 8, 13, gs, cps, pcs);
     i = 1;
     while i <= gs.items[1] as i32 && i < 11 {
@@ -504,7 +472,7 @@ fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState)
     }
 }
 
-unsafe fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
+fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     gs.shotpower = 0;
     bar(0, 0, 23, 23, 0, gs, pcs);
@@ -536,7 +504,7 @@ unsafe fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut Pcrli
     };
 }
 
-pub unsafe fn repaintscreen(
+pub fn repaintscreen(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -552,7 +520,7 @@ pub unsafe fn repaintscreen(
             printscore(gs, pcs);
             pcs.sx = 33;
             pcs.sy = 1;
-            port_temp_print_str(&pcs.level.to_string(), gs, pcs);
+            print_str(&pcs.level.to_string(), gs, pcs);
         }
         statetype::inscores => {
             restore(gs, pas, pcs);
@@ -560,7 +528,7 @@ pub unsafe fn repaintscreen(
             printscore(gs, pcs);
             pcs.sx = 33;
             pcs.sy = 1;
-            port_temp_print_str(&pcs.level.to_string(), gs, pcs);
+            print_str(&pcs.level.to_string(), gs, pcs);
             gs.indemo = demoplay;
         }
     };
@@ -593,7 +561,7 @@ pub unsafe fn dofkeys(
         60 => {
             clearkeys(pcs);
             expwin(18, 1, gs, pas, pcs);
-            port_temp_print_str("RESET GAME (Y/N)?", gs, pcs);
+            print_str("RESET GAME (Y/N)?", gs, pcs);
             let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
             if ch as i32 == 'Y' as i32 {
                 gs.resetgame = true;
@@ -603,25 +571,25 @@ pub unsafe fn dofkeys(
             clearkeys(pcs);
             expwin(22, 4, gs, pas, pcs);
             if gs.indemo != notdemo {
-                port_temp_print_str("Can't save game here!", gs, pcs);
+                print_str("Can't save game here!", gs, pcs);
                 get(gs, pas, pcs);
             } else {
-                port_temp_print_str("Save as game #(1-9):", gs, pcs);
+                print_str("Save as game #(1-9):", gs, pcs);
                 let mut ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
                     let str = format!("GAME{ch}.CA2");
                     if _Verify(&str) != 0 {
-                        port_temp_print_str("\nGame exists,\noverwrite (Y/N)?", gs, pcs);
+                        print_str("\nGame exists,\noverwrite (Y/N)?", gs, pcs);
                         ch = get(gs, pas, pcs) as i8;
                         if ch as i32 != 'Y' as i32 && ch as i32 != 'y' as i32 {
                             current_block_72 = 919954187481050311;
                         } else {
                             pcs.sx = pcs.leftedge;
-                            port_temp_print_str("                    ", gs, pcs);
+                            print_str("                    ", gs, pcs);
                             pcs.sy -= 1;
                             pcs.sx = pcs.leftedge;
-                            port_temp_print_str("                    ", gs, pcs);
+                            print_str("                    ", gs, pcs);
                             pcs.sx = pcs.leftedge;
                             pcs.sy -= 1;
                             current_block_72 = 1836292691772056875;
@@ -663,9 +631,9 @@ pub unsafe fn dofkeys(
                                 ::std::mem::size_of::<activeobj>() as u64,
                             );
                             close(handle);
-                            port_temp_print_str("\nGame saved.  Hit F5\n", gs, pcs);
-                            port_temp_print_str("when you wish to\n", gs, pcs);
-                            port_temp_print_str("restart the game.", gs, pcs);
+                            print_str("\nGame saved.  Hit F5\n", gs, pcs);
+                            print_str("when you wish to\n", gs, pcs);
+                            print_str("restart the game.", gs, pcs);
                             get(gs, pas, pcs);
                         }
                     }
@@ -675,7 +643,7 @@ pub unsafe fn dofkeys(
         62 => {
             clearkeys(pcs);
             expwin(22, 4, gs, pas, pcs);
-            port_temp_print_str("Load game #(1-9):", gs, pcs);
+            print_str("Load game #(1-9):", gs, pcs);
             let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
             if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
@@ -688,7 +656,7 @@ pub unsafe fn dofkeys(
                     0o200 as i32 | 0o400 as i32,
                 );
                 if handle == -1 {
-                    port_temp_print_str("\nGame not found.", gs, pcs);
+                    print_str("\nGame not found.", gs, pcs);
                     get(gs, pas, pcs);
                 } else {
                     read(
@@ -724,13 +692,13 @@ pub unsafe fn dofkeys(
         66 => {
             clearkeys(pcs);
             expwin(7, 1, gs, pas, pcs);
-            port_temp_print_str("PAUSED", gs, pcs);
+            print_str("PAUSED", gs, pcs);
             get(gs, pas, pcs);
         }
         67 => {
             clearkeys(pcs);
             expwin(12, 1, gs, pas, pcs);
-            port_temp_print_str("QUIT (Y/N)?", gs, pcs);
+            print_str("QUIT (Y/N)?", gs, pcs);
             let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
             if ch == 'Y' as i8 {
                 _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas, pcs);
@@ -797,23 +765,23 @@ unsafe fn doendpage(
     PlaySound(3, pas);
     WaitEndSound(gs, pas, pcs);
     drawwindow(0, 0, 17, 9, gs, pcs);
-    port_temp_print_str("Congratulation! \n", gs, pcs);
-    port_temp_print_str("One as skilled  \n", gs, pcs);
-    port_temp_print_str("as yourself     \n", gs, pcs);
-    port_temp_print_str("deserves the    \n", gs, pcs);
-    port_temp_print_str("10,000,000 gold \n", gs, pcs);
-    port_temp_print_str("you pulled out  \n", gs, pcs);
-    port_temp_print_str("of the palace! ", gs, pcs);
+    print_str("Congratulation! \n", gs, pcs);
+    print_str("One as skilled  \n", gs, pcs);
+    print_str("as yourself     \n", gs, pcs);
+    print_str("deserves the    \n", gs, pcs);
+    print_str("10,000,000 gold \n", gs, pcs);
+    print_str("you pulled out  \n", gs, pcs);
+    print_str("of the palace! ", gs, pcs);
     clearkeys(pcs);
     get(gs, pas, pcs);
     drawwindow(0, 0, 17, 9, gs, pcs);
-    port_temp_print_str("Let us know what\n", gs, pcs);
-    port_temp_print_str("you enjoyed     \n", gs, pcs);
-    port_temp_print_str("about this game,\n", gs, pcs);
-    port_temp_print_str("so we can give  \n", gs, pcs);
-    port_temp_print_str("you more of it. \n", gs, pcs);
-    port_temp_print_str("Thank you for   \n", gs, pcs);
-    port_temp_print_str("playing!", gs, pcs);
+    print_str("Let us know what\n", gs, pcs);
+    print_str("you enjoyed     \n", gs, pcs);
+    print_str("about this game,\n", gs, pcs);
+    print_str("so we can give  \n", gs, pcs);
+    print_str("you more of it. \n", gs, pcs);
+    print_str("Thank you for   \n", gs, pcs);
+    print_str("playing!", gs, pcs);
     get(gs, pas, pcs);
 }
 
@@ -874,7 +842,7 @@ unsafe fn gameover(
 ) {
     let mut i: i32 = 0;
     expwin(11, 4, gs, pas, pcs);
-    port_temp_print_str("\n GAME OVER\n     ", gs, pcs);
+    print_str("\n GAME OVER\n     ", gs, pcs);
     UpdateScreen(gs, pcs);
     WaitEndSound(gs, pas, pcs);
     i = 0;
@@ -1009,14 +977,14 @@ pub fn original_main() {
 
     unsafe {
         expwin(33, 13, &mut gs, &mut pas, &mut pcs);
-        port_temp_print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);
-        port_temp_print_str("          The Catacomb\n\n", &mut gs, &mut pcs);
-        port_temp_print_str("        By John Carmack\n\n", &mut gs, &mut pcs);
-        port_temp_print_str("       Copyright 1990-93\n", &mut gs, &mut pcs);
-        port_temp_print_str("      Softdisk Publishing", &mut gs, &mut pcs);
-        port_temp_print_str("\n\n", &mut gs, &mut pcs);
-        port_temp_print_str("\n\n", &mut gs, &mut pcs);
-        port_temp_print_str("         Press a key:", &mut gs, &mut pcs);
+        print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);
+        print_str("          The Catacomb\n\n", &mut gs, &mut pcs);
+        print_str("        By John Carmack\n\n", &mut gs, &mut pcs);
+        print_str("       Copyright 1990-93\n", &mut gs, &mut pcs);
+        print_str("      Softdisk Publishing", &mut gs, &mut pcs);
+        print_str("\n\n", &mut gs, &mut pcs);
+        print_str("\n\n", &mut gs, &mut pcs);
+        print_str("         Press a key:", &mut gs, &mut pcs);
         get(&mut gs, &mut pas, &mut pcs);
 
         clearkeys(&mut pcs);

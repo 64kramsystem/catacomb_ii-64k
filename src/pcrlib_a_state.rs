@@ -16,7 +16,7 @@ pub struct PcrlibAState {
     // Rust port: shared
     // //////////////////////////////////////////////////////////
 
-    pub SoundData: *mut SPKRtable,
+    pub SoundData: SPKRtable,
     pub soundmode: soundtype,
 
     // //////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ impl PcrlibAState {
         RndArray: [u16; 17],
         vblsem: *mut SDL_semaphore,
         vbltimer: i32,
-        SoundData: *mut SPKRtable,
+        SoundData: SPKRtable,
         soundmode: soundtype,
         xormask: i32,
     ) -> Self {
@@ -150,7 +150,7 @@ impl Default for PcrlibAState {
             [0; 17],
             0 as *mut SDL_semaphore,
             0,
-            ptr::null_mut(),
+            SPKRtable::default(),
             spkr,
             0,
         )

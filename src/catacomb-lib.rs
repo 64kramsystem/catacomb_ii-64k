@@ -8,7 +8,7 @@
 #![feature(label_break_value)]
 #![feature(register_tool)]
 #![register_tool(c2rust)]
-#![deny(
+#![warn(
     clippy::assign_op_pattern,
     clippy::correctness,
     clippy::precedence,
@@ -36,6 +36,7 @@ mod class_type;
 mod control_struct;
 mod cpanel;
 mod cpanel_state;
+mod ctl_panel_type;
 mod demo_enum;
 mod dir_type;
 mod exit_type;

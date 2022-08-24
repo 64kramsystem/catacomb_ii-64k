@@ -1,15 +1,16 @@
 use std::convert::TryInto;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
 use std::{fs, mem, ptr};
 
 use ::libc;
-use libc::O_RDONLY;
+use serdine::Deserialize;
 
 use crate::catacomb::loadgrfiles;
 use crate::cpanel_state::CpanelState;
+use crate::ctl_panel_type::ctlpaneltype;
 use crate::input_type::inputtype::*;
 use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
@@ -21,7 +22,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::*,
-    extra_constants::{port_temp__extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
+    extra_constants::{port_temp__extension, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
     extra_types::boolean,
     global_state::GlobalState,
@@ -36,9 +37,7 @@ extern "C" {
     pub type _IO_codecvt;
     pub type _IO_marker;
     fn close(__fd: i32) -> i32;
-    fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
-    fn fstat(__fd: i32, __buf: *mut stat) -> i32;
     fn puts(__s: *const i8) -> i32;
     fn __assert_fail(
         __assertion: *const i8,
@@ -485,28 +484,9 @@ pub union C2RustUnnamed_5 {
     pub joy: *mut SDL_Joystick,
 }
 
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct ctlpaneltype {
-    pub grmode: grtype,
-    pub soundmode: soundtype,
-    pub playermode: [u16; 3],
-    pub JoyXlow: [i16; 3],
-    pub JoyYlow: [i16; 3],
-    pub JoyXhigh: [i16; 3],
-    pub JoyYhigh: [i16; 3],
-    pub MouseSensitivity: i16,
-    pub key: [u8; 8],
-    pub keyB1: u8,
-    pub keyB2: u8,
-}
-
 pub fn SetupKBD(pcs: &mut PcrlibCState) {
-    let mut i: u32 = 0;
-    i = 0;
-    while i < 128 {
-        pcs.keydown[i as usize] = false as boolean;
-        i = i.wrapping_add(1);
+    for i in 0..128 {
+        pcs.keydown[i] = false as boolean;
     }
 }
 
@@ -897,7 +877,7 @@ pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let filename = format!("DEMO{demonum}.{port_temp__extension}");
     let mut temp_port_demobuffer = [0; 5000];
 
-    port_temp_LoadFile(&filename, &mut temp_port_demobuffer);
+    loadFile(&filename, &mut temp_port_demobuffer);
     pcs.demobuffer
         .copy_from_slice(&temp_port_demobuffer.map(|b| b as u8));
     pcs.level = pcs.demobuffer[0] as i16;
@@ -921,67 +901,28 @@ pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 /*=========================================================================*/
 
-pub unsafe fn clearkeys(pcs: &mut PcrlibCState) {
-    let mut i: i32 = 0;
+pub fn clearkeys(pcs: &mut PcrlibCState) {
     while bioskey(1, pcs) != 0 {
         bioskey(0, pcs);
     }
-    i = 0;
-    while i < 128 {
-        pcs.keydown[i as usize] = 0;
-        i += 1;
+    for i in 0..128 {
+        pcs.keydown[i] = 0;
     }
 }
 
-unsafe fn filelength(fd: i32) -> i64 {
-    let mut s: stat = stat {
-        st_dev: 0,
-        st_ino: 0,
-        st_nlink: 0,
-        st_mode: 0,
-        st_uid: 0,
-        st_gid: 0,
-        __pad0: 0,
-        st_rdev: 0,
-        st_size: 0,
-        st_blksize: 0,
-        st_blocks: 0,
-        st_atim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        st_mtim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        st_ctim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        __glibc_reserved: [0; 3],
-    };
-    if fstat(fd, &mut s) != 0 {
-        return -1 as i64;
-    }
-    return s.st_size;
-}
-
-pub unsafe fn LoadFile(filename: *const i8, buffer: *const i8) -> u64 {
-    let mut fd: i32 = 0;
-    fd = open(filename, 0o400 as i32);
-    if fd < 0 {
-        return 0;
-    }
-    let len: i64 = filelength(fd);
-    let bytesRead: i64 = read(fd, buffer as *mut libc::c_void, len as u64);
-    close(fd);
-    return bytesRead as u64;
-}
+/*
+==============================================
+=
+= Load a *LARGE* file into a FAR buffer!
+= by John Romero (C) 1990 PCRcade
+=
+==============================================
+*/
 
 /// Using a Vec as dest buffer would be more convenient and idiomatic, however, routines may rely on
 /// a certain buffer length.
 /// An alternative is to pass the intended destination length, but there isn't a significant difference.
-pub fn port_temp_LoadFile(filename: &str, dest: &mut [u8]) -> usize {
+pub fn loadFile(filename: &str, dest: &mut [u8]) -> usize {
     if let Ok(mut file) = File::open(filename) {
         let mut buffer = Vec::new();
         let bytes_read = file.read_to_end(&mut buffer).unwrap();
@@ -1039,33 +980,31 @@ pub fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
 
 //==========================================================================
 
-pub fn bloadin(filename: &str) -> *const u8 {
-    let file_meta = fs::metadata(filename);
+/*
+====================================
+=
+= bloadin
+= Paraligns just enough space and bloads in the
+= specified file, returning a pointer to the start
+=
+====================================
+*/
 
-    if let Ok(file_meta) = file_meta {
-        let mut buffer = vec![0; file_meta.len() as usize];
-
-        port_temp_LoadFile(filename, &mut buffer);
-
-        let buffer_p = buffer.as_mut_ptr();
-
-        mem::forget(buffer);
-
-        buffer_p
-    } else {
-        ptr::null_mut()
-    }
-}
-
-pub fn port_temp_bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
+pub fn bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
     let file_meta = fs::metadata(filename);
 
     let mut buffer = vec![0; file_meta?.len() as usize];
 
-    port_temp_LoadFile(filename, &mut buffer);
+    loadFile(filename, &mut buffer);
 
     Ok(buffer)
 }
+
+/*==================================================================================*/
+
+/*
+** Graphic routines
+*/
 
 pub fn drawwindow(
     xl: i32,
@@ -1296,42 +1235,9 @@ pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
 //
 /////////////////////////
 
-pub unsafe fn _print(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    loop {
-        let ch_0 = *str_0;
-        str_0 = str_0.offset(1);
-        match ch_0 as u8 {
-            0 => break,
-            b'\n' => {
-                pcs.sy += 1;
-                pcs.sx = pcs.leftedge;
-            }
-            b'\r' => {
-                pcs.sx = pcs.leftedge;
-            }
-            _ => {
-                drawchar(pcs.sx, pcs.sy, ch_0 as i32, gs, pcs);
-                pcs.sx += 1;
-            }
-        }
-    }
-}
-
-/// To be the used when printing from memory.
-///
-pub fn port_temp_print_cstr(str_0: &CStr, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    port_temp_print_str(&str_0.to_string_lossy(), gs, pcs)
-}
-
-/// Convenience.
-///
-pub fn port_temp_print_str(str_0: &str, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    port_temp_print_arr(str_0.as_bytes(), gs, pcs);
-}
-
 /// Reference print routine. &[u8] is used, because this in not necessarily a textual string.
 ///
-pub fn port_temp_print_arr(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+pub fn print(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     for ch_0 in str_0 {
         match ch_0 {
             0 => break,
@@ -1350,27 +1256,33 @@ pub fn port_temp_print_arr(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibC
     }
 }
 
-pub unsafe fn printchartile(mut str_0: *const i8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let mut ch_0: i8 = 0;
-    loop {
-        let fresh5 = str_0;
-        str_0 = str_0.offset(1);
-        ch_0 = *fresh5;
-        if !(ch_0 as i32 != 0) {
-            break;
-        }
-        if ch_0 as i32 == '\n' as i32 {
-            pcs.sy += 1;
-            pcs.sx = pcs.leftedge;
-        } else if ch_0 as i32 == '\r' as i32 {
-            pcs.sx = pcs.leftedge;
-        } else {
-            let fresh6 = pcs.sx;
-            pcs.sx += 1;
-            drawchartile(fresh6, pcs.sy, ch_0 as u8 as i32, gs, pcs);
+/// Rust port: convenience.
+///
+pub fn print_str(str_0: &str, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    print(str_0.as_bytes(), gs, pcs);
+}
+
+// For help screen
+pub fn printchartile(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+    for ch_0 in str_0 {
+        match ch_0 {
+            0 => break,
+            b'\n' => {
+                pcs.sy += 1;
+                pcs.sx = pcs.leftedge;
+            }
+            b'\r' => {
+                pcs.sx = pcs.leftedge;
+            }
+            _ => {
+                drawchartile(pcs.sx, pcs.sy, *ch_0 as i32, gs, pcs);
+                pcs.sx += 1;
+            }
         }
     }
 }
+
+/*========================================================================*/
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -1399,7 +1311,7 @@ pub fn _Verify(filename: &str) -> u64 {
 /// Rust port: Prints a byte in padded hex.
 fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("{:02X}", value);
-    port_temp_print_str(&fmt_value, gs, pcs);
+    print_str(&fmt_value, gs, pcs);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1410,7 +1322,7 @@ fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState
 /// Rust port: Prints a word in padded hex, prefixed by `$`.
 fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("${:04X}", value);
-    port_temp_print_str(&fmt_value, gs, pcs);
+    print_str(&fmt_value, gs, pcs);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1421,7 +1333,7 @@ fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 /// Rust port: Prints a word in padded binary, prefixed by `%`; dead code.
 fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("%{:016b}", value);
-    port_temp_print_str(&fmt_value, gs, pcs);
+    print_str(&fmt_value, gs, pcs);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1431,7 +1343,7 @@ fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 ////////////////////////////////////////////////////////////////////
 fn _printc(string: &CString, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sx = 1 + gs.screencenter.x - string.as_bytes().len() as i32;
-    port_temp_print_cstr(string, gs, pcs);
+    print(string.as_bytes(), gs, pcs);
 }
 
 // Rust port: Avoids importing strlen, and also, works on u8.
@@ -1571,20 +1483,27 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
     );
 }
 
+////////////////////////
+//
+// _loadctrls
+// Tries to load the control panel settings
+// creates a default if not present
+//
+////////////////////////
+
 pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
-    // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
-    // project.
-    let handle = open(
-        str.as_ptr(),
-        O_RDONLY | O_BINARY,
-        0o200 as i32 | 0o400 as i32,
-    );
-    if handle == -1 {
+    let str = format!("CTLPANEL.{port_temp__extension}");
+    // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
+    // For simplicity, we do a standard file open.
+    if File::open(&str).is_err() {
+        //
+        // set up default control panel settings
+        //
         pcs.grmode = VGAgr;
         pas.soundmode = spkr;
         pcs.playermode[1] = keyboard;
         pcs.playermode[2] = joystick1;
+
         pcs.JoyXlow[2] = 20;
         pcs.JoyXlow[1] = pcs.JoyXlow[2];
         pcs.JoyXhigh[2] = 60;
@@ -1594,6 +1513,7 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         pcs.JoyYhigh[2] = 60;
         pcs.JoyYhigh[1] = pcs.JoyYhigh[2];
         pcs.MouseSensitivity = 5;
+
         pcs.key[north as usize] = SDL_SCANCODE_UP;
         pcs.key[northeast as usize] = SDL_SCANCODE_PAGEUP;
         pcs.key[east as usize] = SDL_SCANCODE_RIGHT;
@@ -1605,77 +1525,41 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         pcs.keyB1 = SDL_SCANCODE_LCTRL;
         pcs.keyB2 = SDL_SCANCODE_LALT;
     } else {
-        let mut ctlpanel: ctlpaneltype = ctlpaneltype {
-            grmode: text,
-            soundmode: off,
-            playermode: [0; 3],
-            JoyXlow: [0; 3],
-            JoyYlow: [0; 3],
-            JoyXhigh: [0; 3],
-            JoyYhigh: [0; 3],
-            MouseSensitivity: 0,
-            key: [0; 8],
-            keyB1: 0,
-            keyB2: 0,
-        };
-        read(
-            handle,
-            &mut ctlpanel as *mut ctlpaneltype as *mut libc::c_void,
-            ::std::mem::size_of::<ctlpaneltype>() as u64,
-        );
-        close(handle);
+        let ctlpanel = ctlpaneltype::default();
+
         pcs.grmode = ctlpanel.grmode as grtype;
         pas.soundmode = ctlpanel.soundmode as soundtype;
-        let mut i: u32 = 0;
-        i = 0;
-        while i < 3 {
-            pcs.playermode[i as usize] = ctlpanel.playermode[i as usize].into();
-            pcs.JoyXlow[i as usize] = ctlpanel.JoyXlow[i as usize] as i32;
-            pcs.JoyYlow[i as usize] = ctlpanel.JoyYlow[i as usize] as i32;
-            pcs.JoyXhigh[i as usize] = ctlpanel.JoyXhigh[i as usize] as i32;
-            pcs.JoyYhigh[i as usize] = ctlpanel.JoyYhigh[i as usize] as i32;
-            if pcs.playermode[i as usize] as u32 == mouse as i32 as u32 {
+        for i in 0..3 {
+            pcs.playermode[i] = ctlpanel.playermode[i].into();
+            pcs.JoyXlow[i] = ctlpanel.JoyXlow[i] as i32;
+            pcs.JoyYlow[i] = ctlpanel.JoyYlow[i] as i32;
+            pcs.JoyXhigh[i] = ctlpanel.JoyXhigh[i] as i32;
+            pcs.JoyYhigh[i] = ctlpanel.JoyYhigh[i] as i32;
+
+            if pcs.playermode[i] == mouse {
                 CheckMouseMode(pcs);
             }
-            if pcs.playermode[i as usize] as u32 == joystick1 as i32 as u32
-                || pcs.playermode[i as usize] as u32 == joystick2 as i32 as u32
-            {
+
+            if pcs.playermode[i] == joystick1 || pcs.playermode[i] == joystick2 {
                 ProbeJoysticks(pcs);
-                if pcs.playermode[i as usize] as u32 == joystick1 as i32 as u32
-                    && pcs.joystick[1].device < 0
-                    || pcs.playermode[i as usize] as u32 == joystick2 as i32 as u32
-                        && pcs.joystick[2].device < 0
+                if (pcs.playermode[i] == joystick1 && pcs.joystick[1].device < 0)
+                    || (pcs.playermode[i] == joystick2 && pcs.joystick[2].device < 0)
                 {
-                    pcs.playermode[i as usize] = keyboard;
+                    pcs.playermode[i] = keyboard;
                 }
             }
-            i = i.wrapping_add(1);
         }
         pcs.MouseSensitivity = ctlpanel.MouseSensitivity as i32;
-        i = 0;
-        while i < 8 {
-            pcs.key[i as usize] = DOSScanCodeMap[ctlpanel.key[i as usize] as usize];
-            i = i.wrapping_add(1);
+        for i in 0..=8 {
+            pcs.key[i] = DOSScanCodeMap[ctlpanel.key[i] as usize];
         }
         pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize];
         pcs.keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize];
-    };
+    }
 }
 
 pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    let mut ctlpanel: ctlpaneltype = ctlpaneltype {
-        grmode: text,
-        soundmode: off,
-        playermode: [0; 3],
-        JoyXlow: [0; 3],
-        JoyYlow: [0; 3],
-        JoyXhigh: [0; 3],
-        JoyYhigh: [0; 3],
-        MouseSensitivity: 0,
-        key: [0; 8],
-        keyB1: 0,
-        keyB2: 0,
-    };
+    let mut ctlpanel = ctlpaneltype::default();
     let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
     let handle = open(
         str.as_ptr(),
@@ -1712,9 +1596,23 @@ pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     close(handle);
 }
 
-pub unsafe fn _loadhighscores(pcs: &mut PcrlibCState) {
-    let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
-    if LoadFile(str.as_ptr(), pcs.highscores.as_mut_ptr() as *mut i8) == 0 {
+pub fn _loadhighscores(pcs: &mut PcrlibCState) {
+    let filename = format!("SCORES.{port_temp__extension}");
+    let mut buffer = [0_u8; mem::size_of::<[scores; 5]>()];
+
+    let bytes_loaded = loadFile(&filename, &mut buffer);
+
+    if bytes_loaded > 0 {
+        // Rust port: there isn't a type for the whole scores data (file), so we deserialize in
+        // chunks.
+        for (highscore, score_buffer) in pcs
+            .highscores
+            .iter_mut()
+            .zip(buffer.chunks_exact(mem::size_of::<scores>()))
+        {
+            *highscore = Deserialize::deserialize(score_buffer);
+        }
+    } else {
         for i in 0..5 {
             pcs.highscores[i].score = 100;
             pcs.highscores[i].level = 1;
@@ -1736,9 +1634,9 @@ pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut h: i64 = 0;
     centerwindow(17, 17, gs, pcs);
-    port_temp_print_str("\n   HIGH SCORES\n\n", gs, pcs);
-    port_temp_print_str(" #  SCORE LV  BY\n", gs, pcs);
-    port_temp_print_str(" - ------ -- ---\n", gs, pcs);
+    print_str("\n   HIGH SCORES\n\n", gs, pcs);
+    print_str(" #  SCORE LV  BY\n", gs, pcs);
+    print_str(" - ------ -- ---\n", gs, pcs);
     i = 0;
     while i < 5 {
         pcs.sx += 1;
@@ -1760,18 +1658,18 @@ pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         if h < 10 {
             pcs.sx += 1;
         }
-        port_temp_print_str(&h.to_string(), gs, pcs);
+        print_str(&h.to_string(), gs, pcs);
         pcs.sx += 1;
         if (pcs.highscores[i as usize].level as i32) < 10 {
             pcs.sx += 1;
         }
         let str = { pcs.highscores[i as usize].level }.to_string();
-        port_temp_print_str(&str, gs, pcs);
+        print_str(&str, gs, pcs);
         pcs.sx += 1;
         // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
         let highscore_bytes = &pcs.highscores[i as usize].initials.map(|f| f as u8)[0..=2];
-        port_temp_print_arr(highscore_bytes, gs, pcs);
-        port_temp_print_str("\n\n", gs, pcs);
+        print(highscore_bytes, gs, pcs);
+        print_str("\n\n", gs, pcs);
         i += 1;
     }
     let str = CString::new(format!("SCORE:{}", pcs.score)).unwrap();
@@ -1970,7 +1868,8 @@ pub fn _setupgame(
             pcs.grmode = CGAgr;
         }
         let filename = format!("SOUNDS.{port_temp__extension}");
-        pas.SoundData = bloadin(&filename) as *mut SPKRtable;
+        let sound_data_buffer = bloadin(&filename).unwrap();
+        pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
         StartupSound(pas);
         SetupKBD(pcs);
         initrndt(1, pas);

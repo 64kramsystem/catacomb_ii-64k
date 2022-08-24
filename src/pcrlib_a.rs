@@ -9,6 +9,7 @@ use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, extra_types::boolean,
     global_state::GlobalState, gr_type::grtype::*, pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen, pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*,
+    spkr_table::SPKRtable,
 };
 
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
@@ -58,7 +59,7 @@ pub fn EGA(chan: &[u8], ofs: u8) -> u8 {
 }
 
 #[inline]
-unsafe fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
+fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
     // There is a bug in the SDL port; the data types used don't cover the range of values.
     // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
@@ -93,19 +94,19 @@ unsafe fn _SDL_PCService(pas: &mut PcrlibAState) {
     }
 }
 
-unsafe fn _SDL_PCPlaySound(sound: i32, pas: &mut PcrlibAState) {
+fn _SDL_PCPlaySound(sound_i: i32, pas: &mut PcrlibAState) {
     safe_SDL_LockMutex(pas.AudioMutex);
     pas.pcPhaseTick = 0;
     pas.pcLastSample = 0;
-    pas.pcLengthLeft = (((*pas.SoundData).sounds[sound as usize].start as i32
-        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32)
+    pas.pcLengthLeft = ((pas.SoundData.sounds[sound_i as usize].start as i32
+        - pas.SoundData.sounds[(sound_i - 1) as usize].start as i32)
         >> 1) as u32;
-    pas.pcSound = (pas.SoundData as *mut u8)
-        .offset((*pas.SoundData).sounds[(sound - 1) as usize].start as i32 as isize)
-        as *mut u16;
-    pas.SndPriority = (*pas.SoundData).sounds[(sound - 1) as usize].priority;
+    let sound_data_i = pas.SoundData.sounds[(sound_i - 1) as usize].start as usize
+        - SPKRtable::start_of_freqdata();
+    pas.pcSound = &mut pas.SoundData.freqdata[sound_data_i / 2];
+    pas.SndPriority = pas.SoundData.sounds[(sound_i - 1) as usize].priority;
     pas.pcSamplesPerTick = (pas.AudioSpec.freq
-        / ((1193181 * (*pas.SoundData).sounds[(sound - 1) as usize].samplerate as i32) >> 16))
+        / ((1193181 * pas.SoundData.sounds[(sound_i - 1) as usize].samplerate as i32) >> 16))
         as u32;
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
@@ -216,11 +217,11 @@ pub fn ShutdownSound(pas: &mut PcrlibAState) {
     safe_SDL_CloseAudio();
 }
 
-pub unsafe fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
+pub fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
-    if (*pas.SoundData).sounds[(sound - 1) as usize].priority as i32 >= pas.SndPriority as i32 {
+    if pas.SoundData.sounds[(sound - 1) as usize].priority as i32 >= pas.SndPriority as i32 {
         _SDL_PCPlaySound(sound, pas);
     }
 }
@@ -290,7 +291,7 @@ const baseRndArray: [u16; 17] = [
     1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
 
-pub unsafe fn initrnd(randomize: boolean, pas: &mut PcrlibAState) {
+pub fn initrnd(randomize: boolean, pas: &mut PcrlibAState) {
     pas.RndArray.copy_from_slice(&baseRndArray);
     pas.LastRnd = 0;
     pas.indexi = 17;
@@ -306,7 +307,7 @@ pub unsafe fn initrnd(randomize: boolean, pas: &mut PcrlibAState) {
     rnd(0xffff as i32 as u16, pas);
 }
 
-pub unsafe fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
+pub fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     let mut mask: u16 = 0;
     let mut shift: u16 = 0;
     let mut val: i32 = 0;
@@ -373,7 +374,7 @@ unsafe extern "C" fn VBLCallback(mut _interval: u32, param: *mut libc::c_void) -
 //     safe_SDL_DestroySemaphore(pas.vblsem);
 // }
 
-pub unsafe fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
+pub fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
     pas.vblsem = safe_SDL_CreateSemaphore(0 as u32);
     pas.vbltimer = safe_SDL_AddTimer(
         VBL_TIME as i32 as u32,
