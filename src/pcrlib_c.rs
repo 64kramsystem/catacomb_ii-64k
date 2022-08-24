@@ -3,7 +3,7 @@ use std::ffi::{CStr, CString};
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::{fs, ptr};
+use std::{fs, mem, ptr};
 
 use ::libc;
 use libc::O_RDONLY;
@@ -1711,9 +1711,23 @@ pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     close(handle);
 }
 
-pub unsafe fn _loadhighscores(pcs: &mut PcrlibCState) {
-    let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
-    if LoadFile(str.as_ptr(), pcs.highscores.as_mut_ptr() as *mut i8) == 0 {
+pub fn _loadhighscores(pcs: &mut PcrlibCState) {
+    let filename = format!("SCORES.{port_temp__extension}");
+    let mut buffer = [0_u8; mem::size_of::<[scores; 5]>()];
+
+    let bytes_loaded = port_temp_LoadFile(&filename, &mut buffer);
+
+    if bytes_loaded > 0 {
+        // Rust port: there isn't a type for the whole scores data (file), so we deserialize in
+        // chunks.
+        for (highscore, score_buffer) in pcs
+            .highscores
+            .iter_mut()
+            .zip(buffer.chunks_exact(mem::size_of::<scores>()))
+        {
+            *highscore = Deserialize::deserialize(score_buffer);
+        }
+    } else {
         for i in 0..5 {
             pcs.highscores[i].score = 100;
             pcs.highscores[i].level = 1;
