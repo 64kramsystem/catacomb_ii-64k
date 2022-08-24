@@ -10,6 +10,7 @@ use serdine::Deserialize;
 
 use crate::catacomb::loadgrfiles;
 use crate::cpanel_state::CpanelState;
+use crate::ctl_panel_type::ctlpaneltype;
 use crate::input_type::inputtype::*;
 use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
@@ -481,22 +482,6 @@ pub struct joyinfo_t {
 pub union C2RustUnnamed_5 {
     pub controller: *mut SDL_GameController,
     pub joy: *mut SDL_Joystick,
-}
-
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-pub struct ctlpaneltype {
-    pub grmode: grtype,
-    pub soundmode: soundtype,
-    pub playermode: [u16; 3],
-    pub JoyXlow: [i16; 3],
-    pub JoyYlow: [i16; 3],
-    pub JoyXhigh: [i16; 3],
-    pub JoyYhigh: [i16; 3],
-    pub MouseSensitivity: i16,
-    pub key: [u8; 8],
-    pub keyB1: u8,
-    pub keyB2: u8,
 }
 
 pub fn SetupKBD(pcs: &mut PcrlibCState) {

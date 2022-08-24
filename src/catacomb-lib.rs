@@ -36,6 +36,7 @@ mod class_type;
 mod control_struct;
 mod cpanel;
 mod cpanel_state;
+mod ctl_panel_type;
 mod demo_enum;
 mod dir_type;
 mod exit_type;
