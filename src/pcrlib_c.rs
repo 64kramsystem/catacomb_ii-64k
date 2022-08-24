@@ -902,14 +902,11 @@ pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 /*=========================================================================*/
 
 pub fn clearkeys(pcs: &mut PcrlibCState) {
-    let mut i: i32 = 0;
     while bioskey(1, pcs) != 0 {
         bioskey(0, pcs);
     }
-    i = 0;
-    while i < 128 {
-        pcs.keydown[i as usize] = 0;
-        i += 1;
+    for i in 0..128 {
+        pcs.keydown[i] = 0;
     }
 }
 
