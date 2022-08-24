@@ -1,4 +1,6 @@
-#[derive(Copy, Clone)]
+use serdine::derive::Deserialize;
+
+#[derive(Copy, Clone, Deserialize)]
 #[repr(C, packed)]
 pub struct scores {
     pub score: i32,
