@@ -217,7 +217,7 @@ pub fn ShutdownSound(pas: &mut PcrlibAState) {
     safe_SDL_CloseAudio();
 }
 
-pub unsafe fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
+pub fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }

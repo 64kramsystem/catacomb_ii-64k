@@ -164,7 +164,7 @@ unsafe fn wantmore(
     return true as boolean;
 }
 
-unsafe fn charpic(
+fn charpic(
     x: i32,
     y: i32,
     c: classtype,
@@ -374,7 +374,7 @@ unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCS
     }
 }
 
-pub unsafe fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let tokens: [classtype; 26] = [
         player, teleporter, goblin, skeleton, ogre, gargoyle, dragon, turbogre, guns, gune,
@@ -504,7 +504,7 @@ fn drawside(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState)
     }
 }
 
-unsafe fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
+fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     gs.shotpower = 0;
     bar(0, 0, 23, 23, 0, gs, pcs);
@@ -536,7 +536,7 @@ unsafe fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut Pcrli
     };
 }
 
-pub unsafe fn repaintscreen(
+pub fn repaintscreen(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,

@@ -241,7 +241,7 @@ pub fn givenuke(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 }
 
-unsafe fn takekey(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> boolean {
+fn takekey(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> boolean {
     let mut i: i32 = 0;
     if gs.items[1] as i32 > 0 {
         i = gs.items[1] as i32 - 1;
@@ -257,7 +257,7 @@ unsafe fn takekey(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
     };
 }
 
-unsafe fn takepotion(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn takepotion(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     if gs.items[2] as i32 > 0 {
         i = gs.items[2] as i32 - 1;
@@ -274,7 +274,7 @@ unsafe fn takepotion(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcr
     };
 }
 
-unsafe fn castbolt(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn castbolt(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     if gs.items[3] as i32 > 0 {
         i = gs.items[3] as i32 - 1;
@@ -289,7 +289,7 @@ unsafe fn castbolt(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrli
     };
 }
 
-unsafe fn castnuke(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn castnuke(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut x: i32 = 0;
     let mut n: i32 = 0;
@@ -350,7 +350,7 @@ unsafe fn castnuke(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrli
     gs.obj.delay = 4;
 }
 
-unsafe fn playshoot(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+fn playshoot(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut new: i32 = 0;
     gs.obj.stage = 2;
     gs.obj.delay = 4;
@@ -383,7 +383,7 @@ unsafe fn playshoot(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     };
 }
 
-unsafe fn playbigshoot(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+fn playbigshoot(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut new: i32 = 0;
     gs.obj.stage = 2;
     if gs.boltsleft == 0 {
@@ -400,7 +400,7 @@ unsafe fn playbigshoot(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     gs.o[new as usize].class = bigshot;
 }
 
-unsafe fn givescroll(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn givescroll(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if rndt(pas) < 128 {
         givebolt(gs, pcs);
     } else {
@@ -408,7 +408,7 @@ unsafe fn givescroll(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcr
     };
 }
 
-unsafe fn opendoor(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+fn opendoor(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     PlaySound(11, pas);
@@ -447,7 +447,7 @@ unsafe fn opendoor(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     };
 }
 
-unsafe fn tagobject(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn tagobject(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let i: i32 = gs.altobj.hp as i32;
     if gs.GODMODE && gs.altobj.class as i32 == player as i32 {
         return;
@@ -495,11 +495,7 @@ unsafe fn tagobject(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrl
 /*			        */
 /*==============================*/
 
-unsafe fn intomonster(
-    gs: &mut GlobalState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) -> boolean {
+fn intomonster(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> boolean {
     let mut gotit: boolean = 0;
 
     /*figure out which object got hit*/
@@ -571,11 +567,7 @@ unsafe fn intomonster(
     return false as boolean;
 }
 
-unsafe fn walkthrough(
-    gs: &mut GlobalState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) -> boolean {
+fn walkthrough(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> boolean {
     let mut new: i32 = 0;
     if gs.chkspot == 128 {
         return true as boolean;
@@ -675,7 +667,7 @@ unsafe fn walkthrough(
     return false as boolean;
 }
 
-unsafe fn walk(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> boolean {
+fn walk(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> boolean {
     let mut i: i32 = 0;
     let mut newx: i32 = 0;
     let mut newy: i32 = 0;
@@ -952,7 +944,7 @@ unsafe fn playercmdthink(
     };
 }
 
-unsafe fn chasethink(
+fn chasethink(
     diagonal: boolean,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
@@ -1052,7 +1044,7 @@ unsafe fn chasethink(
     walk(gs, pas, pcs);
 }
 
-unsafe fn gargthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn gargthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut n: i32 = 0;
     if rndt(pas) > 220 {
         gs.obj.stage = 2;
@@ -1089,7 +1081,7 @@ unsafe fn gargthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrl
     };
 }
 
-unsafe fn dragonthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn dragonthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut n: i32 = 0;
     if rndt(pas) > 220 {
         gs.obj.stage = 2;
@@ -1126,7 +1118,7 @@ unsafe fn dragonthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pc
     };
 }
 
-unsafe fn gunthink(dir: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
+fn gunthink(dir: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut n: i32 = 0;
     PlaySound(5, pas);
     gs.obj.stage = 0;
@@ -1140,7 +1132,7 @@ unsafe fn gunthink(dir: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     gs.o[n as usize].y = gs.obj.y;
 }
 
-unsafe fn shooterthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn shooterthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if (gs.obj.x as i32) < gs.origin.x - 1
         || (gs.obj.y as i32) < gs.origin.y - 1
         || gs.obj.x as i32 > gs.origin.x + 22
@@ -1152,7 +1144,7 @@ unsafe fn shooterthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut P
     }
 }
 
-unsafe fn idlethink(gs: &mut GlobalState) {
+fn idlethink(gs: &mut GlobalState) {
     gs.obj.stage = (gs.obj.stage).wrapping_add(1);
     gs.obj.delay = 2;
     if gs.obj.stage as i32 == gs.obj.stages as i32 {
@@ -1160,7 +1152,7 @@ unsafe fn idlethink(gs: &mut GlobalState) {
     }
 }
 
-unsafe fn fadethink(gs: &mut GlobalState) {
+fn fadethink(gs: &mut GlobalState) {
     gs.obj.stage = (gs.obj.stage).wrapping_add(1);
     gs.obj.delay = 2;
     if gs.obj.stage as i32 == gs.obj.stages as i32 {
@@ -1168,7 +1160,7 @@ unsafe fn fadethink(gs: &mut GlobalState) {
     }
 }
 
-unsafe fn killnear(chkx_0: i32, chky_0: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
+fn killnear(chkx_0: i32, chky_0: i32, gs: &mut GlobalState, pas: &mut PcrlibAState) {
     let mut spot: i32 = 0;
     let mut new: i32 = 0;
     spot = gs.background[chky_0 as usize][chkx_0 as usize];
@@ -1190,7 +1182,7 @@ unsafe fn killnear(chkx_0: i32, chky_0: i32, gs: &mut GlobalState, pas: &mut Pcr
     gs.o[new as usize].class = dead1;
 }
 
-unsafe fn explodethink(gs: &mut GlobalState, pas: &mut PcrlibAState) {
+fn explodethink(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     gs.obj.stage = (gs.obj.stage).wrapping_add(1);
     if gs.obj.stage as i32 == 1 {
         killnear(gs.obj.x as i32 - 1, gs.obj.y as i32, gs, pas);
@@ -1278,7 +1270,7 @@ pub unsafe fn doactive(
     };
 }
 
-pub unsafe fn doinactive(gs: &mut GlobalState) {
+pub fn doinactive(gs: &mut GlobalState) {
     if gs.obj.x as i32 + gs.obj.size as i32 >= gs.origin.x
         && (gs.obj.x as i32) < gs.origin.x + 24
         && gs.obj.y as i32 + gs.obj.size as i32 >= gs.origin.y
