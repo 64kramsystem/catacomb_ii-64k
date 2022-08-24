@@ -1,7 +1,7 @@
 use num::FromPrimitive;
 use num_derive::FromPrimitive;
 
-#[derive(Clone, Copy, FromPrimitive)]
+#[derive(Clone, Copy, FromPrimitive, PartialEq)]
 #[repr(u16)]
 pub enum inputtype {
     demo = 4,

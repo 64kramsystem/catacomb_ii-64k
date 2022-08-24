@@ -6,7 +6,6 @@ use std::path::Path;
 use std::{fs, mem, ptr};
 
 use ::libc;
-use libc::O_RDONLY;
 use serdine::Deserialize;
 
 use crate::catacomb::loadgrfiles;
@@ -22,7 +21,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::*,
-    extra_constants::{port_temp__extension, O_BINARY, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
+    extra_constants::{port_temp__extension, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
     extra_types::boolean,
     global_state::GlobalState,
@@ -37,7 +36,6 @@ extern "C" {
     pub type _IO_codecvt;
     pub type _IO_marker;
     fn close(__fd: i32) -> i32;
-    fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
     fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn puts(__s: *const i8) -> i32;
     fn __assert_fail(
@@ -1506,20 +1504,27 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
     );
 }
 
+////////////////////////
+//
+// _loadctrls
+// Tries to load the control panel settings
+// creates a default if not present
+//
+////////////////////////
+
 pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
-    // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
-    // project.
-    let handle = open(
-        str.as_ptr(),
-        O_RDONLY | O_BINARY,
-        0o200 as i32 | 0o400 as i32,
-    );
-    if handle == -1 {
+    let str = format!("CTLPANEL.{port_temp__extension}");
+    // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
+    // For simplicity, we do a standard file open.
+    if File::open(&str).is_err() {
+        //
+        // set up default control panel settings
+        //
         pcs.grmode = VGAgr;
         pas.soundmode = spkr;
         pcs.playermode[1] = keyboard;
         pcs.playermode[2] = joystick1;
+
         pcs.JoyXlow[2] = 20;
         pcs.JoyXlow[1] = pcs.JoyXlow[2];
         pcs.JoyXhigh[2] = 60;
@@ -1529,6 +1534,7 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         pcs.JoyYhigh[2] = 60;
         pcs.JoyYhigh[1] = pcs.JoyYhigh[2];
         pcs.MouseSensitivity = 5;
+
         pcs.key[north as usize] = SDL_SCANCODE_UP;
         pcs.key[northeast as usize] = SDL_SCANCODE_PAGEUP;
         pcs.key[east as usize] = SDL_SCANCODE_RIGHT;
@@ -1540,7 +1546,7 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         pcs.keyB1 = SDL_SCANCODE_LCTRL;
         pcs.keyB2 = SDL_SCANCODE_LALT;
     } else {
-        let mut ctlpanel: ctlpaneltype = ctlpaneltype {
+        let ctlpanel = ctlpaneltype {
             grmode: text,
             soundmode: off,
             playermode: [0; 3],
@@ -1553,48 +1559,36 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
             keyB1: 0,
             keyB2: 0,
         };
-        read(
-            handle,
-            &mut ctlpanel as *mut ctlpaneltype as *mut libc::c_void,
-            ::std::mem::size_of::<ctlpaneltype>() as u64,
-        );
-        close(handle);
+
         pcs.grmode = ctlpanel.grmode as grtype;
         pas.soundmode = ctlpanel.soundmode as soundtype;
-        let mut i: u32 = 0;
-        i = 0;
-        while i < 3 {
-            pcs.playermode[i as usize] = ctlpanel.playermode[i as usize].into();
-            pcs.JoyXlow[i as usize] = ctlpanel.JoyXlow[i as usize] as i32;
-            pcs.JoyYlow[i as usize] = ctlpanel.JoyYlow[i as usize] as i32;
-            pcs.JoyXhigh[i as usize] = ctlpanel.JoyXhigh[i as usize] as i32;
-            pcs.JoyYhigh[i as usize] = ctlpanel.JoyYhigh[i as usize] as i32;
-            if pcs.playermode[i as usize] as u32 == mouse as i32 as u32 {
+        for i in 0..3 {
+            pcs.playermode[i] = ctlpanel.playermode[i].into();
+            pcs.JoyXlow[i] = ctlpanel.JoyXlow[i] as i32;
+            pcs.JoyYlow[i] = ctlpanel.JoyYlow[i] as i32;
+            pcs.JoyXhigh[i] = ctlpanel.JoyXhigh[i] as i32;
+            pcs.JoyYhigh[i] = ctlpanel.JoyYhigh[i] as i32;
+
+            if pcs.playermode[i] == mouse {
                 CheckMouseMode(pcs);
             }
-            if pcs.playermode[i as usize] as u32 == joystick1 as i32 as u32
-                || pcs.playermode[i as usize] as u32 == joystick2 as i32 as u32
-            {
+
+            if pcs.playermode[i] == joystick1 || pcs.playermode[i] == joystick2 {
                 ProbeJoysticks(pcs);
-                if pcs.playermode[i as usize] as u32 == joystick1 as i32 as u32
-                    && pcs.joystick[1].device < 0
-                    || pcs.playermode[i as usize] as u32 == joystick2 as i32 as u32
-                        && pcs.joystick[2].device < 0
+                if (pcs.playermode[i] == joystick1 && pcs.joystick[1].device < 0)
+                    || (pcs.playermode[i] == joystick2 && pcs.joystick[2].device < 0)
                 {
-                    pcs.playermode[i as usize] = keyboard;
+                    pcs.playermode[i] = keyboard;
                 }
             }
-            i = i.wrapping_add(1);
         }
         pcs.MouseSensitivity = ctlpanel.MouseSensitivity as i32;
-        i = 0;
-        while i < 8 {
-            pcs.key[i as usize] = DOSScanCodeMap[ctlpanel.key[i as usize] as usize];
-            i = i.wrapping_add(1);
+        for i in 0..=8 {
+            pcs.key[i] = DOSScanCodeMap[ctlpanel.key[i] as usize];
         }
         pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize];
         pcs.keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize];
-    };
+    }
 }
 
 pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
