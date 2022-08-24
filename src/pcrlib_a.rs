@@ -59,7 +59,7 @@ pub fn EGA(chan: &[u8], ofs: u8) -> u8 {
 }
 
 #[inline]
-unsafe fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
+fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
     // There is a bug in the SDL port; the data types used don't cover the range of values.
     // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
@@ -291,7 +291,7 @@ const baseRndArray: [u16; 17] = [
     1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
 
-pub unsafe fn initrnd(randomize: boolean, pas: &mut PcrlibAState) {
+pub fn initrnd(randomize: boolean, pas: &mut PcrlibAState) {
     pas.RndArray.copy_from_slice(&baseRndArray);
     pas.LastRnd = 0;
     pas.indexi = 17;
@@ -307,7 +307,7 @@ pub unsafe fn initrnd(randomize: boolean, pas: &mut PcrlibAState) {
     rnd(0xffff as i32 as u16, pas);
 }
 
-pub unsafe fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
+pub fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     let mut mask: u16 = 0;
     let mut shift: u16 = 0;
     let mut val: i32 = 0;
@@ -374,7 +374,7 @@ unsafe extern "C" fn VBLCallback(mut _interval: u32, param: *mut libc::c_void) -
 //     safe_SDL_DestroySemaphore(pas.vblsem);
 // }
 
-pub unsafe fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
+pub fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
     pas.vblsem = safe_SDL_CreateSemaphore(0 as u32);
     pas.vbltimer = safe_SDL_AddTimer(
         VBL_TIME as i32 as u32,

@@ -901,7 +901,7 @@ pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 /*=========================================================================*/
 
-pub unsafe fn clearkeys(pcs: &mut PcrlibCState) {
+pub fn clearkeys(pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     while bioskey(1, pcs) != 0 {
         bioskey(0, pcs);
