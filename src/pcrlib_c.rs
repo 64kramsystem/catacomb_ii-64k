@@ -485,11 +485,8 @@ pub union C2RustUnnamed_5 {
 }
 
 pub fn SetupKBD(pcs: &mut PcrlibCState) {
-    let mut i: u32 = 0;
-    i = 0;
-    while i < 128 {
-        pcs.keydown[i as usize] = false as boolean;
-        i = i.wrapping_add(1);
+    for i in 0..128 {
+        pcs.keydown[i] = false as boolean;
     }
 }
 
