@@ -9,3 +9,15 @@ pub struct SPKRtable {
     pub sounds: [spksndtype; 63],
     pub freqdata: [u16; 0],
 }
+
+impl Default for SPKRtable {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            filelength: Default::default(),
+            filler: Default::default(),
+            sounds: [spksndtype::default(); 63],
+            freqdata: Default::default(),
+        }
+    }
+}
