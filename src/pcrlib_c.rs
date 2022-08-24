@@ -3,10 +3,11 @@ use std::ffi::{CStr, CString};
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::{fs, mem, ptr};
+use std::{fs, ptr};
 
 use ::libc;
 use libc::O_RDONLY;
+use serdine::Deserialize;
 
 use crate::catacomb::loadgrfiles;
 use crate::cpanel_state::CpanelState;
@@ -1039,24 +1040,6 @@ pub fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
 
 //==========================================================================
 
-pub fn bloadin(filename: &str) -> *const u8 {
-    let file_meta = fs::metadata(filename);
-
-    if let Ok(file_meta) = file_meta {
-        let mut buffer = vec![0; file_meta.len() as usize];
-
-        port_temp_LoadFile(filename, &mut buffer);
-
-        let buffer_p = buffer.as_mut_ptr();
-
-        mem::forget(buffer);
-
-        buffer_p
-    } else {
-        ptr::null_mut()
-    }
-}
-
 pub fn port_temp_bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
     let file_meta = fs::metadata(filename);
 
@@ -1970,7 +1953,8 @@ pub fn _setupgame(
             pcs.grmode = CGAgr;
         }
         let filename = format!("SOUNDS.{port_temp__extension}");
-        pas.SoundData = bloadin(&filename) as *mut SPKRtable;
+        let sound_data_buffer = port_temp_bloadin(&filename).unwrap();
+        pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
         StartupSound(pas);
         SetupKBD(pcs);
         initrndt(1, pas);

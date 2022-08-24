@@ -9,6 +9,7 @@ use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, extra_types::boolean,
     global_state::GlobalState, gr_type::grtype::*, pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen, pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*,
+    spkr_table::SPKRtable,
 };
 
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
@@ -93,19 +94,19 @@ unsafe fn _SDL_PCService(pas: &mut PcrlibAState) {
     }
 }
 
-unsafe fn _SDL_PCPlaySound(sound: i32, pas: &mut PcrlibAState) {
+fn _SDL_PCPlaySound(sound_i: i32, pas: &mut PcrlibAState) {
     safe_SDL_LockMutex(pas.AudioMutex);
     pas.pcPhaseTick = 0;
     pas.pcLastSample = 0;
-    pas.pcLengthLeft = (((*pas.SoundData).sounds[sound as usize].start as i32
-        - (*pas.SoundData).sounds[(sound - 1) as usize].start as i32)
+    pas.pcLengthLeft = ((pas.SoundData.sounds[sound_i as usize].start as i32
+        - pas.SoundData.sounds[(sound_i - 1) as usize].start as i32)
         >> 1) as u32;
-    pas.pcSound = (pas.SoundData as *mut u8)
-        .offset((*pas.SoundData).sounds[(sound - 1) as usize].start as i32 as isize)
-        as *mut u16;
-    pas.SndPriority = (*pas.SoundData).sounds[(sound - 1) as usize].priority;
+    let sound_data_i = pas.SoundData.sounds[(sound_i - 1) as usize].start as usize
+        - SPKRtable::start_of_freqdata();
+    pas.pcSound = &mut pas.SoundData.freqdata[sound_data_i / 2];
+    pas.SndPriority = pas.SoundData.sounds[(sound_i - 1) as usize].priority;
     pas.pcSamplesPerTick = (pas.AudioSpec.freq
-        / ((1193181 * (*pas.SoundData).sounds[(sound - 1) as usize].samplerate as i32) >> 16))
+        / ((1193181 * pas.SoundData.sounds[(sound_i - 1) as usize].samplerate as i32) >> 16))
         as u32;
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
@@ -220,7 +221,7 @@ pub unsafe fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;
     }
-    if (*pas.SoundData).sounds[(sound - 1) as usize].priority as i32 >= pas.SndPriority as i32 {
+    if pas.SoundData.sounds[(sound - 1) as usize].priority as i32 >= pas.SndPriority as i32 {
         _SDL_PCPlaySound(sound, pas);
     }
 }
