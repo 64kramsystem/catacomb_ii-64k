@@ -1040,6 +1040,16 @@ pub fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
 
 //==========================================================================
 
+/*
+====================================
+=
+= bloadin
+= Paraligns just enough space and bloads in the
+= specified file, returning a pointer to the start
+=
+====================================
+*/
+
 pub fn bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
     let file_meta = fs::metadata(filename);
 
@@ -1049,6 +1059,12 @@ pub fn bloadin(filename: &str) -> Result<Vec<u8>, io::Error> {
 
     Ok(buffer)
 }
+
+/*==================================================================================*/
+
+/*
+** Graphic routines
+*/
 
 pub fn drawwindow(
     xl: i32,
