@@ -1495,7 +1495,38 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let str = format!("CTLPANEL.{port_temp__extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
-    if File::open(&str).is_err() {
+    if let Ok(file) = File::open(&str) {
+        let ctlpanel = ctlpaneltype::deserialize(file);
+
+        pcs.grmode = ctlpanel.grmode as grtype;
+        pas.soundmode = ctlpanel.soundmode as soundtype;
+        for i in 0..3 {
+            pcs.playermode[i] = ctlpanel.playermode[i].into();
+            pcs.JoyXlow[i] = ctlpanel.JoyXlow[i] as i32;
+            pcs.JoyYlow[i] = ctlpanel.JoyYlow[i] as i32;
+            pcs.JoyXhigh[i] = ctlpanel.JoyXhigh[i] as i32;
+            pcs.JoyYhigh[i] = ctlpanel.JoyYhigh[i] as i32;
+
+            if pcs.playermode[i] == mouse {
+                CheckMouseMode(pcs);
+            }
+
+            if pcs.playermode[i] == joystick1 || pcs.playermode[i] == joystick2 {
+                ProbeJoysticks(pcs);
+                if (pcs.playermode[i] == joystick1 && pcs.joystick[1].device < 0)
+                    || (pcs.playermode[i] == joystick2 && pcs.joystick[2].device < 0)
+                {
+                    pcs.playermode[i] = keyboard;
+                }
+            }
+        }
+        pcs.MouseSensitivity = ctlpanel.MouseSensitivity as i32;
+        for i in 0..8 {
+            pcs.key[i] = DOSScanCodeMap[ctlpanel.key[i] as usize];
+        }
+        pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize];
+        pcs.keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize];
+    } else {
         //
         // set up default control panel settings
         //
@@ -1524,37 +1555,6 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         pcs.key[northwest as usize] = SDL_SCANCODE_HOME;
         pcs.keyB1 = SDL_SCANCODE_LCTRL;
         pcs.keyB2 = SDL_SCANCODE_LALT;
-    } else {
-        let ctlpanel = ctlpaneltype::default();
-
-        pcs.grmode = ctlpanel.grmode as grtype;
-        pas.soundmode = ctlpanel.soundmode as soundtype;
-        for i in 0..3 {
-            pcs.playermode[i] = ctlpanel.playermode[i].into();
-            pcs.JoyXlow[i] = ctlpanel.JoyXlow[i] as i32;
-            pcs.JoyYlow[i] = ctlpanel.JoyYlow[i] as i32;
-            pcs.JoyXhigh[i] = ctlpanel.JoyXhigh[i] as i32;
-            pcs.JoyYhigh[i] = ctlpanel.JoyYhigh[i] as i32;
-
-            if pcs.playermode[i] == mouse {
-                CheckMouseMode(pcs);
-            }
-
-            if pcs.playermode[i] == joystick1 || pcs.playermode[i] == joystick2 {
-                ProbeJoysticks(pcs);
-                if (pcs.playermode[i] == joystick1 && pcs.joystick[1].device < 0)
-                    || (pcs.playermode[i] == joystick2 && pcs.joystick[2].device < 0)
-                {
-                    pcs.playermode[i] = keyboard;
-                }
-            }
-        }
-        pcs.MouseSensitivity = ctlpanel.MouseSensitivity as i32;
-        for i in 0..=8 {
-            pcs.key[i] = DOSScanCodeMap[ctlpanel.key[i] as usize];
-        }
-        pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize];
-        pcs.keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize];
     }
 }
 

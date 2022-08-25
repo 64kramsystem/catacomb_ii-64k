@@ -18,3 +18,9 @@ impl From<i32> for soundtype {
         FromPrimitive::from_i32(value).unwrap()
     }
 }
+
+impl From<u16> for soundtype {
+    fn from(value: u16) -> Self {
+        FromPrimitive::from_u16(value).unwrap()
+    }
+}
