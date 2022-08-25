@@ -1495,37 +1495,8 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let str = format!("CTLPANEL.{port_temp__extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
-    if File::open(&str).is_err() {
-        //
-        // set up default control panel settings
-        //
-        pcs.grmode = VGAgr;
-        pas.soundmode = spkr;
-        pcs.playermode[1] = keyboard;
-        pcs.playermode[2] = joystick1;
-
-        pcs.JoyXlow[2] = 20;
-        pcs.JoyXlow[1] = pcs.JoyXlow[2];
-        pcs.JoyXhigh[2] = 60;
-        pcs.JoyXhigh[1] = pcs.JoyXhigh[2];
-        pcs.JoyYlow[2] = 20;
-        pcs.JoyYlow[1] = pcs.JoyYlow[2];
-        pcs.JoyYhigh[2] = 60;
-        pcs.JoyYhigh[1] = pcs.JoyYhigh[2];
-        pcs.MouseSensitivity = 5;
-
-        pcs.key[north as usize] = SDL_SCANCODE_UP;
-        pcs.key[northeast as usize] = SDL_SCANCODE_PAGEUP;
-        pcs.key[east as usize] = SDL_SCANCODE_RIGHT;
-        pcs.key[southeast as usize] = SDL_SCANCODE_PAGEDOWN;
-        pcs.key[south as usize] = SDL_SCANCODE_DOWN;
-        pcs.key[southwest as usize] = SDL_SCANCODE_END;
-        pcs.key[west as usize] = SDL_SCANCODE_LEFT;
-        pcs.key[northwest as usize] = SDL_SCANCODE_HOME;
-        pcs.keyB1 = SDL_SCANCODE_LCTRL;
-        pcs.keyB2 = SDL_SCANCODE_LALT;
-    } else {
-        let ctlpanel = ctlpaneltype::default();
+    if let Ok(file) = File::open(&str) {
+        let ctlpanel = ctlpaneltype::deserialize(file);
 
         pcs.grmode = ctlpanel.grmode as grtype;
         pas.soundmode = ctlpanel.soundmode as soundtype;
@@ -1555,6 +1526,35 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         }
         pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize];
         pcs.keyB2 = DOSScanCodeMap[ctlpanel.keyB2 as usize];
+    } else {
+        //
+        // set up default control panel settings
+        //
+        pcs.grmode = VGAgr;
+        pas.soundmode = spkr;
+        pcs.playermode[1] = keyboard;
+        pcs.playermode[2] = joystick1;
+
+        pcs.JoyXlow[2] = 20;
+        pcs.JoyXlow[1] = pcs.JoyXlow[2];
+        pcs.JoyXhigh[2] = 60;
+        pcs.JoyXhigh[1] = pcs.JoyXhigh[2];
+        pcs.JoyYlow[2] = 20;
+        pcs.JoyYlow[1] = pcs.JoyYlow[2];
+        pcs.JoyYhigh[2] = 60;
+        pcs.JoyYhigh[1] = pcs.JoyYhigh[2];
+        pcs.MouseSensitivity = 5;
+
+        pcs.key[north as usize] = SDL_SCANCODE_UP;
+        pcs.key[northeast as usize] = SDL_SCANCODE_PAGEUP;
+        pcs.key[east as usize] = SDL_SCANCODE_RIGHT;
+        pcs.key[southeast as usize] = SDL_SCANCODE_PAGEDOWN;
+        pcs.key[south as usize] = SDL_SCANCODE_DOWN;
+        pcs.key[southwest as usize] = SDL_SCANCODE_END;
+        pcs.key[west as usize] = SDL_SCANCODE_LEFT;
+        pcs.key[northwest as usize] = SDL_SCANCODE_HOME;
+        pcs.keyB1 = SDL_SCANCODE_LCTRL;
+        pcs.keyB2 = SDL_SCANCODE_LALT;
     }
 }
 
