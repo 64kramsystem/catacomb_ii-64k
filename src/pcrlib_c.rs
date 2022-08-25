@@ -1550,7 +1550,7 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
             }
         }
         pcs.MouseSensitivity = ctlpanel.MouseSensitivity as i32;
-        for i in 0..=8 {
+        for i in 0..8 {
             pcs.key[i] = DOSScanCodeMap[ctlpanel.key[i] as usize];
         }
         pcs.keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize];
