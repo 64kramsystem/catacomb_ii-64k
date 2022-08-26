@@ -36,8 +36,6 @@ extern "C" {
     pub type _IO_wide_data;
     pub type _IO_codecvt;
     pub type _IO_marker;
-    fn close(__fd: i32) -> i32;
-    fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
     fn puts(__s: *const i8) -> i32;
     fn __assert_fail(
         __assertion: *const i8,
@@ -45,7 +43,6 @@ extern "C" {
         __line: u32,
         __function: *const i8,
     ) -> !;
-    fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
 }
 
 #[derive(Copy, Clone)]
@@ -1543,42 +1540,31 @@ pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ctlpanel = ctlpaneltype::default();
-    let str = CString::new(format!("CTLPANEL.{port_temp__extension}")).unwrap();
-    let handle = open(
-        str.as_ptr(),
-        0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
-        0o400 as i32 | 0o200 as i32,
-    );
-    if handle == -1 {
-        return;
+    let str = format!("CTLPANEL.{port_temp__extension}");
+
+    // Rust port: Original flags: (O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE); for
+    // simplicity, we do a straight create.
+    if let Ok(file) = File::create(str) {
+        ctlpanel.grmode = pcs.grmode;
+        ctlpanel.soundmode = pas.soundmode;
+        for i in 0..3 {
+            ctlpanel.playermode[i] = pcs.playermode[i] as u16;
+            ctlpanel.JoyXlow[i] = pcs.JoyXlow[i] as i16;
+            ctlpanel.JoyYlow[i] = pcs.JoyYlow[i] as i16;
+            ctlpanel.JoyXhigh[i] = pcs.JoyXhigh[i] as i16;
+            ctlpanel.JoyYhigh[i] = pcs.JoyYhigh[i] as i16;
+        }
+        ctlpanel.MouseSensitivity = pcs.MouseSensitivity as i16;
+        for i in 0..8 {
+            ctlpanel.key[i as usize] = ScancodeToDOS(pcs.key[i as usize] as SDL_Scancode) as u8;
+        }
+        ctlpanel.keyB1 = ScancodeToDOS(pcs.keyB1 as SDL_Scancode) as u8;
+        ctlpanel.keyB2 = ScancodeToDOS(pcs.keyB2 as SDL_Scancode) as u8;
+
+        ctlpanel.serialize(file);
     }
-    ctlpanel.grmode = pcs.grmode;
-    ctlpanel.soundmode = pas.soundmode;
-    let mut i = 0;
-    while i < 3 {
-        ctlpanel.playermode[i] = pcs.playermode[i] as u16;
-        ctlpanel.JoyXlow[i] = pcs.JoyXlow[i] as i16;
-        ctlpanel.JoyYlow[i] = pcs.JoyYlow[i] as i16;
-        ctlpanel.JoyXhigh[i] = pcs.JoyXhigh[i] as i16;
-        ctlpanel.JoyYhigh[i] = pcs.JoyYhigh[i] as i16;
-        i = i.wrapping_add(1);
-    }
-    ctlpanel.MouseSensitivity = pcs.MouseSensitivity as i16;
-    i = 0;
-    while i < 8 {
-        ctlpanel.key[i as usize] = ScancodeToDOS(pcs.key[i as usize] as SDL_Scancode) as u8;
-        i = i.wrapping_add(1);
-    }
-    ctlpanel.keyB1 = ScancodeToDOS(pcs.keyB1 as SDL_Scancode) as u8;
-    ctlpanel.keyB2 = ScancodeToDOS(pcs.keyB2 as SDL_Scancode) as u8;
-    write(
-        handle,
-        &mut ctlpanel as *mut ctlpaneltype as *const libc::c_void,
-        ::std::mem::size_of::<ctlpaneltype>() as u64,
-    );
-    close(handle);
 }
 
 pub fn _loadhighscores(pcs: &mut PcrlibCState) {
