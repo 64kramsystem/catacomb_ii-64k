@@ -3,7 +3,7 @@ use std::ffi::CString;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::{fs, mem, ptr};
+use std::{fs, ptr};
 
 use ::libc;
 use serdine::Deserialize;
@@ -1598,7 +1598,7 @@ pub unsafe fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
 
 pub fn _loadhighscores(pcs: &mut PcrlibCState) {
     let filename = format!("SCORES.{port_temp__extension}");
-    let mut buffer = [0_u8; mem::size_of::<[scores; 5]>()];
+    let mut buffer = [0_u8; scores::ondisk_struct_size() * 5];
 
     let bytes_loaded = loadFile(&filename, &mut buffer);
 
@@ -1608,7 +1608,7 @@ pub fn _loadhighscores(pcs: &mut PcrlibCState) {
         for (highscore, score_buffer) in pcs
             .highscores
             .iter_mut()
-            .zip(buffer.chunks_exact(mem::size_of::<scores>()))
+            .zip(buffer.chunks_exact(scores::ondisk_struct_size()))
         {
             *highscore = Deserialize::deserialize(score_buffer);
         }
