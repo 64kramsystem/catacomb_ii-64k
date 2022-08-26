@@ -50,8 +50,8 @@ unsafe fn calibratejoy(
     let mut yh: i32 = 0;
     let mut ctr: ControlStruct = ControlStruct {
         dir: north,
-        button1: 0,
-        button2: 0,
+        button1: false,
+        button2: false,
     };
     expwin(24, 9, gs, pas, pcs);
     print_str(" Joystick Configuration\n\r", gs, pcs);
@@ -73,7 +73,7 @@ unsafe fn calibratejoy(
         ProcessEvents(pcs);
         ReadJoystick(joynum, &mut xl, &mut yl, pcs);
         ctr = ControlJoystick(joynum, pcs);
-        if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] != 0 {
+        if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
             current_block = 15976468122069307450;
             break;
         }
@@ -87,7 +87,7 @@ unsafe fn calibratejoy(
             drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
             loop {
                 ctr = ControlJoystick(joynum, pcs);
-                if !(ctr.button1 != 0) {
+                if !ctr.button1 {
                     break;
                 }
             }
@@ -110,7 +110,7 @@ unsafe fn calibratejoy(
                 ProcessEvents(pcs);
                 ReadJoystick(joynum, &mut xh, &mut yh, pcs);
                 ctr = ControlJoystick(joynum, pcs);
-                if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] != 0 {
+                if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
                     current_block = 15976468122069307450;
                     break;
                 }
@@ -125,7 +125,7 @@ unsafe fn calibratejoy(
                     drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
                     loop {
                         ctr = ControlJoystick(joynum, pcs);
-                        if !(ctr.button1 != 0) {
+                        if !ctr.button1 {
                             break;
                         }
                     }
@@ -145,7 +145,7 @@ unsafe fn calibratejoy(
     erasewindow(gs, pcs);
 }
 
-unsafe fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ch: i8 = 0;
     expwin(24, 5, gs, pas, pcs);
     print_str("  Mouse Configuration   \n\r", gs, pcs);
@@ -177,7 +177,7 @@ const chartable: [char; 128] = [
     '?',
 ];
 
-unsafe fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     sc = ScancodeToDOS(sc as SDL_Scancode);
     if sc == 1 {
         print_str("ESC", gs, pcs);
@@ -231,7 +231,7 @@ unsafe fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     };
 }
 
-unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
     let mut hy: i32 = 0;
@@ -349,7 +349,7 @@ fn drawpanel(
     pcs.sx = 2;
     print_str("VIDEO:", gs, pcs);
     drawpic(collumnx[0] * 8, rowy[0] * 8, 0, gs, cps, pcs);
-    if _egaok != 0 {
+    if _egaok {
         drawpic(collumnx[1] * 8, rowy[0] * 8, 1, gs, cps, pcs);
     } else {
         drawpic(collumnx[1] * 8, rowy[0] * 8, 3, gs, cps, pcs);

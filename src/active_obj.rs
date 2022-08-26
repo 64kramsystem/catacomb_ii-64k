@@ -1,9 +1,10 @@
-use crate::{class_type::classtype, extra_types::boolean, obj_type::objtype};
+use serdine::derive::{Deserialize, Serialize};
 
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
+use crate::{class_type::classtype, obj_type::objtype};
+
+#[derive(Copy, Clone, Deserialize, Serialize)]
 pub struct activeobj {
-    pub active: boolean,
+    pub active: bool,
     pub class: classtype,
     pub x: u8,
     pub y: u8,

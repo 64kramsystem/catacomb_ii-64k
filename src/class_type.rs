@@ -1,9 +1,10 @@
 use num::FromPrimitive;
 use num_derive::FromPrimitive;
+use serdine::derive::{Deserialize, Serialize};
 
 /// In the original, this is an enum, (automatically) narrowed down to u16 on assignment.
 #[repr(u16)]
-#[derive(Clone, Copy, FromPrimitive, PartialEq)]
+#[derive(Clone, Copy, Deserialize, FromPrimitive, PartialEq, Serialize)]
 pub enum classtype {
     lastclass = 23,
     guns = 22,

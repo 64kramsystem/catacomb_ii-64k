@@ -1,9 +1,9 @@
-use crate::{dir_type::dirtype, extra_types::boolean};
+use crate::dir_type::dirtype;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct ControlStruct {
     pub dir: dirtype,
-    pub button1: boolean,
-    pub button2: boolean,
+    pub button1: bool,
+    pub button2: bool,
 }

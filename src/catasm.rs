@@ -111,7 +111,7 @@ pub unsafe fn doall(
             if gs.obj.class as i32 != nothing as i32 {
                 gs.obj
                     .update_from_objdeftype(&gs.objdef[gs.obj.class as usize]);
-                if gs.obj.active != 0 {
+                if gs.obj.active {
                     doactive(gs, cps, pas, pcs);
                 } else {
                     doinactive(gs);

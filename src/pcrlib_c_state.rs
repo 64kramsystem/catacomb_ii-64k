@@ -1,5 +1,4 @@
 use crate::{
-    extra_types::boolean,
     gr_type::grtype::{self, *},
     input_type::inputtype::{self, *},
     pcrlib_c::{joyinfo_t, C2RustUnnamed_5, SDL_DisplayMode, SDL_GameController, SDL_Rect},
@@ -17,7 +16,7 @@ pub struct PcrlibCState {
     // //////////////////////////////////////////////////////////
 
     pub playermode: [inputtype; 3],
-    pub keydown: [boolean; 512],
+    pub keydown: [bool; 512],
     pub JoyXlow: [i32; 3],
     pub JoyXhigh: [i32; 3],
     pub JoyYlow: [i32; 3],
@@ -44,7 +43,7 @@ pub struct PcrlibCState {
     // Rust port: private to pcrlib_c.rs
     // //////////////////////////////////////////////////////////
 
-    pub mouseEvent: boolean,
+    pub mouseEvent: bool,
     pub demobuffer: [u8; 5000],
     pub demoptr: usize,
     pub democount: i32,
@@ -56,7 +55,7 @@ pub struct PcrlibCState {
     pub updateRect: SDL_Rect,
     pub mode: SDL_DisplayMode,
     pub joystick: [joyinfo_t; 3],
-    pub hasFocus: boolean,
+    pub hasFocus: bool,
     pub win_xl: i32,
     pub win_yl: i32,
     pub win_xh: i32,
@@ -66,7 +65,7 @@ pub struct PcrlibCState {
 
 impl PcrlibCState {
     pub fn new(
-        mouseEvent: boolean,
+        mouseEvent: bool,
         demobuffer: [u8; 5000],
         demoptr: usize,
         democount: i32,
@@ -77,7 +76,7 @@ impl PcrlibCState {
         sdltexture: *mut SDL_Texture,
         updateRect: SDL_Rect,
         playermode: [inputtype; 3],
-        keydown: [boolean; 512],
+        keydown: [bool; 512],
         JoyXlow: [i32; 3],
         JoyXhigh: [i32; 3],
         JoyYlow: [i32; 3],
@@ -88,7 +87,7 @@ impl PcrlibCState {
         keyB2: u32,
         mode: SDL_DisplayMode,
         joystick: [joyinfo_t; 3],
-        hasFocus: boolean,
+        hasFocus: bool,
         win_xl: i32,
         win_yl: i32,
         win_xh: i32,
@@ -153,7 +152,7 @@ impl PcrlibCState {
 impl Default for PcrlibCState {
     fn default() -> Self {
         Self::new(
-            0,
+            false,
             [0; 5000],
             0,
             0,
@@ -169,7 +168,7 @@ impl Default for PcrlibCState {
                 h: 0,
             },
             [keyboard, keyboard, joystick1],
-            [0; 512],
+            [false; 512],
             [0; 3],
             [0; 3],
             [0; 3],
@@ -190,9 +189,9 @@ impl Default for PcrlibCState {
                     controller: 0 as *const SDL_GameController as *mut SDL_GameController,
                 },
                 device: 0,
-                isgamecontroller: 0,
+                isgamecontroller: false,
             }; 3],
-            true as boolean,
+            true,
             0,
             0,
             0,
