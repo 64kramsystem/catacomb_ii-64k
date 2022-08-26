@@ -703,29 +703,28 @@ pub unsafe fn ProbeJoysticks(pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn ReadJoystick(
-    joynum: i32,
-    xcount: *mut i32,
-    ycount: *mut i32,
-    pcs: &mut PcrlibCState,
-) {
+pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut PcrlibCState) {
     let mut a1: i32 = 0;
     let mut a2: i32 = 0;
     *xcount = 0;
     *ycount = 0;
     safe_SDL_JoystickUpdate();
-    if pcs.joystick[joynum as usize].isgamecontroller != 0 {
-        a1 = safe_SDL_GameControllerGetAxis(
-            pcs.joystick[joynum as usize].c2rust_unnamed.controller,
-            SDL_CONTROLLER_AXIS_LEFTX,
-        ) as i32;
-        a2 = safe_SDL_GameControllerGetAxis(
-            pcs.joystick[joynum as usize].c2rust_unnamed.controller,
-            SDL_CONTROLLER_AXIS_LEFTY,
-        ) as i32;
-    } else {
-        a1 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32;
-        a2 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32;
+    unsafe {
+        if pcs.joystick[joynum as usize].isgamecontroller != 0 {
+            a1 = safe_SDL_GameControllerGetAxis(
+                pcs.joystick[joynum as usize].c2rust_unnamed.controller,
+                SDL_CONTROLLER_AXIS_LEFTX,
+            ) as i32;
+            a2 = safe_SDL_GameControllerGetAxis(
+                pcs.joystick[joynum as usize].c2rust_unnamed.controller,
+                SDL_CONTROLLER_AXIS_LEFTY,
+            ) as i32;
+        } else {
+            a1 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 0)
+                as i32;
+            a2 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 1)
+                as i32;
+        }
     }
     *xcount = a1;
     *ycount = a2;
