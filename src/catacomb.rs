@@ -530,6 +530,16 @@ pub fn repaintscreen(
     };
 }
 
+/*
+=============
+=
+= dofkeys
+=
+= Checks to see if an F-key is being pressed and handles it
+=
+=============
+*/
+
 pub unsafe fn dofkeys(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
@@ -538,6 +548,7 @@ pub unsafe fn dofkeys(
 ) {
     let mut handle: i32 = 0;
     let mut key = bioskey(1, pcs);
+    // make ESC into F10
     if key == SDL_SCANCODE_ESCAPE {
         key = SDL_SCANCODE_F10;
     }
@@ -546,15 +557,18 @@ pub unsafe fn dofkeys(
     }
     let current_block_72: u64;
     match key {
-        58 => {
+        // F1
+        SDL_SCANCODE_F1 => {
             clearkeys(pcs);
             help(gs, pas, pcs);
         }
-        59 => {
+        // F2
+        SDL_SCANCODE_F2 => {
             clearkeys(pcs);
             controlpanel(gs, cps, pas, pcs);
         }
-        60 => {
+        // F3
+        SDL_SCANCODE_F3 => {
             clearkeys(pcs);
             expwin(18, 1, gs, pas, pcs);
             print_str("RESET GAME (Y/N)?", gs, pcs);
@@ -563,7 +577,8 @@ pub unsafe fn dofkeys(
                 gs.resetgame = true;
             }
         }
-        61 => {
+        // F4
+        SDL_SCANCODE_F4 => {
             clearkeys(pcs);
             expwin(22, 4, gs, pas, pcs);
             if gs.indemo != notdemo {
@@ -574,6 +589,9 @@ pub unsafe fn dofkeys(
                 let mut ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
                 if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
+                    //
+                    // save game
+                    //
                     let str = format!("GAME{ch}.CA2");
                     if _Verify(&str) != 0 {
                         print_str("\nGame exists,\noverwrite (Y/N)?", gs, pcs);
@@ -597,6 +615,8 @@ pub unsafe fn dofkeys(
                         919954187481050311 => {}
                         _ => {
                             let str = CString::new(str).unwrap();
+                            // Rust port: Former flags: (O_WRONLY | O_BINARY | O_CREAT | O_TRUNC,
+                            // S_IREAD | S_IWRITE).
                             handle = open(
                                 str.as_ptr(),
                                 0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
@@ -626,6 +646,7 @@ pub unsafe fn dofkeys(
                                     as *const libc::c_void,
                                 ::std::mem::size_of::<activeobj>() as u64,
                             );
+
                             close(handle);
                             print_str("\nGame saved.  Hit F5\n", gs, pcs);
                             print_str("when you wish to\n", gs, pcs);
@@ -636,13 +657,17 @@ pub unsafe fn dofkeys(
                 }
             }
         }
-        62 => {
+        // F5
+        SDL_SCANCODE_F5 => {
             clearkeys(pcs);
             expwin(22, 4, gs, pas, pcs);
             print_str("Load game #(1-9):", gs, pcs);
             let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
             if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
+                //
+                // load game
+                //
                 let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
                 // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
                 // project.
@@ -680,18 +705,20 @@ pub unsafe fn dofkeys(
                     if gs.indemo != notdemo {
                         gs.playdone = true;
                     }
-                    drawside(gs, cps, pcs);
+                    drawside(gs, cps, pcs); // draw score, icons, etc
                     gs.leveldone = true;
                 }
             }
         }
-        66 => {
+        // F9
+        SDL_SCANCODE_F9 => {
             clearkeys(pcs);
             expwin(7, 1, gs, pas, pcs);
             print_str("PAUSED", gs, pcs);
             get(gs, pas, pcs);
         }
-        67 => {
+        // F10
+        SDL_SCANCODE_F10 => {
             clearkeys(pcs);
             expwin(12, 1, gs, pas, pcs);
             print_str("QUIT (Y/N)?", gs, pcs);
@@ -702,6 +729,7 @@ pub unsafe fn dofkeys(
         }
         _ => return,
     }
+
     clearold(&mut gs.oldtiles);
     clearkeys(pcs);
     repaintscreen(gs, cps, pas, pcs);
