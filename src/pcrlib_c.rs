@@ -500,6 +500,7 @@ pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
     }
 }
 
+#[no_mangle]
 unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_Event) -> i32 {
     let userdata = &*(userdata as *mut SDLEventPayload);
 
