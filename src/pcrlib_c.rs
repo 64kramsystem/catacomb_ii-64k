@@ -6,7 +6,7 @@ use std::path::Path;
 use std::{fs, ptr};
 
 use ::libc;
-use serdine::Deserialize;
+use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
 use crate::cpanel_state::CpanelState;
@@ -1621,14 +1621,14 @@ pub fn _loadhighscores(pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn _savehighscores(pcs: &mut PcrlibCState) {
-    panic!("Broken by `scores` not packed");
-    let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
-    SaveFile(
-        str.as_ptr(),
-        pcs.highscores.as_mut_ptr() as *mut i8,
-        ::std::mem::size_of::<[scores; 5]>() as u64 as i64,
-    );
+pub fn _savehighscores(pcs: &mut PcrlibCState) {
+    let mut buffer = Vec::new();
+
+    Serialize::serialize(&pcs.highscores, &mut buffer);
+
+    let str = format!("SCORES.{port_temp__extension}");
+
+    port_temp_SaveFile(&str, &buffer);
 }
 
 pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
