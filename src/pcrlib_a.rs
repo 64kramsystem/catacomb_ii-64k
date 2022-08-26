@@ -1,7 +1,4 @@
-use std::{
-    ptr,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use ::libc;
 
@@ -35,7 +32,8 @@ pub struct SavedSoundStruct {
     pub SndPriority: u8,
     pub pcSamplesPerTick: u32,
     pub pcLengthLeft: u32,
-    pub pcSound: *mut u16,
+    // Rust port: Pointer to SoundData.freqdata
+    pub pcSound: Option<usize>,
 }
 
 #[derive(Copy, Clone)]
@@ -74,20 +72,22 @@ fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAState) {
 }
 
 #[inline]
-unsafe fn _SDL_PCService(pas: &mut PcrlibAState) {
-    if !pas.pcSound.is_null() {
-        if *pas.pcSound as i32 != pas.pcLastSample as i32 {
-            pas.pcLastSample = *pas.pcSound;
+fn _SDL_PCService(pas: &mut PcrlibAState) {
+    if let Some(pcSound) = pas.pcSound {
+        let pcCurrSample = pas.SoundData.freqdata[pcSound];
+
+        if pcCurrSample != pas.pcLastSample {
+            pas.pcLastSample = pcCurrSample;
             if pas.pcLastSample != 0 {
                 _SDL_turnOnPCSpeaker(pas.pcLastSample, pas);
             } else {
                 _SDL_turnOffPCSpeaker(pas);
             }
         }
-        pas.pcSound = pas.pcSound.offset(1);
-        pas.pcLengthLeft = pas.pcLengthLeft.wrapping_sub(1);
+        pas.pcSound = Some(pcSound + 1);
+        pas.pcLengthLeft -= 1;
         if pas.pcLengthLeft == 0 {
-            pas.pcSound = ptr::null_mut();
+            pas.pcSound = None;
             pas.SndPriority = 0;
             _SDL_turnOffPCSpeaker(pas);
         }
@@ -103,7 +103,7 @@ fn _SDL_PCPlaySound(sound_i: i32, pas: &mut PcrlibAState) {
         >> 1) as u32;
     let sound_data_i = pas.SoundData.sounds[(sound_i - 1) as usize].start as usize
         - SPKRtable::start_of_freqdata();
-    pas.pcSound = &mut pas.SoundData.freqdata[sound_data_i / 2];
+    pas.pcSound = Some(sound_data_i / 2);
     pas.SndPriority = pas.SoundData.sounds[(sound_i - 1) as usize].priority;
     pas.pcSamplesPerTick = (pas.AudioSpec.freq
         / ((1193181 * pas.SoundData.sounds[(sound_i - 1) as usize].samplerate as i32) >> 16))
@@ -113,7 +113,7 @@ fn _SDL_PCPlaySound(sound_i: i32, pas: &mut PcrlibAState) {
 
 fn _SDL_PCStopSound(pas: &mut PcrlibAState) {
     safe_SDL_LockMutex(pas.AudioMutex);
-    pas.pcSound = ptr::null_mut();
+    pas.pcSound = None;
     _SDL_turnOffPCSpeaker(pas);
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
@@ -245,7 +245,7 @@ pub fn PauseSound(pas: &mut PcrlibAState) {
     pas.SavedSound.pcSound = pas.pcSound;
     pas.SndPriority = 0;
     pas.pcLengthLeft = 0;
-    pas.pcSound = ptr::null_mut();
+    pas.pcSound = None;
     _SDL_turnOffPCSpeaker(pas);
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
@@ -267,7 +267,7 @@ pub fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrl
         return;
     }
     UpdateScreen(gs, pcs);
-    while !pas.pcSound.is_null() {
+    while pas.pcSound.is_some() {
         WaitVBL(pas);
     }
 }
