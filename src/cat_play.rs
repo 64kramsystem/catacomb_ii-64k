@@ -733,7 +733,7 @@ fn walk(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) ->
     return true;
 }
 
-unsafe fn playercmdthink(
+fn playercmdthink(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -1195,7 +1195,7 @@ fn explodethink(gs: &mut GlobalState, pas: &mut PcrlibAState) {
     }
 }
 
-unsafe fn think(
+fn think(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -1243,7 +1243,7 @@ unsafe fn think(
     }
 }
 
-pub unsafe fn doactive(
+pub fn doactive(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -1281,7 +1281,7 @@ pub fn doinactive(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn playloop(
+pub fn playloop(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,

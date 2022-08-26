@@ -96,7 +96,7 @@ pub fn eraseobj(gs: &mut GlobalState) {
     }
 }
 
-pub unsafe fn doall(
+pub fn doall(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,

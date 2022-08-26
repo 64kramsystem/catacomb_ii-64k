@@ -461,6 +461,17 @@ pub union SDL_Event {
     pub drop: SDL_DropEvent,
     pub padding: [u8; 56],
 }
+
+impl SDL_Event {
+    fn is_event_type(&self, event_type: u32) -> bool {
+        unsafe { self.type_0 == event_type }
+    }
+
+    fn key_scancode(&self) -> SDL_Scancode {
+        unsafe { self.key.keysym.scancode }
+    }
+}
+
 pub type SDL_EventFilter = Option<unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32>;
 pub type C2RustUnnamed_4 = u32;
 pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
@@ -472,6 +483,17 @@ pub struct joyinfo_t {
     pub device: i32,
     pub isgamecontroller: bool,
 }
+
+impl joyinfo_t {
+    fn controller(&self) -> *mut SDL_GameController {
+        unsafe { self.c2rust_unnamed.controller }
+    }
+
+    fn joy(&self) -> *mut SDL_Joystick {
+        unsafe { self.c2rust_unnamed.joy }
+    }
+}
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_5 {
@@ -485,16 +507,16 @@ pub fn SetupKBD(pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
+pub fn ProcessEvents(pcs: &mut PcrlibCState) {
     pcs.mouseEvent = false;
     let mut event: SDL_Event = SDL_Event { type_0: 0 };
     while safe_SDL_PollEvent(&mut event) != 0 {
-        if event.type_0 == SDL_KEYDOWN as i32 as u32 {
-            pcs.keydown[event.key.keysym.scancode as usize] = true;
-            pcs.lastkey = event.key.keysym.scancode;
-        } else if event.type_0 == SDL_KEYUP as i32 as u32 {
-            pcs.keydown[event.key.keysym.scancode as usize] = false;
-        } else if event.type_0 == SDL_MOUSEMOTION as i32 as u32 {
+        if event.is_event_type(SDL_KEYDOWN) {
+            pcs.keydown[event.key_scancode() as usize] = true;
+            pcs.lastkey = event.key_scancode();
+        } else if event.is_event_type(SDL_KEYUP) {
+            pcs.keydown[event.key_scancode() as usize] = false;
+        } else if event.is_event_type(SDL_MOUSEMOTION) {
             pcs.mouseEvent = true;
         }
     }
@@ -664,15 +686,15 @@ pub fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
     return action;
 }
 
-unsafe fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
+fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     let mut j: u32 = 0;
     j = 1;
     while j < 3 {
         if !(pcs.joystick[j as usize].device < 0) {
             if pcs.joystick[j as usize].isgamecontroller {
-                safe_SDL_GameControllerClose(pcs.joystick[j as usize].c2rust_unnamed.controller);
+                safe_SDL_GameControllerClose(pcs.joystick[j as usize].controller());
             } else {
-                safe_SDL_JoystickClose(pcs.joystick[j as usize].c2rust_unnamed.joy);
+                safe_SDL_JoystickClose(pcs.joystick[j as usize].joy());
             }
             pcs.joystick[j as usize].device = -1;
         }
@@ -680,7 +702,7 @@ unsafe fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     }
 }
 
-pub unsafe fn ProbeJoysticks(pcs: &mut PcrlibCState) {
+pub fn ProbeJoysticks(pcs: &mut PcrlibCState) {
     let mut j: i32 = 0;
     if pcs.joystick[1].device > 0 || pcs.joystick[2].device > 0 {
         ShutdownJoysticks(pcs);
@@ -709,28 +731,24 @@ pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut P
     *xcount = 0;
     *ycount = 0;
     safe_SDL_JoystickUpdate();
-    unsafe {
-        if pcs.joystick[joynum as usize].isgamecontroller {
-            a1 = safe_SDL_GameControllerGetAxis(
-                pcs.joystick[joynum as usize].c2rust_unnamed.controller,
-                SDL_CONTROLLER_AXIS_LEFTX,
-            ) as i32;
-            a2 = safe_SDL_GameControllerGetAxis(
-                pcs.joystick[joynum as usize].c2rust_unnamed.controller,
-                SDL_CONTROLLER_AXIS_LEFTY,
-            ) as i32;
-        } else {
-            a1 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 0)
-                as i32;
-            a2 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 1)
-                as i32;
-        }
+    if pcs.joystick[joynum as usize].isgamecontroller {
+        a1 = safe_SDL_GameControllerGetAxis(
+            pcs.joystick[joynum as usize].controller(),
+            SDL_CONTROLLER_AXIS_LEFTX,
+        ) as i32;
+        a2 = safe_SDL_GameControllerGetAxis(
+            pcs.joystick[joynum as usize].controller(),
+            SDL_CONTROLLER_AXIS_LEFTY,
+        ) as i32;
+    } else {
+        a1 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].joy(), 0) as i32;
+        a2 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].joy(), 1) as i32;
     }
     *xcount = a1;
     *ycount = a2;
 }
 
-pub unsafe fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
+pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
     let mut joyx: i32 = 0;
     let mut joyy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -743,18 +761,16 @@ pub unsafe fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStr
     ReadJoystick(joynum, &mut joyx, &mut joyy, pcs);
     if pcs.joystick[joynum as usize].isgamecontroller {
         action.button1 = safe_SDL_GameControllerGetButton(
-            pcs.joystick[joynum as usize].c2rust_unnamed.controller,
+            pcs.joystick[joynum as usize].controller(),
             SDL_CONTROLLER_BUTTON_A,
         ) != 0;
         action.button2 = safe_SDL_GameControllerGetButton(
-            pcs.joystick[joynum as usize].c2rust_unnamed.controller,
+            pcs.joystick[joynum as usize].controller(),
             SDL_CONTROLLER_BUTTON_B,
         ) != 0;
     } else {
-        action.button1 =
-            safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 0) != 0;
-        action.button2 =
-            safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 1) != 0;
+        action.button1 = safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].joy(), 0) != 0;
+        action.button2 = safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].joy(), 1) != 0;
     }
     if joyx == 0 && joyy == 0 {
         action.dir = nodir;
@@ -803,11 +819,7 @@ pub unsafe fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStr
     return action;
 }
 
-pub unsafe fn ControlPlayer(
-    player: i32,
-    gs: &mut GlobalState,
-    pcs: &mut PcrlibCState,
-) -> ControlStruct {
+pub fn ControlPlayer(player: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
         button1: false,
@@ -1125,15 +1137,13 @@ pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState) -> u32 {
 
     let mut event = SDL_Event { type_0: 0 };
     while safe_SDL_PollEvent(&mut event) != 0 {
-        unsafe {
-            if event.type_0 == SDL_KEYDOWN {
-                if cmd == 1 {
-                    pcs.lastkey = event.key.keysym.scancode;
-                    return pcs.lastkey;
-                } else {
-                    return event.key.keysym.scancode;
-                };
-            }
+        if event.is_event_type(SDL_KEYDOWN) {
+            if cmd == 1 {
+                pcs.lastkey = event.key_scancode();
+                return pcs.lastkey;
+            } else {
+                return event.key_scancode();
+            };
         }
     }
     pcs.lastkey
@@ -1329,11 +1339,7 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub unsafe fn _inputint(
-    gs: &mut GlobalState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) -> u32 {
+pub fn _inputint(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
@@ -1377,7 +1383,7 @@ pub unsafe fn _inputint(
 // line input routine
 //
 ////////////////////////////////////////////////////////////////////
-unsafe fn _input(
+fn _input(
     string: &mut [u8],
     max: usize,
     gs: &mut GlobalState,
@@ -1463,7 +1469,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
 //
 ////////////////////////
 
-pub unsafe fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let str = format!("CTLPANEL.{port_temp__extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
@@ -1638,11 +1644,7 @@ pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     _printc(&str, gs, pcs);
 }
 
-pub unsafe fn _checkhighscore(
-    gs: &mut GlobalState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) {
+pub fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
     let mut k: i32 = 0;
@@ -1763,83 +1765,82 @@ pub fn _setupgame(
         w: 0,
         h: 0,
     };
-    unsafe {
-        if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs.mode) < -1
-            || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
-        {
-            eprintln!("Could not get display mode: {}", safe_SDL_GetError());
-            std::process::exit(1);
-        }
-        if windowed {
-            bounds.x = (0x1fff0000 as u32 | 0) as i32;
-            bounds.y = (0x1fff0000 as u32 | 0) as i32;
-            pcs.mode.w = winWidth as i32;
-            pcs.mode.h = winHeight as i32;
-        }
-        pcs.window = safe_SDL_CreateWindow(
-            b"The Catacomb\0" as *const u8 as *const i8,
-            bounds.x,
-            bounds.y,
-            pcs.mode.w,
-            pcs.mode.h,
-            (if windowed as i32 != 0 {
-                0
-            } else {
-                SDL_WINDOW_FULLSCREEN_DESKTOP as i32
-            }) as u32,
-        );
-        if pcs.window.is_null() || {
-            pcs.renderer = safe_SDL_CreateRenderer(pcs.window, -1, 0);
-            pcs.renderer.is_null()
-        } {
-            eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
-            std::process::exit(1);
-        }
-        pcs.sdltexture = safe_SDL_CreateTexture(
-            pcs.renderer,
-            SDL_PIXELFORMAT_ARGB8888,
-            SDL_TEXTUREACCESS_STREAMING as i32,
-            320,
-            200,
-        );
-        if pcs.sdltexture.is_null() {
-            eprintln!("Could not create video buffer: {}", safe_SDL_GetError());
-            std::process::exit(1);
-        }
-        if pcs.mode.w == 320 && pcs.mode.h == 200 || pcs.mode.w == 640 && pcs.mode.h == 400 {
-            pcs.updateRect.w = pcs.mode.w;
-            pcs.updateRect.h = pcs.mode.h;
-            pcs.updateRect.y = 0;
-            pcs.updateRect.x = pcs.updateRect.y;
-        } else {
-            pcs.updateRect.h = pcs.mode.h;
-            pcs.updateRect.w = pcs.mode.h * 4 / 3;
-            pcs.updateRect.x = (pcs.mode.w - pcs.updateRect.w) >> 1;
-            pcs.updateRect.y = 0;
-        }
-        gs.screenseg.fill(0);
-        pcs.grmode = EGAgr;
-        pcs.joystick[2].device = -1;
-        pcs.joystick[1].device = pcs.joystick[2].device;
-        _loadctrls(pas, pcs);
-        if pcs.grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
-            pcs.grmode = VGAgr;
-        } else if pcs.grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
-            pcs.grmode = EGAgr;
-        } else {
-            pcs.grmode = CGAgr;
-        }
-        let filename = format!("SOUNDS.{port_temp__extension}");
-        let sound_data_buffer = bloadin(&filename).unwrap();
-        pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
-        StartupSound(pas);
-        SetupKBD(pcs);
-        initrndt(true, pas);
-        initrnd(true, pas);
-        _loadhighscores(pcs);
-        loadgrfiles(gs, cps, pcs);
-        SetupEmulatedVBL(pas);
+
+    if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs.mode) < -1
+        || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
+    {
+        eprintln!("Could not get display mode: {}", safe_SDL_GetError());
+        std::process::exit(1);
     }
+    if windowed {
+        bounds.x = (0x1fff0000 as u32 | 0) as i32;
+        bounds.y = (0x1fff0000 as u32 | 0) as i32;
+        pcs.mode.w = winWidth as i32;
+        pcs.mode.h = winHeight as i32;
+    }
+    pcs.window = safe_SDL_CreateWindow(
+        b"The Catacomb\0" as *const u8 as *const i8,
+        bounds.x,
+        bounds.y,
+        pcs.mode.w,
+        pcs.mode.h,
+        (if windowed as i32 != 0 {
+            0
+        } else {
+            SDL_WINDOW_FULLSCREEN_DESKTOP as i32
+        }) as u32,
+    );
+    if pcs.window.is_null() || {
+        pcs.renderer = safe_SDL_CreateRenderer(pcs.window, -1, 0);
+        pcs.renderer.is_null()
+    } {
+        eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
+        std::process::exit(1);
+    }
+    pcs.sdltexture = safe_SDL_CreateTexture(
+        pcs.renderer,
+        SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING as i32,
+        320,
+        200,
+    );
+    if pcs.sdltexture.is_null() {
+        eprintln!("Could not create video buffer: {}", safe_SDL_GetError());
+        std::process::exit(1);
+    }
+    if pcs.mode.w == 320 && pcs.mode.h == 200 || pcs.mode.w == 640 && pcs.mode.h == 400 {
+        pcs.updateRect.w = pcs.mode.w;
+        pcs.updateRect.h = pcs.mode.h;
+        pcs.updateRect.y = 0;
+        pcs.updateRect.x = pcs.updateRect.y;
+    } else {
+        pcs.updateRect.h = pcs.mode.h;
+        pcs.updateRect.w = pcs.mode.h * 4 / 3;
+        pcs.updateRect.x = (pcs.mode.w - pcs.updateRect.w) >> 1;
+        pcs.updateRect.y = 0;
+    }
+    gs.screenseg.fill(0);
+    pcs.grmode = EGAgr;
+    pcs.joystick[2].device = -1;
+    pcs.joystick[1].device = pcs.joystick[2].device;
+    _loadctrls(pas, pcs);
+    if pcs.grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
+        pcs.grmode = VGAgr;
+    } else if pcs.grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
+        pcs.grmode = EGAgr;
+    } else {
+        pcs.grmode = CGAgr;
+    }
+    let filename = format!("SOUNDS.{port_temp__extension}");
+    let sound_data_buffer = bloadin(&filename).unwrap();
+    pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
+    StartupSound(pas);
+    SetupKBD(pcs);
+    initrndt(true, pas);
+    initrnd(true, pas);
+    _loadhighscores(pcs);
+    loadgrfiles(gs, cps, pcs);
+    SetupEmulatedVBL(pas);
 }
 
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
@@ -1857,9 +1858,7 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
         _savectrls(pas, pcs);
     }
     ShutdownSound(pas);
-    unsafe {
-        ShutdownJoysticks(pcs);
-    }
+    ShutdownJoysticks(pcs);
     safe_SDL_DestroyRenderer(pcs.renderer);
     safe_SDL_DestroyWindow(pcs.window);
     pcs.renderer = 0 as *mut SDL_Renderer;

@@ -34,7 +34,7 @@ const SDLK_RETURN: u32 = 13;
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
 
-unsafe fn calibratejoy(
+fn calibratejoy(
     joynum: i32,
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
@@ -406,7 +406,7 @@ fn drawpanel(
     print_str("       ESC to return to your game     \n\r", gs, pcs);
 }
 
-pub unsafe fn controlpanel(
+pub fn controlpanel(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
