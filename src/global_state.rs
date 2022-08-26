@@ -174,7 +174,7 @@ impl Default for GlobalState {
             [0; 6],
             0,
             [activeobj {
-                active: 0,
+                active: false,
                 class: nothing,
                 x: 0,
                 y: 0,
@@ -188,7 +188,7 @@ impl Default for GlobalState {
                 filler: [0; 1],
             }; 201],
             [activeobj {
-                active: 0,
+                active: false,
                 class: nothing,
                 x: 0,
                 y: 0,
@@ -202,7 +202,7 @@ impl Default for GlobalState {
                 filler: [0; 1],
             }; 1],
             objtype {
-                active: 0,
+                active: false,
                 class: nothing,
                 x: 0,
                 y: 0,
@@ -228,7 +228,7 @@ impl Default for GlobalState {
                 filler2: [0; 2],
             },
             objtype {
-                active: 0,
+                active: false,
                 class: nothing,
                 x: 0,
                 y: 0,
@@ -281,8 +281,8 @@ impl Default for GlobalState {
             ingame,
             ControlStruct {
                 dir: north,
-                button1: 0,
-                button2: 0,
+                button1: false,
+                button2: false,
             },
             vec![],
             0,

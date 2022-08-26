@@ -3,10 +3,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use ::libc;
 
 use crate::{
-    cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, extra_types::boolean,
-    global_state::GlobalState, gr_type::grtype::*, pcrlib_a_state::PcrlibAState,
-    pcrlib_c::UpdateScreen, pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*,
-    spkr_table::SPKRtable,
+    cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, global_state::GlobalState,
+    gr_type::grtype::*, pcrlib_a_state::PcrlibAState, pcrlib_c::UpdateScreen,
+    pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*, spkr_table::SPKRtable,
 };
 
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
@@ -62,12 +61,12 @@ fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
     // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
     pas.pcPhaseLength = pcSample as u32 * pas.AudioSpec.freq as u32 / (2 * PC_BASE_TIMER);
-    pas.pcActive = true as boolean;
+    pas.pcActive = true;
 }
 
 #[inline]
 fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAState) {
-    pas.pcActive = false as boolean;
+    pas.pcActive = false;
     pas.pcPhaseTick = 0;
 }
 
@@ -134,7 +133,7 @@ unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, le
     safe_SDL_LockMutex(pas.AudioMutex);
     loop {
         if pas.pcNumReadySamples != 0 {
-            if pas.pcActive != 0 {
+            if pas.pcActive {
                 while pas.pcNumReadySamples != 0 && sampleslen != 0 {
                     pas.pcNumReadySamples = pas.pcNumReadySamples.wrapping_sub(1);
                     sampleslen -= 1;
@@ -291,12 +290,12 @@ const baseRndArray: [u16; 17] = [
     1, 1, 2, 3, 5, 8, 13, 21, 54, 75, 129, 204, 323, 527, 850, 1377, 2227,
 ];
 
-pub fn initrnd(randomize: boolean, pas: &mut PcrlibAState) {
+pub fn initrnd(randomize: bool, pas: &mut PcrlibAState) {
     pas.RndArray.copy_from_slice(&baseRndArray);
     pas.LastRnd = 0;
     pas.indexi = 17;
     pas.indexj = 5;
-    if randomize != 0 {
+    if randomize {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -341,7 +340,7 @@ pub fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     return val;
 }
 
-pub fn initrndt(randomize: boolean, pas: &mut PcrlibAState) {
+pub fn initrndt(randomize: bool, pas: &mut PcrlibAState) {
     pas.rndindex = (if randomize as i32 != 0 {
         SystemTime::now()
             .duration_since(UNIX_EPOCH)

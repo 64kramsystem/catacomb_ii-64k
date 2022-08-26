@@ -24,7 +24,6 @@ use crate::{
     dir_type::dirtype::*,
     extra_constants::{port_temp__extension, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
     extra_macros::SDL_BUTTON,
-    extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_a::{drawchar, PlaySound, ShutdownSound, WaitVBL},
@@ -471,7 +470,7 @@ pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
 pub struct joyinfo_t {
     pub c2rust_unnamed: C2RustUnnamed_5,
     pub device: i32,
-    pub isgamecontroller: boolean,
+    pub isgamecontroller: bool,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -482,21 +481,21 @@ pub union C2RustUnnamed_5 {
 
 pub fn SetupKBD(pcs: &mut PcrlibCState) {
     for i in 0..128 {
-        pcs.keydown[i] = false as boolean;
+        pcs.keydown[i] = false;
     }
 }
 
 pub unsafe fn ProcessEvents(pcs: &mut PcrlibCState) {
-    pcs.mouseEvent = false as boolean;
+    pcs.mouseEvent = false;
     let mut event: SDL_Event = SDL_Event { type_0: 0 };
     while safe_SDL_PollEvent(&mut event) != 0 {
         if event.type_0 == SDL_KEYDOWN as i32 as u32 {
-            pcs.keydown[event.key.keysym.scancode as usize] = true as boolean;
+            pcs.keydown[event.key.keysym.scancode as usize] = true;
             pcs.lastkey = event.key.keysym.scancode;
         } else if event.type_0 == SDL_KEYUP as i32 as u32 {
-            pcs.keydown[event.key.keysym.scancode as usize] = false as boolean;
+            pcs.keydown[event.key.keysym.scancode as usize] = false;
         } else if event.type_0 == SDL_MOUSEMOTION as i32 as u32 {
-            pcs.mouseEvent = true as boolean;
+            pcs.mouseEvent = true;
         }
     }
 }
@@ -516,7 +515,7 @@ unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_
 
         match (*event).window.event as i32 {
             13 => {
-                pcs.hasFocus = false as boolean;
+                pcs.hasFocus = false;
                 CheckMouseMode(pcs);
             }
             12 => {
@@ -524,7 +523,7 @@ unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
                 }
-                pcs.hasFocus = true as boolean;
+                pcs.hasFocus = true;
                 CheckMouseMode(pcs);
             }
             _ => {}
@@ -538,34 +537,34 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     let mut ymove: i32 = 0;
     let mut action: ControlStruct = ControlStruct {
         dir: north,
-        button1: 0,
-        button2: 0,
+        button1: false,
+        button2: false,
     };
-    if pcs.keydown[pcs.key[north as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[north as i32 as usize] as usize] {
         ymove = -1;
     }
-    if pcs.keydown[pcs.key[east as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[east as i32 as usize] as usize] {
         xmove = 1;
     }
-    if pcs.keydown[pcs.key[south as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[south as i32 as usize] as usize] {
         ymove = 1;
     }
-    if pcs.keydown[pcs.key[west as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[west as i32 as usize] as usize] {
         xmove = -1;
     }
-    if pcs.keydown[pcs.key[northeast as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[northeast as i32 as usize] as usize] {
         ymove = -1;
         xmove = 1;
     }
-    if pcs.keydown[pcs.key[northwest as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[northwest as i32 as usize] as usize] {
         ymove = -1;
         xmove = -1;
     }
-    if pcs.keydown[pcs.key[southeast as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[southeast as i32 as usize] as usize] {
         ymove = 1;
         xmove = 1;
     }
-    if pcs.keydown[pcs.key[southwest as i32 as usize] as usize] != 0 {
+    if pcs.keydown[pcs.key[southwest as i32 as usize] as usize] {
         ymove = 1;
         xmove = -1;
     }
@@ -611,12 +610,12 @@ pub fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
     let mut ymove: i32 = 0;
     let mut action: ControlStruct = ControlStruct {
         dir: north,
-        button1: 0,
-        button2: 0,
+        button1: false,
+        button2: false,
     };
     let buttons: i32 = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32;
-    action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) as boolean;
-    action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) as boolean;
+    action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
+    action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
     if pcs.mouseEvent as i32 == false as i32 {
         action.dir = nodir;
         return action;
@@ -669,7 +668,7 @@ unsafe fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     j = 1;
     while j < 3 {
         if !(pcs.joystick[j as usize].device < 0) {
-            if pcs.joystick[j as usize].isgamecontroller != 0 {
+            if pcs.joystick[j as usize].isgamecontroller {
                 safe_SDL_GameControllerClose(pcs.joystick[j as usize].c2rust_unnamed.controller);
             } else {
                 safe_SDL_JoystickClose(pcs.joystick[j as usize].c2rust_unnamed.joy);
@@ -691,7 +690,7 @@ pub unsafe fn ProbeJoysticks(pcs: &mut PcrlibCState) {
             pcs.joystick[j as usize].device = -1;
         } else {
             pcs.joystick[j as usize].device = j - 1;
-            pcs.joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) as boolean;
+            pcs.joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) != 0;
             if safe_SDL_IsGameController(j - 1) as u64 != 0 {
                 pcs.joystick[j as usize].c2rust_unnamed.controller =
                     safe_SDL_GameControllerOpen(j - 1);
@@ -710,7 +709,7 @@ pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut P
     *ycount = 0;
     safe_SDL_JoystickUpdate();
     unsafe {
-        if pcs.joystick[joynum as usize].isgamecontroller != 0 {
+        if pcs.joystick[joynum as usize].isgamecontroller {
             a1 = safe_SDL_GameControllerGetAxis(
                 pcs.joystick[joynum as usize].c2rust_unnamed.controller,
                 SDL_CONTROLLER_AXIS_LEFTX,
@@ -737,28 +736,24 @@ pub unsafe fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStr
     let mut ymove: i32 = 0;
     let mut action: ControlStruct = ControlStruct {
         dir: north,
-        button1: 0,
-        button2: 0,
+        button1: false,
+        button2: false,
     };
     ReadJoystick(joynum, &mut joyx, &mut joyy, pcs);
-    if pcs.joystick[joynum as usize].isgamecontroller != 0 {
-        action.button1 = (safe_SDL_GameControllerGetButton(
+    if pcs.joystick[joynum as usize].isgamecontroller {
+        action.button1 = safe_SDL_GameControllerGetButton(
             pcs.joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_BUTTON_A,
-        ) as i32
-            != 0) as i32 as boolean;
-        action.button2 = (safe_SDL_GameControllerGetButton(
+        ) != 0;
+        action.button2 = safe_SDL_GameControllerGetButton(
             pcs.joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_BUTTON_B,
-        ) as i32
-            != 0) as i32 as boolean;
+        ) != 0;
     } else {
         action.button1 =
-            (safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 0) as i32
-                != 0) as i32 as boolean;
+            safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 0) != 0;
         action.button2 =
-            (safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 1) as i32
-                != 0) as i32 as boolean;
+            safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].c2rust_unnamed.joy, 1) != 0;
     }
     if joyx == 0 && joyy == 0 {
         action.dir = nodir;
@@ -814,8 +809,8 @@ pub unsafe fn ControlPlayer(
 ) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
-        button1: 0,
-        button2: 0,
+        button1: false,
+        button2: false,
     };
     ProcessEvents(pcs);
     if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
@@ -843,8 +838,8 @@ pub unsafe fn ControlPlayer(
     } else {
         let val = pcs.demobuffer[pcs.demoptr];
         pcs.demoptr += 1;
-        ret.button1 = (val & 1) as boolean;
-        ret.button2 = ((val & 2) >> 1) as boolean;
+        ret.button1 = (val & 1) != 0;
+        ret.button2 = ((val & 2) >> 1) != 0;
         ret.dir = ((val & (4 + 8 + 16 + 32)) >> 2).into();
     }
     return ret;
@@ -897,7 +892,7 @@ pub fn clearkeys(pcs: &mut PcrlibCState) {
         bioskey(0, pcs);
     }
     for i in 0..128 {
-        pcs.keydown[i] = 0;
+        pcs.keydown[i] = false;
     }
 }
 
@@ -1433,11 +1428,11 @@ unsafe fn _input(
 //
 // which is overwritten with "CA2" in `CATACOMB.C`.
 
-const _cgaok: boolean = true as boolean;
+const _cgaok: bool = true;
 
-pub const _egaok: boolean = true as boolean;
+pub const _egaok: bool = true;
 
-pub const _vgaok: boolean = false as boolean;
+pub const _vgaok: bool = false;
 
 pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
     let mut i: i32 = 0;
@@ -1838,8 +1833,8 @@ pub fn _setupgame(
         pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
         StartupSound(pas);
         SetupKBD(pcs);
-        initrndt(1, pas);
-        initrnd(1, pas);
+        initrndt(true, pas);
+        initrnd(true, pas);
         _loadhighscores(pcs);
         loadgrfiles(gs, cps, pcs);
         SetupEmulatedVBL(pas);

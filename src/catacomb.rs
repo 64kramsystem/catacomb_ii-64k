@@ -18,7 +18,6 @@ use crate::{
     extra_constants::{
         blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
     },
-    extra_types::boolean,
     global_state::GlobalState,
     gr_type::grtype::*,
     objects::initobjects,
@@ -147,7 +146,7 @@ pub fn restore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     simplerefresh(gs, pas, pcs);
 }
 
-fn wantmore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> boolean {
+fn wantmore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> bool {
     pcs.sx = 2;
     pcs.sy = 20;
     print_str("(space for more/esc)", gs, pcs);
@@ -155,9 +154,9 @@ fn wantmore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState
     pcs.sy = 21;
     let ch = get(gs, pas, pcs) as i8;
     if ch == 27 {
-        return false as boolean;
+        return false;
     }
-    return true as boolean;
+    return true;
 }
 
 fn charpic(
@@ -213,7 +212,7 @@ fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     print_str("\n", gs, pcs);
     print_str("hit fire at the demo\n", gs, pcs);
     print_str("to begin playing.   \n", gs, pcs);
-    if wantmore(gs, pas, pcs) == 0 {
+    if !wantmore(gs, pas, pcs) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -224,7 +223,7 @@ fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     print_str("\nTo switch to mouse \n", gs, pcs);
     print_str("or joystick control,\n", gs, pcs);
     print_str("hit f2             \n", gs, pcs);
-    if wantmore(gs, pas, pcs) == 0 {
+    if !wantmore(gs, pas, pcs) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -251,7 +250,7 @@ fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     charpic(17, 14, shot, east, 0, gs, pcs);
     charpic(15, 15, shot, east, 1, gs, pcs);
     charpic(8, 14, bigshot, east, 0, gs, pcs);
-    if wantmore(gs, pas, pcs) == 0 {
+    if !wantmore(gs, pas, pcs) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -281,7 +280,7 @@ fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     pcs.sx = 6;
     pcs.sy = 15;
     print_str("\x1D\x1D\x1E\x1E\x1F\x1F", gs, pcs);
-    if wantmore(gs, pas, pcs) == 0 {
+    if !wantmore(gs, pas, pcs) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -301,7 +300,7 @@ fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     print_str("down a lot of       \n", gs, pcs);
     print_str("monsters with a bit \n", gs, pcs);
     print_str("of skill.           \n", gs, pcs);
-    if wantmore(gs, pas, pcs) == 0 {
+    if !wantmore(gs, pas, pcs) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -378,7 +377,7 @@ pub fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
                     gs.o[0].y = (yy + 11) as u8;
                 } else {
                     gs.numobj += 1;
-                    gs.o[gs.numobj as usize].active = false as boolean;
+                    gs.o[gs.numobj as usize].active = false;
                     gs.o[gs.numobj as usize].class = tokens[(btile as i32 - 230) as usize];
                     gs.o[gs.numobj as usize].x = (xx + 11) as u8;
                     gs.o[gs.numobj as usize].y = (yy + 11) as u8;
@@ -480,7 +479,7 @@ fn playsetup(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState
         }
         pcs.score = 0;
         pcs.level = 1;
-        gs.o[0].active = true as boolean;
+        gs.o[0].active = true;
         gs.o[0].class = player;
         gs.o[0].hp = 13;
         gs.o[0].dir = west as i32 as u16;

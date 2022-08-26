@@ -42,7 +42,6 @@ mod dir_type;
 mod exit_type;
 mod extra_constants;
 mod extra_macros;
-mod extra_types;
 mod global_state;
 mod gr_type;
 mod input_type;
