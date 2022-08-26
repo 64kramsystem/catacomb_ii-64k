@@ -320,7 +320,7 @@ fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
 /* reset */
 /*       */
 #[allow(dead_code)]
-unsafe fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn reset(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     centerwindow(18, 1, gs, pcs);
     print_str("reset game (y/n)?", gs, pcs);
     let ch = get(gs, pas, pcs) as i8;
@@ -532,7 +532,7 @@ pub fn repaintscreen(
 =============
 */
 
-pub unsafe fn dofkeys(
+pub fn dofkeys(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -679,7 +679,7 @@ pub unsafe fn dofkeys(
     repaintscreen(gs, cps, pas, pcs);
 }
 
-unsafe fn dotitlepage(
+fn dotitlepage(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -716,7 +716,7 @@ unsafe fn dotitlepage(
     gs.gamestate = statetype::ingame;
 }
 
-unsafe fn doendpage(
+fn doendpage(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -753,7 +753,7 @@ unsafe fn doendpage(
     get(gs, pas, pcs);
 }
 
-unsafe fn dodemo(
+fn dodemo(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -802,7 +802,7 @@ unsafe fn dodemo(
     }
 }
 
-unsafe fn gameover(
+fn gameover(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
@@ -943,40 +943,38 @@ pub fn original_main() {
 
     _setupgame(&mut gs, &mut cps, &mut pas, &mut pcs);
 
-    unsafe {
-        expwin(33, 13, &mut gs, &mut pas, &mut pcs);
-        print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);
-        print_str("          The Catacomb\n\n", &mut gs, &mut pcs);
-        print_str("        By John Carmack\n\n", &mut gs, &mut pcs);
-        print_str("       Copyright 1990-93\n", &mut gs, &mut pcs);
-        print_str("      Softdisk Publishing", &mut gs, &mut pcs);
-        print_str("\n\n", &mut gs, &mut pcs);
-        print_str("\n\n", &mut gs, &mut pcs);
-        print_str("         Press a key:", &mut gs, &mut pcs);
-        get(&mut gs, &mut pas, &mut pcs);
+    expwin(33, 13, &mut gs, &mut pas, &mut pcs);
+    print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);
+    print_str("          The Catacomb\n\n", &mut gs, &mut pcs);
+    print_str("        By John Carmack\n\n", &mut gs, &mut pcs);
+    print_str("       Copyright 1990-93\n", &mut gs, &mut pcs);
+    print_str("      Softdisk Publishing", &mut gs, &mut pcs);
+    print_str("\n\n", &mut gs, &mut pcs);
+    print_str("\n\n", &mut gs, &mut pcs);
+    print_str("         Press a key:", &mut gs, &mut pcs);
+    get(&mut gs, &mut pas, &mut pcs);
 
-        clearkeys(&mut pcs);
+    clearkeys(&mut pcs);
 
-        gs.screencenter.x = 11;
-        gs.screencenter.y = 11;
+    gs.screencenter.x = 11;
+    gs.screencenter.y = 11;
 
-        gs.exitdemo = false;
-        pcs.level = 0;
+    gs.exitdemo = false;
+    pcs.level = 0;
 
-        // go until quit () is called
-        loop {
-            dodemo(&mut gs, &mut cps, &mut pas, &mut pcs);
-            playsetup(&mut gs, &mut cps, &mut pcs);
-            gs.indemo = notdemo;
-            gs.gamestate = statetype::ingame;
-            playloop(&mut gs, &mut cps, &mut pas, &mut pcs);
-            if gs.indemo == notdemo {
-                gs.exitdemo = false;
-                if pcs.level > numlevels {
-                    doendpage(&mut gs, &mut cps, &mut pas, &mut pcs); // finished all levels
-                }
-                gameover(&mut gs, &mut cps, &mut pas, &mut pcs);
+    // go until quit () is called
+    loop {
+        dodemo(&mut gs, &mut cps, &mut pas, &mut pcs);
+        playsetup(&mut gs, &mut cps, &mut pcs);
+        gs.indemo = notdemo;
+        gs.gamestate = statetype::ingame;
+        playloop(&mut gs, &mut cps, &mut pas, &mut pcs);
+        if gs.indemo == notdemo {
+            gs.exitdemo = false;
+            if pcs.level > numlevels {
+                doendpage(&mut gs, &mut cps, &mut pas, &mut pcs); // finished all levels
             }
+            gameover(&mut gs, &mut cps, &mut pas, &mut pcs);
         }
     }
 }
