@@ -1622,6 +1622,7 @@ pub fn _loadhighscores(pcs: &mut PcrlibCState) {
 }
 
 pub unsafe fn _savehighscores(pcs: &mut PcrlibCState) {
+    panic!("Broken by `scores` not packed");
     let str = CString::new(format!("SCORES.{port_temp__extension}")).unwrap();
     SaveFile(
         str.as_ptr(),
