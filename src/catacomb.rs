@@ -1,9 +1,8 @@
-use std::ffi::CString;
+use std::fs::File;
 
-use libc::O_RDONLY;
+use serdine::{Deserialize, Serialize};
 
 use crate::{
-    active_obj::activeobj,
     cat_play::{
         givebolt, givenuke, givepotion, playloop, printbody, printhighscore, printscore,
         printshotpower,
@@ -16,7 +15,7 @@ use crate::{
     dir_type::dirtype::{self, *},
     exit_type::exittype::*,
     extra_constants::{
-        blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS, O_BINARY,
+        blankfloor, leftoff, maxpics, numlevels, solidwall, tile2s, topoff, NUM_DEMOS,
     },
     global_state::GlobalState,
     gr_type::grtype::*,
@@ -33,12 +32,6 @@ use crate::{
     scan_codes::*,
     state_type::statetype,
 };
-extern "C" {
-    fn close(__fd: i32) -> i32;
-    fn read(__fd: i32, __buf: *mut libc::c_void, __nbytes: u64) -> i64;
-    fn write(__fd: i32, __buf: *const libc::c_void, __n: u64) -> i64;
-    fn open(__file: *const i8, __oflag: i32, _: ...) -> i32;
-}
 
 /*==============================*/
 /*			        */
@@ -545,7 +538,6 @@ pub unsafe fn dofkeys(
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
 ) {
-    let mut handle: i32 = 0;
     let mut key = bioskey(1, pcs);
     // make ESC into F10
     if key == SDL_SCANCODE_ESCAPE {
@@ -554,7 +546,6 @@ pub unsafe fn dofkeys(
     if key < SDL_SCANCODE_F1 || key > SDL_SCANCODE_F10 {
         return;
     }
-    let current_block_72: u64;
     match key {
         // F1
         SDL_SCANCODE_F1 => {
@@ -585,18 +576,21 @@ pub unsafe fn dofkeys(
                 get(gs, pas, pcs);
             } else {
                 print_str("Save as game #(1-9):", gs, pcs);
-                let mut ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
-                drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
-                if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
+                // Rust port: The upper casing is in the original, and it's redundant.
+                let ch1 = (get(gs, pas, pcs) as u8).to_ascii_uppercase();
+                drawchar(pcs.sx, pcs.sy, ch1 as i32, gs, pcs);
+                if ch1 >= b'1' && ch1 <= b'9' {
+                    let mut save_game = true;
                     //
                     // save game
                     //
-                    let str = format!("GAME{ch}.CA2");
+                    // Rust port: Very easy to miss the subtraction!
+                    let str = format!("GAME{}.CA2", ch1 - b'0');
                     if _Verify(&str) != 0 {
                         print_str("\nGame exists,\noverwrite (Y/N)?", gs, pcs);
-                        ch = get(gs, pas, pcs) as i8;
-                        if ch as i32 != 'Y' as i32 && ch as i32 != 'y' as i32 {
-                            current_block_72 = 919954187481050311;
+                        let ch2 = get(gs, pas, pcs) as u8;
+                        if ch2 != b'Y' && ch2 != b'y' {
+                            save_game = false;
                         } else {
                             pcs.sx = pcs.leftedge;
                             print_str("                    ", gs, pcs);
@@ -605,48 +599,17 @@ pub unsafe fn dofkeys(
                             print_str("                    ", gs, pcs);
                             pcs.sx = pcs.leftedge;
                             pcs.sy -= 1;
-                            current_block_72 = 1836292691772056875;
                         }
-                    } else {
-                        current_block_72 = 1836292691772056875;
                     }
-                    match current_block_72 {
-                        919954187481050311 => {}
-                        _ => {
-                            let str = CString::new(str).unwrap();
-                            // Rust port: Former flags: (O_WRONLY | O_BINARY | O_CREAT | O_TRUNC,
-                            // S_IREAD | S_IWRITE).
-                            handle = open(
-                                str.as_ptr(),
-                                0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
-                                0o400 as i32 | 0o200 as i32,
-                            );
-                            if handle == -1 {
-                                return;
-                            }
-                            write(
-                                handle,
-                                &mut gs.saveitems as *mut [i16; 6] as *const libc::c_void,
-                                ::std::mem::size_of::<[i16; 6]>() as u64,
-                            );
-                            write(
-                                handle,
-                                &mut gs.savescore as *mut i32 as *const libc::c_void,
-                                ::std::mem::size_of::<i32>() as u64,
-                            );
-                            write(
-                                handle,
-                                &mut pcs.level as *mut i16 as *const libc::c_void,
-                                ::std::mem::size_of::<i16>() as u64,
-                            );
-                            write(
-                                handle,
-                                &mut *gs.saveo.as_mut_ptr().offset(0) as *mut activeobj
-                                    as *const libc::c_void,
-                                ::std::mem::size_of::<activeobj>() as u64,
-                            );
+                    if save_game {
+                        // Rust port: Former flags: (O_WRONLY | O_BINARY | O_CREAT | O_TRUNC,
+                        // S_IREAD | S_IWRITE).
+                        if let Ok(mut file) = File::create(str) {
+                            gs.saveitems.serialize(&mut file);
+                            gs.savescore.serialize(&mut file);
+                            pcs.level.serialize(&mut file);
+                            gs.saveo.serialize(&mut file);
 
-                            close(handle);
                             print_str("\nGame saved.  Hit F5\n", gs, pcs);
                             print_str("when you wish to\n", gs, pcs);
                             print_str("restart the game.", gs, pcs);
@@ -661,51 +624,31 @@ pub unsafe fn dofkeys(
             clearkeys(pcs);
             expwin(22, 4, gs, pas, pcs);
             print_str("Load game #(1-9):", gs, pcs);
-            let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
+            // Rust port: The upper casing is in the original, and it's redundant.
+            let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase();
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
-            if !((ch as i32) < '1' as i32 || ch as i32 > '9' as i32) {
+            if ch >= b'1' && ch <= b'9' {
                 //
                 // load game
                 //
-                let str = CString::new(format!("GAME{ch}.CA2")).unwrap();
-                // The flags don't make much sense, as O_RDONLY == O_BINARY == 0; this comes from the original
-                // project.
-                handle = open(
-                    str.as_ptr(),
-                    O_RDONLY | O_BINARY,
-                    0o200 as i32 | 0o400 as i32,
-                );
-                if handle == -1 {
-                    print_str("\nGame not found.", gs, pcs);
-                    get(gs, pas, pcs);
-                } else {
-                    read(
-                        handle,
-                        &mut gs.items as *mut _ as *mut libc::c_void,
-                        ::std::mem::size_of::<[i16; 6]>() as u64,
-                    );
-                    read(
-                        handle,
-                        &mut pcs.score as *mut i32 as *mut libc::c_void,
-                        ::std::mem::size_of::<i32>() as u64,
-                    );
-                    read(
-                        handle,
-                        &mut pcs.level as *mut i16 as *mut libc::c_void,
-                        ::std::mem::size_of::<i16>() as u64,
-                    );
-                    read(
-                        handle,
-                        &mut *gs.o.as_mut_ptr().offset(0) as *mut activeobj as *mut libc::c_void,
-                        ::std::mem::size_of::<activeobj>() as u64,
-                    );
-                    close(handle);
+                // Rust port: Very easy to miss the subtraction!
+                let str = format!("GAME{}.CA2", ch - b'0');
+                // Rust port: Flags in the original port = (O_RDONLY | O_BINARY, S_IWRITE | S_IREAD);
+                // oddly, O_RDONLY == O_BINARY == 0.
+                if let Ok(mut file) = File::open(str) {
+                    gs.items = Deserialize::deserialize(&mut file);
+                    pcs.score = Deserialize::deserialize(&mut file);
+                    pcs.level = Deserialize::deserialize(&mut file);
+                    gs.o[0] = Deserialize::deserialize(&mut file);
                     gs.exitdemo = true;
                     if gs.indemo != notdemo {
                         gs.playdone = true;
                     }
                     drawside(gs, cps, pcs); // draw score, icons, etc
                     gs.leveldone = true;
+                } else {
+                    print_str("\nGame not found.", gs, pcs);
+                    get(gs, pas, pcs);
                 }
             }
         }

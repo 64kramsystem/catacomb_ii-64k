@@ -3,8 +3,6 @@
 pub const SDL_BUTTON_LEFT: u8 = 1;
 pub const SDL_BUTTON_RIGHT: u8 = 3;
 
-pub const O_BINARY: i32 = 0;
-
 pub const NUM_DEMOS: u16 = 1;
 
 pub const PC_BASE_TIMER: u32 = 1193181;
