@@ -39,7 +39,7 @@ impl Default for SPKRtable {
 }
 
 impl SPKRtable {
-    pub fn start_of_freqdata() -> usize {
+    pub const fn start_of_freqdata() -> usize {
         mem::size_of::<[i8; 4]>()
             + mem::size_of::<u16>()
             + mem::size_of::<[u16; 5]>()
