@@ -888,7 +888,7 @@ pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let str = format!("DEMO{demonum}.{port_temp__extension}");
 
-    port_temp_SaveFile(&str, &pcs.demobuffer[..pcs.demoptr]);
+    SaveFile(&str, &pcs.demobuffer[..pcs.demoptr]);
 
     gs.indemo = demoenum::notdemo;
 }
@@ -944,22 +944,7 @@ pub fn loadFile(filename: &str, dest: &mut [u8]) -> usize {
 ==============================================
 */
 
-pub unsafe fn SaveFile(filename: *const i8, buffer: *const i8, size: i64) {
-    let mut fd: i32 = 0;
-    // Flags: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
-    fd = open(
-        filename,
-        0o1 as i32 | 0 | 0o100 as i32 | 0o1000 as i32,
-        0o400 as i32 | 0o200 as i32,
-    );
-    if fd < 0 {
-        return;
-    }
-    write(fd, buffer as *const libc::c_void, size as u64);
-    close(fd);
-}
-
-pub fn port_temp_SaveFile(filename: &str, buffer: &[u8]) {
+pub fn SaveFile(filename: &str, buffer: &[u8]) {
     // Flags originally used: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
     //
     // Rust port: In the original project, this is written in ASM (https://github.com/64kramsystem/catacomb_ii-64k/blob/db8017c1aba84823cb5116ca2f819e5c77636c9e/original_project/PCRLIB_C.C#L649).
@@ -1628,7 +1613,7 @@ pub fn _savehighscores(pcs: &mut PcrlibCState) {
 
     let str = format!("SCORES.{port_temp__extension}");
 
-    port_temp_SaveFile(&str, &buffer);
+    SaveFile(&str, &buffer);
 }
 
 pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
