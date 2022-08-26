@@ -145,7 +145,7 @@ unsafe fn calibratejoy(
     erasewindow(gs, pcs);
 }
 
-unsafe fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ch: i8 = 0;
     expwin(24, 5, gs, pas, pcs);
     print_str("  Mouse Configuration   \n\r", gs, pcs);
@@ -177,7 +177,7 @@ const chartable: [char; 128] = [
     '?',
 ];
 
-unsafe fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     sc = ScancodeToDOS(sc as SDL_Scancode);
     if sc == 1 {
         print_str("ESC", gs, pcs);
@@ -231,7 +231,7 @@ unsafe fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     };
 }
 
-unsafe fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
     let mut hy: i32 = 0;

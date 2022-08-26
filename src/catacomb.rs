@@ -147,11 +147,7 @@ pub fn restore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     simplerefresh(gs, pas, pcs);
 }
 
-unsafe fn wantmore(
-    gs: &mut GlobalState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) -> boolean {
+fn wantmore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> boolean {
     pcs.sx = 2;
     pcs.sy = 20;
     print_str("(space for more/esc)", gs, pcs);
@@ -198,7 +194,7 @@ fn charpic(
     }
 }
 
-unsafe fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn help(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     centerwindow(20, 20, gs, pcs);

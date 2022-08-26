@@ -1061,7 +1061,7 @@ pub fn centerwindow(width: i32, height: i32, gs: &mut GlobalState, pcs: &mut Pcr
     drawwindow(xl, yl, xl + width + 1, yl + height + 1, gs, pcs);
 }
 
-pub unsafe fn expwin(
+pub fn expwin(
     width: i32,
     height: i32,
     gs: &mut GlobalState,
@@ -1082,7 +1082,7 @@ pub unsafe fn expwin(
     centerwindow(width, height, gs, pcs);
 }
 
-unsafe fn expwinh(
+fn expwinh(
     width: i32,
     height: i32,
     gs: &mut GlobalState,
@@ -1097,7 +1097,7 @@ unsafe fn expwinh(
     centerwindow(width, height, gs, pcs);
 }
 
-unsafe fn expwinv(
+fn expwinv(
     width: i32,
     height: i32,
     gs: &mut GlobalState,
@@ -1176,7 +1176,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     safe_SDL_RenderPresent(pcs.renderer);
 }
 
-pub unsafe fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> i32 {
+pub fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> i32 {
     let mut cycle: i32 = 0;
     let mut key_0 = 0;
     loop {
