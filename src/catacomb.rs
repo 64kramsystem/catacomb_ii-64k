@@ -614,6 +614,8 @@ pub unsafe fn dofkeys(
                             print_str("when you wish to\n", gs, pcs);
                             print_str("restart the game.", gs, pcs);
                             get(gs, pas, pcs);
+                        } else {
+                            return;
                         }
                     }
                 }
