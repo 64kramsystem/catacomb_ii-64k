@@ -1,7 +1,8 @@
 use num::{FromPrimitive, ToPrimitive};
 use num_derive::{FromPrimitive, ToPrimitive};
+use serdine::derive::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Default, FromPrimitive, ToPrimitive)]
+#[derive(Clone, Copy, Default, Deserialize, FromPrimitive, Serialize, ToPrimitive)]
 #[repr(u16)]
 pub enum soundtype {
     sdlib = 2,

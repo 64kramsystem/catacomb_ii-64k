@@ -1,9 +1,10 @@
 use num::{FromPrimitive, ToPrimitive};
 use num_derive::{FromPrimitive, ToPrimitive};
+use serdine::derive::{Deserialize, Serialize};
 
 /// In the original, this is an enum, stored as u16.
 #[repr(u16)]
-#[derive(Clone, Copy, Default, FromPrimitive, PartialEq, ToPrimitive)]
+#[derive(Clone, Copy, Default, Deserialize, FromPrimitive, PartialEq, Serialize, ToPrimitive)]
 pub enum grtype {
     VGAgr = 3,
     EGAgr = 2,
