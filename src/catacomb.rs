@@ -701,7 +701,7 @@ pub unsafe fn dofkeys(
             print_str("QUIT (Y/N)?", gs, pcs);
             let ch = (get(gs, pas, pcs) as u8).to_ascii_uppercase() as i8;
             if ch == 'Y' as i8 {
-                _quit(b"\0" as *const u8 as *const i8 as *mut i8, pas, pcs);
+                _quit(None, pas, pcs);
             }
         }
         _ => return,

@@ -36,7 +36,6 @@ extern "C" {
     pub type _IO_wide_data;
     pub type _IO_codecvt;
     pub type _IO_marker;
-    fn puts(__s: *const i8) -> i32;
     fn __assert_fail(
         __assertion: *const i8,
         __file: *const i8,
@@ -511,11 +510,7 @@ unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_
         // invoked only once a a time.
         let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
 
-        _quit(
-            b"\0" as *const u8 as *const i8 as *mut i8,
-            &mut *userdata.pas,
-            &mut *userdata.pcs,
-        );
+        _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
     } else if (*event).type_0 == SDL_WINDOWEVENT as i32 as u32 {
         let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
 
@@ -1852,21 +1847,24 @@ pub fn _setupgame(
     }
 }
 
-pub unsafe fn _quit(error: *const i8, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    if *error == 0 {
+// Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
+pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+    if let Some(error) = &error {
+        print!("{}", error);
+        println!();
+        println!();
+        println!("For techinical assistance with running this software");
+        println!("    call Softdisk Publishing at 1-318-221-8311");
+        println!();
+        std::process::exit(1);
+    } else {
         _savehighscores(pcs);
         _savectrls(pas, pcs);
-    } else {
-        puts(error);
-        puts(b"\n\0" as *const u8 as *const i8);
-        puts(b"\n\0" as *const u8 as *const i8);
-        puts(b"For techinical assistance with running this software\n\0" as *const u8 as *const i8);
-        puts(b"    call Softdisk Publishing at 1-318-221-8311\n\0" as *const u8 as *const i8);
-        puts(b"\n\0" as *const u8 as *const i8);
-        std::process::exit(1);
     }
     ShutdownSound(pas);
-    ShutdownJoysticks(pcs);
+    unsafe {
+        ShutdownJoysticks(pcs);
+    }
     safe_SDL_DestroyRenderer(pcs.renderer);
     safe_SDL_DestroyWindow(pcs.window);
     pcs.renderer = 0 as *mut SDL_Renderer;
