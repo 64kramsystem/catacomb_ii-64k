@@ -27,7 +27,6 @@
     clippy::zero_ptr
 )]
 
-extern crate libc;
 mod active_obj;
 mod cat_play;
 pub mod catacomb;
