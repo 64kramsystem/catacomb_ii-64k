@@ -25,7 +25,7 @@ use crate::{
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        loadFile, print_str, printchartile,
+        loadFile, print_str, printchartile, SDLEventPayload, WatchUIEvents,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -941,12 +941,24 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
-    // Rust port: The SDL initialization has been moved here, since it must stay in the global scope.
+    // Rust port: The SDL/Event watch initializations have been moved here, since they must stay in
+    // the global scope.
+
     let sdl = sdl2::init().expect("Failed to initialize SDL");
     let _video = sdl.video().unwrap();
     let _timer = sdl.timer().unwrap();
     let _joystick = sdl.joystick().unwrap();
     let _gamecontroller = sdl.game_controller().unwrap();
+
+    let userdata = Box::into_raw(Box::new(SDLEventPayload {
+        pas: &mut pas,
+        pcs: &mut pcs,
+    }));
+
+    let _event_watch = sdl
+        .event()
+        .unwrap()
+        .add_event_watch(move |event| WatchUIEvents(event, userdata));
 
     _setupgame(&mut gs, &mut cps, &mut pas, &mut pcs);
 

@@ -43,7 +43,6 @@ extern "C" {
         h: i32,
     ) -> *mut SDL_Texture;
     fn SDL_CreateRenderer(window_0: *mut SDL_Window, index: i32, flags: u32) -> *mut SDL_Renderer;
-    fn SDL_AddEventWatch(filter: SDL_EventFilter, userdata: *mut libc::c_void);
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
     fn SDL_GetDisplayBounds(displayIndex: i32, rect: *mut SDL_Rect) -> i32;
@@ -154,10 +153,6 @@ pub fn safe_SDL_CreateRenderer(
     flags: u32,
 ) -> *mut SDL_Renderer {
     unsafe { SDL_CreateRenderer(window_0, index, flags) }
-}
-
-pub fn safe_SDL_AddEventWatch(filter: SDL_EventFilter, userdata: *mut libc::c_void) {
-    unsafe { SDL_AddEventWatch(filter, userdata) }
 }
 
 pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {

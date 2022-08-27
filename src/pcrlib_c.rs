@@ -6,6 +6,7 @@ use std::path::Path;
 use std::{fs, ptr};
 
 use ::libc;
+use sdl2::event::{Event, WindowEvent};
 use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
@@ -89,8 +90,6 @@ pub type C2RustUnnamed_3 = u32;
 pub const SDL_MOUSEMOTION: C2RustUnnamed_3 = 1024;
 pub const SDL_KEYUP: C2RustUnnamed_3 = 769;
 pub const SDL_KEYDOWN: C2RustUnnamed_3 = 768;
-pub const SDL_WINDOWEVENT: C2RustUnnamed_3 = 512;
-pub const SDL_QUIT: C2RustUnnamed_3 = 256;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -408,7 +407,6 @@ impl SDL_Event {
     }
 }
 
-pub type SDL_EventFilter = Option<unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32>;
 pub type C2RustUnnamed_4 = u32;
 pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
 
@@ -458,26 +456,34 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState) {
     }
 }
 
-#[no_mangle]
-unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_Event) -> i32 {
-    let userdata = &*(userdata as *mut SDLEventPayload);
+pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
+    unsafe {
+        let userdata = &*userdata;
 
-    if (*event).type_0 == SDL_QUIT as i32 as u32 {
-        // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
-        // This approach works because we're not in a multithreaded contenxt, so this function is
-        // invoked only once a a time.
-        let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
+        match event {
+            Event::Quit { timestamp: _ } => {
+                // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
+                // This approach works because we're not in a multithreaded contenxt, so this function is
+                // invoked only once a a time.
+                let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
 
-        _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
-    } else if (*event).type_0 == SDL_WINDOWEVENT as i32 as u32 {
-        let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
-
-        match (*event).window.event as i32 {
-            13 => {
+                _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
+            }
+            Event::Window {
+                timestamp: _,
+                window_id: _,
+                win_event: WindowEvent::FocusLost,
+            } => {
+                let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
                 pcs.hasFocus = false;
                 CheckMouseMode(pcs);
             }
-            12 => {
+            Event::Window {
+                timestamp: _,
+                window_id: _,
+                win_event: WindowEvent::FocusGained,
+            } => {
+                let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
                 while safe_SDL_GetMouseFocus() != pcs.window {
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
@@ -488,7 +494,6 @@ unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_
             _ => {}
         }
     }
-    return 0;
 }
 
 pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
@@ -1645,13 +1650,6 @@ pub fn _setupgame(
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
 ) {
-    let userdata = Box::into_raw(Box::new(SDLEventPayload { pas, pcs }));
-
-    safe_SDL_AddEventWatch(
-        Some(WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32),
-        userdata as *mut libc::c_void,
-    );
-
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
