@@ -1,13 +1,9 @@
 #![allow(clippy::all)]
-#![allow(mutable_transmutes)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 #![allow(unused_assignments)]
 #![feature(extern_types)]
-#![feature(label_break_value)]
-#![feature(register_tool)]
-#![register_tool(c2rust)]
 #![warn(
     clippy::assign_op_pattern,
     clippy::correctness,
