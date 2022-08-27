@@ -19,8 +19,6 @@ extern "C" {
     pub type SDL_mutex;
     pub type SDL_semaphore;
 
-    fn SDL_Quit();
-    fn SDL_Init(flags: u32) -> i32;
     fn SDL_Delay(ms: u32);
     fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
     fn SDL_RenderPresent(renderer_0: *mut SDL_Renderer);
@@ -100,17 +98,11 @@ extern "C" {
     fn SDL_CloseAudio();
     fn SDL_InitSubSystem(flags: u32) -> i32;
     fn SDL_AddTimer(interval: u32, callback: SDL_TimerCallback, param: *mut libc::c_void) -> i32;
-
-    fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> i32;
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 // DIRECT SDL APIS
 // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn safe_SDL_Init(flags: u32) -> i32 {
-    unsafe { SDL_Init(flags) }
-}
 
 pub fn safe_SDL_Delay(ms: u32) {
     unsafe { SDL_Delay(ms) }
@@ -333,14 +325,4 @@ pub fn safe_SDL_AddTimer(
     param: *mut libc::c_void,
 ) -> i32 {
     unsafe { SDL_AddTimer(interval, callback, param) }
-}
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-// OTHER ROUTINES
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn safe_register_sdl_quit_on_exit() {
-    unsafe {
-        atexit(Some(SDL_Quit as unsafe extern "C" fn() -> ()));
-    }
 }

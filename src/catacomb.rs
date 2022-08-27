@@ -941,6 +941,13 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
+    // Rust port: The SDL initialization has been moved here, since it must stay in the global scope.
+    let sdl = sdl2::init().expect("Failed to initialize SDL");
+    let _video = sdl.video().unwrap();
+    let _timer = sdl.timer().unwrap();
+    let _joystick = sdl.joystick().unwrap();
+    let _gamecontroller = sdl.game_controller().unwrap();
+
     _setupgame(&mut gs, &mut cps, &mut pas, &mut pcs);
 
     expwin(33, 13, &mut gs, &mut pas, &mut pcs);

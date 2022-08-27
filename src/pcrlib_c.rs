@@ -1645,12 +1645,6 @@ pub fn _setupgame(
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
 ) {
-    if safe_SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
-        eprintln!("Failed to initialize SDL: {}", safe_SDL_GetError());
-        std::process::exit(1);
-    }
-    safe_register_sdl_quit_on_exit();
-
     let userdata = Box::into_raw(Box::new(SDLEventPayload { pas, pcs }));
 
     safe_SDL_AddEventWatch(
