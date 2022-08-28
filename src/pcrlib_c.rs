@@ -1752,9 +1752,9 @@ pub fn _setupgame(
     pcs.joystick[2].device = -1;
     pcs.joystick[1].device = pcs.joystick[2].device;
     _loadctrls(pas, pcs);
-    if pcs.grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
+    if pcs.grmode == VGAgr && _vgaok {
         pcs.grmode = VGAgr;
-    } else if pcs.grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
+    } else if matches!(pcs.grmode, EGAgr | VGAgr) && _egaok {
         pcs.grmode = EGAgr;
     } else {
         pcs.grmode = CGAgr;
