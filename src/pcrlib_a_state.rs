@@ -1,6 +1,6 @@
 use crate::{
     pcrlib_a::{SDL_AudioSpec, SavedSoundStruct},
-    safe_sdl::{SDL_mutex, SDL_semaphore},
+    safe_sdl::SDL_semaphore,
     sound_type::soundtype,
     sound_type::soundtype::*,
     spkr_table::SPKRtable,
@@ -24,7 +24,8 @@ pub struct PcrlibAState {
 
     pub SndPriority: u8,
     pub _dontplay: i32,
-    pub AudioMutex: *mut SDL_mutex,
+    // Rust port: The audio mutex has been moved to be in the `pcrlib_a` module scope, in order to
+    // avoid borrowing contention on the PcrlibAState instance.
     pub AudioSpec: SDL_AudioSpec,
     pub AudioDev: u32,
     pub pcVolume: libc::c_short,
@@ -55,7 +56,6 @@ pub struct PcrlibAState {
 impl PcrlibAState {
     pub fn new(// SndPriority: u8,
         // _dontplay: i32,
-        // AudioMutex: *mut SDL_mutex,
         // AudioSpec: SDL_AudioSpec,
         // AudioDev: u32,
         // pcVolume: libc::c_short,
@@ -82,7 +82,6 @@ impl PcrlibAState {
         Self {
             SndPriority: 0,
             _dontplay: 0,
-            AudioMutex: 0 as *mut SDL_mutex,
             AudioSpec: SDL_AudioSpec {
                 freq: 0,
                 format: 0,

@@ -16,7 +16,6 @@ extern "C" {
     pub type SDL_SysWMmsg;
     pub type SDL_Renderer;
     pub type SDL_Texture;
-    pub type SDL_mutex;
     pub type SDL_semaphore;
 
     fn SDL_Delay(ms: u32);
@@ -61,9 +60,6 @@ extern "C" {
     fn SDL_GameControllerClose(gamecontroller: *mut SDL_GameController);
     fn SDL_memset(dst: *mut libc::c_void, c: i32, len: u64) -> *mut libc::c_void;
     fn SDL_GetError() -> *const i8;
-    fn SDL_CreateMutex() -> *mut SDL_mutex;
-    fn SDL_LockMutex(mutex: *mut SDL_mutex) -> i32;
-    fn SDL_UnlockMutex(mutex: *mut SDL_mutex) -> i32;
     fn SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_semaphore;
     fn SDL_SemWait(sem: *mut SDL_semaphore) -> i32;
     fn SDL_SemPost(sem: *mut SDL_semaphore) -> i32;
@@ -206,18 +202,6 @@ pub fn safe_SDL_GetError() -> String {
         // Assume that the string is valid UTF-8
         CStr::from_ptr(raw_str).to_string_lossy().to_string()
     }
-}
-
-pub fn safe_SDL_CreateMutex() -> *mut SDL_mutex {
-    unsafe { SDL_CreateMutex() }
-}
-
-pub fn safe_SDL_LockMutex(mutex: *mut SDL_mutex) -> i32 {
-    unsafe { SDL_LockMutex(mutex) }
-}
-
-pub fn safe_SDL_UnlockMutex(mutex: *mut SDL_mutex) -> i32 {
-    unsafe { SDL_UnlockMutex(mutex) }
 }
 
 pub fn safe_SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_semaphore {
