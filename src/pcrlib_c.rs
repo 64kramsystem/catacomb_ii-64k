@@ -433,11 +433,13 @@ pub union C2RustUnnamed_5 {
     pub joy: *mut SDL_Joystick,
 }
 
-pub fn SetupKBD(pcs: &mut PcrlibCState) {
-    for i in 0..128 {
-        pcs.keydown[i] = false;
-    }
-}
+// Rust port: unnecessary in Rust (false is the default)
+//
+// pub fn SetupKBD(pcs: &mut PcrlibCState) {
+//     for i in 0..128 {
+//         pcs.keydown[i] = false;
+//     }
+// }
 
 pub fn ProcessEvents(pcs: &mut PcrlibCState) {
     pcs.mouseEvent = false;
@@ -1786,7 +1788,8 @@ pub fn _setupgame<'t>(
         pcs_updateRect.y = 0;
     }
 
-    gs.screenseg.fill(0);
+    // Rust port: unnecessary in Rust
+    // gs.screenseg.fill(0);
 
     //
     // set up game's library routines
@@ -1830,7 +1833,8 @@ pub fn _setupgame<'t>(
 
     StartupSound(pas);
 
-    SetupKBD(&mut pcs);
+    // Rust port: unnecessary (see method)
+    // SetupKBD(&mut pcs);
 
     initrndt(true, pas);
     initrnd(true, pas);
