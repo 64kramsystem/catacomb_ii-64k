@@ -1,7 +1,9 @@
+use sdl2::video::DisplayMode;
+
 use crate::{
     gr_type::grtype::{self, *},
     input_type::inputtype::{self, *},
-    pcrlib_c::{joyinfo_t, SDL_DisplayMode, SDL_Rect},
+    pcrlib_c::{joyinfo_t, SDL_Rect},
     safe_sdl::{SDL_Renderer, SDL_Texture, SDL_Window},
     scan_codes::{SDL_Scancode, SDL_SCANCODE_UNKNOWN},
     scores::scores,
@@ -53,7 +55,7 @@ pub struct PcrlibCState {
     pub renderer: *mut SDL_Renderer,
     pub sdltexture: *mut SDL_Texture,
     pub updateRect: SDL_Rect,
-    pub mode: SDL_DisplayMode,
+    pub mode: DisplayMode,
     pub joystick: [joyinfo_t; 3],
     pub hasFocus: bool,
     pub win_xl: i32,
@@ -85,7 +87,7 @@ impl PcrlibCState {
         // key: [u32; 8],
         // keyB1: u32,
         // keyB2: u32,
-        mode: SDL_DisplayMode,
+        mode: DisplayMode,
         joystick: [joyinfo_t; 3],
         // hasFocus: bool,
         // win_xl: i32,

@@ -7,6 +7,7 @@ use std::{fs, ptr};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
+use sdl2::Sdl;
 use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
@@ -1648,6 +1649,7 @@ pub fn _setupgame(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
+    sdl: &Sdl,
 ) -> PcrlibCState {
     let mut windowed = false;
     let mut winWidth = 640;
@@ -1693,17 +1695,13 @@ pub fn _setupgame(
         h: 0,
     };
 
-    let mut pcs_mode = SDL_DisplayMode {
-        format: 0,
-        w: 0,
-        h: 0,
-        refresh_rate: 0,
-        driverdata: 0 as *const libc::c_void as *mut libc::c_void,
-    };
+    let sdl_video = sdl.video().unwrap();
 
-    if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs_mode) < -1
-        || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
-    {
+    let mut pcs_mode = sdl_video
+        .current_display_mode(displayindex)
+        .expect("Could not get display mode");
+
+    if safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0 {
         eprintln!("Could not get display mode: {}", safe_SDL_GetError());
         std::process::exit(1);
     }

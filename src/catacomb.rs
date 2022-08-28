@@ -949,7 +949,7 @@ pub fn original_main() {
     let _joystick = sdl.joystick().unwrap();
     let _gamecontroller = sdl.game_controller().unwrap();
 
-    let mut pcs = _setupgame(&mut gs, &mut cps, &mut pas);
+    let mut pcs = _setupgame(&mut gs, &mut cps, &mut pas, &sdl);
 
     let userdata = Box::into_raw(Box::new(SDLEventPayload {
         pas: &mut pas,
