@@ -53,6 +53,7 @@ mod rleasm;
 mod safe_sdl;
 mod scan_codes;
 mod scores;
+mod semaphore;
 mod sound_type;
 mod spkr_table;
 mod spksndtype;
