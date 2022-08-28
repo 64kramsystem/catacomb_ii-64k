@@ -77,7 +77,6 @@ extern "C" {
     ) -> u32;
     fn SDL_PauseAudioDevice(dev: u32, pause_on: i32);
     fn SDL_CloseAudio();
-    fn SDL_InitSubSystem(flags: u32) -> i32;
     fn SDL_AddTimer(interval: u32, callback: SDL_TimerCallback, param: *mut libc::c_void) -> i32;
 }
 
@@ -253,10 +252,6 @@ pub fn safe_SDL_PauseAudioDevice(dev: u32, pause_on: i32) {
 
 pub fn safe_SDL_CloseAudio() {
     unsafe { SDL_CloseAudio() }
-}
-
-pub fn safe_SDL_InitSubSystem(flags: u32) -> i32 {
-    unsafe { SDL_InitSubSystem(flags) }
 }
 
 pub fn safe_SDL_AddTimer(

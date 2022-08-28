@@ -948,6 +948,7 @@ pub fn original_main() {
     let _timer = sdl.timer().unwrap();
     let _joystick = sdl.joystick().unwrap();
     let _gamecontroller = sdl.game_controller().unwrap();
+    let _audio = sdl.audio().unwrap();
 
     // Rust port: Option<TextureCreator<_>> is a workaround necessary to allow Texture live within
     // PcrlibCState, as a texture's lifetime is bound to its texture creator, which therefore needs

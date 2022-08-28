@@ -208,7 +208,7 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
     desired.userdata = pas as *mut PcrlibAState as *mut libc::c_void;
 
     pas.AudioMutex = safe_SDL_CreateMutex();
-    if pas.AudioMutex.is_null() || safe_SDL_InitSubSystem(SDL_INIT_AUDIO) < 0 || {
+    if pas.AudioMutex.is_null() || {
         pas.AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut pas.AudioSpec, 0);
         pas.AudioDev == 0
     } {
