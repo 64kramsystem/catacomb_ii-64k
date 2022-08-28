@@ -854,7 +854,6 @@ pub fn original_main() {
     let mut gs = GlobalState::default();
     let mut cps = CpanelState::default();
     let mut pas = PcrlibAState::default();
-    let mut pcs = PcrlibCState::default();
 
     /***************************************************************************/
 
@@ -950,6 +949,8 @@ pub fn original_main() {
     let _joystick = sdl.joystick().unwrap();
     let _gamecontroller = sdl.game_controller().unwrap();
 
+    let mut pcs = _setupgame(&mut gs, &mut cps, &mut pas);
+
     let userdata = Box::into_raw(Box::new(SDLEventPayload {
         pas: &mut pas,
         pcs: &mut pcs,
@@ -959,8 +960,6 @@ pub fn original_main() {
         .event()
         .unwrap()
         .add_event_watch(move |event| WatchUIEvents(event, userdata));
-
-    _setupgame(&mut gs, &mut cps, &mut pas, &mut pcs);
 
     expwin(33, 13, &mut gs, &mut pas, &mut pcs);
     print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);
