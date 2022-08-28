@@ -1,10 +1,12 @@
-use sdl2::{render::WindowCanvas, video::DisplayMode};
+use sdl2::{
+    render::{Texture, WindowCanvas},
+    video::DisplayMode,
+};
 
 use crate::{
     gr_type::grtype::{self, *},
     input_type::inputtype::{self, *},
     pcrlib_c::{joyinfo_t, SDL_Rect},
-    safe_sdl::SDL_Texture,
     scan_codes::{SDL_Scancode, SDL_SCANCODE_UNKNOWN},
     scores::scores,
 };
@@ -12,7 +14,7 @@ use crate::{
 // Globals previously belonging to pcrlib_c.rs.
 //
 #[rustfmt::skip]
-pub struct PcrlibCState {
+pub struct PcrlibCState<'t> {
     // //////////////////////////////////////////////////////////
     // Rust port: shared
     // //////////////////////////////////////////////////////////
@@ -53,7 +55,7 @@ pub struct PcrlibCState {
     pub lastkey: SDL_Scancode,
     // pub window: Window, // Rust port: not needed, as we can get the ref from the renderer
     pub renderer: WindowCanvas,
-    pub sdltexture: *mut SDL_Texture,
+    pub sdltexture: Texture<'t>,
     pub updateRect: SDL_Rect,
     pub mode: DisplayMode,
     pub joystick: [joyinfo_t; 3],
@@ -65,7 +67,7 @@ pub struct PcrlibCState {
     pub conv: [u32; 64000],
 }
 
-impl PcrlibCState {
+impl<'t> PcrlibCState<'t> {
     pub fn new(
         // mouseEvent: bool,
         // demobuffer: [u8; 5000],
@@ -74,7 +76,7 @@ impl PcrlibCState {
         // lastdemoval: i32,
         // lastkey: SDL_Scancode,
         renderer: WindowCanvas,
-        sdltexture: *mut SDL_Texture,
+        sdltexture: Texture<'t>,
         updateRect: SDL_Rect,
         // playermode: [inputtype; 3],
         // keydown: [bool; 512],
@@ -152,3 +154,18 @@ impl PcrlibCState {
         }
     }
 }
+
+// impl<'t> PcrlibCState<'t> {
+//     pub fn set_new_texture(&mut self, texture_creator: &'t TextureCreator<WindowContext>) {
+//         self.sdltexture = Some(
+//             texture_creator
+//                 .create_texture(
+//                     PixelFormatEnum::ARGB8888,
+//                     TextureAccess::Streaming,
+//                     320,
+//                     200,
+//                 )
+//                 .expect("Could not create video buffer"),
+//         )
+//     }
+// }

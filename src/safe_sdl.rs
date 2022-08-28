@@ -35,13 +35,6 @@ extern "C" {
         pixels: *const libc::c_void,
         pitch: i32,
     ) -> i32;
-    fn SDL_CreateTexture(
-        renderer_0: *mut SDL_Renderer,
-        format: u32,
-        access: i32,
-        w: i32,
-        h: i32,
-    ) -> *mut SDL_Texture;
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
     fn SDL_DestroyWindow(window_0: *mut SDL_Window);
@@ -124,16 +117,6 @@ pub fn safe_SDL_UpdateTexture(
     pitch: i32,
 ) -> i32 {
     unsafe { SDL_UpdateTexture(texture, rect, pixels, pitch) }
-}
-
-pub fn safe_SDL_CreateTexture(
-    renderer_0: *mut SDL_Renderer,
-    format: u32,
-    access: i32,
-    w: i32,
-    h: i32,
-) -> *mut SDL_Texture {
-    unsafe { SDL_CreateTexture(renderer_0, format, access, w, h) }
 }
 
 pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {

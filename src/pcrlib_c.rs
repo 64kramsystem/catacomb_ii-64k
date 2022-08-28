@@ -7,7 +7,10 @@ use std::{fs, ptr};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
+use sdl2::pixels::PixelFormatEnum;
+use sdl2::render::{TextureAccess, TextureCreator};
 use sdl2::sys::SDL_WindowFlags;
+use sdl2::video::WindowContext;
 use sdl2::Sdl;
 use serdine::{Deserialize, Serialize};
 
@@ -43,8 +46,6 @@ pub struct timespec {
 }
 
 pub type SDL_bool = u32;
-
-const SDL_PIXELFORMAT_ARGB8888: u32 = 372645892;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -406,9 +407,6 @@ impl SDL_Event {
         unsafe { self.key.keysym.scancode }
     }
 }
-
-pub type C2RustUnnamed_4 = u32;
-pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1127,7 +1125,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         panic!("VGA Palette conversion not implemented.");
     }
     safe_SDL_UpdateTexture(
-        pcs.sdltexture,
+        pcs.sdltexture.raw() as *mut SDL_Texture,
         0 as *const SDL_Rect,
         pcs.conv.as_mut_ptr() as *const libc::c_void,
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
@@ -1135,7 +1133,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     safe_SDL_RenderClear(pcs.renderer.raw() as *mut SDL_Renderer);
     safe_SDL_RenderCopy(
         pcs.renderer.raw() as *mut SDL_Renderer,
-        pcs.sdltexture,
+        pcs.sdltexture.raw() as *mut SDL_Texture,
         ptr::null(),
         &pcs.updateRect,
     );
@@ -1659,9 +1657,9 @@ pub fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut P
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
-pub struct SDLEventPayload {
+pub struct SDLEventPayload<'t> {
     pub pas: *mut PcrlibAState,
-    pub pcs: *mut PcrlibCState,
+    pub pcs: *mut PcrlibCState<'t>,
 }
 
 ////////////////////
@@ -1670,12 +1668,13 @@ pub struct SDLEventPayload {
 //
 ////////////////////
 
-pub fn _setupgame(
+pub fn _setupgame<'t>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     sdl: &Sdl,
-) -> PcrlibCState {
+    texture_creator: &'t mut Option<TextureCreator<WindowContext>>,
+) -> PcrlibCState<'t> {
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
@@ -1753,17 +1752,19 @@ pub fn _setupgame(
         .build()
         .expect("Failed to create SDL window");
 
-    let pcs_sdltexture = safe_SDL_CreateTexture(
-        pcs_renderer.raw() as *mut SDL_Renderer,
-        SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING as i32,
-        320,
-        200,
-    );
-    if pcs_sdltexture.is_null() {
-        eprintln!("Could not create video buffer: {}", safe_SDL_GetError());
-        std::process::exit(1);
-    }
+    texture_creator.replace(pcs_renderer.texture_creator());
+
+    let pcs_sdltexture = texture_creator
+        .as_ref()
+        .unwrap()
+        .create_texture(
+            PixelFormatEnum::ARGB8888,
+            TextureAccess::Streaming,
+            320,
+            200,
+        )
+        .expect("Could not create video buffer");
+
     let mut pcs_updateRect = SDL_Rect {
         x: 0,
         y: 0,
