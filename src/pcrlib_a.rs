@@ -243,14 +243,6 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
     safe_SDL_PauseAudioDevice(pas.AudioDev, 0);
 }
 
-pub fn ShutdownSound(pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
-        return;
-    }
-    _SDL_ShutPC(pas);
-    safe_SDL_CloseAudio();
-}
-
 pub fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
     if pas._dontplay != 0 {
         return;

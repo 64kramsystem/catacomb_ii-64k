@@ -19,7 +19,6 @@ extern "C" {
     pub type SDL_semaphore;
 
     fn SDL_Delay(ms: u32);
-    fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
     fn SDL_RenderPresent(renderer_0: *mut SDL_Renderer);
     fn SDL_RenderCopy(
         renderer_0: *mut SDL_Renderer,
@@ -36,7 +35,6 @@ extern "C" {
     ) -> i32;
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
-    fn SDL_DestroyWindow(window_0: *mut SDL_Window);
     fn SDL_GetKeyFromScancode(scancode: SDL_Scancode) -> SDL_Keycode;
     fn SDL_GetMouseFocus() -> *mut SDL_Window;
     fn SDL_GetRelativeMouseState(x: *mut i32, y: *mut i32) -> u32;
@@ -67,7 +65,6 @@ extern "C" {
         allowed_changes: i32,
     ) -> u32;
     fn SDL_PauseAudioDevice(dev: u32, pause_on: i32);
-    fn SDL_CloseAudio();
     fn SDL_AddTimer(interval: u32, callback: SDL_TimerCallback, param: *mut libc::c_void) -> i32;
 }
 
@@ -77,10 +74,6 @@ extern "C" {
 
 pub fn safe_SDL_Delay(ms: u32) {
     unsafe { SDL_Delay(ms) }
-}
-
-pub fn safe_SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer) {
-    unsafe { SDL_DestroyRenderer(renderer_0) }
 }
 
 pub fn safe_SDL_RenderPresent(renderer_0: *mut SDL_Renderer) {
@@ -115,10 +108,6 @@ pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {
 
 pub fn safe_SDL_PumpEvents() {
     unsafe { SDL_PumpEvents() }
-}
-
-pub fn safe_SDL_DestroyWindow(window_0: *mut SDL_Window) {
-    unsafe { SDL_DestroyWindow(window_0) }
 }
 
 pub fn safe_SDL_GetKeyFromScancode(scancode: SDL_Scancode) -> SDL_Keycode {
@@ -207,10 +196,6 @@ pub fn safe_SDL_OpenAudioDevice(
 
 pub fn safe_SDL_PauseAudioDevice(dev: u32, pause_on: i32) {
     unsafe { SDL_PauseAudioDevice(dev, pause_on) }
-}
-
-pub fn safe_SDL_CloseAudio() {
-    unsafe { SDL_CloseAudio() }
 }
 
 pub fn safe_SDL_AddTimer(

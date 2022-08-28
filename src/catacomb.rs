@@ -663,7 +663,7 @@ pub fn dofkeys(
             print_str("QUIT (Y/N)?", gs, pcs);
             let ch = (get(gs, pcs) as u8).to_ascii_uppercase() as i8;
             if ch == 'Y' as i8 {
-                _quit(None, pas, pcs);
+                _quit(None, gs, pas, pcs);
             }
         }
         _ => return,
@@ -997,6 +997,10 @@ pub fn original_main() {
                 doendpage(&mut gs, &mut cps, &mut pas, &mut pcs); // finished all levels
             }
             gameover(&mut gs, &mut cps, &mut pas, &mut pcs);
+        }
+
+        if gs.quitgame {
+            break;
         }
     }
 }

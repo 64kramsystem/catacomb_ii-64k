@@ -32,7 +32,7 @@ use crate::{
     extra_macros::SDL_BUTTON,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    pcrlib_a::{drawchar, PlaySound, ShutdownSound, WaitVBL},
+    pcrlib_a::{drawchar, PlaySound, WaitVBL},
     safe_sdl::*,
     scan_codes::*,
     scores::scores,
@@ -477,7 +477,12 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
                 // This approach works because we're not in a multithreaded contenxt, so this function is
                 let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
 
-                _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
+                _quit(
+                    None,
+                    &mut *userdata.gs,
+                    &mut *userdata.pas,
+                    &mut *userdata.pcs,
+                );
             }
             Event::Window {
                 timestamp: _,
@@ -1850,7 +1855,18 @@ pub fn _setupgame<'t>(
 ////////////////////
 
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
-pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn _quit(
+    error: Option<String>,
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+) {
+    // Rust port: Exit via flag, not via process exit. This is theoretically less safe, as exiting
+    // the process may skip calls that may not work anymore, but in real world usage, it's
+    // acceptable.
+    //
+    gs.quitgame = true;
+
     if let Some(error) = &error {
         print!("{}", error);
         println!();
@@ -1858,21 +1874,24 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
         println!("For techinical assistance with running this software");
         println!("    call Softdisk Publishing at 1-318-221-8311");
         println!();
-        std::process::exit(1);
+        // std::process::exit(1);
     } else {
         _savehighscores(pcs);
         _savectrls(pas, pcs);
     }
 
-    ShutdownSound(pas);
-    ShutdownJoysticks(pcs);
-
-    safe_SDL_DestroyRenderer(pcs.renderer.raw() as *mut SDL_Renderer);
-    safe_SDL_DestroyWindow(pcs.renderer.window().raw() as *mut SDL_Window);
+    // Rust port: Not necessary to teardown systems, as once they fall out of scope, they will be
+    // destroyed.
+    //
+    // ShutdownSound(pas);
+    // ShutdownJoysticks(pcs);
+    //
+    // safe_SDL_DestroyRenderer(pcs.renderer.raw() as *mut SDL_Renderer);
+    // safe_SDL_DestroyWindow(pcs.renderer.window().raw() as *mut SDL_Window);
 
     // Rust port: Not necessary to nullify the pointers.
     // pcs.renderer = ptr::null();
     // pcs.window = ptr::null();
 
-    std::process::exit(0);
+    // std::process::exit(0);
 }
