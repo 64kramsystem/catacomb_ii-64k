@@ -955,6 +955,7 @@ pub fn original_main() {
     let mut pcs = _setupgame(&mut gs, &mut cps, &mut pas, &sdl, &mut texture_creator);
 
     let userdata = Box::into_raw(Box::new(SDLEventPayload {
+        gs: &mut gs,
         pas: &mut pas,
         pcs: &mut pcs,
     }));

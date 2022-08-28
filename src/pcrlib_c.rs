@@ -473,8 +473,8 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
         match event {
             Event::Quit { timestamp: _ } => {
                 // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
-                // This approach works because we're not in a multithreaded contenxt, so this function is
                 // invoked only once a a time.
+                // This approach works because we're not in a multithreaded contenxt, so this function is
                 let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
 
                 _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
@@ -1654,6 +1654,7 @@ const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
 pub struct SDLEventPayload<'t> {
+    pub gs: *mut GlobalState,
     pub pas: *mut PcrlibAState,
     pub pcs: *mut PcrlibCState<'t>,
 }
