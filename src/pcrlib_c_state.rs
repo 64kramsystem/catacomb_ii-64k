@@ -26,7 +26,7 @@ pub struct PcrlibCState {
     pub keyB1: u32,
     pub keyB2: u32,
     pub grmode: grtype,
-    pub picfile_data: Vec<u8>,             // Rust port: Added
+    pub picfile_data: Vec<u8>,        // Rust port: Added
     pub charptr: usize,               // 8*8 tileset; Rust port: refers to `picfile`
     // pub tileptr: usize,            // 16*16 tileset; Rust port: unused
     pub picptr: usize,                // any size picture set; Rust port: refers to `picfile`

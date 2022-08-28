@@ -1654,7 +1654,7 @@ pub fn _setupgame(
     let mut winHeight = 480;
     let mut displayindex = 0;
 
-    // It's possible to iterate `Args`, although it doesn't get much cleaner.
+    // Rust port: It's possible to iterate `Args`, although it doesn't get much cleaner.
     let args = std::env::args().into_iter().collect::<Vec<_>>();
 
     if let Some(screen_mode) = args.get(1) {
@@ -1708,8 +1708,8 @@ pub fn _setupgame(
         std::process::exit(1);
     }
     if windowed {
-        bounds.x = (0x1fff0000 as u32 | 0) as i32;
-        bounds.y = (0x1fff0000 as u32 | 0) as i32;
+        bounds.x = (0x1fff0000 as u32 | 0) as i32; // SDL_WINDOWPOS_UNDEFINED
+        bounds.y = (0x1fff0000 as u32 | 0) as i32; // SDL_WINDOWPOS_UNDEFINED
         pcs_mode.w = winWidth as i32;
         pcs_mode.h = winHeight as i32;
     }
