@@ -1,6 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ::libc;
+use sdl2::sys::{AUDIO_S16, SDL_INIT_AUDIO};
 
 use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, global_state::GlobalState,
@@ -169,8 +170,20 @@ unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, le
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
+/*
+=============================================================================
+======================== End of PC Speaker emulator ========================
+=============================================================================
+*/
+
+//========
+//
+// StartupSound
+//
+//========
+
 pub fn StartupSound(pas: &mut PcrlibAState) {
-    let mut desired: SDL_AudioSpec = SDL_AudioSpec {
+    let mut desired = SDL_AudioSpec {
         freq: 0,
         format: 0,
         channels: 0,
@@ -187,14 +200,15 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
         ::std::mem::size_of::<SDL_AudioSpec>() as u64,
     );
     desired.freq = 48000;
-    desired.format = 0x8010 as i32 as u16;
-    desired.channels = 1 as u8;
-    desired.samples = 4096 as u16;
+    desired.format = AUDIO_S16 as u16;
+    desired.channels = 1;
+    desired.samples = 4096;
     desired.callback =
         Some(UpdateSPKR as unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ());
     desired.userdata = pas as *mut PcrlibAState as *mut libc::c_void;
+
     pas.AudioMutex = safe_SDL_CreateMutex();
-    if pas.AudioMutex.is_null() || safe_SDL_InitSubSystem(0x10 as u32) < 0 || {
+    if pas.AudioMutex.is_null() || safe_SDL_InitSubSystem(SDL_INIT_AUDIO) < 0 || {
         pas.AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut pas.AudioSpec, 0);
         pas.AudioDev == 0
     } {
@@ -203,6 +217,8 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
         pas._dontplay = 1;
         return;
     }
+
+    // Typical value for init since samplerate is usually 8
     pas.pcSamplesPerTick = (pas.AudioSpec.freq / 145) as u32;
     pas.soundmode = spkr;
     safe_SDL_PauseAudioDevice(pas.AudioDev, 0);
