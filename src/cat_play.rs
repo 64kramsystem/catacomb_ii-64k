@@ -892,14 +892,14 @@ fn playercmdthink(
                 centerwindow(16, 2, gs, pcs);
                 print_str("warp to which\nlevel (1-99)?", gs, pcs);
                 clearkeys(pcs);
-                pcs.level = _inputint(gs, pas, pcs) as i16;
+                pcs.level = _inputint(gs, pcs) as i16;
                 if (pcs.level as i32) < 1 {
                     pcs.level = 1;
                 }
                 if pcs.level as i32 > 30 {
                     pcs.level = 30;
                 }
-                restore(gs, pas, pcs);
+                restore(gs, pcs);
                 gs.leveldone = true;
             }
             if pcs.keydown[SDL_SCANCODE_C as usize] as i32 != 0
@@ -918,9 +918,9 @@ fn playercmdthink(
                 UpdateScreen(gs, pcs);
                 clearkeys(pcs);
                 while bioskey(0, pcs) == 0 {
-                    WaitVBL(pas);
+                    WaitVBL();
                 }
-                restore(gs, pas, pcs);
+                restore(gs, pcs);
                 clearkeys(pcs);
             }
         }
@@ -1304,13 +1304,13 @@ pub fn playloop(
             && pcs.keydown[SDL_SCANCODE_D as usize] as i32 != 0
         {
             clearold(&mut gs.oldtiles);
-            refresh(gs, pas, pcs);
-            refresh(gs, pas, pcs);
+            refresh(gs, pcs);
+            refresh(gs, pcs);
             clearkeys(pcs);
             centerwindow(12, 1, gs, pcs);
             print_str("RECORD DEMO", gs, pcs);
             loop {
-                let ch = get(gs, pas, pcs) as i8;
+                let ch = get(gs, pcs) as i8;
                 if !(ch != 13) {
                     break;
                 }
@@ -1332,15 +1332,15 @@ pub fn playloop(
             print_str("SAVE AS DEMO#:", gs, pcs);
             let mut ch;
             loop {
-                ch = get(gs, pas, pcs) as i8;
+                ch = get(gs, pcs) as i8;
                 if !(ch < '0' as i8 || ch > '9' as i8) {
                     break;
                 }
             }
             SaveDemo((ch - '0' as i8) as u8, gs, pcs);
             clearold(&mut gs.oldtiles);
-            refresh(gs, pas, pcs);
-            refresh(gs, pas, pcs);
+            refresh(gs, pcs);
+            refresh(gs, pcs);
         }
         if gs.indemo != notdemo {
             gs.playdone = true;

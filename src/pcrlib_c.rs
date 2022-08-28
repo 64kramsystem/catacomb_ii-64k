@@ -7,6 +7,11 @@ use std::{fs, ptr};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
+use sdl2::pixels::PixelFormatEnum;
+use sdl2::render::{TextureAccess, TextureCreator};
+use sdl2::sys::SDL_WindowFlags;
+use sdl2::video::WindowContext;
+use sdl2::Sdl;
 use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
@@ -42,8 +47,6 @@ pub struct timespec {
 
 pub type SDL_bool = u32;
 
-const SDL_PIXELFORMAT_ARGB8888: u32 = 372645892;
-
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct SDL_Rect {
@@ -61,8 +64,6 @@ pub struct SDL_DisplayMode {
     pub refresh_rate: i32,
     pub driverdata: *mut libc::c_void,
 }
-
-pub const SDL_WINDOW_FULLSCREEN_DESKTOP: u32 = 4097;
 
 pub type SDL_Keycode = i32;
 #[derive(Copy, Clone)]
@@ -407,9 +408,6 @@ impl SDL_Event {
     }
 }
 
-pub type C2RustUnnamed_4 = u32;
-pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
-
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct joyinfo_t {
@@ -435,11 +433,13 @@ pub union C2RustUnnamed_5 {
     pub joy: *mut SDL_Joystick,
 }
 
-pub fn SetupKBD(pcs: &mut PcrlibCState) {
-    for i in 0..128 {
-        pcs.keydown[i] = false;
-    }
-}
+// Rust port: unnecessary in Rust (false is the default)
+//
+// pub fn SetupKBD(pcs: &mut PcrlibCState) {
+//     for i in 0..128 {
+//         pcs.keydown[i] = false;
+//     }
+// }
 
 pub fn ProcessEvents(pcs: &mut PcrlibCState) {
     pcs.mouseEvent = false;
@@ -455,6 +455,16 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState) {
         }
     }
 }
+
+/*
+=======================
+=
+= WatchUIEvents
+= Event filter which hooks into the user interface (trying to close the window
+= or other windowing events).
+=
+=======================
+*/
 
 pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
     unsafe {
@@ -484,10 +494,15 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
                 win_event: WindowEvent::FocusGained,
             } => {
                 let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
-                while safe_SDL_GetMouseFocus() != pcs.window {
+
+                // Try to wait until the window obtains mouse focus before
+                // regrabbing input in order to try to prevent grabbing while
+                // the user is trying to move the window around.
+                while safe_SDL_GetMouseFocus() != pcs.renderer.window().raw() as *mut SDL_Window {
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
                 }
+
                 pcs.hasFocus = true;
                 CheckMouseMode(pcs);
             }
@@ -1026,7 +1041,7 @@ pub fn expwin(
         expwinv(width, height - 2, gs, pas, pcs);
     }
     UpdateScreen(gs, pcs);
-    WaitVBL(pas);
+    WaitVBL();
     centerwindow(width, height, gs, pcs);
 }
 
@@ -1041,7 +1056,7 @@ fn expwinh(
         expwinh(width - 2, height, gs, pas, pcs);
     }
     UpdateScreen(gs, pcs);
-    WaitVBL(pas);
+    WaitVBL();
     centerwindow(width, height, gs, pcs);
 }
 
@@ -1056,7 +1071,7 @@ fn expwinv(
         expwinv(width, height - 2, gs, pas, pcs);
     }
     UpdateScreen(gs, pcs);
-    WaitVBL(pas);
+    WaitVBL();
     centerwindow(width, height, gs, pcs);
 }
 
@@ -1112,17 +1127,22 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         panic!("VGA Palette conversion not implemented.");
     }
     safe_SDL_UpdateTexture(
-        pcs.sdltexture,
+        pcs.sdltexture.raw() as *mut SDL_Texture,
         0 as *const SDL_Rect,
         pcs.conv.as_mut_ptr() as *const libc::c_void,
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
-    safe_SDL_RenderClear(pcs.renderer);
-    safe_SDL_RenderCopy(pcs.renderer, pcs.sdltexture, ptr::null(), &pcs.updateRect);
-    safe_SDL_RenderPresent(pcs.renderer);
+    safe_SDL_RenderClear(pcs.renderer.raw() as *mut SDL_Renderer);
+    safe_SDL_RenderCopy(
+        pcs.renderer.raw() as *mut SDL_Renderer,
+        pcs.sdltexture.raw() as *mut SDL_Texture,
+        ptr::null(),
+        &pcs.updateRect,
+    );
+    safe_SDL_RenderPresent(pcs.renderer.raw() as *mut SDL_Renderer);
 }
 
-pub fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> i32 {
+pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
     let mut cycle: i32 = 0;
     let mut key_0 = 0;
     loop {
@@ -1136,11 +1156,11 @@ pub fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState)
             cycle += 1;
             drawchar(pcs.sx, pcs.sy, fresh2, gs, pcs);
             UpdateScreen(gs, pcs);
-            WaitVBL(pas);
-            WaitVBL(pas);
-            WaitVBL(pas);
-            WaitVBL(pas);
-            WaitVBL(pas);
+            WaitVBL();
+            WaitVBL();
+            WaitVBL();
+            WaitVBL();
+            WaitVBL();
         }
         if !(key_0 == 0) {
             break;
@@ -1280,12 +1300,12 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub fn _inputint(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> u32 {
+pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
 
-    _input(&mut string, 17, gs, pas, pcs);
+    _input(&mut string, 17, gs, pcs);
 
     if string[0] == b'$' {
         let digits = port_temp_strlen(&string) as isize - 2;
@@ -1324,18 +1344,12 @@ pub fn _inputint(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
 // line input routine
 //
 ////////////////////////////////////////////////////////////////////
-fn _input(
-    string: &mut [u8],
-    max: usize,
-    gs: &mut GlobalState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) -> i32 {
+fn _input(string: &mut [u8], max: usize, gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
 
     loop {
-        key_ = (get(gs, pas, pcs) as u8).to_ascii_uppercase();
+        key_ = (get(gs, pcs) as u8).to_ascii_uppercase();
         if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
             drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
@@ -1615,7 +1629,7 @@ pub fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut P
         pcs.sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
-            k = get(gs, pas, pcs);
+            k = get(gs, pcs);
             let ch = k as i8;
             if ch >= ' ' as i8 && j < 3 {
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
@@ -1639,22 +1653,30 @@ pub fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut P
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
-pub struct SDLEventPayload {
+pub struct SDLEventPayload<'t> {
     pub pas: *mut PcrlibAState,
-    pub pcs: *mut PcrlibCState,
+    pub pcs: *mut PcrlibCState<'t>,
 }
 
-pub fn _setupgame(
+////////////////////
+//
+// _setupgame
+//
+////////////////////
+
+pub fn _setupgame<'t>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
-) -> PcrlibCState {
+    sdl: &Sdl,
+    texture_creator: &'t mut Option<TextureCreator<WindowContext>>,
+) -> PcrlibCState<'t> {
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
     let mut displayindex = 0;
 
-    // It's possible to iterate `Args`, although it doesn't get much cleaner.
+    // Rust port: It's possible to iterate `Args`, although it doesn't get much cleaner.
     let args = std::env::args().into_iter().collect::<Vec<_>>();
 
     if let Some(screen_mode) = args.get(1) {
@@ -1686,84 +1708,89 @@ pub fn _setupgame(
         }
     }
 
-    let mut bounds: SDL_Rect = SDL_Rect {
-        x: 0,
-        y: 0,
-        w: 0,
-        h: 0,
-    };
+    let sdl_video = sdl.video().unwrap();
 
-    let mut pcs_mode = SDL_DisplayMode {
-        format: 0,
-        w: 0,
-        h: 0,
-        refresh_rate: 0,
-        driverdata: 0 as *const libc::c_void as *mut libc::c_void,
-    };
+    let mut pcs_mode = sdl_video
+        .current_display_mode(displayindex)
+        .expect("Could not get display mode");
 
-    if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs_mode) < -1
-        || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
-    {
-        eprintln!("Could not get display mode: {}", safe_SDL_GetError());
-        std::process::exit(1);
-    }
-    if windowed {
-        bounds.x = (0x1fff0000 as u32 | 0) as i32;
-        bounds.y = (0x1fff0000 as u32 | 0) as i32;
+    let mut bounds = sdl_video
+        .display_bounds(displayindex)
+        .expect("Could not get display mode");
+
+    let window_flags = if windowed {
+        // Rust port: the SDL port intentionally chooses SDL_WINDOWPOS_UNDEFINED; this has different
+        // default behavior, depending on the system.
+        bounds.x = sdl2::sys::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
+        bounds.y = sdl2::sys::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
         pcs_mode.w = winWidth as i32;
         pcs_mode.h = winHeight as i32;
-    }
-    let pcs_window = safe_SDL_CreateWindow(
-        b"The Catacomb\0" as *const u8 as *const i8,
-        bounds.x,
-        bounds.y,
-        pcs_mode.w,
-        pcs_mode.h,
-        (if windowed as i32 != 0 {
-            0
-        } else {
-            SDL_WINDOW_FULLSCREEN_DESKTOP as i32
-        }) as u32,
-    );
-    let mut pcs_renderer = 0 as *const SDL_Renderer as *mut SDL_Renderer;
-    if pcs_window.is_null() || {
-        pcs_renderer = safe_SDL_CreateRenderer(pcs_window, -1, 0);
-        pcs_renderer.is_null()
-    } {
-        eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
-        std::process::exit(1);
-    }
-    let pcs_sdltexture = safe_SDL_CreateTexture(
-        pcs_renderer,
-        SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING as i32,
-        320,
-        200,
-    );
-    if pcs_sdltexture.is_null() {
-        eprintln!("Could not create video buffer: {}", safe_SDL_GetError());
-        std::process::exit(1);
-    }
+        0
+        // Rust port: WindowBuilder's defaults are position:undefined and flags:0.
+    } else {
+        // Rust port: There's a an explicit API for this, but then we need to separate the conditionals
+        // and initialize the window builder in the middle.
+        SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP as u32
+    };
+
+    let pcs_window = sdl_video
+        .window("The Catacomb", pcs_mode.w as u32, pcs_mode.h as u32)
+        .set_window_flags(window_flags)
+        .position(bounds.x, bounds.y)
+        .build()
+        .expect("Failed to create SDL window");
+
+    // Rust port: the error message is not exact (copied from the SDL port).
+    // The default flags in the Rust library are 0, like the C SDL port.
+    // The rendering driver index is not set, which is equivalent to the SDL port -1.
+    let pcs_renderer = pcs_window
+        .into_canvas()
+        .build()
+        .expect("Failed to create SDL window");
+
+    texture_creator.replace(pcs_renderer.texture_creator());
+
+    let pcs_sdltexture = texture_creator
+        .as_ref()
+        .unwrap()
+        .create_texture(
+            PixelFormatEnum::ARGB8888,
+            TextureAccess::Streaming,
+            320,
+            200,
+        )
+        .expect("Could not create video buffer");
+
     let mut pcs_updateRect = SDL_Rect {
         x: 0,
         y: 0,
         w: 0,
         h: 0,
     };
+
+    // Handle 320x200 and 640x400 specially so they are unscaled.
     if pcs_mode.w == 320 && pcs_mode.h == 200 || pcs_mode.w == 640 && pcs_mode.h == 400 {
         pcs_updateRect.w = pcs_mode.w;
         pcs_updateRect.h = pcs_mode.h;
         pcs_updateRect.y = 0;
         pcs_updateRect.x = pcs_updateRect.y;
     } else {
+        // Pillar box the 4:3 game
         pcs_updateRect.h = pcs_mode.h;
         pcs_updateRect.w = pcs_mode.h * 4 / 3;
         pcs_updateRect.x = (pcs_mode.w - pcs_updateRect.w) >> 1;
         pcs_updateRect.y = 0;
     }
-    gs.screenseg.fill(0);
+
+    // Rust port: unnecessary in Rust
+    // gs.screenseg.fill(0);
+
+    //
+    // set up game's library routines
+    //
     // Rust port: This is just a null value initialization; it's overwritten immediately by _loadctrls()
     // let mut pcs_grmode = EGAgr;
+
     let mut pcs_joystick = [joyinfo_t {
         c2rust_unnamed: C2RustUnnamed_5 {
             controller: 0 as *const SDL_GameController as *mut SDL_GameController,
@@ -1771,18 +1798,20 @@ pub fn _setupgame(
         device: 0,
         isgamecontroller: false,
     }; 3];
+    // Invalidate joysticks.
     pcs_joystick[2].device = -1;
     pcs_joystick[1].device = pcs_joystick[2].device;
-    let mut pcs = PcrlibCState {
-        mode: pcs_mode,
-        window: pcs_window,
-        renderer: pcs_renderer,
-        sdltexture: pcs_sdltexture,
-        updateRect: pcs_updateRect,
-        joystick: pcs_joystick,
-        ..Default::default()
-    };
+
+    let mut pcs = PcrlibCState::new(
+        pcs_renderer,
+        pcs_sdltexture,
+        pcs_updateRect,
+        pcs_mode,
+        pcs_joystick,
+    );
+
     _loadctrls(pas, &mut pcs);
+
     if pcs.grmode == VGAgr && _vgaok {
         pcs.grmode = VGAgr;
     } else if matches!(pcs.grmode, EGAgr | VGAgr) && _egaok {
@@ -1790,19 +1819,34 @@ pub fn _setupgame(
     } else {
         pcs.grmode = CGAgr;
     }
+
     let filename = format!("SOUNDS.{port_temp__extension}");
     let sound_data_buffer = bloadin(&filename).unwrap();
+
     pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
+
     StartupSound(pas);
-    SetupKBD(&mut pcs);
+
+    // Rust port: unnecessary (see method)
+    // SetupKBD(&mut pcs);
+
     initrndt(true, pas);
     initrnd(true, pas);
+
     _loadhighscores(&mut pcs);
+
     loadgrfiles(gs, cps, &mut pcs);
+
     SetupEmulatedVBL(pas);
 
     pcs
 }
+
+////////////////////
+//
+// _quit
+//
+////////////////////
 
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
 pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
@@ -1818,11 +1862,16 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
         _savehighscores(pcs);
         _savectrls(pas, pcs);
     }
+
     ShutdownSound(pas);
     ShutdownJoysticks(pcs);
-    safe_SDL_DestroyRenderer(pcs.renderer);
-    safe_SDL_DestroyWindow(pcs.window);
-    pcs.renderer = 0 as *mut SDL_Renderer;
-    pcs.window = 0 as *mut SDL_Window;
+
+    safe_SDL_DestroyRenderer(pcs.renderer.raw() as *mut SDL_Renderer);
+    safe_SDL_DestroyWindow(pcs.renderer.window().raw() as *mut SDL_Window);
+
+    // Rust port: Not necessary to nullify the pointers.
+    // pcs.renderer = ptr::null();
+    // pcs.window = ptr::null();
+
     std::process::exit(0);
 }

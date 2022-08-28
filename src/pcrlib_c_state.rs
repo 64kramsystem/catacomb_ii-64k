@@ -1,8 +1,12 @@
+use sdl2::{
+    render::{Texture, WindowCanvas},
+    video::DisplayMode,
+};
+
 use crate::{
     gr_type::grtype::{self, *},
     input_type::inputtype::{self, *},
-    pcrlib_c::{joyinfo_t, C2RustUnnamed_5, SDL_DisplayMode, SDL_GameController, SDL_Rect},
-    safe_sdl::{SDL_Renderer, SDL_Texture, SDL_Window},
+    pcrlib_c::{joyinfo_t, SDL_Rect},
     scan_codes::{SDL_Scancode, SDL_SCANCODE_UNKNOWN},
     scores::scores,
 };
@@ -10,7 +14,7 @@ use crate::{
 // Globals previously belonging to pcrlib_c.rs.
 //
 #[rustfmt::skip]
-pub struct PcrlibCState {
+pub struct PcrlibCState<'t> {
     // //////////////////////////////////////////////////////////
     // Rust port: shared
     // //////////////////////////////////////////////////////////
@@ -26,7 +30,7 @@ pub struct PcrlibCState {
     pub keyB1: u32,
     pub keyB2: u32,
     pub grmode: grtype,
-    pub picfile_data: Vec<u8>,             // Rust port: Added
+    pub picfile_data: Vec<u8>,        // Rust port: Added
     pub charptr: usize,               // 8*8 tileset; Rust port: refers to `picfile`
     // pub tileptr: usize,            // 16*16 tileset; Rust port: unused
     pub picptr: usize,                // any size picture set; Rust port: refers to `picfile`
@@ -49,11 +53,11 @@ pub struct PcrlibCState {
     pub democount: i32,
     pub lastdemoval: i32,
     pub lastkey: SDL_Scancode,
-    pub window: *mut SDL_Window,
-    pub renderer: *mut SDL_Renderer,
-    pub sdltexture: *mut SDL_Texture,
+    // pub window: Window, // Rust port: not needed, as we can get the ref from the renderer
+    pub renderer: WindowCanvas,
+    pub sdltexture: Texture<'t>,
     pub updateRect: SDL_Rect,
-    pub mode: SDL_DisplayMode,
+    pub mode: DisplayMode,
     pub joystick: [joyinfo_t; 3],
     pub hasFocus: bool,
     pub win_xl: i32,
@@ -63,155 +67,105 @@ pub struct PcrlibCState {
     pub conv: [u32; 64000],
 }
 
-impl PcrlibCState {
+impl<'t> PcrlibCState<'t> {
     pub fn new(
-        mouseEvent: bool,
-        demobuffer: [u8; 5000],
-        demoptr: usize,
-        democount: i32,
-        lastdemoval: i32,
-        lastkey: SDL_Scancode,
-        window: *mut SDL_Window,
-        renderer: *mut SDL_Renderer,
-        sdltexture: *mut SDL_Texture,
+        // mouseEvent: bool,
+        // demobuffer: [u8; 5000],
+        // demoptr: usize,
+        // democount: i32,
+        // lastdemoval: i32,
+        // lastkey: SDL_Scancode,
+        renderer: WindowCanvas,
+        sdltexture: Texture<'t>,
         updateRect: SDL_Rect,
-        playermode: [inputtype; 3],
-        keydown: [bool; 512],
-        JoyXlow: [i32; 3],
-        JoyXhigh: [i32; 3],
-        JoyYlow: [i32; 3],
-        JoyYhigh: [i32; 3],
-        MouseSensitivity: i32,
-        key: [u32; 8],
-        keyB1: u32,
-        keyB2: u32,
-        mode: SDL_DisplayMode,
+        // playermode: [inputtype; 3],
+        // keydown: [bool; 512],
+        // JoyXlow: [i32; 3],
+        // JoyXhigh: [i32; 3],
+        // JoyYlow: [i32; 3],
+        // JoyYhigh: [i32; 3],
+        // MouseSensitivity: i32,
+        // key: [u32; 8],
+        // keyB1: u32,
+        // keyB2: u32,
+        mode: DisplayMode,
         joystick: [joyinfo_t; 3],
-        hasFocus: bool,
-        win_xl: i32,
-        win_yl: i32,
-        win_xh: i32,
-        win_yh: i32,
-        conv: [u32; 64000],
-        grmode: grtype,
-        picfile: Vec<u8>,
-        charptr: usize,
-        picptr: usize,
-        egaplaneofs: [u32; 4],
-        sx: i32,
-        sy: i32,
-        leftedge: i32,
-        highscores: [scores; 5],
-        score: i32,
-        level: i16,
+        // hasFocus: bool,
+        // win_xl: i32,
+        // win_yl: i32,
+        // win_xh: i32,
+        // win_yh: i32,
+        // conv: [u32; 64000],
+        // grmode: grtype,
+        // picfile: Vec<u8>,
+        // charptr: usize,
+        // picptr: usize,
+        // egaplaneofs: [u32; 4],
+        // sx: i32,
+        // sy: i32,
+        // leftedge: i32,
+        // highscores: [scores; 5],
+        // score: i32,
+        // level: i16,
     ) -> Self {
         Self {
-            mouseEvent,
-            demobuffer,
-            demoptr,
-            democount,
-            lastdemoval,
-            lastkey,
-            window,
+            mouseEvent: false,
+            demobuffer: [0; 5000],
+            demoptr: 0,
+            democount: 0,
+            lastdemoval: 0,
+            lastkey: SDL_SCANCODE_UNKNOWN,
             renderer,
             sdltexture,
             updateRect,
-            playermode,
-            keydown,
-            JoyXlow,
-            JoyXhigh,
-            JoyYlow,
-            JoyYhigh,
-            MouseSensitivity,
-            key,
-            keyB1,
-            keyB2,
+            playermode: [keyboard, keyboard, joystick1],
+            keydown: [false; 512],
+            JoyXlow: [0; 3],
+            JoyXhigh: [0; 3],
+            JoyYlow: [0; 3],
+            JoyYhigh: [0; 3],
+            MouseSensitivity: 0,
+            key: [0; 8],
+            keyB1: 0,
+            keyB2: 0,
             mode,
             joystick,
-            hasFocus,
-            win_xl,
-            win_yl,
-            win_xh,
-            win_yh,
-            conv,
-            grmode,
-            picfile_data: picfile,
-            charptr,
-            picptr,
-            egaplaneofs,
-            sx,
-            sy,
-            leftedge,
-            highscores,
-            score,
-            level,
-        }
-    }
-}
-
-impl Default for PcrlibCState {
-    fn default() -> Self {
-        Self::new(
-            false,
-            [0; 5000],
-            0,
-            0,
-            0,
-            SDL_SCANCODE_UNKNOWN,
-            0 as *const SDL_Window as *mut SDL_Window,
-            0 as *const SDL_Renderer as *mut SDL_Renderer,
-            0 as *const SDL_Texture as *mut SDL_Texture,
-            SDL_Rect {
-                x: 0,
-                y: 0,
-                w: 0,
-                h: 0,
-            },
-            [keyboard, keyboard, joystick1],
-            [false; 512],
-            [0; 3],
-            [0; 3],
-            [0; 3],
-            [0; 3],
-            0,
-            [0; 8],
-            0,
-            0,
-            SDL_DisplayMode {
-                format: 0,
-                w: 0,
-                h: 0,
-                refresh_rate: 0,
-                driverdata: 0 as *const libc::c_void as *mut libc::c_void,
-            },
-            [joyinfo_t {
-                c2rust_unnamed: C2RustUnnamed_5 {
-                    controller: 0 as *const SDL_GameController as *mut SDL_GameController,
-                },
-                device: 0,
-                isgamecontroller: false,
-            }; 3],
-            true,
-            0,
-            0,
-            0,
-            0,
-            [0; 64000],
-            text,
-            vec![],
-            usize::MAX,
-            usize::MAX,
-            [0; 4],
-            0,
-            0,
-            0,
-            [scores {
+            hasFocus: true,
+            win_xl: 0,
+            win_yl: 0,
+            win_xh: 0,
+            win_yh: 0,
+            conv: [0; 64000],
+            grmode: text,
+            picfile_data: vec![],
+            charptr: usize::MAX,
+            picptr: usize::MAX,
+            egaplaneofs: [0; 4],
+            sx: 0,
+            sy: 0,
+            leftedge: 0,
+            highscores: [scores {
                 score: 0,
                 level: 0,
                 initials: [0; 3],
             }; 5],
-            0,
-            0,
-        )
+            score: 0,
+            level: 0,
+        }
     }
 }
+
+// impl<'t> PcrlibCState<'t> {
+//     pub fn set_new_texture(&mut self, texture_creator: &'t TextureCreator<WindowContext>) {
+//         self.sdltexture = Some(
+//             texture_creator
+//                 .create_texture(
+//                     PixelFormatEnum::ARGB8888,
+//                     TextureAccess::Streaming,
+//                     320,
+//                     200,
+//                 )
+//                 .expect("Could not create video buffer"),
+//         )
+//     }
+// }
