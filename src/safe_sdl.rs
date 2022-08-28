@@ -58,7 +58,6 @@ extern "C" {
         button: SDL_GameControllerButton,
     ) -> u8;
     fn SDL_GameControllerClose(gamecontroller: *mut SDL_GameController);
-    fn SDL_memset(dst: *mut libc::c_void, c: i32, len: u64) -> *mut libc::c_void;
     fn SDL_GetError() -> *const i8;
     fn SDL_OpenAudioDevice(
         device: *const i8,
@@ -186,10 +185,6 @@ pub fn safe_SDL_GameControllerGetButton(
 
 pub fn safe_SDL_GameControllerClose(gamecontroller: *mut SDL_GameController) {
     unsafe { SDL_GameControllerClose(gamecontroller) }
-}
-
-pub fn safe_SDL_memset(dst: *mut libc::c_void, c: i32, len: u64) -> *mut libc::c_void {
-    unsafe { SDL_memset(dst, c, len) }
 }
 
 pub fn safe_SDL_GetError() -> String {

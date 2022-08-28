@@ -218,11 +218,7 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
         callback: None,
         userdata: 0 as *const libc::c_void as *mut libc::c_void,
     };
-    safe_SDL_memset(
-        &mut desired as *mut SDL_AudioSpec as *mut libc::c_void,
-        0,
-        ::std::mem::size_of::<SDL_AudioSpec>() as u64,
-    );
+    // Rust port: Setting `desired` bytes to 0 is not necessary in Rust.
     desired.freq = 48000;
     desired.format = AUDIO_S16 as u16;
     desired.channels = 1;
