@@ -456,6 +456,16 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState) {
     }
 }
 
+/*
+=======================
+=
+= WatchUIEvents
+= Event filter which hooks into the user interface (trying to close the window
+= or other windowing events).
+=
+=======================
+*/
+
 pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
     unsafe {
         let userdata = &*userdata;
@@ -484,10 +494,15 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
                 win_event: WindowEvent::FocusGained,
             } => {
                 let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
+
+                // Try to wait until the window obtains mouse focus before
+                // regrabbing input in order to try to prevent grabbing while
+                // the user is trying to move the window around.
                 while safe_SDL_GetMouseFocus() != pcs.renderer.window().raw() as *mut SDL_Window {
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
                 }
+
                 pcs.hasFocus = true;
                 CheckMouseMode(pcs);
             }
@@ -1649,6 +1664,12 @@ pub struct SDLEventPayload {
     pub pcs: *mut PcrlibCState,
 }
 
+////////////////////
+//
+// _setupgame
+//
+////////////////////
+
 pub fn _setupgame(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
@@ -1749,20 +1770,29 @@ pub fn _setupgame(
         w: 0,
         h: 0,
     };
+
+    // Handle 320x200 and 640x400 specially so they are unscaled.
     if pcs_mode.w == 320 && pcs_mode.h == 200 || pcs_mode.w == 640 && pcs_mode.h == 400 {
         pcs_updateRect.w = pcs_mode.w;
         pcs_updateRect.h = pcs_mode.h;
         pcs_updateRect.y = 0;
         pcs_updateRect.x = pcs_updateRect.y;
     } else {
+        // Pillar box the 4:3 game
         pcs_updateRect.h = pcs_mode.h;
         pcs_updateRect.w = pcs_mode.h * 4 / 3;
         pcs_updateRect.x = (pcs_mode.w - pcs_updateRect.w) >> 1;
         pcs_updateRect.y = 0;
     }
+
     gs.screenseg.fill(0);
+
+    //
+    // set up game's library routines
+    //
     // Rust port: This is just a null value initialization; it's overwritten immediately by _loadctrls()
     // let mut pcs_grmode = EGAgr;
+
     let mut pcs_joystick = [joyinfo_t {
         c2rust_unnamed: C2RustUnnamed_5 {
             controller: 0 as *const SDL_GameController as *mut SDL_GameController,
@@ -1770,8 +1800,10 @@ pub fn _setupgame(
         device: 0,
         isgamecontroller: false,
     }; 3];
+    // Invalidate joysticks.
     pcs_joystick[2].device = -1;
     pcs_joystick[1].device = pcs_joystick[2].device;
+
     let mut pcs = PcrlibCState::new(
         pcs_renderer,
         pcs_sdltexture,
@@ -1779,7 +1811,9 @@ pub fn _setupgame(
         pcs_mode,
         pcs_joystick,
     );
+
     _loadctrls(pas, &mut pcs);
+
     if pcs.grmode == VGAgr && _vgaok {
         pcs.grmode = VGAgr;
     } else if matches!(pcs.grmode, EGAgr | VGAgr) && _egaok {
@@ -1787,19 +1821,33 @@ pub fn _setupgame(
     } else {
         pcs.grmode = CGAgr;
     }
+
     let filename = format!("SOUNDS.{port_temp__extension}");
     let sound_data_buffer = bloadin(&filename).unwrap();
+
     pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
+
     StartupSound(pas);
+
     SetupKBD(&mut pcs);
+
     initrndt(true, pas);
     initrnd(true, pas);
+
     _loadhighscores(&mut pcs);
+
     loadgrfiles(gs, cps, &mut pcs);
+
     SetupEmulatedVBL(pas);
 
     pcs
 }
+
+////////////////////
+//
+// _quit
+//
+////////////////////
 
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
 pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
@@ -1815,12 +1863,16 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
         _savehighscores(pcs);
         _savectrls(pas, pcs);
     }
+
     ShutdownSound(pas);
     ShutdownJoysticks(pcs);
+
     safe_SDL_DestroyRenderer(pcs.renderer.raw() as *mut SDL_Renderer);
     safe_SDL_DestroyWindow(pcs.renderer.window().raw() as *mut SDL_Window);
+
     // Rust port: Not necessary to nullify the pointers.
     // pcs.renderer = ptr::null();
     // pcs.window = ptr::null();
+
     std::process::exit(0);
 }
