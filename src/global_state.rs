@@ -86,6 +86,12 @@ pub struct GlobalState {
     // pub grmem: *mut i8,
     // pub VGAPAL: i32,  // just to make pcrlib happy
     // EGADATASTART: u32
+
+    // //////////////////////////////////////////////////////////
+    // Rust port: added
+    // //////////////////////////////////////////////////////////
+
+    pub quitgame: bool,
 }
 
 impl GlobalState {
@@ -162,6 +168,7 @@ impl GlobalState {
             background,
             origin,
             indemo,
+            quitgame: false,
         }
     }
 }
