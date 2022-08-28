@@ -1,5 +1,6 @@
 use std::{
-    sync::Mutex,
+    ptr,
+    sync::{Condvar, Mutex},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -16,6 +17,10 @@ type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8,
 pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
 
 static AudioMutex: Mutex<()> = Mutex::new(());
+
+// Rust port: Simulation of the SDL Semaphore
+static vblSemMutex: Mutex<u32> = Mutex::new(0);
+static vblSemCondvar: Condvar = Condvar::new();
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -390,10 +395,14 @@ pub fn rndt(pas: &mut PcrlibAState) -> i32 {
     return rndtable[pas.rndindex as usize] as i32;
 }
 
-unsafe extern "C" fn VBLCallback(mut _interval: u32, param: *mut libc::c_void) -> u32 {
-    let pas = &mut *(param as *mut PcrlibAState);
-    safe_SDL_SemPost(pas.vblsem);
-    return VBL_TIME as i32 as u32;
+#[no_mangle]
+unsafe extern "C" fn VBLCallback(mut _interval: u32, _param: *mut libc::c_void) -> u32 {
+    let mut guard = vblSemMutex.lock().unwrap();
+
+    *guard += 1;
+    vblSemCondvar.notify_one();
+
+    VBL_TIME
 }
 
 // In the SDL port, this was registered on atexit. Although it's tidy, it's not necessary, since (SQL)
@@ -408,22 +417,27 @@ unsafe extern "C" fn VBLCallback(mut _interval: u32, param: *mut libc::c_void) -
 // }
 
 pub fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
-    pas.vblsem = safe_SDL_CreateSemaphore(0 as u32);
+    // Rust port: No need to create the semaphore here
+
     pas.vbltimer = safe_SDL_AddTimer(
         VBL_TIME as i32 as u32,
         Some(VBLCallback as unsafe extern "C" fn(u32, *mut libc::c_void) -> u32),
-        pas as *mut PcrlibAState as *mut libc::c_void,
+        ptr::null_mut() as *mut libc::c_void,
     );
 
     // Disabled; see comment on ShutdownEmulatedVBL().
     // safe_register_shutdown_vbl_on_exit();
 }
 
-pub fn WaitVBL(pas: &mut PcrlibAState) {
+pub fn WaitVBL(_pas: &mut PcrlibAState) {
+    let mut guard = vblSemMutex.lock().unwrap();
+
     loop {
-        safe_SDL_SemWait(pas.vblsem);
-        if !(safe_SDL_SemValue(pas.vblsem) != 0) {
+        if *guard > 0 {
+            *guard -= 1;
             break;
+        } else {
+            guard = vblSemCondvar.wait(guard).unwrap();
         }
     }
 }

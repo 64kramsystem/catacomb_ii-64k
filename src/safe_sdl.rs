@@ -60,10 +60,6 @@ extern "C" {
     fn SDL_GameControllerClose(gamecontroller: *mut SDL_GameController);
     fn SDL_memset(dst: *mut libc::c_void, c: i32, len: u64) -> *mut libc::c_void;
     fn SDL_GetError() -> *const i8;
-    fn SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_semaphore;
-    fn SDL_SemWait(sem: *mut SDL_semaphore) -> i32;
-    fn SDL_SemPost(sem: *mut SDL_semaphore) -> i32;
-    fn SDL_SemValue(sem: *mut SDL_semaphore) -> u32;
     fn SDL_OpenAudioDevice(
         device: *const i8,
         iscapture: i32,
@@ -202,22 +198,6 @@ pub fn safe_SDL_GetError() -> String {
         // Assume that the string is valid UTF-8
         CStr::from_ptr(raw_str).to_string_lossy().to_string()
     }
-}
-
-pub fn safe_SDL_CreateSemaphore(initial_value: u32) -> *mut SDL_semaphore {
-    unsafe { SDL_CreateSemaphore(initial_value) }
-}
-
-pub fn safe_SDL_SemWait(sem: *mut SDL_semaphore) -> i32 {
-    unsafe { SDL_SemWait(sem) }
-}
-
-pub fn safe_SDL_SemPost(sem: *mut SDL_semaphore) -> i32 {
-    unsafe { SDL_SemPost(sem) }
-}
-
-pub fn safe_SDL_SemValue(sem: *mut SDL_semaphore) -> u32 {
-    unsafe { SDL_SemValue(sem) }
 }
 
 pub fn safe_SDL_OpenAudioDevice(
