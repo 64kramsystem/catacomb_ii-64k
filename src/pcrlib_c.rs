@@ -1041,7 +1041,7 @@ pub fn expwin(
         expwinv(width, height - 2, gs, pas, pcs);
     }
     UpdateScreen(gs, pcs);
-    WaitVBL(pas);
+    WaitVBL();
     centerwindow(width, height, gs, pcs);
 }
 
@@ -1056,7 +1056,7 @@ fn expwinh(
         expwinh(width - 2, height, gs, pas, pcs);
     }
     UpdateScreen(gs, pcs);
-    WaitVBL(pas);
+    WaitVBL();
     centerwindow(width, height, gs, pcs);
 }
 
@@ -1071,7 +1071,7 @@ fn expwinv(
         expwinv(width, height - 2, gs, pas, pcs);
     }
     UpdateScreen(gs, pcs);
-    WaitVBL(pas);
+    WaitVBL();
     centerwindow(width, height, gs, pcs);
 }
 
@@ -1142,7 +1142,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     safe_SDL_RenderPresent(pcs.renderer.raw() as *mut SDL_Renderer);
 }
 
-pub fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> i32 {
+pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
     let mut cycle: i32 = 0;
     let mut key_0 = 0;
     loop {
@@ -1156,11 +1156,11 @@ pub fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState)
             cycle += 1;
             drawchar(pcs.sx, pcs.sy, fresh2, gs, pcs);
             UpdateScreen(gs, pcs);
-            WaitVBL(pas);
-            WaitVBL(pas);
-            WaitVBL(pas);
-            WaitVBL(pas);
-            WaitVBL(pas);
+            WaitVBL();
+            WaitVBL();
+            WaitVBL();
+            WaitVBL();
+            WaitVBL();
         }
         if !(key_0 == 0) {
             break;
@@ -1300,12 +1300,12 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub fn _inputint(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> u32 {
+pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
 
-    _input(&mut string, 17, gs, pas, pcs);
+    _input(&mut string, 17, gs, pcs);
 
     if string[0] == b'$' {
         let digits = port_temp_strlen(&string) as isize - 2;
@@ -1344,18 +1344,12 @@ pub fn _inputint(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
 // line input routine
 //
 ////////////////////////////////////////////////////////////////////
-fn _input(
-    string: &mut [u8],
-    max: usize,
-    gs: &mut GlobalState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) -> i32 {
+fn _input(string: &mut [u8], max: usize, gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
 
     loop {
-        key_ = (get(gs, pas, pcs) as u8).to_ascii_uppercase();
+        key_ = (get(gs, pcs) as u8).to_ascii_uppercase();
         if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
             drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
@@ -1635,7 +1629,7 @@ pub fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut P
         pcs.sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
-            k = get(gs, pas, pcs);
+            k = get(gs, pcs);
             let ch = k as i8;
             if ch >= ' ' as i8 && j < 3 {
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);

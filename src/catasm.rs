@@ -125,7 +125,7 @@ pub fn doall(
                 break;
             }
         }
-        refresh(gs, pas, pcs);
+        refresh(gs, pcs);
         gs.frameon = gs.frameon.wrapping_add(1);
         if gs.leveldone {
             return;

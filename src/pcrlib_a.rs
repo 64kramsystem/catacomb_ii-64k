@@ -306,7 +306,7 @@ pub fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrl
     }
     UpdateScreen(gs, pcs);
     while pas.pcSound.is_some() {
-        WaitVBL(pas);
+        WaitVBL();
     }
 }
 const rndtable: [u8; 256] = [
@@ -429,7 +429,7 @@ pub fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
     // safe_register_shutdown_vbl_on_exit();
 }
 
-pub fn WaitVBL(_pas: &mut PcrlibAState) {
+pub fn WaitVBL() {
     let mut guard = vblSemMutex.lock().unwrap();
 
     loop {

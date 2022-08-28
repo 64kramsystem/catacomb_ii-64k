@@ -34,12 +34,7 @@ const SDLK_RETURN: u32 = 13;
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
 
-fn calibratejoy(
-    joynum: i32,
-    gs: &mut GlobalState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) {
+fn calibratejoy(joynum: i32, gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
     let mut dx: i32 = 0;
@@ -63,9 +58,9 @@ fn calibratejoy(
     loop {
         drawchar(pcs.sx, pcs.sy, stage, gs, pcs);
         UpdateScreen(gs, pcs);
-        WaitVBL(pas);
-        WaitVBL(pas);
-        WaitVBL(pas);
+        WaitVBL();
+        WaitVBL();
+        WaitVBL();
         stage += 1;
         if stage == 23 {
             stage = 15;
@@ -92,17 +87,17 @@ fn calibratejoy(
                 }
             }
             UpdateScreen(gs, pcs);
-            WaitVBL(pas);
-            WaitVBL(pas);
+            WaitVBL();
+            WaitVBL();
             print_str("\n\n\rHold the joystick in the\n\r", gs, pcs);
             print_str("lower right\n\r", gs, pcs);
             print_str("corner and hit fire:", gs, pcs);
             loop {
                 drawchar(pcs.sx, pcs.sy, stage, gs, pcs);
                 UpdateScreen(gs, pcs);
-                WaitVBL(pas);
-                WaitVBL(pas);
-                WaitVBL(pas);
+                WaitVBL();
+                WaitVBL();
+                WaitVBL();
                 stage += 1;
                 if stage == 23 {
                     stage = 15;
@@ -154,7 +149,7 @@ fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
     print_str("of the mouse, 1 being   \n\r", gs, pcs);
     print_str("slow, 9 being fast:", gs, pcs);
     loop {
-        ch = (get(gs, pas, pcs) % 256) as i8;
+        ch = (get(gs, pcs) % 256) as i8;
         if ch as i32 == 27 {
             ch = '5' as i32 as i8;
         }
@@ -270,7 +265,7 @@ fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
     loop {
         pcs.sx = hx;
         pcs.sy = hy;
-        ch = (get(gs, pas, pcs) % 256) as i8;
+        ch = (get(gs, pcs) % 256) as i8;
         if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
             select = ch as i32 - '0' as i32;
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
@@ -283,7 +278,7 @@ fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
                 if !(new == 0) {
                     break;
                 }
-                WaitVBL(pas);
+                WaitVBL();
             }
             clearkeys(pcs);
             print_str("\r                  ", gs, pcs);
@@ -437,7 +432,7 @@ pub fn controlpanel(
     loop {
         pcs.sx = collumnx[cps.collumn as usize] + 2;
         pcs.sy = rowy[cps.row as usize] + 3;
-        chf = get(gs, pas, pcs);
+        chf = get(gs, pcs);
         if chf == SDLK_UP as i32 {
             cps.row -= 1;
             if cps.row < 0 {
@@ -544,7 +539,7 @@ pub fn controlpanel(
     gs.screencenter.x = oldcenterx;
     gs.screencenter.y = oldcentery;
     pas.soundmode = cps.newsoundmode;
-    repaintscreen(gs, cps, pas, pcs);
+    repaintscreen(gs, cps, pcs);
     ContinueSound(pas);
 }
 
