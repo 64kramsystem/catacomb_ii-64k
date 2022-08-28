@@ -42,7 +42,6 @@ extern "C" {
         w: i32,
         h: i32,
     ) -> *mut SDL_Texture;
-    fn SDL_CreateRenderer(window_0: *mut SDL_Window, index: i32, flags: u32) -> *mut SDL_Renderer;
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
     fn SDL_DestroyWindow(window_0: *mut SDL_Window);
@@ -135,14 +134,6 @@ pub fn safe_SDL_CreateTexture(
     h: i32,
 ) -> *mut SDL_Texture {
     unsafe { SDL_CreateTexture(renderer_0, format, access, w, h) }
-}
-
-pub fn safe_SDL_CreateRenderer(
-    window_0: *mut SDL_Window,
-    index: i32,
-    flags: u32,
-) -> *mut SDL_Renderer {
-    unsafe { SDL_CreateRenderer(window_0, index, flags) }
 }
 
 pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {

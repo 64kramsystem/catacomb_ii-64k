@@ -1,10 +1,10 @@
-use sdl2::video::{DisplayMode, Window};
+use sdl2::{render::WindowCanvas, video::DisplayMode};
 
 use crate::{
     gr_type::grtype::{self, *},
     input_type::inputtype::{self, *},
     pcrlib_c::{joyinfo_t, SDL_Rect},
-    safe_sdl::{SDL_Renderer, SDL_Texture},
+    safe_sdl::SDL_Texture,
     scan_codes::{SDL_Scancode, SDL_SCANCODE_UNKNOWN},
     scores::scores,
 };
@@ -51,8 +51,8 @@ pub struct PcrlibCState {
     pub democount: i32,
     pub lastdemoval: i32,
     pub lastkey: SDL_Scancode,
-    pub window: Window,
-    pub renderer: *mut SDL_Renderer,
+    // pub window: Window, // Rust port: not needed, as we can get the ref from the renderer
+    pub renderer: WindowCanvas,
     pub sdltexture: *mut SDL_Texture,
     pub updateRect: SDL_Rect,
     pub mode: DisplayMode,
@@ -73,8 +73,7 @@ impl PcrlibCState {
         // democount: i32,
         // lastdemoval: i32,
         // lastkey: SDL_Scancode,
-        window: Window,
-        renderer: *mut SDL_Renderer,
+        renderer: WindowCanvas,
         sdltexture: *mut SDL_Texture,
         updateRect: SDL_Rect,
         // playermode: [inputtype; 3],
@@ -114,7 +113,6 @@ impl PcrlibCState {
             democount: 0,
             lastdemoval: 0,
             lastkey: SDL_SCANCODE_UNKNOWN,
-            window,
             renderer,
             sdltexture,
             updateRect,

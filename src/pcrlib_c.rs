@@ -484,7 +484,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
                 win_event: WindowEvent::FocusGained,
             } => {
                 let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
-                while safe_SDL_GetMouseFocus() != pcs.window.raw() as *mut SDL_Window {
+                while safe_SDL_GetMouseFocus() != pcs.renderer.window().raw() as *mut SDL_Window {
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
                 }
@@ -1117,9 +1117,14 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         pcs.conv.as_mut_ptr() as *const libc::c_void,
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
-    safe_SDL_RenderClear(pcs.renderer);
-    safe_SDL_RenderCopy(pcs.renderer, pcs.sdltexture, ptr::null(), &pcs.updateRect);
-    safe_SDL_RenderPresent(pcs.renderer);
+    safe_SDL_RenderClear(pcs.renderer.raw() as *mut SDL_Renderer);
+    safe_SDL_RenderCopy(
+        pcs.renderer.raw() as *mut SDL_Renderer,
+        pcs.sdltexture,
+        ptr::null(),
+        &pcs.updateRect,
+    );
+    safe_SDL_RenderPresent(pcs.renderer.raw() as *mut SDL_Renderer);
 }
 
 pub fn get(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> i32 {
@@ -1719,13 +1724,16 @@ pub fn _setupgame(
         .build()
         .expect("Failed to create SDL window");
 
-    let pcs_renderer = safe_SDL_CreateRenderer(pcs_window.raw() as *mut SDL_Window, -1, 0);
-    if pcs_renderer.is_null() {
-        eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
-        std::process::exit(1);
-    }
+    // Rust port: the error message is not exact (copied from the SDL port).
+    // The default flags in the Rust library are 0, like the C SDL port.
+    // The rendering driver index is not set, which is equivalent to the SDL port -1.
+    let pcs_renderer = pcs_window
+        .into_canvas()
+        .build()
+        .expect("Failed to create SDL window");
+
     let pcs_sdltexture = safe_SDL_CreateTexture(
-        pcs_renderer,
+        pcs_renderer.raw() as *mut SDL_Renderer,
         SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING as i32,
         320,
@@ -1765,7 +1773,6 @@ pub fn _setupgame(
     pcs_joystick[2].device = -1;
     pcs_joystick[1].device = pcs_joystick[2].device;
     let mut pcs = PcrlibCState::new(
-        pcs_window,
         pcs_renderer,
         pcs_sdltexture,
         pcs_updateRect,
@@ -1810,10 +1817,10 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
     }
     ShutdownSound(pas);
     ShutdownJoysticks(pcs);
-    safe_SDL_DestroyRenderer(pcs.renderer);
-    safe_SDL_DestroyWindow(pcs.window.raw() as *mut SDL_Window);
-    pcs.renderer = 0 as *mut SDL_Renderer;
-    // Rust port: Not necessary to nullify the pcs.window pointer.
+    safe_SDL_DestroyRenderer(pcs.renderer.raw() as *mut SDL_Renderer);
+    safe_SDL_DestroyWindow(pcs.renderer.window().raw() as *mut SDL_Window);
+    // Rust port: Not necessary to nullify the pointers.
+    // pcs.renderer = ptr::null();
     // pcs.window = ptr::null();
     std::process::exit(0);
 }
