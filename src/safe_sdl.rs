@@ -45,7 +45,6 @@ extern "C" {
     fn SDL_CreateRenderer(window_0: *mut SDL_Window, index: i32, flags: u32) -> *mut SDL_Renderer;
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
-    fn SDL_GetDisplayBounds(displayIndex: i32, rect: *mut SDL_Rect) -> i32;
     fn SDL_CreateWindow(
         title: *const i8,
         x: i32,
@@ -160,10 +159,6 @@ pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {
 
 pub fn safe_SDL_PumpEvents() {
     unsafe { SDL_PumpEvents() }
-}
-
-pub fn safe_SDL_GetDisplayBounds(displayIndex: i32, rect: *mut SDL_Rect) -> i32 {
-    unsafe { SDL_GetDisplayBounds(displayIndex, rect) }
 }
 
 pub fn safe_SDL_CreateWindow(

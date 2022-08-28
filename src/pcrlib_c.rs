@@ -1688,23 +1688,16 @@ pub fn _setupgame(
         }
     }
 
-    let mut bounds: SDL_Rect = SDL_Rect {
-        x: 0,
-        y: 0,
-        w: 0,
-        h: 0,
-    };
-
     let sdl_video = sdl.video().unwrap();
 
     let mut pcs_mode = sdl_video
         .current_display_mode(displayindex)
         .expect("Could not get display mode");
 
-    if safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0 {
-        eprintln!("Could not get display mode: {}", safe_SDL_GetError());
-        std::process::exit(1);
-    }
+    let mut bounds = sdl_video
+        .display_bounds(displayindex)
+        .expect("Could not get display mode");
+
     if windowed {
         bounds.x = (0x1fff0000 as u32 | 0) as i32; // SDL_WINDOWPOS_UNDEFINED
         bounds.y = (0x1fff0000 as u32 | 0) as i32; // SDL_WINDOWPOS_UNDEFINED
