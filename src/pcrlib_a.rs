@@ -1,7 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ::libc;
-use sdl2::sys::{AUDIO_S16, SDL_INIT_AUDIO};
+use sdl2::sys::AUDIO_S16;
 
 use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, global_state::GlobalState,
@@ -208,10 +208,14 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
     desired.userdata = pas as *mut PcrlibAState as *mut libc::c_void;
 
     pas.AudioMutex = safe_SDL_CreateMutex();
-    if pas.AudioMutex.is_null() || {
-        pas.AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut pas.AudioSpec, 0);
-        pas.AudioDev == 0
-    } {
+    if pas.AudioMutex.is_null() {
+        println!("Audio initialization failed: {:?}", safe_SDL_GetError());
+        pas.soundmode = off;
+        pas._dontplay = 1;
+        return;
+    }
+    pas.AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut pas.AudioSpec, 0);
+    if pas.AudioDev == 0 {
         println!("Audio initialization failed: {:?}", safe_SDL_GetError());
         pas.soundmode = off;
         pas._dontplay = 1;
