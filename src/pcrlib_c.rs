@@ -7,6 +7,7 @@ use std::{fs, ptr};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
+use sdl2::sys::SDL_WindowFlags;
 use sdl2::Sdl;
 use serdine::{Deserialize, Serialize};
 
@@ -62,8 +63,6 @@ pub struct SDL_DisplayMode {
     pub refresh_rate: i32,
     pub driverdata: *mut libc::c_void,
 }
-
-pub const SDL_WINDOW_FULLSCREEN_DESKTOP: u32 = 4097;
 
 pub type SDL_Keycode = i32;
 #[derive(Copy, Clone)]
@@ -485,7 +484,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
                 win_event: WindowEvent::FocusGained,
             } => {
                 let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
-                while safe_SDL_GetMouseFocus() != pcs.window {
+                while safe_SDL_GetMouseFocus() != pcs.window.raw() as *mut SDL_Window {
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
                 }
@@ -1698,29 +1697,30 @@ pub fn _setupgame(
         .display_bounds(displayindex)
         .expect("Could not get display mode");
 
-    if windowed {
-        bounds.x = (0x1fff0000 as u32 | 0) as i32; // SDL_WINDOWPOS_UNDEFINED
-        bounds.y = (0x1fff0000 as u32 | 0) as i32; // SDL_WINDOWPOS_UNDEFINED
+    let window_flags = if windowed {
+        // Rust port: the SDL port intentionally chooses SDL_WINDOWPOS_UNDEFINED; this has different
+        // default behavior, depending on the system.
+        bounds.x = sdl2::sys::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
+        bounds.y = sdl2::sys::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
         pcs_mode.w = winWidth as i32;
         pcs_mode.h = winHeight as i32;
-    }
-    let pcs_window = safe_SDL_CreateWindow(
-        b"The Catacomb\0" as *const u8 as *const i8,
-        bounds.x,
-        bounds.y,
-        pcs_mode.w,
-        pcs_mode.h,
-        (if windowed as i32 != 0 {
-            0
-        } else {
-            SDL_WINDOW_FULLSCREEN_DESKTOP as i32
-        }) as u32,
-    );
-    let mut pcs_renderer = 0 as *const SDL_Renderer as *mut SDL_Renderer;
-    if pcs_window.is_null() || {
-        pcs_renderer = safe_SDL_CreateRenderer(pcs_window, -1, 0);
-        pcs_renderer.is_null()
-    } {
+        0
+        // Rust port: WindowBuilder's defaults are position:undefined and flags:0.
+    } else {
+        // Rust port: There's a an explicit API for this, but then we need to separate the conditionals
+        // and initialize the window builder in the middle.
+        SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP as u32
+    };
+
+    let pcs_window = sdl_video
+        .window("The Catacomb", pcs_mode.w as u32, pcs_mode.h as u32)
+        .set_window_flags(window_flags)
+        .position(bounds.x, bounds.y)
+        .build()
+        .expect("Failed to create SDL window");
+
+    let pcs_renderer = safe_SDL_CreateRenderer(pcs_window.raw() as *mut SDL_Window, -1, 0);
+    if pcs_renderer.is_null() {
         eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
         std::process::exit(1);
     }
@@ -1811,8 +1811,9 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
     ShutdownSound(pas);
     ShutdownJoysticks(pcs);
     safe_SDL_DestroyRenderer(pcs.renderer);
-    safe_SDL_DestroyWindow(pcs.window);
+    safe_SDL_DestroyWindow(pcs.window.raw() as *mut SDL_Window);
     pcs.renderer = 0 as *mut SDL_Renderer;
-    pcs.window = 0 as *mut SDL_Window;
+    // Rust port: Not necessary to nullify the pcs.window pointer.
+    // pcs.window = ptr::null();
     std::process::exit(0);
 }

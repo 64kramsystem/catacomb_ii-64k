@@ -1,10 +1,10 @@
-use sdl2::video::DisplayMode;
+use sdl2::video::{DisplayMode, Window};
 
 use crate::{
     gr_type::grtype::{self, *},
     input_type::inputtype::{self, *},
     pcrlib_c::{joyinfo_t, SDL_Rect},
-    safe_sdl::{SDL_Renderer, SDL_Texture, SDL_Window},
+    safe_sdl::{SDL_Renderer, SDL_Texture},
     scan_codes::{SDL_Scancode, SDL_SCANCODE_UNKNOWN},
     scores::scores,
 };
@@ -51,7 +51,7 @@ pub struct PcrlibCState {
     pub democount: i32,
     pub lastdemoval: i32,
     pub lastkey: SDL_Scancode,
-    pub window: *mut SDL_Window,
+    pub window: Window,
     pub renderer: *mut SDL_Renderer,
     pub sdltexture: *mut SDL_Texture,
     pub updateRect: SDL_Rect,
@@ -73,7 +73,7 @@ impl PcrlibCState {
         // democount: i32,
         // lastdemoval: i32,
         // lastkey: SDL_Scancode,
-        window: *mut SDL_Window,
+        window: Window,
         renderer: *mut SDL_Renderer,
         sdltexture: *mut SDL_Texture,
         updateRect: SDL_Rect,

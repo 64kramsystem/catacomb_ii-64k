@@ -45,14 +45,6 @@ extern "C" {
     fn SDL_CreateRenderer(window_0: *mut SDL_Window, index: i32, flags: u32) -> *mut SDL_Renderer;
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
-    fn SDL_CreateWindow(
-        title: *const i8,
-        x: i32,
-        y: i32,
-        w: i32,
-        h: i32,
-        flags: u32,
-    ) -> *mut SDL_Window;
     fn SDL_DestroyWindow(window_0: *mut SDL_Window);
     fn SDL_GetKeyFromScancode(scancode: SDL_Scancode) -> SDL_Keycode;
     fn SDL_GetMouseFocus() -> *mut SDL_Window;
@@ -159,17 +151,6 @@ pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {
 
 pub fn safe_SDL_PumpEvents() {
     unsafe { SDL_PumpEvents() }
-}
-
-pub fn safe_SDL_CreateWindow(
-    title: *const i8,
-    x: i32,
-    y: i32,
-    w: i32,
-    h: i32,
-    flags: u32,
-) -> *mut SDL_Window {
-    unsafe { SDL_CreateWindow(title, x, y, w, h, flags) }
 }
 
 pub fn safe_SDL_DestroyWindow(window_0: *mut SDL_Window) {
