@@ -6,6 +6,7 @@ use std::path::Path;
 use std::{fs, ptr};
 
 use ::libc;
+use sdl2::event::{Event, WindowEvent};
 use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
@@ -89,8 +90,6 @@ pub type C2RustUnnamed_3 = u32;
 pub const SDL_MOUSEMOTION: C2RustUnnamed_3 = 1024;
 pub const SDL_KEYUP: C2RustUnnamed_3 = 769;
 pub const SDL_KEYDOWN: C2RustUnnamed_3 = 768;
-pub const SDL_WINDOWEVENT: C2RustUnnamed_3 = 512;
-pub const SDL_QUIT: C2RustUnnamed_3 = 256;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -408,7 +407,6 @@ impl SDL_Event {
     }
 }
 
-pub type SDL_EventFilter = Option<unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32>;
 pub type C2RustUnnamed_4 = u32;
 pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
 
@@ -458,26 +456,34 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState) {
     }
 }
 
-#[no_mangle]
-unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_Event) -> i32 {
-    let userdata = &*(userdata as *mut SDLEventPayload);
+pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
+    unsafe {
+        let userdata = &*userdata;
 
-    if (*event).type_0 == SDL_QUIT as i32 as u32 {
-        // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
-        // This approach works because we're not in a multithreaded contenxt, so this function is
-        // invoked only once a a time.
-        let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
+        match event {
+            Event::Quit { timestamp: _ } => {
+                // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
+                // This approach works because we're not in a multithreaded contenxt, so this function is
+                // invoked only once a a time.
+                let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
 
-        _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
-    } else if (*event).type_0 == SDL_WINDOWEVENT as i32 as u32 {
-        let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
-
-        match (*event).window.event as i32 {
-            13 => {
+                _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
+            }
+            Event::Window {
+                timestamp: _,
+                window_id: _,
+                win_event: WindowEvent::FocusLost,
+            } => {
+                let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
                 pcs.hasFocus = false;
                 CheckMouseMode(pcs);
             }
-            12 => {
+            Event::Window {
+                timestamp: _,
+                window_id: _,
+                win_event: WindowEvent::FocusGained,
+            } => {
+                let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
                 while safe_SDL_GetMouseFocus() != pcs.window {
                     safe_SDL_PumpEvents();
                     safe_SDL_Delay(10);
@@ -488,7 +494,6 @@ unsafe extern "C" fn WatchUIEvents(userdata: *mut libc::c_void, event: *mut SDL_
             _ => {}
         }
     }
-    return 0;
 }
 
 pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
@@ -1643,21 +1648,7 @@ pub fn _setupgame(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-) {
-    if safe_SDL_Init(0x20 as u32 | 0x1 as u32 | 0x200 as u32 | 0x2000 as u32) < 0 {
-        eprintln!("Failed to initialize SDL: {}", safe_SDL_GetError());
-        std::process::exit(1);
-    }
-    safe_register_sdl_quit_on_exit();
-
-    let userdata = Box::into_raw(Box::new(SDLEventPayload { pas, pcs }));
-
-    safe_SDL_AddEventWatch(
-        Some(WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> i32),
-        userdata as *mut libc::c_void,
-    );
-
+) -> PcrlibCState {
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
@@ -1702,7 +1693,15 @@ pub fn _setupgame(
         h: 0,
     };
 
-    if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs.mode) < -1
+    let mut pcs_mode = SDL_DisplayMode {
+        format: 0,
+        w: 0,
+        h: 0,
+        refresh_rate: 0,
+        driverdata: 0 as *const libc::c_void as *mut libc::c_void,
+    };
+
+    if safe_SDL_GetCurrentDisplayMode(displayindex, &mut pcs_mode) < -1
         || safe_SDL_GetDisplayBounds(displayindex, &mut bounds) < 0
     {
         eprintln!("Could not get display mode: {}", safe_SDL_GetError());
@@ -1711,58 +1710,82 @@ pub fn _setupgame(
     if windowed {
         bounds.x = (0x1fff0000 as u32 | 0) as i32;
         bounds.y = (0x1fff0000 as u32 | 0) as i32;
-        pcs.mode.w = winWidth as i32;
-        pcs.mode.h = winHeight as i32;
+        pcs_mode.w = winWidth as i32;
+        pcs_mode.h = winHeight as i32;
     }
-    pcs.window = safe_SDL_CreateWindow(
+    let pcs_window = safe_SDL_CreateWindow(
         b"The Catacomb\0" as *const u8 as *const i8,
         bounds.x,
         bounds.y,
-        pcs.mode.w,
-        pcs.mode.h,
+        pcs_mode.w,
+        pcs_mode.h,
         (if windowed as i32 != 0 {
             0
         } else {
             SDL_WINDOW_FULLSCREEN_DESKTOP as i32
         }) as u32,
     );
-    if pcs.window.is_null() || {
-        pcs.renderer = safe_SDL_CreateRenderer(pcs.window, -1, 0);
-        pcs.renderer.is_null()
+    let mut pcs_renderer = 0 as *const SDL_Renderer as *mut SDL_Renderer;
+    if pcs_window.is_null() || {
+        pcs_renderer = safe_SDL_CreateRenderer(pcs_window, -1, 0);
+        pcs_renderer.is_null()
     } {
         eprintln!("Failed to create SDL window: {}", safe_SDL_GetError());
         std::process::exit(1);
     }
-    pcs.sdltexture = safe_SDL_CreateTexture(
-        pcs.renderer,
+    let pcs_sdltexture = safe_SDL_CreateTexture(
+        pcs_renderer,
         SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING as i32,
         320,
         200,
     );
-    if pcs.sdltexture.is_null() {
+    if pcs_sdltexture.is_null() {
         eprintln!("Could not create video buffer: {}", safe_SDL_GetError());
         std::process::exit(1);
     }
-    if pcs.mode.w == 320 && pcs.mode.h == 200 || pcs.mode.w == 640 && pcs.mode.h == 400 {
-        pcs.updateRect.w = pcs.mode.w;
-        pcs.updateRect.h = pcs.mode.h;
-        pcs.updateRect.y = 0;
-        pcs.updateRect.x = pcs.updateRect.y;
+    let mut pcs_updateRect = SDL_Rect {
+        x: 0,
+        y: 0,
+        w: 0,
+        h: 0,
+    };
+    if pcs_mode.w == 320 && pcs_mode.h == 200 || pcs_mode.w == 640 && pcs_mode.h == 400 {
+        pcs_updateRect.w = pcs_mode.w;
+        pcs_updateRect.h = pcs_mode.h;
+        pcs_updateRect.y = 0;
+        pcs_updateRect.x = pcs_updateRect.y;
     } else {
-        pcs.updateRect.h = pcs.mode.h;
-        pcs.updateRect.w = pcs.mode.h * 4 / 3;
-        pcs.updateRect.x = (pcs.mode.w - pcs.updateRect.w) >> 1;
-        pcs.updateRect.y = 0;
+        pcs_updateRect.h = pcs_mode.h;
+        pcs_updateRect.w = pcs_mode.h * 4 / 3;
+        pcs_updateRect.x = (pcs_mode.w - pcs_updateRect.w) >> 1;
+        pcs_updateRect.y = 0;
     }
     gs.screenseg.fill(0);
-    pcs.grmode = EGAgr;
-    pcs.joystick[2].device = -1;
-    pcs.joystick[1].device = pcs.joystick[2].device;
-    _loadctrls(pas, pcs);
-    if pcs.grmode as u32 == VGAgr as i32 as u32 && _vgaok as i32 != 0 {
+    // Rust port: This is just a null value initialization; it's overwritten immediately by _loadctrls()
+    // let mut pcs_grmode = EGAgr;
+    let mut pcs_joystick = [joyinfo_t {
+        c2rust_unnamed: C2RustUnnamed_5 {
+            controller: 0 as *const SDL_GameController as *mut SDL_GameController,
+        },
+        device: 0,
+        isgamecontroller: false,
+    }; 3];
+    pcs_joystick[2].device = -1;
+    pcs_joystick[1].device = pcs_joystick[2].device;
+    let mut pcs = PcrlibCState {
+        mode: pcs_mode,
+        window: pcs_window,
+        renderer: pcs_renderer,
+        sdltexture: pcs_sdltexture,
+        updateRect: pcs_updateRect,
+        joystick: pcs_joystick,
+        ..Default::default()
+    };
+    _loadctrls(pas, &mut pcs);
+    if pcs.grmode == VGAgr && _vgaok {
         pcs.grmode = VGAgr;
-    } else if pcs.grmode as u32 >= EGAgr as i32 as u32 && _egaok as i32 != 0 {
+    } else if matches!(pcs.grmode, EGAgr | VGAgr) && _egaok {
         pcs.grmode = EGAgr;
     } else {
         pcs.grmode = CGAgr;
@@ -1771,12 +1794,14 @@ pub fn _setupgame(
     let sound_data_buffer = bloadin(&filename).unwrap();
     pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
     StartupSound(pas);
-    SetupKBD(pcs);
+    SetupKBD(&mut pcs);
     initrndt(true, pas);
     initrnd(true, pas);
-    _loadhighscores(pcs);
-    loadgrfiles(gs, cps, pcs);
+    _loadhighscores(&mut pcs);
+    loadgrfiles(gs, cps, &mut pcs);
     SetupEmulatedVBL(pas);
+
+    pcs
 }
 
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.

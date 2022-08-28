@@ -25,7 +25,7 @@ use crate::{
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        loadFile, print_str, printchartile,
+        loadFile, print_str, printchartile, SDLEventPayload, WatchUIEvents,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -854,7 +854,6 @@ pub fn original_main() {
     let mut gs = GlobalState::default();
     let mut cps = CpanelState::default();
     let mut pas = PcrlibAState::default();
-    let mut pcs = PcrlibCState::default();
 
     /***************************************************************************/
 
@@ -941,7 +940,26 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
-    _setupgame(&mut gs, &mut cps, &mut pas, &mut pcs);
+    // Rust port: The SDL/Event watch initializations have been moved here, since they must stay in
+    // the global scope.
+
+    let sdl = sdl2::init().expect("Failed to initialize SDL");
+    let _video = sdl.video().unwrap();
+    let _timer = sdl.timer().unwrap();
+    let _joystick = sdl.joystick().unwrap();
+    let _gamecontroller = sdl.game_controller().unwrap();
+
+    let mut pcs = _setupgame(&mut gs, &mut cps, &mut pas);
+
+    let userdata = Box::into_raw(Box::new(SDLEventPayload {
+        pas: &mut pas,
+        pcs: &mut pcs,
+    }));
+
+    let _event_watch = sdl
+        .event()
+        .unwrap()
+        .add_event_watch(move |event| WatchUIEvents(event, userdata));
 
     expwin(33, 13, &mut gs, &mut pas, &mut pcs);
     print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);
