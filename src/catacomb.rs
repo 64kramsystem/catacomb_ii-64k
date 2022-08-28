@@ -853,7 +853,7 @@ fn gameover(
 pub fn original_main() {
     let mut gs = GlobalState::default();
     let mut cps = CpanelState::default();
-    let mut pas = PcrlibAState::default();
+    let mut pas = PcrlibAState::new();
 
     /***************************************************************************/
 
