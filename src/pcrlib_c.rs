@@ -1773,15 +1773,14 @@ pub fn _setupgame(
     }; 3];
     pcs_joystick[2].device = -1;
     pcs_joystick[1].device = pcs_joystick[2].device;
-    let mut pcs = PcrlibCState {
-        mode: pcs_mode,
-        window: pcs_window,
-        renderer: pcs_renderer,
-        sdltexture: pcs_sdltexture,
-        updateRect: pcs_updateRect,
-        joystick: pcs_joystick,
-        ..Default::default()
-    };
+    let mut pcs = PcrlibCState::new(
+        pcs_window,
+        pcs_renderer,
+        pcs_sdltexture,
+        pcs_updateRect,
+        pcs_mode,
+        pcs_joystick,
+    );
     _loadctrls(pas, &mut pcs);
     if pcs.grmode == VGAgr && _vgaok {
         pcs.grmode = VGAgr;
