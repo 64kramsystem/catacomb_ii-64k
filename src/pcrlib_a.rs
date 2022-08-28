@@ -122,51 +122,69 @@ fn _SDL_ShutPC(pas: &mut PcrlibAState) {
     _SDL_PCStopSound(pas);
 }
 
+///////////////////////////////////////////////////////////////////////////
+//
+//      SDL_PCSpeakerEmulator() - Emulates the pc speaker
+//      (replaces SDL_IMFMusicPlayer if no AdLib emulator is present)
+//
+///////////////////////////////////////////////////////////////////////////
 #[no_mangle]
 unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, len: i32) {
     let pas = &mut *(userdata as *mut PcrlibAState);
-    if pas.soundmode as u32 != spkr as i32 as u32 {
+
+    if pas.soundmode != spkr {
         stream.write_bytes(0, len as usize);
         return;
     }
-    let mut sampleslen: i32 = len >> 1;
-    let mut stream16: *mut i16 = stream as *mut libc::c_void as *mut i16;
+
+    let mut sampleslen = len >> 1;
+    let mut stream16 = stream as *mut i16; // expect correct alignment
+
     safe_SDL_LockMutex(pas.AudioMutex);
+
     loop {
         if pas.pcNumReadySamples != 0 {
             if pas.pcActive {
                 while pas.pcNumReadySamples != 0 && sampleslen != 0 {
-                    pas.pcNumReadySamples = pas.pcNumReadySamples.wrapping_sub(1);
+                    pas.pcNumReadySamples -= 1;
                     sampleslen -= 1;
-                    let fresh0 = stream16;
+
+                    *stream16 = pas.pcVolume;
                     stream16 = stream16.offset(1);
-                    *fresh0 = pas.pcVolume;
-                    let fresh1 = pas.pcPhaseTick;
-                    pas.pcPhaseTick = pas.pcPhaseTick.wrapping_add(1);
-                    if fresh1 >= pas.pcPhaseLength {
-                        pas.pcVolume = -(pas.pcVolume as i32) as libc::c_short;
+
+                    if pas.pcPhaseTick >= pas.pcPhaseLength {
+                        pas.pcVolume = -pas.pcVolume;
                         pas.pcPhaseTick = 0;
+                    } else {
+                        pas.pcPhaseTick += 1;
                     }
                 }
             } else {
                 while pas.pcNumReadySamples != 0 && sampleslen != 0 {
-                    pas.pcNumReadySamples = pas.pcNumReadySamples.wrapping_sub(1);
+                    pas.pcNumReadySamples -= 1;
                     sampleslen -= 1;
-                    let fresh2 = stream16;
+
+                    *stream16 = 0;
                     stream16 = stream16.offset(1);
-                    *fresh2 = 0 as i16;
+                    // stream16 += 2;	// No need to set it to 0. SDL should have done
+                    // that already.
                 }
             }
+
             if sampleslen == 0 {
-                break;
+                break; // We need to unlock the mutex, so we cannot just return!
             }
         }
+
         _SDL_PCService(pas);
+
         pas.pcNumReadySamples = pas.pcSamplesPerTick;
-        if !(pas.pcNumReadySamples != 0) {
+
+        if pas.pcNumReadySamples == 0 {
             break;
         }
     }
+
     safe_SDL_UnlockMutex(pas.AudioMutex);
 }
 
