@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use sdl2::{
-    AudioSubsystem, EventSubsystem, GameControllerSubsystem, JoystickSubsystem, Sdl,
-    TimerSubsystem, VideoSubsystem,
+    mouse::MouseUtil, AudioSubsystem, EventSubsystem, GameControllerSubsystem, JoystickSubsystem,
+    Sdl, TimerSubsystem, VideoSubsystem,
 };
 
 /// Rust port: A type that wraps the Sdl instance in a Rc, and implements a few subsystem methods,
@@ -49,5 +49,9 @@ impl RcSdl {
 
     pub fn event(&self) -> EventSubsystem {
         self.sdl.event().unwrap()
+    }
+
+    pub fn mouse(&self) -> MouseUtil {
+        self.sdl.mouse()
     }
 }
