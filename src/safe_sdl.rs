@@ -6,7 +6,6 @@ use std::ffi::CStr;
 use crate::{pcrlib_a::SDL_AudioSpec, pcrlib_c::*};
 
 extern "C" {
-    pub type SDL_Window;
     pub type _SDL_Joystick;
     pub type _SDL_GameController;
     pub type SDL_SysWMmsg;
@@ -15,7 +14,6 @@ extern "C" {
 
     fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
-    fn SDL_DestroyWindow(window_0: *mut SDL_Window);
     fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;
     fn SDL_JoystickUpdate();
     fn SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: i32) -> i16;
@@ -54,10 +52,6 @@ pub fn safe_SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer) {
 
 pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {
     unsafe { SDL_PollEvent(event) }
-}
-
-pub fn safe_SDL_DestroyWindow(window_0: *mut SDL_Window) {
-    unsafe { SDL_DestroyWindow(window_0) }
 }
 
 pub fn safe_SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick {
