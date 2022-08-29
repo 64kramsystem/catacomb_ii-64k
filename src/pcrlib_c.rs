@@ -474,7 +474,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
         let userdata = &*userdata;
 
         match event {
-            Event::Quit { timestamp: _ } => {
+            Event::Quit { .. } => {
                 // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
                 // This approach works because we're not in a multithreaded contenxt, so this function is
                 // invoked only once a a time.
@@ -483,18 +483,16 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
             }
             Event::Window {
-                timestamp: _,
-                window_id: _,
                 win_event: WindowEvent::FocusLost,
+                ..
             } => {
                 let pcs = &mut *userdata.pcs;
                 pcs.hasFocus = false;
                 CheckMouseMode(pcs, &sdl);
             }
             Event::Window {
-                timestamp: _,
-                window_id: _,
                 win_event: WindowEvent::FocusGained,
+                ..
             } => {
                 let pcs = &mut *userdata.pcs;
 
