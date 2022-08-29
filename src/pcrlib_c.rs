@@ -661,12 +661,10 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
 }
 
 pub fn ProbeJoysticks(pcs: &mut PcrlibCState) {
-    let mut j: i32 = 0;
     if pcs.joystick[1].device > 0 || pcs.joystick[2].device > 0 {
         ShutdownJoysticks(pcs);
     }
-    j = 1;
-    while j < 3 {
+    for j in 1..3 {
         if j - 1 >= safe_SDL_NumJoysticks() {
             pcs.joystick[j as usize].device = -1;
         } else {
@@ -679,7 +677,6 @@ pub fn ProbeJoysticks(pcs: &mut PcrlibCState) {
                 pcs.joystick[j as usize].c2rust_unnamed.joy = safe_SDL_JoystickOpen(j - 1);
             }
         }
-        j += 1;
     }
 }
 
