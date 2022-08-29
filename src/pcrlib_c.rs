@@ -1881,6 +1881,7 @@ pub fn _setupgame<'s, 't>(
 ////////////////////
 
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
+// In the original version, there are two cases - out of memory, and a certain EXE file not found.
 pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if let Some(error) = &error {
         print!("{}", error);
