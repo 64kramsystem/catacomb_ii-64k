@@ -468,7 +468,7 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState) {
 =======================
 */
 
-pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, _sdl: RcSdl) {
+pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
     unsafe {
         let userdata = &*userdata;
 
@@ -488,7 +488,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, _sdl: RcSdl) 
             } => {
                 let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
                 pcs.hasFocus = false;
-                CheckMouseMode(pcs);
+                CheckMouseMode(pcs, &sdl);
             }
             Event::Window {
                 timestamp: _,
@@ -506,7 +506,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, _sdl: RcSdl) 
                 }
 
                 pcs.hasFocus = true;
-                CheckMouseMode(pcs);
+                CheckMouseMode(pcs, &sdl);
             }
             _ => {}
         }
@@ -1410,10 +1410,10 @@ pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
 }
 
 // Enable and disable mouse grabbing
-pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
-    safe_SDL_SetRelativeMouseMode(
-        (pcs.hasFocus && (pcs.playermode[1] == mouse || pcs.playermode[2] == mouse)) as SDL_bool,
-    );
+pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+    sdl.mouse().set_relative_mouse_mode(
+        pcs.hasFocus && (pcs.playermode[1] == mouse || pcs.playermode[2] == mouse),
+    )
 }
 
 ////////////////////////
@@ -1441,7 +1441,7 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
             pcs.JoyYhigh[i] = ctlpanel.JoyYhigh[i] as i32;
 
             if pcs.playermode[i] == mouse {
-                CheckMouseMode(pcs);
+                CheckMouseMode(pcs, sdl);
             }
 
             if pcs.playermode[i] == joystick1 || pcs.playermode[i] == joystick2 {

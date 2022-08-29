@@ -536,7 +536,7 @@ pub fn controlpanel(
     }
     pcs.playermode[1] = cps.newplayermode[1];
     pcs.playermode[2] = cps.newplayermode[2];
-    CheckMouseMode(pcs);
+    CheckMouseMode(pcs, sdl);
     pcs.grmode = cps.newgrmode;
     gs.screencenter.x = oldcenterx;
     gs.screencenter.y = oldcentery;
