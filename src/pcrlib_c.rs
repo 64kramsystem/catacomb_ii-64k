@@ -486,7 +486,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 window_id: _,
                 win_event: WindowEvent::FocusLost,
             } => {
-                let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
+                let pcs = &mut *userdata.pcs;
                 pcs.hasFocus = false;
                 CheckMouseMode(pcs, &sdl);
             }
@@ -495,7 +495,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 window_id: _,
                 win_event: WindowEvent::FocusGained,
             } => {
-                let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
+                let pcs = &mut *userdata.pcs;
 
                 // Try to wait until the window obtains mouse focus before
                 // regrabbing input in order to try to prevent grabbing while
