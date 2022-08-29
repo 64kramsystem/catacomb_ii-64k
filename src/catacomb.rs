@@ -691,7 +691,7 @@ fn dotitlepage(
     while i < 300 {
         WaitVBL();
         gs.indemo = notdemo;
-        gs.ctrl = ControlPlayer(1, gs, pcs);
+        gs.ctrl = ControlPlayer(1, gs, pcs, sdl);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
             || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -781,7 +781,7 @@ fn dodemo(
         while i < 500 {
             WaitVBL();
             gs.indemo = notdemo;
-            gs.ctrl = ControlPlayer(1, gs, pcs);
+            gs.ctrl = ControlPlayer(1, gs, pcs, sdl);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
                 || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -824,7 +824,7 @@ fn gameover(
     i = 0;
     while i < 500 {
         WaitVBL();
-        gs.ctrl = ControlPlayer(1, gs, pcs);
+        gs.ctrl = ControlPlayer(1, gs, pcs, sdl);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
             || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0

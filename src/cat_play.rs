@@ -747,7 +747,7 @@ fn playercmdthink(
         button1: false,
         button2: false,
     };
-    c = ControlPlayer(1, gs, pcs);
+    c = ControlPlayer(1, gs, pcs, sdl);
     gs.obj.stage = (gs.obj.stage as i32 & 1) as u8;
     if c.button1 as i32 != 0
         && c.button2 as i32 != 0
@@ -928,7 +928,7 @@ fn playercmdthink(
         }
         demoplay => {
             gs.indemo = notdemo;
-            gs.ctrl = ControlPlayer(1, gs, pcs);
+            gs.ctrl = ControlPlayer(1, gs, pcs, sdl);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
                 || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0

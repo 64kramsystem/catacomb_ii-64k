@@ -592,7 +592,7 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
 ============================
 */
 
-pub fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
+pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
     /* mickeys the mouse has moved */
 
     let mut action: ControlStruct = ControlStruct {
@@ -793,7 +793,12 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
     return action;
 }
 
-pub fn ControlPlayer(player: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) -> ControlStruct {
+pub fn ControlPlayer(
+    player: i32,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
+) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
         button1: false,
@@ -803,7 +808,7 @@ pub fn ControlPlayer(player: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) 
     if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
         match pcs.playermode[player as usize] as u32 {
             1 => {
-                ret = ControlMouse(pcs);
+                ret = ControlMouse(pcs, sdl);
             }
             2 => {
                 ret = ControlJoystick(1, pcs);
