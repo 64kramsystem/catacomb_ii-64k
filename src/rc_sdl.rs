@@ -15,6 +15,7 @@ pub struct RcSdl {
     _audio: AudioSubsystem,
     joystick: JoystickSubsystem,
     game_controller: GameControllerSubsystem,
+    timer: TimerSubsystem,
 }
 
 impl RcSdl {
@@ -24,12 +25,14 @@ impl RcSdl {
         let audio = sdl.audio().unwrap();
         let joystick = sdl.joystick().unwrap();
         let game_controller = sdl.game_controller().unwrap();
+        let timer = sdl.timer().unwrap();
 
         Self {
             sdl: Rc::new(sdl),
             _audio: audio,
             joystick,
             game_controller,
+            timer,
         }
     }
 }
@@ -37,6 +40,10 @@ impl RcSdl {
 impl RcSdl {
     pub fn video(&self) -> VideoSubsystem {
         self.sdl.video().unwrap()
+    }
+
+    pub fn timer(&self) -> &TimerSubsystem {
+        &self.timer
     }
 
     pub fn joystick(&self) -> &JoystickSubsystem {
