@@ -8,6 +8,7 @@ use std::{fs, mem};
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::{Keycode, Scancode};
+use sdl2::mouse::MouseButton;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::{TextureAccess, TextureCreator};
@@ -30,8 +31,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::*,
-    extra_constants::{port_temp__extension, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
-    extra_macros::SDL_BUTTON,
+    extra_constants::port_temp__extension,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_a::{drawchar, PlaySound, ShutdownSound, WaitVBL},
@@ -600,13 +600,20 @@ pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
         button1: false,
         button2: false,
     };
-    let mut newx = 0;
-    let mut newy = 0;
 
-    let buttons = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32; /* mouse status */
+    /* mouse status */
+    let mouse_state = sdl.event_pump().relative_mouse_state();
 
-    action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
-    action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
+    let newx = mouse_state.x();
+    let newy = mouse_state.y();
+
+    for (button, pressed) in mouse_state.mouse_buttons() {
+        match button {
+            MouseButton::Left => action.button1 = pressed,
+            MouseButton::Right => action.button2 = pressed,
+            _ => {}
+        }
+    }
 
     if !pcs.mouseEvent {
         action.dir = nodir;
