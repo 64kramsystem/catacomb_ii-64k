@@ -1137,7 +1137,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.renderer
         .copy(&pcs.sdltexture, None, Some(pcs.updateRect))
         .unwrap();
-    safe_SDL_RenderPresent(pcs.renderer.raw() as *mut SDL_Renderer);
+    pcs.renderer.present();
 }
 
 pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
