@@ -411,29 +411,10 @@ impl SDL_Event {
     }
 }
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct joyinfo_t {
-    pub c2rust_unnamed: C2RustUnnamed_5,
-    pub device: i32,
-    pub isgamecontroller: bool,
-}
-
-impl joyinfo_t {
-    fn controller(&self) -> *mut SDL_GameController {
-        unsafe { self.c2rust_unnamed.controller }
-    }
-
-    fn joy(&self) -> *mut SDL_Joystick {
-        unsafe { self.c2rust_unnamed.joy }
-    }
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union C2RustUnnamed_5 {
-    pub controller: *mut SDL_GameController,
-    pub joy: *mut SDL_Joystick,
+#[derive(Clone, Copy)]
+pub enum joyinfo_t {
+    Controller(*mut SDL_GameController, i32),
+    Joy(*mut SDL_Joystick, i32),
 }
 
 // Rust port: unnecessary in Rust (false is the default)
@@ -686,16 +667,17 @@ pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
 
 fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     for joystick in &mut pcs.joystick[1..3] {
-        if joystick.device < 0 {
-            continue;
+        match joystick {
+            Some(joyinfo_t::Controller(ptr, _)) => {
+                safe_SDL_GameControllerClose(*ptr);
+                *joystick = None;
+            }
+            Some(joyinfo_t::Joy(ptr, _)) => {
+                safe_SDL_JoystickClose(*ptr);
+                *joystick = None;
+            }
+            None => {}
         }
-
-        if joystick.isgamecontroller {
-            safe_SDL_GameControllerClose(joystick.controller());
-        } else {
-            safe_SDL_JoystickClose(joystick.joy());
-        }
-        joystick.device = -1;
     }
 }
 
@@ -709,21 +691,22 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
 */
 
 pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
-    if pcs.joystick[1].device > 0 || pcs.joystick[2].device > 0 {
+    if pcs.joystick[1].is_some() || pcs.joystick[2].is_some() {
         ShutdownJoysticks(pcs);
     }
     for (j, joystick) in pcs.joystick.iter_mut().enumerate().skip(1) {
         let j = j as i32;
 
         if j - 1 >= sdl.joystick().num_joysticks().unwrap() as i32 {
-            joystick.device = -1;
+            *joystick = None;
         } else {
-            joystick.device = j - 1;
-            joystick.isgamecontroller = safe_SDL_IsGameController(j - 1) != 0;
             if safe_SDL_IsGameController(j - 1) != 0 {
-                joystick.c2rust_unnamed.controller = safe_SDL_GameControllerOpen(j - 1);
+                *joystick = Some(joyinfo_t::Controller(
+                    safe_SDL_GameControllerOpen(j - 1),
+                    j - 1,
+                ));
             } else {
-                joystick.c2rust_unnamed.joy = safe_SDL_JoystickOpen(j - 1);
+                *joystick = Some(joyinfo_t::Joy(safe_SDL_JoystickOpen(j - 1), j - 1));
             }
         }
     }
@@ -735,18 +718,16 @@ pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut P
     *xcount = 0;
     *ycount = 0;
     safe_SDL_JoystickUpdate();
-    if pcs.joystick[joynum as usize].isgamecontroller {
-        a1 = safe_SDL_GameControllerGetAxis(
-            pcs.joystick[joynum as usize].controller(),
-            SDL_CONTROLLER_AXIS_LEFTX,
-        ) as i32;
-        a2 = safe_SDL_GameControllerGetAxis(
-            pcs.joystick[joynum as usize].controller(),
-            SDL_CONTROLLER_AXIS_LEFTY,
-        ) as i32;
-    } else {
-        a1 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].joy(), 0) as i32;
-        a2 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].joy(), 1) as i32;
+    match pcs.joystick[joynum as usize] {
+        Some(joyinfo_t::Controller(ptr, _)) => {
+            a1 = safe_SDL_GameControllerGetAxis(ptr, SDL_CONTROLLER_AXIS_LEFTX) as i32;
+            a2 = safe_SDL_GameControllerGetAxis(ptr, SDL_CONTROLLER_AXIS_LEFTY) as i32;
+        }
+        Some(joyinfo_t::Joy(ptr, _)) => {
+            a1 = safe_SDL_JoystickGetAxis(ptr, 0) as i32;
+            a2 = safe_SDL_JoystickGetAxis(ptr, 1) as i32;
+        }
+        None => unreachable!(),
     }
     *xcount = a1;
     *ycount = a2;
@@ -763,18 +744,16 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
         button2: false,
     };
     ReadJoystick(joynum, &mut joyx, &mut joyy, pcs);
-    if pcs.joystick[joynum as usize].isgamecontroller {
-        action.button1 = safe_SDL_GameControllerGetButton(
-            pcs.joystick[joynum as usize].controller(),
-            SDL_CONTROLLER_BUTTON_A,
-        ) != 0;
-        action.button2 = safe_SDL_GameControllerGetButton(
-            pcs.joystick[joynum as usize].controller(),
-            SDL_CONTROLLER_BUTTON_B,
-        ) != 0;
-    } else {
-        action.button1 = safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].joy(), 0) != 0;
-        action.button2 = safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].joy(), 1) != 0;
+    match pcs.joystick[joynum as usize] {
+        Some(joyinfo_t::Controller(ptr, _)) => {
+            action.button1 = safe_SDL_GameControllerGetButton(ptr, SDL_CONTROLLER_BUTTON_A) != 0;
+            action.button2 = safe_SDL_GameControllerGetButton(ptr, SDL_CONTROLLER_BUTTON_B) != 0;
+        }
+        Some(joyinfo_t::Joy(ptr, _)) => {
+            action.button1 = safe_SDL_JoystickGetButton(ptr, 0) != 0;
+            action.button2 = safe_SDL_JoystickGetButton(ptr, 1) != 0;
+        }
+        None => unreachable!(),
     }
     if joyx == 0 && joyy == 0 {
         action.dir = nodir;
@@ -1502,8 +1481,8 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
 
             if pcs.playermode[i] == joystick1 || pcs.playermode[i] == joystick2 {
                 ProbeJoysticks(pcs, sdl);
-                if (pcs.playermode[i] == joystick1 && pcs.joystick[1].device < 0)
-                    || (pcs.playermode[i] == joystick2 && pcs.joystick[2].device < 0)
+                if (pcs.playermode[i] == joystick1 && pcs.joystick[1].is_none())
+                    || (pcs.playermode[i] == joystick2 && pcs.joystick[2].is_none())
                 {
                     pcs.playermode[i] = keyboard;
                 }
@@ -1843,16 +1822,8 @@ pub fn _setupgame<'s, 't>(
     // Rust port: This is just a null value initialization; it's overwritten immediately by _loadctrls()
     // let mut pcs_grmode = EGAgr;
 
-    let mut pcs_joystick = [joyinfo_t {
-        c2rust_unnamed: C2RustUnnamed_5 {
-            controller: 0 as *const SDL_GameController as *mut SDL_GameController,
-        },
-        device: 0,
-        isgamecontroller: false,
-    }; 3];
     // Invalidate joysticks.
-    pcs_joystick[2].device = -1;
-    pcs_joystick[1].device = pcs_joystick[2].device;
+    let pcs_joystick = [None; 3];
 
     let mut pcs = PcrlibCState::new(
         pcs_renderer,
