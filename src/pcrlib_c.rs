@@ -1133,7 +1133,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         pcs.conv.as_mut_ptr() as *const libc::c_void,
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
-    safe_SDL_RenderClear(pcs.renderer.raw() as *mut SDL_Renderer);
+    pcs.renderer.clear();
     pcs.renderer
         .copy(&pcs.sdltexture, None, Some(pcs.updateRect))
         .unwrap();
