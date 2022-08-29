@@ -1,9 +1,9 @@
 use std::convert::TryInto;
 use std::ffi::CString;
+use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::{fs, ptr};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
@@ -1134,12 +1134,9 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
     );
     safe_SDL_RenderClear(pcs.renderer.raw() as *mut SDL_Renderer);
-    safe_SDL_RenderCopy(
-        pcs.renderer.raw() as *mut SDL_Renderer,
-        pcs.sdltexture.raw() as *mut SDL_Texture,
-        ptr::null(),
-        pcs.updateRect.raw() as *const SDL_Rect,
-    );
+    pcs.renderer
+        .copy(&pcs.sdltexture, None, Some(pcs.updateRect))
+        .unwrap();
     safe_SDL_RenderPresent(pcs.renderer.raw() as *mut SDL_Renderer);
 }
 

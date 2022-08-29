@@ -21,12 +21,6 @@ extern "C" {
     fn SDL_Delay(ms: u32);
     fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
     fn SDL_RenderPresent(renderer_0: *mut SDL_Renderer);
-    fn SDL_RenderCopy(
-        renderer_0: *mut SDL_Renderer,
-        texture: *mut SDL_Texture,
-        srcrect: *const SDL_Rect,
-        dstrect: *const SDL_Rect,
-    ) -> i32;
     fn SDL_RenderClear(renderer_0: *mut SDL_Renderer) -> i32;
     fn SDL_UpdateTexture(
         texture: *mut SDL_Texture,
@@ -85,15 +79,6 @@ pub fn safe_SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer) {
 
 pub fn safe_SDL_RenderPresent(renderer_0: *mut SDL_Renderer) {
     unsafe { SDL_RenderPresent(renderer_0) }
-}
-
-pub fn safe_SDL_RenderCopy(
-    renderer_0: *mut SDL_Renderer,
-    texture: *mut SDL_Texture,
-    srcrect: *const SDL_Rect,
-    dstrect: *const SDL_Rect,
-) -> i32 {
-    unsafe { SDL_RenderCopy(renderer_0, texture, srcrect, dstrect) }
 }
 
 pub fn safe_SDL_RenderClear(renderer_0: *mut SDL_Renderer) -> i32 {
