@@ -699,21 +699,31 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     }
 }
 
+/*
+===============================
+=
+= ProbeJoysticks
+= Try to identify joysticks and open them.
+=
+===============================
+*/
+
 pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
     if pcs.joystick[1].device > 0 || pcs.joystick[2].device > 0 {
         ShutdownJoysticks(pcs);
     }
-    for j in 1..3 {
+    for (j, joystick) in pcs.joystick.iter_mut().enumerate().skip(1) {
+        let j = j as i32;
+
         if j - 1 >= sdl.joystick().num_joysticks().unwrap() as i32 {
-            pcs.joystick[j as usize].device = -1;
+            joystick.device = -1;
         } else {
-            pcs.joystick[j as usize].device = j - 1;
-            pcs.joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) != 0;
-            if safe_SDL_IsGameController(j - 1) as u64 != 0 {
-                pcs.joystick[j as usize].c2rust_unnamed.controller =
-                    safe_SDL_GameControllerOpen(j - 1);
+            joystick.device = j - 1;
+            joystick.isgamecontroller = safe_SDL_IsGameController(j - 1) != 0;
+            if safe_SDL_IsGameController(j - 1) != 0 {
+                joystick.c2rust_unnamed.controller = safe_SDL_GameControllerOpen(j - 1);
             } else {
-                pcs.joystick[j as usize].c2rust_unnamed.joy = safe_SDL_JoystickOpen(j - 1);
+                joystick.c2rust_unnamed.joy = safe_SDL_JoystickOpen(j - 1);
             }
         }
     }
