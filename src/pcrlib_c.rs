@@ -584,33 +584,51 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     return action;
 }
 
+/*
+============================
+=
+= ControlMouse
+=
+============================
+*/
+
 pub fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
-    let mut newx: i32 = 0;
-    let mut newy: i32 = 0;
-    let mut xmove: i32 = 0;
-    let mut ymove: i32 = 0;
+    /* mickeys the mouse has moved */
+
     let mut action: ControlStruct = ControlStruct {
         dir: north,
         button1: false,
         button2: false,
     };
-    let buttons: i32 = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32;
+    let mut newx = 0;
+    let mut newy = 0;
+
+    let buttons = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32; /* mouse status */
+
     action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
     action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
-    if pcs.mouseEvent as i32 == false as i32 {
+
+    if !pcs.mouseEvent {
         action.dir = nodir;
+
         return action;
     }
-    if newx > pcs.MouseSensitivity {
-        xmove = 1;
+
+    let xmove = if newx > pcs.MouseSensitivity {
+        1
     } else if newx < -pcs.MouseSensitivity {
-        xmove = -1;
-    }
-    if newy > pcs.MouseSensitivity {
-        ymove = 1;
+        -1
+    } else {
+        0
+    };
+    let ymove = if newy > pcs.MouseSensitivity {
+        1
     } else if newy < -pcs.MouseSensitivity {
-        ymove = -1;
-    }
+        -1
+    } else {
+        0
+    };
+
     match ymove * 3 + xmove {
         -4 => {
             action.dir = northwest;
@@ -641,7 +659,8 @@ pub fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
         }
         _ => {}
     }
-    return action;
+
+    action
 }
 
 fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
