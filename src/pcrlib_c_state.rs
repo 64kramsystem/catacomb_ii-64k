@@ -55,7 +55,8 @@ pub struct PcrlibCState<'t> {
     pub lastdemoval: i32,
     pub lastkey: SDL_Scancode,
     // pub window: Window, // Rust port: not needed, as we can get the ref from the renderer
-    pub renderer: WindowCanvas,
+    // Rust port: the Option here is quite ugly, but needed in order to perform drop on _quit().
+    pub renderer: Option<WindowCanvas>,
     pub sdltexture: Texture<'t>,
     pub updateRect: Rect,
     pub mode: DisplayMode,
@@ -116,7 +117,7 @@ impl<'t> PcrlibCState<'t> {
             democount: 0,
             lastdemoval: 0,
             lastkey: SDL_SCANCODE_UNKNOWN,
-            renderer,
+            renderer: Some(renderer),
             sdltexture,
             updateRect,
             playermode: [keyboard, keyboard, joystick1],

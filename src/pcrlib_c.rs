@@ -499,7 +499,9 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 // Try to wait until the window obtains mouse focus before
                 // regrabbing input in order to try to prevent grabbing while
                 // the user is trying to move the window around.
-                while sdl.mouse().focused_window_id() != Some(pcs.renderer.window().id()) {
+                while sdl.mouse().focused_window_id()
+                    != Some(pcs.renderer.as_ref().unwrap().window().id())
+                {
                     sdl.event_pump().pump_events();
                     // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
                     // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
@@ -1169,11 +1171,13 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.sdltexture
         .update(None, pixel_bytes.as_slice(), 320 * mem::size_of::<u32>())
         .unwrap();
-    pcs.renderer.clear();
+    pcs.renderer.as_mut().unwrap().clear();
     pcs.renderer
+        .as_mut()
+        .unwrap()
         .copy(&pcs.sdltexture, None, Some(pcs.updateRect))
         .unwrap();
-    pcs.renderer.present();
+    pcs.renderer.as_mut().unwrap().present();
 }
 
 pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
@@ -1901,8 +1905,8 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
     ShutdownSound(pas);
     ShutdownJoysticks(pcs);
 
-    safe_SDL_DestroyRenderer(pcs.renderer.raw() as *mut SDL_Renderer);
-    drop(pcs.renderer.window().context());
+    safe_SDL_DestroyRenderer(pcs.renderer.as_ref().unwrap().raw() as *mut SDL_Renderer);
+    drop(pcs.renderer.as_ref().unwrap().window().context());
 
     // Rust port: Not necessary to nullify the pointers.
     // pcs.renderer = ptr::null();
