@@ -851,6 +851,20 @@ fn gameover(
 /*=========================*/
 
 pub fn original_main() {
+    // Rust port: The SDL/Event watch initializations have been moved here, since they must stay in
+    // the global scope.
+    let sdl = RcSdl::init_sdl();
+
+    // Rust port: Option<TextureCreator<_>> is a workaround necessary to allow Texture live within
+    // PcrlibCState, as a texture's lifetime is bound to its texture creator, which therefore needs
+    // to be in a higher scope; this is a problem because both the variables TextureCreator depends
+    // on, and Texture, are inside PcrlibCState. The clean alternative is to move the texture out of
+    // PcrlibCState and pass it around, which is not great, considering the amount of state
+    // variables already passed around.
+    let mut texture_creator = None;
+
+    // Rust port: Globals
+
     let mut gs = GlobalState::default();
     let mut cps = CpanelState::default();
     let mut pas = PcrlibAState::new();
@@ -940,18 +954,6 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
-    // Rust port: The SDL/Event watch initializations have been moved here, since they must stay in
-    // the global scope.
-
-    let sdl = RcSdl::init_sdl();
-
-    // Rust port: Option<TextureCreator<_>> is a workaround necessary to allow Texture live within
-    // PcrlibCState, as a texture's lifetime is bound to its texture creator, which therefore needs
-    // to be in a higher scope; this is a problem because both the variables TextureCreator depends
-    // on, and Texture, are inside PcrlibCState. The clean alternative is to move the texture out of
-    // PcrlibCState and pass it around, which is not great, considering the amount of state
-    // variables already passed around.
-    let mut texture_creator = None;
     let mut pcs = _setupgame(&mut gs, &mut cps, &mut pas, &sdl, &mut texture_creator);
 
     let userdata = Box::into_raw(Box::new(SDLEventPayload {

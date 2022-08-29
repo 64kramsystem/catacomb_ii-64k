@@ -1690,7 +1690,7 @@ const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
 pub struct SDLEventPayload<'t> {
-    pub pas: *mut PcrlibAState,
+    pub pas: *mut PcrlibAState<'t>,
     pub pcs: *mut PcrlibCState<'t>,
 }
 
@@ -1700,11 +1700,11 @@ pub struct SDLEventPayload<'t> {
 //
 ////////////////////
 
-pub fn _setupgame<'t>(
+pub fn _setupgame<'s, 't>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
-    pas: &mut PcrlibAState,
-    sdl: &RcSdl,
+    pas: &mut PcrlibAState<'s>,
+    sdl: &'s RcSdl,
     texture_creator: &'t mut Option<TextureCreator<WindowContext>>,
 ) -> PcrlibCState<'t> {
     let mut windowed = false;
@@ -1869,7 +1869,7 @@ pub fn _setupgame<'t>(
 
     loadgrfiles(gs, cps, &mut pcs);
 
-    SetupEmulatedVBL(pas);
+    SetupEmulatedVBL(pas, &sdl);
 
     pcs
 }

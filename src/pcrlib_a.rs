@@ -1,5 +1,4 @@
 use std::{
-    ptr,
     sync::{Condvar, Mutex},
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -10,11 +9,11 @@ use sdl2::sys::AUDIO_S16;
 use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, global_state::GlobalState,
     gr_type::grtype::*, pcrlib_a_state::PcrlibAState, pcrlib_c::UpdateScreen,
-    pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*, spkr_table::SPKRtable,
+    pcrlib_c_state::PcrlibCState, rc_sdl::RcSdl, safe_sdl::*, sound_type::soundtype::*,
+    spkr_table::SPKRtable,
 };
 
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
-pub type SDL_TimerCallback = Option<unsafe extern "C" fn(u32, *mut libc::c_void) -> u32>;
 
 static AudioMutex: Mutex<()> = Mutex::new(());
 
@@ -391,8 +390,7 @@ pub fn rndt(pas: &mut PcrlibAState) -> i32 {
     return rndtable[pas.rndindex as usize] as i32;
 }
 
-#[no_mangle]
-unsafe extern "C" fn VBLCallback(mut _interval: u32, _param: *mut libc::c_void) -> u32 {
+fn VBLCallback() -> u32 {
     let mut guard = vblSemMutex.lock().unwrap();
 
     *guard += 1;
@@ -412,14 +410,10 @@ unsafe extern "C" fn VBLCallback(mut _interval: u32, _param: *mut libc::c_void) 
 //     safe_SDL_DestroySemaphore(pas.vblsem);
 // }
 
-pub fn SetupEmulatedVBL(pas: &mut PcrlibAState) {
+pub fn SetupEmulatedVBL<'a>(pas: &mut PcrlibAState<'a>, sdl: &'a RcSdl) {
     // Rust port: No need to create the semaphore here
 
-    pas.vbltimer = safe_SDL_AddTimer(
-        VBL_TIME as i32 as u32,
-        Some(VBLCallback as unsafe extern "C" fn(u32, *mut libc::c_void) -> u32),
-        ptr::null_mut() as *mut libc::c_void,
-    );
+    pas.vbltimer = Some(sdl.timer().add_timer(VBL_TIME, Box::new(VBLCallback)));
 
     // Disabled; see comment on ShutdownEmulatedVBL().
     // safe_register_shutdown_vbl_on_exit();

@@ -1,3 +1,5 @@
+use sdl2::timer::Timer;
+
 use crate::{
     pcrlib_a::{SDL_AudioSpec, SavedSoundStruct},
     safe_sdl::SDL_semaphore,
@@ -10,7 +12,7 @@ use std::ptr;
 // Globals previously belonging to pcrlib_a.rs.
 //
 #[rustfmt::skip]
-pub struct PcrlibAState {
+pub struct PcrlibAState<'a> {
     // //////////////////////////////////////////////////////////
     // Rust port: shared
     // //////////////////////////////////////////////////////////
@@ -45,7 +47,7 @@ pub struct PcrlibAState {
     pub LastRnd: u16,
     pub RndArray: [u16; 17],
     pub vblsem: *mut SDL_semaphore,
-    pub vbltimer: i32,
+    pub vbltimer: Option<Timer<'a, 'a>>,
 
     // //////////////////////////////////////////////////////////
     // Rust port: private to cpanel.rs
@@ -53,7 +55,7 @@ pub struct PcrlibAState {
 
     pub xormask: i32,
 }
-impl PcrlibAState {
+impl<'a> PcrlibAState<'a> {
     pub fn new(// SndPriority: u8,
         // _dontplay: i32,
         // AudioSpec: SDL_AudioSpec,
@@ -115,7 +117,7 @@ impl PcrlibAState {
             LastRnd: 0,
             RndArray: [0; 17],
             vblsem: 0 as *mut SDL_semaphore,
-            vbltimer: 0,
+            vbltimer: None,
             SoundData: SPKRtable::default(),
             soundmode: spkr,
             xormask: 0,
