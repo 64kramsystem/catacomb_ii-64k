@@ -24,7 +24,6 @@ extern "C" {
     fn SDL_GetMouseFocus() -> *mut SDL_Window;
     fn SDL_GetRelativeMouseState(x: *mut i32, y: *mut i32) -> u32;
     fn SDL_SetRelativeMouseMode(enabled: SDL_bool) -> i32;
-    fn SDL_NumJoysticks() -> i32;
     fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;
     fn SDL_JoystickUpdate();
     fn SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: i32) -> i16;
@@ -88,10 +87,6 @@ pub fn safe_SDL_GetRelativeMouseState(x: *mut i32, y: *mut i32) -> u32 {
 
 pub fn safe_SDL_SetRelativeMouseMode(enabled: SDL_bool) -> i32 {
     unsafe { SDL_SetRelativeMouseMode(enabled) }
-}
-
-pub fn safe_SDL_NumJoysticks() -> i32 {
-    unsafe { SDL_NumJoysticks() }
 }
 
 pub fn safe_SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick {

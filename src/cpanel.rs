@@ -20,7 +20,6 @@ use crate::{
     pcrlib_c_state::PcrlibCState,
     pic_file_type::picfiletype,
     pic_type::pictype,
-    safe_sdl::safe_SDL_NumJoysticks,
     scan_codes::*,
     sprite_type::spritetype,
 };
@@ -318,7 +317,7 @@ pub fn getconfig(cps: &mut CpanelState, sdl: &Sdl) {
     cps.spotok[1][2] = false;
     cps.spotok[1][3] = false;
     cps.spotok[1][4] = false;
-    let numjoy: i32 = safe_SDL_NumJoysticks();
+    let numjoy = sdl.joystick().unwrap().num_joysticks().unwrap();
     cps.joy1ok = numjoy > 0;
     cps.joy2ok = numjoy > 1;
     cps.mouseok = true;

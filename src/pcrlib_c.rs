@@ -665,7 +665,7 @@ pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &Sdl) {
         ShutdownJoysticks(pcs);
     }
     for j in 1..3 {
-        if j - 1 >= safe_SDL_NumJoysticks() {
+        if j - 1 >= sdl.joystick().unwrap().num_joysticks().unwrap() as i32 {
             pcs.joystick[j as usize].device = -1;
         } else {
             pcs.joystick[j as usize].device = j - 1;
