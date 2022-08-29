@@ -502,7 +502,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 // the user is trying to move the window around.
                 while safe_SDL_GetMouseFocus() != pcs.renderer.window().raw() as *mut SDL_Window {
                     safe_SDL_PumpEvents();
-                    safe_SDL_Delay(10);
+                    sdl.timer().delay(10);
                 }
 
                 pcs.hasFocus = true;

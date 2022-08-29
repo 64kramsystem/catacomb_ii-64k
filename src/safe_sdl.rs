@@ -16,7 +16,6 @@ extern "C" {
     pub type SDL_Renderer;
     pub type SDL_semaphore;
 
-    fn SDL_Delay(ms: u32);
     fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
@@ -55,10 +54,6 @@ extern "C" {
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 // DIRECT SDL APIS
 // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn safe_SDL_Delay(ms: u32) {
-    unsafe { SDL_Delay(ms) }
-}
 
 pub fn safe_SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer) {
     unsafe { SDL_DestroyRenderer(renderer_0) }
