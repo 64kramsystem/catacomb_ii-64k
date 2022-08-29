@@ -1,6 +1,5 @@
 use std::mem;
 
-use sdl2::Sdl;
 use serdine::Deserialize;
 
 use crate::{
@@ -20,6 +19,7 @@ use crate::{
     pcrlib_c_state::PcrlibCState,
     pic_file_type::picfiletype,
     pic_type::pictype,
+    rc_sdl::RcSdl,
     scan_codes::*,
     sprite_type::spritetype,
 };
@@ -306,7 +306,7 @@ fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
     erasewindow(gs, pcs);
 }
 
-pub fn getconfig(cps: &mut CpanelState, sdl: &Sdl) {
+pub fn getconfig(cps: &mut CpanelState, sdl: &RcSdl) {
     cps.spotok[0][0] = true;
     cps.spotok[0][1] = _egaok;
     cps.spotok[0][2] = _vgaok;
@@ -317,7 +317,7 @@ pub fn getconfig(cps: &mut CpanelState, sdl: &Sdl) {
     cps.spotok[1][2] = false;
     cps.spotok[1][3] = false;
     cps.spotok[1][4] = false;
-    let numjoy = sdl.joystick().unwrap().num_joysticks().unwrap();
+    let numjoy = sdl.joystick().num_joysticks().unwrap();
     cps.joy1ok = numjoy > 0;
     cps.joy2ok = numjoy > 1;
     cps.mouseok = true;
@@ -333,7 +333,7 @@ fn drawpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &Sdl,
+    sdl: &RcSdl,
 ) {
     pcs.leftedge = 1;
     pas.xormask = 0;
@@ -407,7 +407,7 @@ pub fn controlpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &Sdl,
+    sdl: &RcSdl,
 ) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;

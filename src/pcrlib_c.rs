@@ -13,7 +13,6 @@ use sdl2::rect::Rect;
 use sdl2::render::{TextureAccess, TextureCreator};
 use sdl2::sys::SDL_WindowFlags;
 use sdl2::video::WindowContext;
-use sdl2::Sdl;
 use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
@@ -23,6 +22,7 @@ use crate::input_type::inputtype::*;
 use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
 use crate::pcrlib_c_state::PcrlibCState;
+use crate::rc_sdl::RcSdl;
 use crate::sound_type::soundtype::{self, *};
 use crate::spkr_table::SPKRtable;
 use crate::{
@@ -660,12 +660,12 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     }
 }
 
-pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &Sdl) {
+pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
     if pcs.joystick[1].device > 0 || pcs.joystick[2].device > 0 {
         ShutdownJoysticks(pcs);
     }
     for j in 1..3 {
-        if j - 1 >= sdl.joystick().unwrap().num_joysticks().unwrap() as i32 {
+        if j - 1 >= sdl.joystick().num_joysticks().unwrap() as i32 {
             pcs.joystick[j as usize].device = -1;
         } else {
             pcs.joystick[j as usize].device = j - 1;
@@ -1425,7 +1425,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
 //
 ////////////////////////
 
-pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &Sdl) {
+pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
     let str = format!("CTLPANEL.{port_temp__extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
@@ -1669,7 +1669,7 @@ pub fn _setupgame<'t>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
-    sdl: &Sdl,
+    sdl: &RcSdl,
     texture_creator: &'t mut Option<TextureCreator<WindowContext>>,
 ) -> PcrlibCState<'t> {
     let mut windowed = false;
@@ -1709,13 +1709,13 @@ pub fn _setupgame<'t>(
         }
     }
 
-    let sdl_video = sdl.video().unwrap();
-
-    let mut pcs_mode = sdl_video
+    let mut pcs_mode = sdl
+        .video()
         .current_display_mode(displayindex)
         .expect("Could not get display mode");
 
-    let mut bounds = sdl_video
+    let mut bounds = sdl
+        .video()
         .display_bounds(displayindex)
         .expect("Could not get display mode");
 
@@ -1734,7 +1734,8 @@ pub fn _setupgame<'t>(
         SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP as u32
     };
 
-    let pcs_window = sdl_video
+    let pcs_window = sdl
+        .video()
         .window("The Catacomb", pcs_mode.w as u32, pcs_mode.h as u32)
         .set_window_flags(window_flags)
         .position(bounds.x, bounds.y)

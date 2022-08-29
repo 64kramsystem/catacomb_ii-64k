@@ -1,6 +1,5 @@
 use std::fs::File;
 
-use sdl2::Sdl;
 use serdine::{Deserialize, Serialize};
 
 use crate::{
@@ -29,6 +28,7 @@ use crate::{
         loadFile, print_str, printchartile, SDLEventPayload, WatchUIEvents,
     },
     pcrlib_c_state::PcrlibCState,
+    rc_sdl::RcSdl,
     rleasm::RLEExpand,
     scan_codes::*,
     state_type::statetype,
@@ -533,7 +533,7 @@ pub fn dofkeys(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &Sdl,
+    sdl: &RcSdl,
 ) {
     let mut key = bioskey(1, pcs);
     // make ESC into F10
@@ -681,7 +681,7 @@ fn dotitlepage(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &Sdl,
+    sdl: &RcSdl,
 ) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14, gs, cps, pcs);
@@ -756,7 +756,7 @@ fn dodemo(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &Sdl,
+    sdl: &RcSdl,
 ) {
     let mut i: i32 = 0;
     while !gs.exitdemo {
@@ -806,7 +806,7 @@ fn gameover(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &Sdl,
+    sdl: &RcSdl,
 ) {
     let mut i: i32 = 0;
     expwin(11, 4, gs, pas, pcs);
@@ -943,12 +943,7 @@ pub fn original_main() {
     // Rust port: The SDL/Event watch initializations have been moved here, since they must stay in
     // the global scope.
 
-    let sdl = sdl2::init().expect("Failed to initialize SDL");
-    let _video = sdl.video().unwrap();
-    let _timer = sdl.timer().unwrap();
-    let _joystick = sdl.joystick().unwrap();
-    let _gamecontroller = sdl.game_controller().unwrap();
-    let _audio = sdl.audio().unwrap();
+    let sdl = RcSdl::init_sdl();
 
     // Rust port: Option<TextureCreator<_>> is a workaround necessary to allow Texture live within
     // PcrlibCState, as a texture's lifetime is bound to its texture creator, which therefore needs
@@ -966,7 +961,6 @@ pub fn original_main() {
 
     let _event_watch = sdl
         .event()
-        .unwrap()
         .add_event_watch(move |event| WatchUIEvents(event, userdata));
 
     expwin(33, 13, &mut gs, &mut pas, &mut pcs);

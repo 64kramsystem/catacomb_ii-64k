@@ -7,6 +7,7 @@ use sdl2::{
 
 /// Rust port: A type that wraps the Sdl instance in a Rc, and implements a few subsystem methods,
 /// in order to de-clutter its usage.
+#[derive(Clone)]
 pub struct RcSdl {
     /// The Rc is necessary in order to be used in Sdl events.
     sdl: Rc<Sdl>,

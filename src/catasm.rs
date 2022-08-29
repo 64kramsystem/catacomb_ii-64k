@@ -1,5 +1,4 @@
 use num::Integer;
-use sdl2::Sdl;
 
 use crate::{
     cat_play::{doactive, doinactive},
@@ -12,6 +11,7 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen,
     pcrlib_c_state::PcrlibCState,
+    rc_sdl::RcSdl,
 };
 
 //========================================================================
@@ -102,7 +102,7 @@ pub fn doall(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &Sdl,
+    sdl: &RcSdl,
 ) {
     assert!(gs.numobj > 0);
 
