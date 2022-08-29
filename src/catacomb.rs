@@ -961,7 +961,7 @@ pub fn original_main() {
 
     let _event_watch = sdl
         .event()
-        .add_event_watch(move |event| WatchUIEvents(event, userdata));
+        .add_event_watch(|event| WatchUIEvents(event, userdata, sdl.clone()));
 
     expwin(33, 13, &mut gs, &mut pas, &mut pcs);
     print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);

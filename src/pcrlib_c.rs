@@ -468,7 +468,7 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState) {
 =======================
 */
 
-pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
+pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, _sdl: RcSdl) {
     unsafe {
         let userdata = &*userdata;
 
