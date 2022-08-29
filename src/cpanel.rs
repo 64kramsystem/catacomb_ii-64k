@@ -19,7 +19,7 @@ use crate::{
     pcrlib_c_state::PcrlibCState,
     pic_file_type::picfiletype,
     pic_type::pictype,
-    safe_sdl::safe_SDL_NumJoysticks,
+    rc_sdl::RcSdl,
     scan_codes::*,
     sprite_type::spritetype,
 };
@@ -34,7 +34,13 @@ const SDLK_RETURN: u32 = 13;
 const rowy: [i32; 4] = [4, 9, 14, 19];
 const collumnx: [i32; 4] = [14, 20, 26, 32];
 
-fn calibratejoy(joynum: i32, gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn calibratejoy(
+    joynum: i32,
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
+) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
     let mut dx: i32 = 0;
@@ -65,7 +71,7 @@ fn calibratejoy(joynum: i32, gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: 
         if stage == 23 {
             stage = 15;
         }
-        ProcessEvents(pcs);
+        ProcessEvents(pcs, sdl);
         ReadJoystick(joynum, &mut xl, &mut yl, pcs);
         ctr = ControlJoystick(joynum, pcs);
         if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
@@ -102,7 +108,7 @@ fn calibratejoy(joynum: i32, gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: 
                 if stage == 23 {
                     stage = 15;
                 }
-                ProcessEvents(pcs);
+                ProcessEvents(pcs, sdl);
                 ReadJoystick(joynum, &mut xh, &mut yh, pcs);
                 ctr = ControlJoystick(joynum, pcs);
                 if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
@@ -136,11 +142,16 @@ fn calibratejoy(joynum: i32, gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: 
         }
         _ => {}
     }
-    clearkeys(pcs);
+    clearkeys(pcs, sdl);
     erasewindow(gs, pcs);
 }
 
-fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn calibratemouse(
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
+) {
     let mut ch: i8 = 0;
     expwin(24, 5, gs, pas, pcs);
     print_str("  Mouse Configuration   \n\r", gs, pcs);
@@ -149,7 +160,7 @@ fn calibratemouse(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrlib
     print_str("of the mouse, 1 being   \n\r", gs, pcs);
     print_str("slow, 9 being fast:", gs, pcs);
     loop {
-        ch = (get(gs, pcs) % 256) as i8;
+        ch = (get(gs, pcs, sdl) % 256) as i8;
         if ch as i32 == 27 {
             ch = '5' as i32 as i8;
         }
@@ -226,7 +237,12 @@ fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     };
 }
 
-fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn calibratekeys(
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
+) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
     let mut hy: i32 = 0;
@@ -265,22 +281,22 @@ fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
     loop {
         pcs.sx = hx;
         pcs.sy = hy;
-        ch = (get(gs, pcs) % 256) as i8;
+        ch = (get(gs, pcs, sdl) % 256) as i8;
         if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
             select = ch as i32 - '0' as i32;
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
             select = ch as i32 - '0' as i32;
             print_str("\n\rPress the new key:", gs, pcs);
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
             UpdateScreen(gs, pcs);
             loop {
-                new = bioskey(1, pcs);
+                new = bioskey(1, pcs, sdl);
                 if !(new == 0) {
                     break;
                 }
                 WaitVBL();
             }
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
             print_str("\r                  ", gs, pcs);
             if select < 8 {
                 pcs.key[select as usize] = new;
@@ -297,7 +313,7 @@ fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
             pcs.sx = 22;
             printscan(new as i32, gs, pcs);
             ch = '0' as i32 as i8;
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
         }
         if !(ch as i32 >= '0' as i32 && ch as i32 <= '9' as i32) {
             break;
@@ -306,26 +322,26 @@ fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
     erasewindow(gs, pcs);
 }
 
-pub fn getconfig(cps: &mut CpanelState) {
-    cps.spotok[0][0] = 1;
-    cps.spotok[0][1] = _egaok as i32;
-    cps.spotok[0][2] = _vgaok as i32;
-    cps.spotok[0][3] = 0;
-    cps.spotok[0][4] = 0;
-    cps.spotok[1][0] = 1;
-    cps.spotok[1][1] = 1;
-    cps.spotok[1][2] = 0;
-    cps.spotok[1][3] = 0;
-    cps.spotok[1][4] = 0;
-    let numjoy: i32 = safe_SDL_NumJoysticks();
-    cps.joy1ok = (numjoy > 0) as i32;
-    cps.joy2ok = (numjoy > 1) as i32;
-    cps.mouseok = 1;
-    cps.spotok[2][0] = 1;
+pub fn getconfig(cps: &mut CpanelState, sdl: &RcSdl) {
+    cps.spotok[0][0] = true;
+    cps.spotok[0][1] = _egaok;
+    cps.spotok[0][2] = _vgaok;
+    cps.spotok[0][3] = false;
+    cps.spotok[0][4] = false;
+    cps.spotok[1][0] = true;
+    cps.spotok[1][1] = true;
+    cps.spotok[1][2] = false;
+    cps.spotok[1][3] = false;
+    cps.spotok[1][4] = false;
+    let numjoy = sdl.joystick().num_joysticks().unwrap();
+    cps.joy1ok = numjoy > 0;
+    cps.joy2ok = numjoy > 1;
+    cps.mouseok = true;
+    cps.spotok[2][0] = true;
     cps.spotok[2][1] = cps.mouseok;
     cps.spotok[2][2] = cps.joy1ok;
     cps.spotok[2][3] = cps.joy2ok;
-    cps.spotok[2][4] = 0;
+    cps.spotok[2][4] = false;
 }
 
 fn drawpanel(
@@ -333,13 +349,14 @@ fn drawpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
 ) {
     pcs.leftedge = 1;
     pas.xormask = 0;
     pcs.sx = 8;
     pcs.sy = 2;
     print_str("       Control Panel      \n\r", gs, pcs);
-    getconfig(cps);
+    getconfig(cps, sdl);
     pcs.sy = rowy[0] + 2;
     pcs.sx = 2;
     print_str("VIDEO:", gs, pcs);
@@ -358,17 +375,17 @@ fn drawpanel(
     pcs.sx = 2;
     print_str("CONTROL:", gs, pcs);
     drawpic(collumnx[0] * 8, rowy[2] * 8, 7, gs, cps, pcs);
-    if cps.mouseok != 0 {
+    if cps.mouseok {
         drawpic(collumnx[1] * 8, rowy[2] * 8, 10, gs, cps, pcs);
     } else {
         drawpic(collumnx[1] * 8, rowy[2] * 8, 12, gs, cps, pcs);
     }
-    if cps.joy1ok != 0 {
+    if cps.joy1ok {
         drawpic(collumnx[2] * 8, rowy[2] * 8, 8, gs, cps, pcs);
     } else {
         drawpic(collumnx[2] * 8, rowy[2] * 8, 11, gs, cps, pcs);
     }
-    if cps.joy2ok != 0 {
+    if cps.joy2ok {
         drawpic(collumnx[3] * 8, rowy[2] * 8, 9, gs, cps, pcs);
     } else {
         drawpic(collumnx[3] * 8, rowy[2] * 8, 11, gs, cps, pcs);
@@ -406,13 +423,14 @@ pub fn controlpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
 ) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
     let mut oldcentery: i32 = 0;
-    clearkeys(pcs);
+    clearkeys(pcs, sdl);
     PauseSound(pas);
-    ProbeJoysticks(pcs);
+    ProbeJoysticks(pcs, sdl);
     cps.oldgrmode = pcs.grmode;
     cps.newgrmode = cps.oldgrmode;
     cps.oldsoundmode = pas.soundmode;
@@ -426,13 +444,13 @@ pub fn controlpanel(
     gs.screencenter.x = 19;
     gs.screencenter.y = 11;
     drawwindow(0, 0, 39, 24, gs, pcs);
-    drawpanel(gs, cps, pas, pcs);
+    drawpanel(gs, cps, pas, pcs, sdl);
     cps.row = 0;
     cps.collumn = pcs.grmode as i32 - 1;
     loop {
         pcs.sx = collumnx[cps.collumn as usize] + 2;
         pcs.sy = rowy[cps.row as usize] + 3;
-        chf = get(gs, pcs);
+        chf = get(gs, pcs, sdl);
         if chf == SDLK_UP as i32 {
             cps.row -= 1;
             if cps.row < 0 {
@@ -445,7 +463,7 @@ pub fn controlpanel(
                 cps.row = 0;
             }
         }
-        while cps.spotok[cps.row as usize][cps.collumn as usize] == 0 {
+        while !cps.spotok[cps.row as usize][cps.collumn as usize] {
             cps.collumn -= 1;
         }
         if chf == SDLK_LEFT as i32 {
@@ -454,7 +472,7 @@ pub fn controlpanel(
             }
             loop {
                 cps.collumn -= 1;
-                if !(cps.spotok[cps.row as usize][cps.collumn as usize] == 0) {
+                if cps.spotok[cps.row as usize][cps.collumn as usize] {
                     break;
                 }
             }
@@ -462,7 +480,7 @@ pub fn controlpanel(
         if chf == SDLK_RIGHT as i32 {
             loop {
                 cps.collumn += 1;
-                if !(cps.spotok[cps.row as usize][cps.collumn as usize] == 0 || cps.collumn > 3) {
+                if cps.spotok[cps.row as usize][cps.collumn as usize] && cps.collumn <= 3 {
                     break;
                 }
                 if cps.collumn == 4 {
@@ -485,7 +503,7 @@ pub fn controlpanel(
                         pcs.grmode = cps.newgrmode;
                         loadgrfiles(gs, cps, pcs);
                         drawwindow(0, 0, 39, 24, gs, pcs);
-                        drawpanel(gs, cps, pas, pcs);
+                        drawpanel(gs, cps, pas, pcs, sdl);
                     }
                 }
                 1 => {
@@ -508,15 +526,15 @@ pub fn controlpanel(
                     );
                     cps.newplayermode[1] = cps.collumn.into();
                     if cps.newplayermode[1] as u32 == keyboard as i32 as u32 {
-                        calibratekeys(gs, pas, pcs);
+                        calibratekeys(gs, pas, pcs, sdl);
                     } else if cps.newplayermode[1] as u32 == mouse as i32 as u32 {
-                        calibratemouse(gs, pas, pcs);
+                        calibratemouse(gs, pas, pcs, sdl);
                     } else if cps.newplayermode[1] as u32 == joystick1 as i32 as u32 {
-                        calibratejoy(1, gs, pas, pcs);
+                        calibratejoy(1, gs, pas, pcs, sdl);
                     } else if cps.newplayermode[1] as u32 == joystick2 as i32 as u32 {
-                        calibratejoy(2, gs, pas, pcs);
+                        calibratejoy(2, gs, pas, pcs, sdl);
                     }
-                    drawpanel(gs, cps, pas, pcs);
+                    drawpanel(gs, cps, pas, pcs, sdl);
                 }
                 _ => {}
             }
@@ -534,7 +552,7 @@ pub fn controlpanel(
     }
     pcs.playermode[1] = cps.newplayermode[1];
     pcs.playermode[2] = cps.newplayermode[2];
-    CheckMouseMode(pcs);
+    CheckMouseMode(pcs, sdl);
     pcs.grmode = cps.newgrmode;
     gs.screencenter.x = oldcenterx;
     gs.screencenter.y = oldcentery;

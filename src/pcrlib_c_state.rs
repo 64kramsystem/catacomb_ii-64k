@@ -1,4 +1,5 @@
 use sdl2::{
+    rect::Rect,
     render::{Texture, WindowCanvas},
     video::DisplayMode,
 };
@@ -6,7 +7,7 @@ use sdl2::{
 use crate::{
     gr_type::grtype::{self, *},
     input_type::inputtype::{self, *},
-    pcrlib_c::{joyinfo_t, SDL_Rect},
+    pcrlib_c::joyinfo_t,
     scan_codes::{SDL_Scancode, SDL_SCANCODE_UNKNOWN},
     scores::scores,
 };
@@ -54,11 +55,12 @@ pub struct PcrlibCState<'t> {
     pub lastdemoval: i32,
     pub lastkey: SDL_Scancode,
     // pub window: Window, // Rust port: not needed, as we can get the ref from the renderer
-    pub renderer: WindowCanvas,
+    // Rust port: the Option here is quite ugly, but needed in order to perform drop on _quit().
+    pub renderer: Option<WindowCanvas>,
     pub sdltexture: Texture<'t>,
-    pub updateRect: SDL_Rect,
+    pub updateRect: Rect,
     pub mode: DisplayMode,
-    pub joystick: [joyinfo_t; 3],
+    pub joystick: [Option<joyinfo_t>; 3],
     pub hasFocus: bool,
     pub win_xl: i32,
     pub win_yl: i32,
@@ -77,7 +79,7 @@ impl<'t> PcrlibCState<'t> {
         // lastkey: SDL_Scancode,
         renderer: WindowCanvas,
         sdltexture: Texture<'t>,
-        updateRect: SDL_Rect,
+        updateRect: Rect,
         // playermode: [inputtype; 3],
         // keydown: [bool; 512],
         // JoyXlow: [i32; 3],
@@ -89,7 +91,7 @@ impl<'t> PcrlibCState<'t> {
         // keyB1: u32,
         // keyB2: u32,
         mode: DisplayMode,
-        joystick: [joyinfo_t; 3],
+        joystick: [Option<joyinfo_t>; 3],
         // hasFocus: bool,
         // win_xl: i32,
         // win_yl: i32,
@@ -115,7 +117,7 @@ impl<'t> PcrlibCState<'t> {
             democount: 0,
             lastdemoval: 0,
             lastkey: SDL_SCANCODE_UNKNOWN,
-            renderer,
+            renderer: Some(renderer),
             sdltexture,
             updateRect,
             playermode: [keyboard, keyboard, joystick1],
@@ -154,18 +156,3 @@ impl<'t> PcrlibCState<'t> {
         }
     }
 }
-
-// impl<'t> PcrlibCState<'t> {
-//     pub fn set_new_texture(&mut self, texture_creator: &'t TextureCreator<WindowContext>) {
-//         self.sdltexture = Some(
-//             texture_creator
-//                 .create_texture(
-//                     PixelFormatEnum::ARGB8888,
-//                     TextureAccess::Streaming,
-//                     320,
-//                     200,
-//                 )
-//                 .expect("Could not create video buffer"),
-//         )
-//     }
-// }

@@ -17,6 +17,7 @@ use crate::{
         print_str, RecordDemo, SaveDemo,
     },
     pcrlib_c_state::PcrlibCState,
+    rc_sdl::RcSdl,
     scan_codes::*,
     tag_type::tagtype::*,
 };
@@ -738,6 +739,7 @@ fn playercmdthink(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
 ) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
@@ -745,7 +747,7 @@ fn playercmdthink(
         button1: false,
         button2: false,
     };
-    c = ControlPlayer(1, gs, pcs);
+    c = ControlPlayer(1, gs, pcs, sdl);
     gs.obj.stage = (gs.obj.stage as i32 & 1) as u8;
     if c.button1 as i32 != 0
         && c.button2 as i32 != 0
@@ -877,7 +879,7 @@ fn playercmdthink(
             pcs.keydown[SDL_SCANCODE_RETURN as usize] = false;
         }
     }
-    dofkeys(gs, cps, pas, pcs);
+    dofkeys(gs, cps, pas, pcs, sdl);
     if gs.resetgame {
         gs.resetgame = false;
         gs.playdone = true;
@@ -891,8 +893,8 @@ fn playercmdthink(
             {
                 centerwindow(16, 2, gs, pcs);
                 print_str("warp to which\nlevel (1-99)?", gs, pcs);
-                clearkeys(pcs);
-                pcs.level = _inputint(gs, pcs) as i16;
+                clearkeys(pcs, sdl);
+                pcs.level = _inputint(gs, pcs, sdl) as i16;
                 if (pcs.level as i32) < 1 {
                     pcs.level = 1;
                 }
@@ -916,17 +918,17 @@ fn playercmdthink(
                     gs.GODMODE = true;
                 }
                 UpdateScreen(gs, pcs);
-                clearkeys(pcs);
-                while bioskey(0, pcs) == 0 {
+                clearkeys(pcs, sdl);
+                while bioskey(0, pcs, sdl) == 0 {
                     WaitVBL();
                 }
                 restore(gs, pcs);
-                clearkeys(pcs);
+                clearkeys(pcs, sdl);
             }
         }
         demoplay => {
             gs.indemo = notdemo;
-            gs.ctrl = ControlPlayer(1, gs, pcs);
+            gs.ctrl = ControlPlayer(1, gs, pcs, sdl);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
                 || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -1200,13 +1202,14 @@ fn think(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
 ) {
     if gs.obj.delay as i32 > 0 {
         gs.obj.delay = (gs.obj.delay).wrapping_sub(1);
     } else if rndt(pas) < gs.obj.speed as i32 {
         match gs.obj.think as i32 {
             0 => {
-                playercmdthink(gs, cps, pas, pcs);
+                playercmdthink(gs, cps, pas, pcs, sdl);
             }
             3 => {
                 chasethink(false, gs, pas, pcs);
@@ -1248,6 +1251,7 @@ pub fn doactive(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
 ) {
     if gs.obj.class as i32 != dead1 as i32
         && ((gs.obj.x as i32) < gs.origin.x - 10
@@ -1257,7 +1261,7 @@ pub fn doactive(
     {
         gs.o[gs.objecton as usize].active = false;
     } else {
-        think(gs, cps, pas, pcs);
+        think(gs, cps, pas, pcs, sdl);
         eraseobj(gs);
         if gs.playdone {
             return;
@@ -1286,6 +1290,7 @@ pub fn playloop(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
 ) {
     gs.screencenter.x = 11;
     loop {
@@ -1306,18 +1311,18 @@ pub fn playloop(
             clearold(&mut gs.oldtiles);
             refresh(gs, pcs);
             refresh(gs, pcs);
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
             centerwindow(12, 1, gs, pcs);
             print_str("RECORD DEMO", gs, pcs);
             loop {
-                let ch = get(gs, pcs) as i8;
+                let ch = get(gs, pcs, sdl) as i8;
                 if !(ch != 13) {
                     break;
                 }
             }
             RecordDemo(gs, pcs);
             clearold(&mut gs.oldtiles);
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
         }
         gs.playdone = false;
         gs.frameon = 0;
@@ -1325,14 +1330,14 @@ pub fn playloop(
         gs.shotpower = 0;
         initrndt(false, pas);
         printshotpower(gs, pcs);
-        doall(gs, cps, pas, pcs);
+        doall(gs, cps, pas, pcs, sdl);
         if gs.indemo == recording {
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
             centerwindow(15, 1, gs, pcs);
             print_str("SAVE AS DEMO#:", gs, pcs);
             let mut ch;
             loop {
-                ch = get(gs, pcs) as i8;
+                ch = get(gs, pcs, sdl) as i8;
                 if !(ch < '0' as i8 || ch > '9' as i8) {
                     break;
                 }

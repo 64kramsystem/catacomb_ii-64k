@@ -3,15 +3,18 @@ use std::ffi::CString;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::{fs, ptr};
+use std::time::Duration;
+use std::{fs, mem, thread};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
+use sdl2::keyboard::{Keycode, Scancode};
+use sdl2::mouse::MouseButton;
 use sdl2::pixels::PixelFormatEnum;
+use sdl2::rect::Rect;
 use sdl2::render::{TextureAccess, TextureCreator};
 use sdl2::sys::SDL_WindowFlags;
 use sdl2::video::WindowContext;
-use sdl2::Sdl;
 use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
@@ -21,6 +24,7 @@ use crate::input_type::inputtype::*;
 use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
 use crate::pcrlib_c_state::PcrlibCState;
+use crate::rc_sdl::RcSdl;
 use crate::sound_type::soundtype::{self, *};
 use crate::spkr_table::SPKRtable;
 use crate::{
@@ -28,8 +32,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::*,
-    extra_constants::{port_temp__extension, SDL_BUTTON_LEFT, SDL_BUTTON_RIGHT},
-    extra_macros::SDL_BUTTON,
+    extra_constants::port_temp__extension,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_a::{drawchar, PlaySound, ShutdownSound, WaitVBL},
@@ -38,45 +41,9 @@ use crate::{
     scores::scores,
 };
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct timespec {
-    pub tv_sec: i64,
-    pub tv_nsec: i64,
-}
-
 pub type SDL_bool = u32;
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_Rect {
-    pub x: i32,
-    pub y: i32,
-    pub w: i32,
-    pub h: i32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_DisplayMode {
-    pub format: u32,
-    pub w: i32,
-    pub h: i32,
-    pub refresh_rate: i32,
-    pub driverdata: *mut libc::c_void,
-}
-
-pub type SDL_Keycode = i32;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_Keysym {
-    pub scancode: SDL_Scancode,
-    pub sym: SDL_Keycode,
-    pub mod_0: u16,
-    pub unused: u32,
-}
-
 pub type SDL_Joystick = _SDL_Joystick;
-pub type SDL_JoystickID = i32;
 pub type SDL_GameController = _SDL_GameController;
 pub type SDL_GameControllerAxis = i32;
 pub const SDL_CONTROLLER_AXIS_LEFTY: SDL_GameControllerAxis = 1;
@@ -84,353 +51,11 @@ pub const SDL_CONTROLLER_AXIS_LEFTX: SDL_GameControllerAxis = 0;
 pub type SDL_GameControllerButton = i32;
 pub const SDL_CONTROLLER_BUTTON_B: SDL_GameControllerButton = 1;
 pub const SDL_CONTROLLER_BUTTON_A: SDL_GameControllerButton = 0;
-pub type SDL_TouchID = i64;
-pub type SDL_FingerID = i64;
-pub type SDL_GestureID = i64;
-pub type C2RustUnnamed_3 = u32;
-pub const SDL_MOUSEMOTION: C2RustUnnamed_3 = 1024;
-pub const SDL_KEYUP: C2RustUnnamed_3 = 769;
-pub const SDL_KEYDOWN: C2RustUnnamed_3 = 768;
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_CommonEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_DisplayEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub display: u32,
-    pub event: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-    pub padding3: u8,
-    pub data1: i32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_WindowEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub windowID: u32,
-    pub event: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-    pub padding3: u8,
-    pub data1: i32,
-    pub data2: i32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_KeyboardEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub windowID: u32,
-    pub state: u8,
-    pub repeat: u8,
-    pub padding2: u8,
-    pub padding3: u8,
-    pub keysym: SDL_Keysym,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_TextEditingEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub windowID: u32,
-    pub text: [i8; 32],
-    pub start: i32,
-    pub length: i32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_TextInputEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub windowID: u32,
-    pub text: [i8; 32],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_MouseMotionEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub windowID: u32,
-    pub which: u32,
-    pub state: u32,
-    pub x: i32,
-    pub y: i32,
-    pub xrel: i32,
-    pub yrel: i32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_MouseButtonEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub windowID: u32,
-    pub which: u32,
-    pub button: u8,
-    pub state: u8,
-    pub clicks: u8,
-    pub padding1: u8,
-    pub x: i32,
-    pub y: i32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_MouseWheelEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub windowID: u32,
-    pub which: u32,
-    pub x: i32,
-    pub y: i32,
-    pub direction: u32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_JoyAxisEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: SDL_JoystickID,
-    pub axis: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-    pub padding3: u8,
-    pub value: i16,
-    pub padding4: u16,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_JoyBallEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: SDL_JoystickID,
-    pub ball: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-    pub padding3: u8,
-    pub xrel: i16,
-    pub yrel: i16,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_JoyHatEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: SDL_JoystickID,
-    pub hat: u8,
-    pub value: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_JoyButtonEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: SDL_JoystickID,
-    pub button: u8,
-    pub state: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_JoyDeviceEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: i32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_ControllerAxisEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: SDL_JoystickID,
-    pub axis: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-    pub padding3: u8,
-    pub value: i16,
-    pub padding4: u16,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_ControllerButtonEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: SDL_JoystickID,
-    pub button: u8,
-    pub state: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_ControllerDeviceEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: i32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_AudioDeviceEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: u32,
-    pub iscapture: u8,
-    pub padding1: u8,
-    pub padding2: u8,
-    pub padding3: u8,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_TouchFingerEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub touchId: SDL_TouchID,
-    pub fingerId: SDL_FingerID,
-    pub x: libc::c_float,
-    pub y: libc::c_float,
-    pub dx: libc::c_float,
-    pub dy: libc::c_float,
-    pub pressure: libc::c_float,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_MultiGestureEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub touchId: SDL_TouchID,
-    pub dTheta: libc::c_float,
-    pub dDist: libc::c_float,
-    pub x: libc::c_float,
-    pub y: libc::c_float,
-    pub numFingers: u16,
-    pub padding: u16,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_DollarGestureEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub touchId: SDL_TouchID,
-    pub gestureId: SDL_GestureID,
-    pub numFingers: u32,
-    pub error: libc::c_float,
-    pub x: libc::c_float,
-    pub y: libc::c_float,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_DropEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub file: *mut i8,
-    pub windowID: u32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_SensorEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub which: i32,
-    pub data: [libc::c_float; 6],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_QuitEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_UserEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub windowID: u32,
-    pub code: i32,
-    pub data1: *mut libc::c_void,
-    pub data2: *mut libc::c_void,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_SysWMEvent {
-    pub type_0: u32,
-    pub timestamp: u32,
-    pub msg: *mut SDL_SysWMmsg,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union SDL_Event {
-    pub type_0: u32,
-    pub common: SDL_CommonEvent,
-    pub display: SDL_DisplayEvent,
-    pub window: SDL_WindowEvent,
-    pub key: SDL_KeyboardEvent,
-    pub edit: SDL_TextEditingEvent,
-    pub text: SDL_TextInputEvent,
-    pub motion: SDL_MouseMotionEvent,
-    pub button: SDL_MouseButtonEvent,
-    pub wheel: SDL_MouseWheelEvent,
-    pub jaxis: SDL_JoyAxisEvent,
-    pub jball: SDL_JoyBallEvent,
-    pub jhat: SDL_JoyHatEvent,
-    pub jbutton: SDL_JoyButtonEvent,
-    pub jdevice: SDL_JoyDeviceEvent,
-    pub caxis: SDL_ControllerAxisEvent,
-    pub cbutton: SDL_ControllerButtonEvent,
-    pub cdevice: SDL_ControllerDeviceEvent,
-    pub adevice: SDL_AudioDeviceEvent,
-    pub sensor: SDL_SensorEvent,
-    pub quit: SDL_QuitEvent,
-    pub user: SDL_UserEvent,
-    pub syswm: SDL_SysWMEvent,
-    pub tfinger: SDL_TouchFingerEvent,
-    pub mgesture: SDL_MultiGestureEvent,
-    pub dgesture: SDL_DollarGestureEvent,
-    pub drop: SDL_DropEvent,
-    pub padding: [u8; 56],
-}
-
-impl SDL_Event {
-    fn is_event_type(&self, event_type: u32) -> bool {
-        unsafe { self.type_0 == event_type }
-    }
-
-    fn key_scancode(&self) -> SDL_Scancode {
-        unsafe { self.key.keysym.scancode }
-    }
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct joyinfo_t {
-    pub c2rust_unnamed: C2RustUnnamed_5,
-    pub device: i32,
-    pub isgamecontroller: bool,
-}
-
-impl joyinfo_t {
-    fn controller(&self) -> *mut SDL_GameController {
-        unsafe { self.c2rust_unnamed.controller }
-    }
-
-    fn joy(&self) -> *mut SDL_Joystick {
-        unsafe { self.c2rust_unnamed.joy }
-    }
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union C2RustUnnamed_5 {
-    pub controller: *mut SDL_GameController,
-    pub joy: *mut SDL_Joystick,
+#[derive(Clone, Copy)]
+pub enum joyinfo_t {
+    Controller(*mut SDL_GameController, i32),
+    Joy(*mut SDL_Joystick, i32),
 }
 
 // Rust port: unnecessary in Rust (false is the default)
@@ -441,17 +66,22 @@ pub union C2RustUnnamed_5 {
 //     }
 // }
 
-pub fn ProcessEvents(pcs: &mut PcrlibCState) {
+pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &RcSdl) {
     pcs.mouseEvent = false;
-    let mut event: SDL_Event = SDL_Event { type_0: 0 };
-    while safe_SDL_PollEvent(&mut event) != 0 {
-        if event.is_event_type(SDL_KEYDOWN) {
-            pcs.keydown[event.key_scancode() as usize] = true;
-            pcs.lastkey = event.key_scancode();
-        } else if event.is_event_type(SDL_KEYUP) {
-            pcs.keydown[event.key_scancode() as usize] = false;
-        } else if event.is_event_type(SDL_MOUSEMOTION) {
-            pcs.mouseEvent = true;
+
+    for event in sdl.event_pump().poll_iter() {
+        match event {
+            Event::KeyDown { scancode, .. } => {
+                pcs.keydown[scancode.unwrap() as usize] = true;
+                pcs.lastkey = scancode.unwrap() as u32;
+            }
+            Event::KeyUp { scancode, .. } => {
+                pcs.keydown[scancode.unwrap() as usize] = false;
+            }
+            Event::MouseMotion { .. } => {
+                pcs.mouseEvent = true;
+            }
+            _ => {}
         }
     }
 }
@@ -466,12 +96,12 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState) {
 =======================
 */
 
-pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
+pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
     unsafe {
         let userdata = &*userdata;
 
         match event {
-            Event::Quit { timestamp: _ } => {
+            Event::Quit { .. } => {
                 // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
                 // This approach works because we're not in a multithreaded contenxt, so this function is
                 // invoked only once a a time.
@@ -480,31 +110,35 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload) {
                 _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
             }
             Event::Window {
-                timestamp: _,
-                window_id: _,
                 win_event: WindowEvent::FocusLost,
+                ..
             } => {
-                let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
+                let pcs = &mut *userdata.pcs;
                 pcs.hasFocus = false;
-                CheckMouseMode(pcs);
+                CheckMouseMode(pcs, &sdl);
             }
             Event::Window {
-                timestamp: _,
-                window_id: _,
                 win_event: WindowEvent::FocusGained,
+                ..
             } => {
-                let (_, pcs) = (&mut *userdata.pas, &mut *userdata.pcs);
+                let pcs = &mut *userdata.pcs;
 
                 // Try to wait until the window obtains mouse focus before
                 // regrabbing input in order to try to prevent grabbing while
                 // the user is trying to move the window around.
-                while safe_SDL_GetMouseFocus() != pcs.renderer.window().raw() as *mut SDL_Window {
-                    safe_SDL_PumpEvents();
-                    safe_SDL_Delay(10);
+                while sdl.mouse().focused_window_id()
+                    != Some(pcs.renderer.as_ref().unwrap().window().id())
+                {
+                    sdl.event_pump().pump_events();
+                    // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
+                    // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
+                    // because `Timer#delay()` requires a mutable sdl instance, which is a problem
+                    // when the timer instance is owned by RcSdl.
+                    thread::sleep(Duration::from_millis(10));
                 }
 
                 pcs.hasFocus = true;
-                CheckMouseMode(pcs);
+                CheckMouseMode(pcs, &sdl);
             }
             _ => {}
         }
@@ -582,33 +216,58 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     return action;
 }
 
-pub fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
-    let mut newx: i32 = 0;
-    let mut newy: i32 = 0;
-    let mut xmove: i32 = 0;
-    let mut ymove: i32 = 0;
+/*
+============================
+=
+= ControlMouse
+=
+============================
+*/
+
+pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
+    /* mickeys the mouse has moved */
+
     let mut action: ControlStruct = ControlStruct {
         dir: north,
         button1: false,
         button2: false,
     };
-    let buttons: i32 = safe_SDL_GetRelativeMouseState(&mut newx, &mut newy) as i32;
-    action.button1 = (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
-    action.button2 = (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
-    if pcs.mouseEvent as i32 == false as i32 {
+
+    /* mouse status */
+    let mouse_state = sdl.event_pump().relative_mouse_state();
+
+    let newx = mouse_state.x();
+    let newy = mouse_state.y();
+
+    for (button, pressed) in mouse_state.mouse_buttons() {
+        match button {
+            MouseButton::Left => action.button1 = pressed,
+            MouseButton::Right => action.button2 = pressed,
+            _ => {}
+        }
+    }
+
+    if !pcs.mouseEvent {
         action.dir = nodir;
+
         return action;
     }
-    if newx > pcs.MouseSensitivity {
-        xmove = 1;
+
+    let xmove = if newx > pcs.MouseSensitivity {
+        1
     } else if newx < -pcs.MouseSensitivity {
-        xmove = -1;
-    }
-    if newy > pcs.MouseSensitivity {
-        ymove = 1;
+        -1
+    } else {
+        0
+    };
+    let ymove = if newy > pcs.MouseSensitivity {
+        1
     } else if newy < -pcs.MouseSensitivity {
-        ymove = -1;
-    }
+        -1
+    } else {
+        0
+    };
+
     match ymove * 3 + xmove {
         -4 => {
             action.dir = northwest;
@@ -639,70 +298,110 @@ pub fn ControlMouse(pcs: &mut PcrlibCState) -> ControlStruct {
         }
         _ => {}
     }
-    return action;
+
+    action
 }
+
+/*
+===============================
+=
+= ShutdownJoysticks
+= Try to identify joysticks and open them.
+=
+===============================
+*/
 
 fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
-    let mut j: u32 = 0;
-    j = 1;
-    while j < 3 {
-        if !(pcs.joystick[j as usize].device < 0) {
-            if pcs.joystick[j as usize].isgamecontroller {
-                safe_SDL_GameControllerClose(pcs.joystick[j as usize].controller());
-            } else {
-                safe_SDL_JoystickClose(pcs.joystick[j as usize].joy());
+    for joystick in &mut pcs.joystick[1..3] {
+        match joystick {
+            Some(joyinfo_t::Controller(ptr, _)) => {
+                safe_SDL_GameControllerClose(*ptr);
+                *joystick = None;
             }
-            pcs.joystick[j as usize].device = -1;
+            Some(joyinfo_t::Joy(ptr, _)) => {
+                safe_SDL_JoystickClose(*ptr);
+                *joystick = None;
+            }
+            None => {}
         }
-        j = j.wrapping_add(1);
     }
 }
 
-pub fn ProbeJoysticks(pcs: &mut PcrlibCState) {
-    let mut j: i32 = 0;
-    if pcs.joystick[1].device > 0 || pcs.joystick[2].device > 0 {
+/*
+===============================
+=
+= ProbeJoysticks
+= Try to identify joysticks and open them.
+=
+===============================
+*/
+
+pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+    // Rust port: The conditional is unnecessary, since ShutdownJoystcisk will skip empty slots.
+    if pcs.joystick[1].is_some() || pcs.joystick[2].is_some() {
         ShutdownJoysticks(pcs);
     }
-    j = 1;
-    while j < 3 {
-        if j - 1 >= safe_SDL_NumJoysticks() {
-            pcs.joystick[j as usize].device = -1;
-        } else {
-            pcs.joystick[j as usize].device = j - 1;
-            pcs.joystick[j as usize].isgamecontroller = safe_SDL_IsGameController(j - 1) != 0;
-            if safe_SDL_IsGameController(j - 1) as u64 != 0 {
-                pcs.joystick[j as usize].c2rust_unnamed.controller =
-                    safe_SDL_GameControllerOpen(j - 1);
-            } else {
-                pcs.joystick[j as usize].c2rust_unnamed.joy = safe_SDL_JoystickOpen(j - 1);
-            }
+
+    for (j, joystick) in pcs.joystick.iter_mut().enumerate().skip(1) {
+        let j = j as i32;
+
+        if j - 1 >= sdl.joystick().num_joysticks().unwrap() as i32 {
+            *joystick = None;
+            continue;
         }
-        j += 1;
+
+        if safe_SDL_IsGameController(j - 1) != 0 {
+            *joystick = Some(joyinfo_t::Controller(
+                safe_SDL_GameControllerOpen(j - 1),
+                j - 1,
+            ));
+        } else {
+            *joystick = Some(joyinfo_t::Joy(safe_SDL_JoystickOpen(j - 1), j - 1));
+        }
     }
 }
+
+/*
+===============================
+=
+= ReadJoystick
+= Just return the resistance count of the joystick
+=
+===============================
+*/
 
 pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut PcrlibCState) {
     let mut a1: i32 = 0;
     let mut a2: i32 = 0;
+
     *xcount = 0;
     *ycount = 0;
+
     safe_SDL_JoystickUpdate();
-    if pcs.joystick[joynum as usize].isgamecontroller {
-        a1 = safe_SDL_GameControllerGetAxis(
-            pcs.joystick[joynum as usize].controller(),
-            SDL_CONTROLLER_AXIS_LEFTX,
-        ) as i32;
-        a2 = safe_SDL_GameControllerGetAxis(
-            pcs.joystick[joynum as usize].controller(),
-            SDL_CONTROLLER_AXIS_LEFTY,
-        ) as i32;
-    } else {
-        a1 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].joy(), 0) as i32;
-        a2 = safe_SDL_JoystickGetAxis(pcs.joystick[joynum as usize].joy(), 1) as i32;
+
+    match pcs.joystick[joynum as usize] {
+        Some(joyinfo_t::Controller(ptr, _)) => {
+            a1 = safe_SDL_GameControllerGetAxis(ptr, SDL_CONTROLLER_AXIS_LEFTX) as i32;
+            a2 = safe_SDL_GameControllerGetAxis(ptr, SDL_CONTROLLER_AXIS_LEFTY) as i32;
+        }
+        Some(joyinfo_t::Joy(ptr, _)) => {
+            a1 = safe_SDL_JoystickGetAxis(ptr, 0) as i32;
+            a2 = safe_SDL_JoystickGetAxis(ptr, 1) as i32;
+        }
+        None => unreachable!(),
     }
+
     *xcount = a1;
     *ycount = a2;
 }
+
+/*
+=============================
+=
+= ControlJoystick (joy# = 1 / 2)
+=
+=============================
+*/
 
 pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
     let mut joyx: i32 = 0;
@@ -714,24 +413,27 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
         button1: false,
         button2: false,
     };
+
     ReadJoystick(joynum, &mut joyx, &mut joyy, pcs);
-    if pcs.joystick[joynum as usize].isgamecontroller {
-        action.button1 = safe_SDL_GameControllerGetButton(
-            pcs.joystick[joynum as usize].controller(),
-            SDL_CONTROLLER_BUTTON_A,
-        ) != 0;
-        action.button2 = safe_SDL_GameControllerGetButton(
-            pcs.joystick[joynum as usize].controller(),
-            SDL_CONTROLLER_BUTTON_B,
-        ) != 0;
-    } else {
-        action.button1 = safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].joy(), 0) != 0;
-        action.button2 = safe_SDL_JoystickGetButton(pcs.joystick[joynum as usize].joy(), 1) != 0;
+
+    /* get all four button status */
+    match pcs.joystick[joynum as usize] {
+        Some(joyinfo_t::Controller(ptr, _)) => {
+            action.button1 = safe_SDL_GameControllerGetButton(ptr, SDL_CONTROLLER_BUTTON_A) != 0;
+            action.button2 = safe_SDL_GameControllerGetButton(ptr, SDL_CONTROLLER_BUTTON_B) != 0;
+        }
+        Some(joyinfo_t::Joy(ptr, _)) => {
+            action.button1 = safe_SDL_JoystickGetButton(ptr, 0) != 0;
+            action.button2 = safe_SDL_JoystickGetButton(ptr, 1) != 0;
+        }
+        None => unreachable!(),
     }
+
     if joyx == 0 && joyy == 0 {
         action.dir = nodir;
         return action;
     }
+
     if joyx > pcs.JoyXhigh[joynum as usize] {
         xmove = 1;
     } else if joyx < pcs.JoyXlow[joynum as usize] {
@@ -742,6 +444,7 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
     } else if joyy < pcs.JoyYlow[joynum as usize] {
         ymove = -1;
     }
+
     match ymove * 3 + xmove {
         -4 => {
             action.dir = northwest;
@@ -772,20 +475,36 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
         }
         _ => {}
     }
-    return action;
+
+    action
 }
 
-pub fn ControlPlayer(player: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) -> ControlStruct {
+/*
+=============================
+=
+= ControlPlayer
+=
+= Expects a 1 or a 2
+=
+=============================
+*/
+
+pub fn ControlPlayer(
+    player: i32,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
+) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
         button1: false,
         button2: false,
     };
-    ProcessEvents(pcs);
+    ProcessEvents(pcs, sdl);
     if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
         match pcs.playermode[player as usize] as u32 {
             1 => {
-                ret = ControlMouse(pcs);
+                ret = ControlMouse(pcs, sdl);
             }
             2 => {
                 ret = ControlJoystick(1, pcs);
@@ -856,9 +575,9 @@ pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 /*=========================================================================*/
 
-pub fn clearkeys(pcs: &mut PcrlibCState) {
-    while bioskey(1, pcs) != 0 {
-        bioskey(0, pcs);
+pub fn clearkeys(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+    while bioskey(1, pcs, sdl) != 0 {
+        bioskey(0, pcs, sdl);
     }
     for i in 0..128 {
         pcs.keydown[i] = false;
@@ -1082,7 +801,7 @@ fn expwinv(
 //
 /////////////////////////
 
-pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState) -> u32 {
+pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &RcSdl) -> u32 {
     if pcs.lastkey != 0 {
         let oldkey = pcs.lastkey;
         if cmd != 1 {
@@ -1091,17 +810,16 @@ pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState) -> u32 {
         return oldkey;
     }
 
-    let mut event = SDL_Event { type_0: 0 };
-    while safe_SDL_PollEvent(&mut event) != 0 {
-        if event.is_event_type(SDL_KEYDOWN) {
+    for event in sdl.event_pump().poll_iter() {
+        if let Event::KeyDown { scancode, .. } = event {
             if cmd == 1 {
-                pcs.lastkey = event.key_scancode();
+                pcs.lastkey = scancode.unwrap() as u32;
                 return pcs.lastkey;
-            } else {
-                return event.key_scancode();
-            };
+            }
+            return scancode.unwrap() as u32;
         }
     }
+
     pcs.lastkey
 }
 
@@ -1126,35 +844,37 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     } else {
         panic!("VGA Palette conversion not implemented.");
     }
-    safe_SDL_UpdateTexture(
-        pcs.sdltexture.raw() as *mut SDL_Texture,
-        0 as *const SDL_Rect,
-        pcs.conv.as_mut_ptr() as *const libc::c_void,
-        (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
-    );
-    safe_SDL_RenderClear(pcs.renderer.raw() as *mut SDL_Renderer);
-    safe_SDL_RenderCopy(
-        pcs.renderer.raw() as *mut SDL_Renderer,
-        pcs.sdltexture.raw() as *mut SDL_Texture,
-        ptr::null(),
-        &pcs.updateRect,
-    );
-    safe_SDL_RenderPresent(pcs.renderer.raw() as *mut SDL_Renderer);
+
+    let pixel_bytes = pcs
+        .conv
+        .iter()
+        .flat_map(|v| v.to_le_bytes())
+        .collect::<Vec<_>>();
+
+    pcs.sdltexture
+        .update(None, pixel_bytes.as_slice(), 320 * mem::size_of::<u32>())
+        .unwrap();
+    pcs.renderer.as_mut().unwrap().clear();
+    pcs.renderer
+        .as_mut()
+        .unwrap()
+        .copy(&pcs.sdltexture, None, Some(pcs.updateRect))
+        .unwrap();
+    pcs.renderer.as_mut().unwrap().present();
 }
 
-pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
-    let mut cycle: i32 = 0;
-    let mut key_0 = 0;
+pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) -> i32 {
+    let mut key = 0;
+
     loop {
-        cycle = 9;
+        let mut cycle = 9;
         loop {
-            key_0 = bioskey(0, pcs);
-            if !(key_0 == 0 && cycle < 13) {
+            key = bioskey(0, pcs, sdl);
+            if key != 0 || cycle == 13 {
                 break;
             }
-            let fresh2 = cycle;
+            drawchar(pcs.sx, pcs.sy, cycle, gs, pcs);
             cycle += 1;
-            drawchar(pcs.sx, pcs.sy, fresh2, gs, pcs);
             UpdateScreen(gs, pcs);
             WaitVBL();
             WaitVBL();
@@ -1162,13 +882,15 @@ pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
             WaitVBL();
             WaitVBL();
         }
-        if !(key_0 == 0) {
+        if key != 0 {
             break;
         }
     }
     drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
     UpdateScreen(gs, pcs);
-    return safe_SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
+
+    let scancode = Scancode::from_i32(key as i32).unwrap();
+    Keycode::from_scancode(scancode).unwrap() as i32 // take it out of the buffer
 }
 
 /////////////////////////
@@ -1300,12 +1022,12 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> u32 {
+pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
 
-    _input(&mut string, 17, gs, pcs);
+    _input(&mut string, 17, gs, pcs, sdl);
 
     if string[0] == b'$' {
         let digits = port_temp_strlen(&string) as isize - 2;
@@ -1344,12 +1066,18 @@ pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> u32 {
 // line input routine
 //
 ////////////////////////////////////////////////////////////////////
-fn _input(string: &mut [u8], max: usize, gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
+fn _input(
+    string: &mut [u8],
+    max: usize,
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
+) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
 
     loop {
-        key_ = (get(gs, pcs) as u8).to_ascii_uppercase();
+        key_ = (get(gs, pcs, sdl) as u8).to_ascii_uppercase();
         if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
             drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
@@ -1408,12 +1136,11 @@ pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
     return 0;
 }
 
-pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
-    safe_SDL_SetRelativeMouseMode(
-        (pcs.hasFocus as i32 != 0
-            && (pcs.playermode[1] as u32 == mouse as i32 as u32
-                || pcs.playermode[2] as u32 == mouse as i32 as u32)) as i32 as SDL_bool,
-    );
+// Enable and disable mouse grabbing
+pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+    sdl.mouse().set_relative_mouse_mode(
+        pcs.hasFocus && (pcs.playermode[1] == mouse || pcs.playermode[2] == mouse),
+    )
 }
 
 ////////////////////////
@@ -1424,7 +1151,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
 //
 ////////////////////////
 
-pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
     let str = format!("CTLPANEL.{port_temp__extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
@@ -1441,13 +1168,13 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
             pcs.JoyYhigh[i] = ctlpanel.JoyYhigh[i] as i32;
 
             if pcs.playermode[i] == mouse {
-                CheckMouseMode(pcs);
+                CheckMouseMode(pcs, sdl);
             }
 
             if pcs.playermode[i] == joystick1 || pcs.playermode[i] == joystick2 {
-                ProbeJoysticks(pcs);
-                if (pcs.playermode[i] == joystick1 && pcs.joystick[1].device < 0)
-                    || (pcs.playermode[i] == joystick2 && pcs.joystick[2].device < 0)
+                ProbeJoysticks(pcs, sdl);
+                if (pcs.playermode[i] == joystick1 && pcs.joystick[1].is_none())
+                    || (pcs.playermode[i] == joystick2 && pcs.joystick[2].is_none())
                 {
                     pcs.playermode[i] = keyboard;
                 }
@@ -1599,7 +1326,12 @@ pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     _printc(&str, gs, pcs);
 }
 
-pub fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn _checkhighscore(
+    gs: &mut GlobalState,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
+) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
     let mut k: i32 = 0;
@@ -1624,12 +1356,12 @@ pub fn _checkhighscore(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut P
     UpdateScreen(gs, pcs);
     if i < 5 {
         PlaySound(16, pas);
-        clearkeys(pcs);
+        clearkeys(pcs, sdl);
         pcs.sx = gs.screencenter.x - 17 / 2 + 14;
         pcs.sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
-            k = get(gs, pcs);
+            k = get(gs, pcs, sdl);
             let ch = k as i8;
             if ch >= ' ' as i8 && j < 3 {
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
@@ -1654,7 +1386,7 @@ const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
 pub struct SDLEventPayload<'t> {
-    pub pas: *mut PcrlibAState,
+    pub pas: *mut PcrlibAState<'t>,
     pub pcs: *mut PcrlibCState<'t>,
 }
 
@@ -1664,11 +1396,11 @@ pub struct SDLEventPayload<'t> {
 //
 ////////////////////
 
-pub fn _setupgame<'t>(
+pub fn _setupgame<'s, 't>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
-    pas: &mut PcrlibAState,
-    sdl: &Sdl,
+    pas: &mut PcrlibAState<'s>,
+    sdl: &'s RcSdl,
     texture_creator: &'t mut Option<TextureCreator<WindowContext>>,
 ) -> PcrlibCState<'t> {
     let mut windowed = false;
@@ -1708,13 +1440,13 @@ pub fn _setupgame<'t>(
         }
     }
 
-    let sdl_video = sdl.video().unwrap();
-
-    let mut pcs_mode = sdl_video
+    let mut pcs_mode = sdl
+        .video()
         .current_display_mode(displayindex)
         .expect("Could not get display mode");
 
-    let mut bounds = sdl_video
+    let mut bounds = sdl
+        .video()
         .display_bounds(displayindex)
         .expect("Could not get display mode");
 
@@ -1733,7 +1465,8 @@ pub fn _setupgame<'t>(
         SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP as u32
     };
 
-    let pcs_window = sdl_video
+    let pcs_window = sdl
+        .video()
         .window("The Catacomb", pcs_mode.w as u32, pcs_mode.h as u32)
         .set_window_flags(window_flags)
         .position(bounds.x, bounds.y)
@@ -1761,12 +1494,7 @@ pub fn _setupgame<'t>(
         )
         .expect("Could not create video buffer");
 
-    let mut pcs_updateRect = SDL_Rect {
-        x: 0,
-        y: 0,
-        w: 0,
-        h: 0,
-    };
+    let mut pcs_updateRect = Rect::new(0, 0, 0, 0);
 
     // Handle 320x200 and 640x400 specially so they are unscaled.
     if pcs_mode.w == 320 && pcs_mode.h == 200 || pcs_mode.w == 640 && pcs_mode.h == 400 {
@@ -1791,16 +1519,8 @@ pub fn _setupgame<'t>(
     // Rust port: This is just a null value initialization; it's overwritten immediately by _loadctrls()
     // let mut pcs_grmode = EGAgr;
 
-    let mut pcs_joystick = [joyinfo_t {
-        c2rust_unnamed: C2RustUnnamed_5 {
-            controller: 0 as *const SDL_GameController as *mut SDL_GameController,
-        },
-        device: 0,
-        isgamecontroller: false,
-    }; 3];
     // Invalidate joysticks.
-    pcs_joystick[2].device = -1;
-    pcs_joystick[1].device = pcs_joystick[2].device;
+    let pcs_joystick = [None; 3];
 
     let mut pcs = PcrlibCState::new(
         pcs_renderer,
@@ -1810,7 +1530,7 @@ pub fn _setupgame<'t>(
         pcs_joystick,
     );
 
-    _loadctrls(pas, &mut pcs);
+    _loadctrls(pas, &mut pcs, sdl);
 
     if pcs.grmode == VGAgr && _vgaok {
         pcs.grmode = VGAgr;
@@ -1837,7 +1557,7 @@ pub fn _setupgame<'t>(
 
     loadgrfiles(gs, cps, &mut pcs);
 
-    SetupEmulatedVBL(pas);
+    SetupEmulatedVBL(pas, &sdl);
 
     pcs
 }
@@ -1848,7 +1568,12 @@ pub fn _setupgame<'t>(
 //
 ////////////////////
 
+// Rust port: Redesigning the exit is a pain. The original game was not designed to exit by interrupting
+// the main loop, so even if exit points are added to the code on each level leading to the _quit() call,
+// the game may still not exit in certain points. For this reason, the SDL port approach is left as is.
+//
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
+// In the original version, there are two cases - out of memory, and a certain EXE file not found.
 pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     if let Some(error) = &error {
         print!("{}", error);
@@ -1866,8 +1591,11 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
     ShutdownSound(pas);
     ShutdownJoysticks(pcs);
 
-    safe_SDL_DestroyRenderer(pcs.renderer.raw() as *mut SDL_Renderer);
-    safe_SDL_DestroyWindow(pcs.renderer.window().raw() as *mut SDL_Window);
+    let renderer = pcs.renderer.take().unwrap();
+    let window_context = renderer.window().context();
+
+    drop(renderer);
+    drop(window_context);
 
     // Rust port: Not necessary to nullify the pointers.
     // pcs.renderer = ptr::null();

@@ -11,6 +11,7 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen,
     pcrlib_c_state::PcrlibCState,
+    rc_sdl::RcSdl,
 };
 
 //========================================================================
@@ -101,6 +102,7 @@ pub fn doall(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
 ) {
     assert!(gs.numobj > 0);
 
@@ -112,7 +114,7 @@ pub fn doall(
                 gs.obj
                     .update_from_objdeftype(&gs.objdef[gs.obj.class as usize]);
                 if gs.obj.active {
-                    doactive(gs, cps, pas, pcs);
+                    doactive(gs, cps, pas, pcs, sdl);
                 } else {
                     doinactive(gs);
                 }
