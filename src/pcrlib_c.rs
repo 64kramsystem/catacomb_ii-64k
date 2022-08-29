@@ -691,33 +691,48 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
 */
 
 pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+    // Rust port: The conditional is unnecessary, since ShutdownJoystcisk will skip empty slots.
     if pcs.joystick[1].is_some() || pcs.joystick[2].is_some() {
         ShutdownJoysticks(pcs);
     }
+
     for (j, joystick) in pcs.joystick.iter_mut().enumerate().skip(1) {
         let j = j as i32;
 
         if j - 1 >= sdl.joystick().num_joysticks().unwrap() as i32 {
             *joystick = None;
+            continue;
+        }
+
+        if safe_SDL_IsGameController(j - 1) != 0 {
+            *joystick = Some(joyinfo_t::Controller(
+                safe_SDL_GameControllerOpen(j - 1),
+                j - 1,
+            ));
         } else {
-            if safe_SDL_IsGameController(j - 1) != 0 {
-                *joystick = Some(joyinfo_t::Controller(
-                    safe_SDL_GameControllerOpen(j - 1),
-                    j - 1,
-                ));
-            } else {
-                *joystick = Some(joyinfo_t::Joy(safe_SDL_JoystickOpen(j - 1), j - 1));
-            }
+            *joystick = Some(joyinfo_t::Joy(safe_SDL_JoystickOpen(j - 1), j - 1));
         }
     }
 }
 
+/*
+===============================
+=
+= ReadJoystick
+= Just return the resistance count of the joystick
+=
+===============================
+*/
+
 pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut PcrlibCState) {
     let mut a1: i32 = 0;
     let mut a2: i32 = 0;
+
     *xcount = 0;
     *ycount = 0;
+
     safe_SDL_JoystickUpdate();
+
     match pcs.joystick[joynum as usize] {
         Some(joyinfo_t::Controller(ptr, _)) => {
             a1 = safe_SDL_GameControllerGetAxis(ptr, SDL_CONTROLLER_AXIS_LEFTX) as i32;
@@ -729,9 +744,18 @@ pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut P
         }
         None => unreachable!(),
     }
+
     *xcount = a1;
     *ycount = a2;
 }
+
+/*
+=============================
+=
+= ControlJoystick (joy# = 1 / 2)
+=
+=============================
+*/
 
 pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
     let mut joyx: i32 = 0;
@@ -743,7 +767,10 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
         button1: false,
         button2: false,
     };
+
     ReadJoystick(joynum, &mut joyx, &mut joyy, pcs);
+
+    /* get all four button status */
     match pcs.joystick[joynum as usize] {
         Some(joyinfo_t::Controller(ptr, _)) => {
             action.button1 = safe_SDL_GameControllerGetButton(ptr, SDL_CONTROLLER_BUTTON_A) != 0;
@@ -755,10 +782,12 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
         }
         None => unreachable!(),
     }
+
     if joyx == 0 && joyy == 0 {
         action.dir = nodir;
         return action;
     }
+
     if joyx > pcs.JoyXhigh[joynum as usize] {
         xmove = 1;
     } else if joyx < pcs.JoyXlow[joynum as usize] {
@@ -769,6 +798,7 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
     } else if joyy < pcs.JoyYlow[joynum as usize] {
         ymove = -1;
     }
+
     match ymove * 3 + xmove {
         -4 => {
             action.dir = northwest;
@@ -799,8 +829,19 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
         }
         _ => {}
     }
-    return action;
+
+    action
 }
+
+/*
+=============================
+=
+= ControlPlayer
+=
+= Expects a 1 or a 2
+=
+=============================
+*/
 
 pub fn ControlPlayer(
     player: i32,
