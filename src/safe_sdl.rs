@@ -18,7 +18,6 @@ extern "C" {
 
     fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
-    fn SDL_PumpEvents();
     fn SDL_DestroyWindow(window_0: *mut SDL_Window);
     fn SDL_GetRelativeMouseState(x: *mut i32, y: *mut i32) -> u32;
     fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;
@@ -60,10 +59,6 @@ pub fn safe_SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer) {
 
 pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {
     unsafe { SDL_PollEvent(event) }
-}
-
-pub fn safe_SDL_PumpEvents() {
-    unsafe { SDL_PumpEvents() }
 }
 
 pub fn safe_SDL_DestroyWindow(window_0: *mut SDL_Window) {

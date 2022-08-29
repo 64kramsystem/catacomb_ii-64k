@@ -501,7 +501,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 // regrabbing input in order to try to prevent grabbing while
                 // the user is trying to move the window around.
                 while sdl.mouse().focused_window_id() != Some(pcs.renderer.window().id()) {
-                    safe_SDL_PumpEvents();
+                    sdl.event_pump().pump_events();
                     sdl.timer().delay(10);
                 }
 
