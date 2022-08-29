@@ -90,10 +90,6 @@ pub const SDL_CONTROLLER_BUTTON_A: SDL_GameControllerButton = 0;
 pub type SDL_TouchID = i64;
 pub type SDL_FingerID = i64;
 pub type SDL_GestureID = i64;
-pub type C2RustUnnamed_3 = u32;
-pub const SDL_MOUSEMOTION: C2RustUnnamed_3 = 1024;
-pub const SDL_KEYUP: C2RustUnnamed_3 = 769;
-pub const SDL_KEYDOWN: C2RustUnnamed_3 = 768;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -368,48 +364,6 @@ pub struct SDL_SysWMEvent {
     pub timestamp: u32,
     pub msg: *mut SDL_SysWMmsg,
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub union SDL_Event {
-    pub type_0: u32,
-    pub common: SDL_CommonEvent,
-    pub display: SDL_DisplayEvent,
-    pub window: SDL_WindowEvent,
-    pub key: SDL_KeyboardEvent,
-    pub edit: SDL_TextEditingEvent,
-    pub text: SDL_TextInputEvent,
-    pub motion: SDL_MouseMotionEvent,
-    pub button: SDL_MouseButtonEvent,
-    pub wheel: SDL_MouseWheelEvent,
-    pub jaxis: SDL_JoyAxisEvent,
-    pub jball: SDL_JoyBallEvent,
-    pub jhat: SDL_JoyHatEvent,
-    pub jbutton: SDL_JoyButtonEvent,
-    pub jdevice: SDL_JoyDeviceEvent,
-    pub caxis: SDL_ControllerAxisEvent,
-    pub cbutton: SDL_ControllerButtonEvent,
-    pub cdevice: SDL_ControllerDeviceEvent,
-    pub adevice: SDL_AudioDeviceEvent,
-    pub sensor: SDL_SensorEvent,
-    pub quit: SDL_QuitEvent,
-    pub user: SDL_UserEvent,
-    pub syswm: SDL_SysWMEvent,
-    pub tfinger: SDL_TouchFingerEvent,
-    pub mgesture: SDL_MultiGestureEvent,
-    pub dgesture: SDL_DollarGestureEvent,
-    pub drop: SDL_DropEvent,
-    pub padding: [u8; 56],
-}
-
-impl SDL_Event {
-    fn is_event_type(&self, event_type: u32) -> bool {
-        unsafe { self.type_0 == event_type }
-    }
-
-    fn key_scancode(&self) -> SDL_Scancode {
-        unsafe { self.key.keysym.scancode }
-    }
-}
 
 #[derive(Clone, Copy)]
 pub enum joyinfo_t {
@@ -427,15 +381,20 @@ pub enum joyinfo_t {
 
 pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &RcSdl) {
     pcs.mouseEvent = false;
-    let mut event: SDL_Event = SDL_Event { type_0: 0 };
-    while safe_SDL_PollEvent(&mut event) != 0 {
-        if event.is_event_type(SDL_KEYDOWN) {
-            pcs.keydown[event.key_scancode() as usize] = true;
-            pcs.lastkey = event.key_scancode();
-        } else if event.is_event_type(SDL_KEYUP) {
-            pcs.keydown[event.key_scancode() as usize] = false;
-        } else if event.is_event_type(SDL_MOUSEMOTION) {
-            pcs.mouseEvent = true;
+
+    for event in sdl.event_pump().poll_iter() {
+        match event {
+            Event::KeyDown { scancode, .. } => {
+                pcs.keydown[scancode.unwrap() as usize] = true;
+                pcs.lastkey = scancode.unwrap() as u32;
+            }
+            Event::KeyUp { scancode, .. } => {
+                pcs.keydown[scancode.unwrap() as usize] = false;
+            }
+            Event::MouseMotion { .. } => {
+                pcs.mouseEvent = true;
+            }
+            _ => {}
         }
     }
 }
@@ -1164,17 +1123,16 @@ pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &RcSdl) -> u32 {
         return oldkey;
     }
 
-    let mut event = SDL_Event { type_0: 0 };
-    while safe_SDL_PollEvent(&mut event) != 0 {
-        if event.is_event_type(SDL_KEYDOWN) {
+    for event in sdl.event_pump().poll_iter() {
+        if let Event::KeyDown { scancode, .. } = event {
             if cmd == 1 {
-                pcs.lastkey = event.key_scancode();
+                pcs.lastkey = scancode.unwrap() as u32;
                 return pcs.lastkey;
-            } else {
-                return event.key_scancode();
-            };
+            }
+            return scancode.unwrap() as u32;
         }
     }
+
     pcs.lastkey
 }
 

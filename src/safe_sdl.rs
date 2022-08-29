@@ -11,7 +11,6 @@ extern "C" {
     pub type SDL_SysWMmsg;
     pub type SDL_semaphore;
 
-    fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;
     fn SDL_JoystickUpdate();
     fn SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: i32) -> i16;
@@ -43,10 +42,6 @@ extern "C" {
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 // DIRECT SDL APIS
 // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {
-    unsafe { SDL_PollEvent(event) }
-}
 
 pub fn safe_SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick {
     unsafe { SDL_JoystickOpen(device_index) }
