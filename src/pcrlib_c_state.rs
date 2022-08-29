@@ -154,18 +154,3 @@ impl<'t> PcrlibCState<'t> {
         }
     }
 }
-
-// impl<'t> PcrlibCState<'t> {
-//     pub fn set_new_texture(&mut self, texture_creator: &'t TextureCreator<WindowContext>) {
-//         self.sdltexture = Some(
-//             texture_creator
-//                 .create_texture(
-//                     PixelFormatEnum::ARGB8888,
-//                     TextureAccess::Streaming,
-//                     320,
-//                     200,
-//                 )
-//                 .expect("Could not create video buffer"),
-//         )
-//     }
-// }
