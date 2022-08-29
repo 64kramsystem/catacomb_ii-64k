@@ -8,7 +8,6 @@ use crate::{pcrlib_a::SDL_AudioSpec, pcrlib_c::*};
 extern "C" {
     pub type _SDL_Joystick;
     pub type _SDL_GameController;
-    pub type SDL_SysWMmsg;
     pub type SDL_semaphore;
 
     fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;

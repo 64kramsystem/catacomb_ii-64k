@@ -45,14 +45,6 @@ pub struct SavedSoundStruct {
     pub pcSound: Option<usize>,
 }
 
-#[derive(Copy, Clone)]
-#[repr(C, packed)]
-struct pictype {
-    pub width: i16,
-    pub height: i16,
-    pub shapeptr: u32,
-    pub name: [i8; 8],
-}
 pub const screenpitch: usize = 320;
 type C2RustUnnamed_2 = u32;
 const VBL_TIME: C2RustUnnamed_2 = 14;
