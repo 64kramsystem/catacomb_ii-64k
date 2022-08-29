@@ -893,8 +893,8 @@ fn playercmdthink(
             {
                 centerwindow(16, 2, gs, pcs);
                 print_str("warp to which\nlevel (1-99)?", gs, pcs);
-                clearkeys(pcs);
-                pcs.level = _inputint(gs, pcs) as i16;
+                clearkeys(pcs, sdl);
+                pcs.level = _inputint(gs, pcs, sdl) as i16;
                 if (pcs.level as i32) < 1 {
                     pcs.level = 1;
                 }
@@ -918,12 +918,12 @@ fn playercmdthink(
                     gs.GODMODE = true;
                 }
                 UpdateScreen(gs, pcs);
-                clearkeys(pcs);
-                while bioskey(0, pcs) == 0 {
+                clearkeys(pcs, sdl);
+                while bioskey(0, pcs, sdl) == 0 {
                     WaitVBL();
                 }
                 restore(gs, pcs);
-                clearkeys(pcs);
+                clearkeys(pcs, sdl);
             }
         }
         demoplay => {
@@ -1311,18 +1311,18 @@ pub fn playloop(
             clearold(&mut gs.oldtiles);
             refresh(gs, pcs);
             refresh(gs, pcs);
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
             centerwindow(12, 1, gs, pcs);
             print_str("RECORD DEMO", gs, pcs);
             loop {
-                let ch = get(gs, pcs) as i8;
+                let ch = get(gs, pcs, sdl) as i8;
                 if !(ch != 13) {
                     break;
                 }
             }
             RecordDemo(gs, pcs);
             clearold(&mut gs.oldtiles);
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
         }
         gs.playdone = false;
         gs.frameon = 0;
@@ -1332,12 +1332,12 @@ pub fn playloop(
         printshotpower(gs, pcs);
         doall(gs, cps, pas, pcs, sdl);
         if gs.indemo == recording {
-            clearkeys(pcs);
+            clearkeys(pcs, sdl);
             centerwindow(15, 1, gs, pcs);
             print_str("SAVE AS DEMO#:", gs, pcs);
             let mut ch;
             loop {
-                ch = get(gs, pcs) as i8;
+                ch = get(gs, pcs, sdl) as i8;
                 if !(ch < '0' as i8 || ch > '9' as i8) {
                     break;
                 }
