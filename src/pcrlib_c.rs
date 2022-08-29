@@ -1409,11 +1409,10 @@ pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
     return 0;
 }
 
+// Enable and disable mouse grabbing
 pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
     safe_SDL_SetRelativeMouseMode(
-        (pcs.hasFocus as i32 != 0
-            && (pcs.playermode[1] as u32 == mouse as i32 as u32
-                || pcs.playermode[2] as u32 == mouse as i32 as u32)) as i32 as SDL_bool,
+        (pcs.hasFocus && (pcs.playermode[1] == mouse || pcs.playermode[2] == mouse)) as SDL_bool,
     );
 }
 
