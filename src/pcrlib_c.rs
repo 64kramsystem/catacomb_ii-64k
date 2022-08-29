@@ -500,7 +500,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 // Try to wait until the window obtains mouse focus before
                 // regrabbing input in order to try to prevent grabbing while
                 // the user is trying to move the window around.
-                while safe_SDL_GetMouseFocus() != pcs.renderer.window().raw() as *mut SDL_Window {
+                while sdl.mouse().focused_window_id() != Some(pcs.renderer.window().id()) {
                     safe_SDL_PumpEvents();
                     sdl.timer().delay(10);
                 }
