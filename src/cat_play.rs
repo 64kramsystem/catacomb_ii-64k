@@ -1,3 +1,5 @@
+use sdl2::Sdl;
+
 use crate::{
     active_obj::activeobj,
     catacomb::{clearold, dofkeys, loadlevel, refresh, restore},
@@ -738,6 +740,7 @@ fn playercmdthink(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
@@ -877,7 +880,7 @@ fn playercmdthink(
             pcs.keydown[SDL_SCANCODE_RETURN as usize] = false;
         }
     }
-    dofkeys(gs, cps, pas, pcs);
+    dofkeys(gs, cps, pas, pcs, sdl);
     if gs.resetgame {
         gs.resetgame = false;
         gs.playdone = true;
@@ -1200,13 +1203,14 @@ fn think(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     if gs.obj.delay as i32 > 0 {
         gs.obj.delay = (gs.obj.delay).wrapping_sub(1);
     } else if rndt(pas) < gs.obj.speed as i32 {
         match gs.obj.think as i32 {
             0 => {
-                playercmdthink(gs, cps, pas, pcs);
+                playercmdthink(gs, cps, pas, pcs, sdl);
             }
             3 => {
                 chasethink(false, gs, pas, pcs);
@@ -1248,6 +1252,7 @@ pub fn doactive(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     if gs.obj.class as i32 != dead1 as i32
         && ((gs.obj.x as i32) < gs.origin.x - 10
@@ -1257,7 +1262,7 @@ pub fn doactive(
     {
         gs.o[gs.objecton as usize].active = false;
     } else {
-        think(gs, cps, pas, pcs);
+        think(gs, cps, pas, pcs, sdl);
         eraseobj(gs);
         if gs.playdone {
             return;
@@ -1286,6 +1291,7 @@ pub fn playloop(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     gs.screencenter.x = 11;
     loop {
@@ -1325,7 +1331,7 @@ pub fn playloop(
         gs.shotpower = 0;
         initrndt(false, pas);
         printshotpower(gs, pcs);
-        doall(gs, cps, pas, pcs);
+        doall(gs, cps, pas, pcs, sdl);
         if gs.indemo == recording {
             clearkeys(pcs);
             centerwindow(15, 1, gs, pcs);

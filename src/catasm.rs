@@ -1,4 +1,5 @@
 use num::Integer;
+use sdl2::Sdl;
 
 use crate::{
     cat_play::{doactive, doinactive},
@@ -101,6 +102,7 @@ pub fn doall(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     assert!(gs.numobj > 0);
 
@@ -112,7 +114,7 @@ pub fn doall(
                 gs.obj
                     .update_from_objdeftype(&gs.objdef[gs.obj.class as usize]);
                 if gs.obj.active {
-                    doactive(gs, cps, pas, pcs);
+                    doactive(gs, cps, pas, pcs, sdl);
                 } else {
                     doinactive(gs);
                 }

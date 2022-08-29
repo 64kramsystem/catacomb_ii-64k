@@ -1,5 +1,6 @@
 use std::mem;
 
+use sdl2::Sdl;
 use serdine::Deserialize;
 
 use crate::{
@@ -306,7 +307,7 @@ fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
     erasewindow(gs, pcs);
 }
 
-pub fn getconfig(cps: &mut CpanelState) {
+pub fn getconfig(cps: &mut CpanelState, sdl: &Sdl) {
     cps.spotok[0][0] = true;
     cps.spotok[0][1] = _egaok;
     cps.spotok[0][2] = _vgaok;
@@ -333,13 +334,14 @@ fn drawpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     pcs.leftedge = 1;
     pas.xormask = 0;
     pcs.sx = 8;
     pcs.sy = 2;
     print_str("       Control Panel      \n\r", gs, pcs);
-    getconfig(cps);
+    getconfig(cps, sdl);
     pcs.sy = rowy[0] + 2;
     pcs.sx = 2;
     print_str("VIDEO:", gs, pcs);
@@ -406,13 +408,14 @@ pub fn controlpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
     let mut oldcentery: i32 = 0;
     clearkeys(pcs);
     PauseSound(pas);
-    ProbeJoysticks(pcs);
+    ProbeJoysticks(pcs, sdl);
     cps.oldgrmode = pcs.grmode;
     cps.newgrmode = cps.oldgrmode;
     cps.oldsoundmode = pas.soundmode;
@@ -426,7 +429,7 @@ pub fn controlpanel(
     gs.screencenter.x = 19;
     gs.screencenter.y = 11;
     drawwindow(0, 0, 39, 24, gs, pcs);
-    drawpanel(gs, cps, pas, pcs);
+    drawpanel(gs, cps, pas, pcs, sdl);
     cps.row = 0;
     cps.collumn = pcs.grmode as i32 - 1;
     loop {
@@ -485,7 +488,7 @@ pub fn controlpanel(
                         pcs.grmode = cps.newgrmode;
                         loadgrfiles(gs, cps, pcs);
                         drawwindow(0, 0, 39, 24, gs, pcs);
-                        drawpanel(gs, cps, pas, pcs);
+                        drawpanel(gs, cps, pas, pcs, sdl);
                     }
                 }
                 1 => {
@@ -516,7 +519,7 @@ pub fn controlpanel(
                     } else if cps.newplayermode[1] as u32 == joystick2 as i32 as u32 {
                         calibratejoy(2, gs, pas, pcs);
                     }
-                    drawpanel(gs, cps, pas, pcs);
+                    drawpanel(gs, cps, pas, pcs, sdl);
                 }
                 _ => {}
             }

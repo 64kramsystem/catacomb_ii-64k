@@ -1,5 +1,6 @@
 use std::fs::File;
 
+use sdl2::Sdl;
 use serdine::{Deserialize, Serialize};
 
 use crate::{
@@ -532,6 +533,7 @@ pub fn dofkeys(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     let mut key = bioskey(1, pcs);
     // make ESC into F10
@@ -550,7 +552,7 @@ pub fn dofkeys(
         // F2
         SDL_SCANCODE_F2 => {
             clearkeys(pcs);
-            controlpanel(gs, cps, pas, pcs);
+            controlpanel(gs, cps, pas, pcs, sdl);
         }
         // F3
         SDL_SCANCODE_F3 => {
@@ -679,6 +681,7 @@ fn dotitlepage(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14, gs, cps, pcs);
@@ -699,7 +702,7 @@ fn dotitlepage(
         } else {
             gs.indemo = demoplay;
             if bioskey(1, pcs) != 0 {
-                dofkeys(gs, cps, pas, pcs);
+                dofkeys(gs, cps, pas, pcs, sdl);
                 UpdateScreen(gs, pcs);
             }
             if gs.exitdemo {
@@ -753,10 +756,11 @@ fn dodemo(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     let mut i: i32 = 0;
     while !gs.exitdemo {
-        dotitlepage(gs, cps, pas, pcs);
+        dotitlepage(gs, cps, pas, pcs, sdl);
         if gs.exitdemo {
             break;
         }
@@ -764,7 +768,7 @@ fn dodemo(
         LoadDemo(i, gs, pcs);
         pcs.level = 0;
         playsetup(gs, cps, pcs);
-        playloop(gs, cps, pas, pcs);
+        playloop(gs, cps, pas, pcs, sdl);
         if gs.exitdemo {
             break;
         }
@@ -786,7 +790,7 @@ fn dodemo(
                 break;
             } else {
                 if bioskey(1, pcs) != 0 {
-                    dofkeys(gs, cps, pas, pcs);
+                    dofkeys(gs, cps, pas, pcs, sdl);
                 }
                 if gs.exitdemo {
                     break;
@@ -802,6 +806,7 @@ fn gameover(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
+    sdl: &Sdl,
 ) {
     let mut i: i32 = 0;
     expwin(11, 4, gs, pas, pcs);
@@ -827,7 +832,7 @@ fn gameover(
             break;
         }
         if bioskey(1, pcs) != 0 {
-            dofkeys(gs, cps, pas, pcs);
+            dofkeys(gs, cps, pas, pcs, sdl);
         }
         if gs.exitdemo as i32 != 0 || gs.indemo == demoplay {
             break;
@@ -985,17 +990,17 @@ pub fn original_main() {
 
     // go until quit () is called
     loop {
-        dodemo(&mut gs, &mut cps, &mut pas, &mut pcs);
+        dodemo(&mut gs, &mut cps, &mut pas, &mut pcs, &sdl);
         playsetup(&mut gs, &mut cps, &mut pcs);
         gs.indemo = notdemo;
         gs.gamestate = statetype::ingame;
-        playloop(&mut gs, &mut cps, &mut pas, &mut pcs);
+        playloop(&mut gs, &mut cps, &mut pas, &mut pcs, &sdl);
         if gs.indemo == notdemo {
             gs.exitdemo = false;
             if pcs.level > numlevels {
                 doendpage(&mut gs, &mut cps, &mut pas, &mut pcs); // finished all levels
             }
-            gameover(&mut gs, &mut cps, &mut pas, &mut pcs);
+            gameover(&mut gs, &mut cps, &mut pas, &mut pcs, &sdl);
         }
     }
 }

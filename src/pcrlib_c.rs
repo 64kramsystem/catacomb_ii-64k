@@ -660,7 +660,7 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     }
 }
 
-pub fn ProbeJoysticks(pcs: &mut PcrlibCState) {
+pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &Sdl) {
     if pcs.joystick[1].device > 0 || pcs.joystick[2].device > 0 {
         ShutdownJoysticks(pcs);
     }
@@ -1425,7 +1425,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState) {
 //
 ////////////////////////
 
-pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &Sdl) {
     let str = format!("CTLPANEL.{port_temp__extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
@@ -1446,7 +1446,7 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
             }
 
             if pcs.playermode[i] == joystick1 || pcs.playermode[i] == joystick2 {
-                ProbeJoysticks(pcs);
+                ProbeJoysticks(pcs, sdl);
                 if (pcs.playermode[i] == joystick1 && pcs.joystick[1].device < 0)
                     || (pcs.playermode[i] == joystick2 && pcs.joystick[2].device < 0)
                 {
@@ -1806,7 +1806,7 @@ pub fn _setupgame<'t>(
         pcs_joystick,
     );
 
-    _loadctrls(pas, &mut pcs);
+    _loadctrls(pas, &mut pcs, sdl);
 
     if pcs.grmode == VGAgr && _vgaok {
         pcs.grmode = VGAgr;
