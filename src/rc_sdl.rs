@@ -1,4 +1,7 @@
-use std::rc::Rc;
+use std::{
+    cell::{RefCell, RefMut},
+    rc::Rc,
+};
 
 use sdl2::{
     mouse::MouseUtil, AudioSubsystem, EventPump, EventSubsystem, GameControllerSubsystem,
@@ -15,7 +18,10 @@ pub struct RcSdl {
     _audio: AudioSubsystem,
     joystick: JoystickSubsystem,
     game_controller: GameControllerSubsystem,
+    // This also needs to stay in scope due to lifetimes
     timer: TimerSubsystem,
+    // This needs to stay in scope because there can be only one.
+    event_pump: Rc<RefCell<EventPump>>,
 }
 
 impl RcSdl {
@@ -26,6 +32,7 @@ impl RcSdl {
         let joystick = sdl.joystick().unwrap();
         let game_controller = sdl.game_controller().unwrap();
         let timer = sdl.timer().unwrap();
+        let event_pump = Rc::new(RefCell::new(sdl.event_pump().unwrap()));
 
         Self {
             sdl: Rc::new(sdl),
@@ -33,6 +40,7 @@ impl RcSdl {
             joystick,
             game_controller,
             timer,
+            event_pump,
         }
     }
 }
@@ -62,7 +70,7 @@ impl RcSdl {
         self.sdl.mouse()
     }
 
-    pub fn event_pump(&self) -> EventPump {
-        self.sdl.event_pump().unwrap()
+    pub fn event_pump(&self) -> RefMut<EventPump> {
+        (*self.event_pump).borrow_mut()
     }
 }
