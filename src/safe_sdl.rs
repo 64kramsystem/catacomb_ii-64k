@@ -9,10 +9,8 @@ extern "C" {
     pub type _SDL_Joystick;
     pub type _SDL_GameController;
     pub type SDL_SysWMmsg;
-    pub type SDL_Renderer;
     pub type SDL_semaphore;
 
-    fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;
     fn SDL_JoystickUpdate();
@@ -45,10 +43,6 @@ extern "C" {
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 // DIRECT SDL APIS
 // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn safe_SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer) {
-    unsafe { SDL_DestroyRenderer(renderer_0) }
-}
 
 pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {
     unsafe { SDL_PollEvent(event) }

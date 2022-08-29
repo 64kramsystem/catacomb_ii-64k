@@ -1905,8 +1905,11 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
     ShutdownSound(pas);
     ShutdownJoysticks(pcs);
 
-    safe_SDL_DestroyRenderer(pcs.renderer.as_ref().unwrap().raw() as *mut SDL_Renderer);
-    drop(pcs.renderer.as_ref().unwrap().window().context());
+    let renderer = pcs.renderer.take().unwrap();
+    let window_context = renderer.window().context();
+
+    drop(renderer);
+    drop(window_context);
 
     // Rust port: Not necessary to nullify the pointers.
     // pcs.renderer = ptr::null();
