@@ -7,6 +7,7 @@ use std::{fs, mem};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
+use sdl2::keyboard::{Keycode, Scancode};
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::{TextureAccess, TextureCreator};
@@ -1169,7 +1170,9 @@ pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
     }
     drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
     UpdateScreen(gs, pcs);
-    safe_SDL_GetKeyFromScancode(key as SDL_Scancode) // take it out of the buffer
+
+    let scancode = Scancode::from_i32(key as i32).unwrap();
+    Keycode::from_scancode(scancode).unwrap() as i32 // take it out of the buffer
 }
 
 /////////////////////////

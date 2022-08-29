@@ -6,7 +6,6 @@ use std::ffi::CStr;
 use crate::{
     pcrlib_a::{SDL_AudioSpec, SDL_TimerCallback},
     pcrlib_c::*,
-    scan_codes::SDL_Scancode,
 };
 
 extern "C" {
@@ -22,7 +21,6 @@ extern "C" {
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
     fn SDL_DestroyWindow(window_0: *mut SDL_Window);
-    fn SDL_GetKeyFromScancode(scancode: SDL_Scancode) -> SDL_Keycode;
     fn SDL_GetMouseFocus() -> *mut SDL_Window;
     fn SDL_GetRelativeMouseState(x: *mut i32, y: *mut i32) -> u32;
     fn SDL_SetRelativeMouseMode(enabled: SDL_bool) -> i32;
@@ -78,10 +76,6 @@ pub fn safe_SDL_PumpEvents() {
 
 pub fn safe_SDL_DestroyWindow(window_0: *mut SDL_Window) {
     unsafe { SDL_DestroyWindow(window_0) }
-}
-
-pub fn safe_SDL_GetKeyFromScancode(scancode: SDL_Scancode) -> SDL_Keycode {
-    unsafe { SDL_GetKeyFromScancode(scancode) }
 }
 
 pub fn safe_SDL_GetMouseFocus() -> *mut SDL_Window {
