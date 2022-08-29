@@ -1878,6 +1878,10 @@ pub fn _setupgame<'s, 't>(
 //
 ////////////////////
 
+// Rust port: Redesigning the exit is a pain. The original game was not designed to exit by interrupting
+// the main loop, so even if exit points are added to the code on each level leading to the _quit() call,
+// the game may still not exit in certain points. For this reason, the SDL port approach is left as is.
+//
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
 // In the original version, there are two cases - out of memory, and a certain EXE file not found.
 pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
