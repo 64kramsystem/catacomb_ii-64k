@@ -1145,18 +1145,17 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 }
 
 pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
-    let mut cycle: i32 = 0;
-    let mut key_0 = 0;
+    let mut key = 0;
+
     loop {
-        cycle = 9;
+        let mut cycle = 9;
         loop {
-            key_0 = bioskey(0, pcs);
-            if !(key_0 == 0 && cycle < 13) {
+            key = bioskey(0, pcs);
+            if key != 0 || cycle == 13 {
                 break;
             }
-            let fresh2 = cycle;
+            drawchar(pcs.sx, pcs.sy, cycle, gs, pcs);
             cycle += 1;
-            drawchar(pcs.sx, pcs.sy, fresh2, gs, pcs);
             UpdateScreen(gs, pcs);
             WaitVBL();
             WaitVBL();
@@ -1164,13 +1163,13 @@ pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState) -> i32 {
             WaitVBL();
             WaitVBL();
         }
-        if !(key_0 == 0) {
+        if key != 0 {
             break;
         }
     }
     drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
     UpdateScreen(gs, pcs);
-    return safe_SDL_GetKeyFromScancode(key_0 as SDL_Scancode);
+    safe_SDL_GetKeyFromScancode(key as SDL_Scancode) // take it out of the buffer
 }
 
 /////////////////////////
