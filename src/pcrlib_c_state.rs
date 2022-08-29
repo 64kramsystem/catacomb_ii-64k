@@ -1,4 +1,5 @@
 use sdl2::{
+    rect::Rect,
     render::{Texture, WindowCanvas},
     video::DisplayMode,
 };
@@ -6,7 +7,7 @@ use sdl2::{
 use crate::{
     gr_type::grtype::{self, *},
     input_type::inputtype::{self, *},
-    pcrlib_c::{joyinfo_t, SDL_Rect},
+    pcrlib_c::joyinfo_t,
     scan_codes::{SDL_Scancode, SDL_SCANCODE_UNKNOWN},
     scores::scores,
 };
@@ -56,7 +57,7 @@ pub struct PcrlibCState<'t> {
     // pub window: Window, // Rust port: not needed, as we can get the ref from the renderer
     pub renderer: WindowCanvas,
     pub sdltexture: Texture<'t>,
-    pub updateRect: SDL_Rect,
+    pub updateRect: Rect,
     pub mode: DisplayMode,
     pub joystick: [joyinfo_t; 3],
     pub hasFocus: bool,
@@ -77,7 +78,7 @@ impl<'t> PcrlibCState<'t> {
         // lastkey: SDL_Scancode,
         renderer: WindowCanvas,
         sdltexture: Texture<'t>,
-        updateRect: SDL_Rect,
+        updateRect: Rect,
         // playermode: [inputtype; 3],
         // keydown: [bool; 512],
         // JoyXlow: [i32; 3],

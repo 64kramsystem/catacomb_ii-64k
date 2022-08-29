@@ -8,6 +8,7 @@ use std::{fs, ptr};
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::pixels::PixelFormatEnum;
+use sdl2::rect::Rect;
 use sdl2::render::{TextureAccess, TextureCreator};
 use sdl2::sys::SDL_WindowFlags;
 use sdl2::video::WindowContext;
@@ -1137,7 +1138,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         pcs.renderer.raw() as *mut SDL_Renderer,
         pcs.sdltexture.raw() as *mut SDL_Texture,
         ptr::null(),
-        &pcs.updateRect,
+        pcs.updateRect.raw() as *const SDL_Rect,
     );
     safe_SDL_RenderPresent(pcs.renderer.raw() as *mut SDL_Renderer);
 }
@@ -1761,12 +1762,7 @@ pub fn _setupgame<'t>(
         )
         .expect("Could not create video buffer");
 
-    let mut pcs_updateRect = SDL_Rect {
-        x: 0,
-        y: 0,
-        w: 0,
-        h: 0,
-    };
+    let mut pcs_updateRect = Rect::new(0, 0, 0, 0);
 
     // Handle 320x200 and 640x400 specially so they are unscaled.
     if pcs_mode.w == 320 && pcs_mode.h == 200 || pcs_mode.w == 640 && pcs_mode.h == 400 {
