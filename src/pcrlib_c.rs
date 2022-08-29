@@ -3,7 +3,8 @@ use std::ffi::CString;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::{fs, mem};
+use std::time::Duration;
+use std::{fs, mem, thread};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
@@ -502,7 +503,11 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 // the user is trying to move the window around.
                 while sdl.mouse().focused_window_id() != Some(pcs.renderer.window().id()) {
                     sdl.event_pump().pump_events();
-                    sdl.timer().delay(10);
+                    // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
+                    // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
+                    // because `Timer#delay()` requires a mutable sdl instance, which is a problem
+                    // when the timer instance is owned by RcSdl.
+                    thread::sleep(Duration::from_millis(10));
                 }
 
                 pcs.hasFocus = true;
