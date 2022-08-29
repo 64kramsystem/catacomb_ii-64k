@@ -12,7 +12,7 @@ pub struct CpanelState {
     /*
     Private
     */
-    pub spotok: [[i32; 5]; 4],
+    pub spotok: [[bool; 5]; 4],
     pub row: i32,
     pub collumn: i32,
     pub oldgrmode: grtype,
@@ -21,9 +21,9 @@ pub struct CpanelState {
     pub newsoundmode: soundtype,
     pub oldplayermode: [inputtype; 3],
     pub newplayermode: [inputtype; 3],
-    pub joy1ok: i32,
-    pub joy2ok: i32,
-    pub mouseok: i32,
+    pub joy1ok: bool,
+    pub joy2ok: bool,
+    pub mouseok: bool,
 
     pub egaplane: [u32; 4],
     pub image: spritetype,
@@ -43,7 +43,7 @@ pub struct CpanelState {
 }
 impl CpanelState {
     pub fn new(
-        spotok: [[i32; 5]; 4],
+        spotok: [[bool; 5]; 4],
         row: i32,
         collumn: i32,
         oldgrmode: grtype,
@@ -52,9 +52,9 @@ impl CpanelState {
         newsoundmode: soundtype,
         oldplayermode: [inputtype; 3],
         newplayermode: [inputtype; 3],
-        joy1ok: i32,
-        joy2ok: i32,
-        mouseok: i32,
+        joy1ok: bool,
+        joy2ok: bool,
+        mouseok: bool,
         egaplane: [u32; 4],
         image: spritetype,
         spritetable: [spritetype; 10],
@@ -92,7 +92,7 @@ impl CpanelState {
 impl Default for CpanelState {
     fn default() -> Self {
         Self::new(
-            [[0; 5]; 4],
+            [[false; 5]; 4],
             0,
             0,
             text,
@@ -101,9 +101,9 @@ impl Default for CpanelState {
             off,
             [keyboard; 3],
             [keyboard; 3],
-            0,
-            0,
-            0,
+            false,
+            false,
+            false,
             [0; 4],
             spritetype {
                 width: 0,

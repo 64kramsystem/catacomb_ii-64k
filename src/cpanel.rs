@@ -307,25 +307,25 @@ fn calibratekeys(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
 }
 
 pub fn getconfig(cps: &mut CpanelState) {
-    cps.spotok[0][0] = 1;
-    cps.spotok[0][1] = _egaok as i32;
-    cps.spotok[0][2] = _vgaok as i32;
-    cps.spotok[0][3] = 0;
-    cps.spotok[0][4] = 0;
-    cps.spotok[1][0] = 1;
-    cps.spotok[1][1] = 1;
-    cps.spotok[1][2] = 0;
-    cps.spotok[1][3] = 0;
-    cps.spotok[1][4] = 0;
+    cps.spotok[0][0] = true;
+    cps.spotok[0][1] = _egaok;
+    cps.spotok[0][2] = _vgaok;
+    cps.spotok[0][3] = false;
+    cps.spotok[0][4] = false;
+    cps.spotok[1][0] = true;
+    cps.spotok[1][1] = true;
+    cps.spotok[1][2] = false;
+    cps.spotok[1][3] = false;
+    cps.spotok[1][4] = false;
     let numjoy: i32 = safe_SDL_NumJoysticks();
-    cps.joy1ok = (numjoy > 0) as i32;
-    cps.joy2ok = (numjoy > 1) as i32;
-    cps.mouseok = 1;
-    cps.spotok[2][0] = 1;
+    cps.joy1ok = numjoy > 0;
+    cps.joy2ok = numjoy > 1;
+    cps.mouseok = true;
+    cps.spotok[2][0] = true;
     cps.spotok[2][1] = cps.mouseok;
     cps.spotok[2][2] = cps.joy1ok;
     cps.spotok[2][3] = cps.joy2ok;
-    cps.spotok[2][4] = 0;
+    cps.spotok[2][4] = false;
 }
 
 fn drawpanel(
@@ -358,17 +358,17 @@ fn drawpanel(
     pcs.sx = 2;
     print_str("CONTROL:", gs, pcs);
     drawpic(collumnx[0] * 8, rowy[2] * 8, 7, gs, cps, pcs);
-    if cps.mouseok != 0 {
+    if cps.mouseok {
         drawpic(collumnx[1] * 8, rowy[2] * 8, 10, gs, cps, pcs);
     } else {
         drawpic(collumnx[1] * 8, rowy[2] * 8, 12, gs, cps, pcs);
     }
-    if cps.joy1ok != 0 {
+    if cps.joy1ok {
         drawpic(collumnx[2] * 8, rowy[2] * 8, 8, gs, cps, pcs);
     } else {
         drawpic(collumnx[2] * 8, rowy[2] * 8, 11, gs, cps, pcs);
     }
-    if cps.joy2ok != 0 {
+    if cps.joy2ok {
         drawpic(collumnx[3] * 8, rowy[2] * 8, 9, gs, cps, pcs);
     } else {
         drawpic(collumnx[3] * 8, rowy[2] * 8, 11, gs, cps, pcs);
@@ -445,7 +445,7 @@ pub fn controlpanel(
                 cps.row = 0;
             }
         }
-        while cps.spotok[cps.row as usize][cps.collumn as usize] == 0 {
+        while !cps.spotok[cps.row as usize][cps.collumn as usize] {
             cps.collumn -= 1;
         }
         if chf == SDLK_LEFT as i32 {
@@ -454,7 +454,7 @@ pub fn controlpanel(
             }
             loop {
                 cps.collumn -= 1;
-                if !(cps.spotok[cps.row as usize][cps.collumn as usize] == 0) {
+                if cps.spotok[cps.row as usize][cps.collumn as usize] {
                     break;
                 }
             }
@@ -462,7 +462,7 @@ pub fn controlpanel(
         if chf == SDLK_RIGHT as i32 {
             loop {
                 cps.collumn += 1;
-                if !(cps.spotok[cps.row as usize][cps.collumn as usize] == 0 || cps.collumn > 3) {
+                if cps.spotok[cps.row as usize][cps.collumn as usize] && cps.collumn <= 3 {
                     break;
                 }
                 if cps.collumn == 4 {
