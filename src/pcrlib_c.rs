@@ -1,9 +1,9 @@
 use std::convert::TryInto;
 use std::ffi::CString;
-use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
+use std::{fs, mem};
 
 use ::libc;
 use sdl2::event::{Event, WindowEvent};
@@ -1127,12 +1127,16 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     } else {
         panic!("VGA Palette conversion not implemented.");
     }
-    safe_SDL_UpdateTexture(
-        pcs.sdltexture.raw() as *mut SDL_Texture,
-        0 as *const SDL_Rect,
-        pcs.conv.as_mut_ptr() as *const libc::c_void,
-        (320 as i32 as u64).wrapping_mul(::std::mem::size_of::<u32>() as u64) as i32,
-    );
+
+    let pixel_bytes = pcs
+        .conv
+        .iter()
+        .flat_map(|v| v.to_le_bytes())
+        .collect::<Vec<_>>();
+
+    pcs.sdltexture
+        .update(None, pixel_bytes.as_slice(), 320 * mem::size_of::<u32>())
+        .unwrap();
     pcs.renderer.clear();
     pcs.renderer
         .copy(&pcs.sdltexture, None, Some(pcs.updateRect))

@@ -15,17 +15,10 @@ extern "C" {
     pub type _SDL_GameController;
     pub type SDL_SysWMmsg;
     pub type SDL_Renderer;
-    pub type SDL_Texture;
     pub type SDL_semaphore;
 
     fn SDL_Delay(ms: u32);
     fn SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer);
-    fn SDL_UpdateTexture(
-        texture: *mut SDL_Texture,
-        rect: *const SDL_Rect,
-        pixels: *const libc::c_void,
-        pitch: i32,
-    ) -> i32;
     fn SDL_PollEvent(event: *mut SDL_Event) -> i32;
     fn SDL_PumpEvents();
     fn SDL_DestroyWindow(window_0: *mut SDL_Window);
@@ -73,15 +66,6 @@ pub fn safe_SDL_Delay(ms: u32) {
 
 pub fn safe_SDL_DestroyRenderer(renderer_0: *mut SDL_Renderer) {
     unsafe { SDL_DestroyRenderer(renderer_0) }
-}
-
-pub fn safe_SDL_UpdateTexture(
-    texture: *mut SDL_Texture,
-    rect: *const SDL_Rect,
-    pixels: *const libc::c_void,
-    pitch: i32,
-) -> i32 {
-    unsafe { SDL_UpdateTexture(texture, rect, pixels, pitch) }
 }
 
 pub fn safe_SDL_PollEvent(event: *mut SDL_Event) -> i32 {
