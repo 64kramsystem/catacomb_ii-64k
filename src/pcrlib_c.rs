@@ -675,19 +675,27 @@ pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
     action
 }
 
+/*
+===============================
+=
+= ShutdownJoysticks
+= Try to identify joysticks and open them.
+=
+===============================
+*/
+
 fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
-    let mut j: u32 = 0;
-    j = 1;
-    while j < 3 {
-        if !(pcs.joystick[j as usize].device < 0) {
-            if pcs.joystick[j as usize].isgamecontroller {
-                safe_SDL_GameControllerClose(pcs.joystick[j as usize].controller());
-            } else {
-                safe_SDL_JoystickClose(pcs.joystick[j as usize].joy());
-            }
-            pcs.joystick[j as usize].device = -1;
+    for joystick in &mut pcs.joystick[1..3] {
+        if joystick.device < 0 {
+            continue;
         }
-        j = j.wrapping_add(1);
+
+        if joystick.isgamecontroller {
+            safe_SDL_GameControllerClose(joystick.controller());
+        } else {
+            safe_SDL_JoystickClose(joystick.joy());
+        }
+        joystick.device = -1;
     }
 }
 
