@@ -10,10 +10,6 @@ extern "C" {
     pub type _SDL_GameController;
     pub type SDL_semaphore;
 
-    fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;
-    fn SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: i32) -> i16;
-    fn SDL_JoystickGetButton(joystick_0: *mut SDL_Joystick, button: i32) -> u8;
-    fn SDL_JoystickClose(joystick_0: *mut SDL_Joystick);
     fn SDL_IsGameController(joystick_index: i32) -> SDL_bool;
     fn SDL_GameControllerOpen(joystick_index: i32) -> *mut SDL_GameController;
     fn SDL_GameControllerGetAxis(
@@ -40,22 +36,6 @@ extern "C" {
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 // DIRECT SDL APIS
 // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn safe_SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick {
-    unsafe { SDL_JoystickOpen(device_index) }
-}
-
-pub fn safe_SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: i32) -> i16 {
-    unsafe { SDL_JoystickGetAxis(joystick_0, axis) }
-}
-
-pub fn safe_SDL_JoystickGetButton(joystick_0: *mut SDL_Joystick, button: i32) -> u8 {
-    unsafe { SDL_JoystickGetButton(joystick_0, button) }
-}
-
-pub fn safe_SDL_JoystickClose(joystick_0: *mut SDL_Joystick) {
-    unsafe { SDL_JoystickClose(joystick_0) }
-}
 
 pub fn safe_SDL_IsGameController(joystick_index: i32) -> SDL_bool {
     unsafe { SDL_IsGameController(joystick_index) }
