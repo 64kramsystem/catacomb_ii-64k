@@ -51,7 +51,7 @@ pub struct PcrlibAState<'a> {
     // Rust port: private to cpanel.rs
     // //////////////////////////////////////////////////////////
 
-    pub xormask: i32,
+    // pub xormask: i32, // Rust port: Set but never read
 }
 impl<'a> PcrlibAState<'a> {
     pub fn new(// SndPriority: u8,
@@ -117,7 +117,6 @@ impl<'a> PcrlibAState<'a> {
             vbltimer: None,
             SoundData: SPKRtable::default(),
             soundmode: spkr,
-            xormask: 0,
         }
     }
 }

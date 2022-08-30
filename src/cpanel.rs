@@ -352,7 +352,7 @@ fn drawpanel(
     sdl: &RcSdl,
 ) {
     pcs.leftedge = 1;
-    pas.xormask = 0;
+    // pas.xormask = 0; // Rust port: Never read
     pcs.sx = 8;
     pcs.sy = 2;
     print_str("       Control Panel      \n\r", gs, pcs);
