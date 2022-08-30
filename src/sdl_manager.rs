@@ -68,6 +68,10 @@ impl SdlManager {
         (*self.event_pump).borrow_mut()
     }
 
+    pub fn quit(&mut self) {
+        self.sdl = Rc::new(None);
+    }
+
     fn sdl(&self) -> &Sdl {
         (*self.sdl).as_ref().unwrap()
     }

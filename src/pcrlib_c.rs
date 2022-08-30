@@ -38,7 +38,7 @@ use crate::{
     extra_constants::port_temp__extension,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    pcrlib_a::{drawchar, PlaySound, ShutdownSound, WaitVBL},
+    pcrlib_a::{drawchar, PlaySound, WaitVBL},
     scan_codes::*,
     scores::scores,
 };
@@ -1584,18 +1584,9 @@ pub fn _quit(
         _savectrls(pas, pcs);
     }
 
-    ShutdownSound(pas);
-    ShutdownJoysticks(pcs);
-
-    let renderer = pcs.renderer.take().unwrap();
-    let window_context = renderer.window().context();
-
-    drop(renderer);
-    drop(window_context);
-
-    // Rust port: Not necessary to nullify the pointers.
-    // pcs.renderer = ptr::null();
-    // pcs.window = ptr::null();
+    // Rust port: We don't need manual clearing; this will cascade-drop all the systems, since the
+    // Sdl instance is dropped inside the method.
+    sdl.quit();
 
     std::process::exit(0);
 }

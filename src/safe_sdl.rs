@@ -15,7 +15,6 @@ extern "C" {
         allowed_changes: i32,
     ) -> u32;
     fn SDL_PauseAudioDevice(dev: u32, pause_on: i32);
-    fn SDL_CloseAudio();
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,8 +41,4 @@ pub fn safe_SDL_OpenAudioDevice(
 
 pub fn safe_SDL_PauseAudioDevice(dev: u32, pause_on: i32) {
     unsafe { SDL_PauseAudioDevice(dev, pause_on) }
-}
-
-pub fn safe_SDL_CloseAudio() {
-    unsafe { SDL_CloseAudio() }
 }
