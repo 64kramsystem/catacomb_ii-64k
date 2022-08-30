@@ -54,7 +54,7 @@ pub const SDL_CONTROLLER_BUTTON_A: SDL_GameControllerButton = 0;
 
 pub enum joyinfo_t {
     Controller(*mut SDL_GameController, u32),
-    Joy(Joystick, u32),
+    Joy(Joystick),
 }
 
 // Rust port: unnecessary in Rust (false is the default)
@@ -317,7 +317,7 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
                 safe_SDL_GameControllerClose(*ptr);
                 *joystick = None;
             }
-            Some(joyinfo_t::Joy(_, _)) => {
+            Some(joyinfo_t::Joy(_)) => {
                 // Rust port: Dropping the instance will close it.
                 *joystick = None;
             }
@@ -356,7 +356,7 @@ pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
             ));
         } else {
             let joy = sdl.joystick().open(j - 1).unwrap();
-            *joystick = Some(joyinfo_t::Joy(joy, j - 1));
+            *joystick = Some(joyinfo_t::Joy(joy));
         }
     }
 }
@@ -390,7 +390,7 @@ pub fn ReadJoystick(
             a1 = safe_SDL_GameControllerGetAxis(*ptr, SDL_CONTROLLER_AXIS_LEFTX) as i32;
             a2 = safe_SDL_GameControllerGetAxis(*ptr, SDL_CONTROLLER_AXIS_LEFTY) as i32;
         }
-        Some(joyinfo_t::Joy(joystick, _)) => {
+        Some(joyinfo_t::Joy(joystick)) => {
             a1 = joystick.axis(0).unwrap() as i32;
             a2 = joystick.axis(1).unwrap() as i32;
         }
@@ -428,7 +428,7 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState, sdl: &RcSdl) -> Cont
             action.button1 = safe_SDL_GameControllerGetButton(*ptr, SDL_CONTROLLER_BUTTON_A) != 0;
             action.button2 = safe_SDL_GameControllerGetButton(*ptr, SDL_CONTROLLER_BUTTON_B) != 0;
         }
-        Some(joyinfo_t::Joy(joystick, _)) => {
+        Some(joyinfo_t::Joy(joystick)) => {
             action.button1 = joystick.button(0).unwrap();
             action.button2 = joystick.button(1).unwrap();
         }
