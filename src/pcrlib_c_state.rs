@@ -1,7 +1,6 @@
 use sdl2::{
     rect::Rect,
     render::{Texture, WindowCanvas},
-    video::DisplayMode,
 };
 
 use crate::{
@@ -59,7 +58,7 @@ pub struct PcrlibCState<'t> {
     pub renderer: Option<WindowCanvas>,
     pub sdltexture: Texture<'t>,
     pub updateRect: Rect,
-    pub mode: DisplayMode,
+    // pub mode: DisplayMode,         // Rust port: Never used
     pub joystick: [Option<joyinfo_t>; 3],
     pub hasFocus: bool,
     pub win_xl: i32,
@@ -90,7 +89,6 @@ impl<'t> PcrlibCState<'t> {
         // key: [u32; 8],
         // keyB1: u32,
         // keyB2: u32,
-        mode: DisplayMode,
         joystick: [Option<joyinfo_t>; 3],
         // hasFocus: bool,
         // win_xl: i32,
@@ -128,7 +126,6 @@ impl<'t> PcrlibCState<'t> {
             key: [0; 8],
             keyB1: 0,
             keyB2: 0,
-            mode,
             joystick,
             hasFocus: true,
             win_xl: 0,

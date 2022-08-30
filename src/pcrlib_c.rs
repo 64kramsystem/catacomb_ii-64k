@@ -1427,7 +1427,7 @@ pub fn _setupgame<'s, 't>(
         }
     }
 
-    let mut pcs_mode = sdl
+    let mut mode = sdl
         .video()
         .current_display_mode(displayindex)
         .expect("Could not get display mode");
@@ -1442,8 +1442,8 @@ pub fn _setupgame<'s, 't>(
         // default behavior, depending on the system.
         bounds.x = sdl2::sys::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
         bounds.y = sdl2::sys::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
-        pcs_mode.w = winWidth as i32;
-        pcs_mode.h = winHeight as i32;
+        mode.w = winWidth as i32;
+        mode.h = winHeight as i32;
         0
         // Rust port: WindowBuilder's defaults are position:undefined and flags:0.
     } else {
@@ -1454,7 +1454,7 @@ pub fn _setupgame<'s, 't>(
 
     let pcs_window = sdl
         .video()
-        .window("The Catacomb", pcs_mode.w as u32, pcs_mode.h as u32)
+        .window("The Catacomb", mode.w as u32, mode.h as u32)
         .set_window_flags(window_flags)
         .position(bounds.x, bounds.y)
         .build()
@@ -1484,16 +1484,16 @@ pub fn _setupgame<'s, 't>(
     let mut pcs_updateRect = Rect::new(0, 0, 0, 0);
 
     // Handle 320x200 and 640x400 specially so they are unscaled.
-    if pcs_mode.w == 320 && pcs_mode.h == 200 || pcs_mode.w == 640 && pcs_mode.h == 400 {
-        pcs_updateRect.w = pcs_mode.w;
-        pcs_updateRect.h = pcs_mode.h;
+    if mode.w == 320 && mode.h == 200 || mode.w == 640 && mode.h == 400 {
+        pcs_updateRect.w = mode.w;
+        pcs_updateRect.h = mode.h;
         pcs_updateRect.y = 0;
         pcs_updateRect.x = pcs_updateRect.y;
     } else {
         // Pillar box the 4:3 game
-        pcs_updateRect.h = pcs_mode.h;
-        pcs_updateRect.w = pcs_mode.h * 4 / 3;
-        pcs_updateRect.x = (pcs_mode.w - pcs_updateRect.w) >> 1;
+        pcs_updateRect.h = mode.h;
+        pcs_updateRect.w = mode.h * 4 / 3;
+        pcs_updateRect.x = (mode.w - pcs_updateRect.w) >> 1;
         pcs_updateRect.y = 0;
     }
 
@@ -1509,13 +1509,7 @@ pub fn _setupgame<'s, 't>(
     // Invalidate joysticks.
     let pcs_joystick = [None, None, None];
 
-    let mut pcs = PcrlibCState::new(
-        pcs_renderer,
-        pcs_sdltexture,
-        pcs_updateRect,
-        pcs_mode,
-        pcs_joystick,
-    );
+    let mut pcs = PcrlibCState::new(pcs_renderer, pcs_sdltexture, pcs_updateRect, pcs_joystick);
 
     _loadctrls(pas, &mut pcs, sdl);
 
