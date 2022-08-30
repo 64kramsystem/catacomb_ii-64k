@@ -4,9 +4,6 @@ use serdine::derive::Deserialize;
 
 use crate::spksndtype::spksndtype;
 
-// Rust port: This is actually a header; the sound file (`SOUNDS.CA2`) is loaded in memory, and
-// this points to the buffer, but the buffer is longer than this struct, and includes the sounds
-// data.
 #[derive(Deserialize)]
 pub struct SPKRtable {
     pub id: [i8; 4],
