@@ -344,13 +344,7 @@ pub fn getconfig(cps: &mut CpanelState, sdl: &RcSdl) {
     cps.spotok[2][4] = false;
 }
 
-fn drawpanel(
-    gs: &mut GlobalState,
-    cps: &mut CpanelState,
-    pas: &mut PcrlibAState,
-    pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
-) {
+fn drawpanel(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
     pcs.leftedge = 1;
     // pas.xormask = 0; // Rust port: Never read
     pcs.sx = 8;
@@ -444,7 +438,7 @@ pub fn controlpanel(
     gs.screencenter.x = 19;
     gs.screencenter.y = 11;
     drawwindow(0, 0, 39, 24, gs, pcs);
-    drawpanel(gs, cps, pas, pcs, sdl);
+    drawpanel(gs, cps, pcs, sdl);
     cps.row = 0;
     cps.collumn = pcs.grmode as i32 - 1;
     loop {
@@ -503,7 +497,7 @@ pub fn controlpanel(
                         pcs.grmode = cps.newgrmode;
                         loadgrfiles(gs, cps, pcs);
                         drawwindow(0, 0, 39, 24, gs, pcs);
-                        drawpanel(gs, cps, pas, pcs, sdl);
+                        drawpanel(gs, cps, pcs, sdl);
                     }
                 }
                 1 => {
@@ -534,7 +528,7 @@ pub fn controlpanel(
                     } else if cps.newplayermode[1] as u32 == joystick2 as i32 as u32 {
                         calibratejoy(2, gs, pas, pcs, sdl);
                     }
-                    drawpanel(gs, cps, pas, pcs, sdl);
+                    drawpanel(gs, cps, pcs, sdl);
                 }
                 _ => {}
             }
