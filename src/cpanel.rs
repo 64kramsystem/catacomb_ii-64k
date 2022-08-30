@@ -72,8 +72,8 @@ fn calibratejoy(
             stage = 15;
         }
         ProcessEvents(pcs, sdl);
-        ReadJoystick(joynum, &mut xl, &mut yl, pcs);
-        ctr = ControlJoystick(joynum, pcs);
+        ReadJoystick(joynum, &mut xl, &mut yl, pcs, sdl);
+        ctr = ControlJoystick(joynum, pcs, sdl);
         if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
             current_block = 15976468122069307450;
             break;
@@ -87,7 +87,7 @@ fn calibratejoy(
         8457315219000651999 => {
             drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
             loop {
-                ctr = ControlJoystick(joynum, pcs);
+                ctr = ControlJoystick(joynum, pcs, sdl);
                 if !ctr.button1 {
                     break;
                 }
@@ -109,8 +109,8 @@ fn calibratejoy(
                     stage = 15;
                 }
                 ProcessEvents(pcs, sdl);
-                ReadJoystick(joynum, &mut xh, &mut yh, pcs);
-                ctr = ControlJoystick(joynum, pcs);
+                ReadJoystick(joynum, &mut xh, &mut yh, pcs, sdl);
+                ctr = ControlJoystick(joynum, pcs, sdl);
                 if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
                     current_block = 15976468122069307450;
                     break;
@@ -125,7 +125,7 @@ fn calibratejoy(
                 _ => {
                     drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
                     loop {
-                        ctr = ControlJoystick(joynum, pcs);
+                        ctr = ControlJoystick(joynum, pcs, sdl);
                         if !ctr.button1 {
                             break;
                         }

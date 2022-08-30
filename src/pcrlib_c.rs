@@ -370,7 +370,13 @@ pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
 ===============================
 */
 
-pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut PcrlibCState) {
+pub fn ReadJoystick(
+    joynum: i32,
+    xcount: &mut i32,
+    ycount: &mut i32,
+    pcs: &mut PcrlibCState,
+    sdl: &RcSdl,
+) {
     let mut a1: i32 = 0;
     let mut a2: i32 = 0;
 
@@ -403,7 +409,7 @@ pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut P
 =============================
 */
 
-pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
+pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
     let mut joyx: i32 = 0;
     let mut joyy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -414,7 +420,7 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
         button2: false,
     };
 
-    ReadJoystick(joynum, &mut joyx, &mut joyy, pcs);
+    ReadJoystick(joynum, &mut joyx, &mut joyy, pcs, sdl);
 
     /* get all four button status */
     match pcs.joystick[joynum as usize] {
@@ -507,10 +513,10 @@ pub fn ControlPlayer(
                 ret = ControlMouse(pcs, sdl);
             }
             2 => {
-                ret = ControlJoystick(1, pcs);
+                ret = ControlJoystick(1, pcs, sdl);
             }
             3 => {
-                ret = ControlJoystick(2, pcs);
+                ret = ControlJoystick(2, pcs, sdl);
             }
             0 | _ => {
                 ret = ControlKBD(pcs);
