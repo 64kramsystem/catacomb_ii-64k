@@ -383,7 +383,7 @@ pub fn ReadJoystick(
     *xcount = 0;
     *ycount = 0;
 
-    safe_SDL_JoystickUpdate();
+    sdl.joystick().update();
 
     match pcs.joystick[joynum as usize] {
         Some(joyinfo_t::Controller(ptr, _)) => {

@@ -11,7 +11,6 @@ extern "C" {
     pub type SDL_semaphore;
 
     fn SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick;
-    fn SDL_JoystickUpdate();
     fn SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: i32) -> i16;
     fn SDL_JoystickGetButton(joystick_0: *mut SDL_Joystick, button: i32) -> u8;
     fn SDL_JoystickClose(joystick_0: *mut SDL_Joystick);
@@ -44,10 +43,6 @@ extern "C" {
 
 pub fn safe_SDL_JoystickOpen(device_index: i32) -> *mut SDL_Joystick {
     unsafe { SDL_JoystickOpen(device_index) }
-}
-
-pub fn safe_SDL_JoystickUpdate() {
-    unsafe { SDL_JoystickUpdate() }
 }
 
 pub fn safe_SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: i32) -> i16 {
