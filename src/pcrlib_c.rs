@@ -54,8 +54,8 @@ pub const SDL_CONTROLLER_BUTTON_A: SDL_GameControllerButton = 0;
 
 #[derive(Clone, Copy)]
 pub enum joyinfo_t {
-    Controller(*mut SDL_GameController, i32),
-    Joy(*mut SDL_Joystick, i32),
+    Controller(*mut SDL_GameController, u32),
+    Joy(*mut SDL_Joystick, u32),
 }
 
 // Rust port: unnecessary in Rust (false is the default)
@@ -343,20 +343,20 @@ pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
     }
 
     for (j, joystick) in pcs.joystick.iter_mut().enumerate().skip(1) {
-        let j = j as i32;
+        let j = j as u32;
 
-        if j - 1 >= sdl.joystick().num_joysticks().unwrap() as i32 {
+        if j - 1 >= sdl.joystick().num_joysticks().unwrap() {
             *joystick = None;
             continue;
         }
 
-        if safe_SDL_IsGameController(j - 1) != 0 {
+        if safe_SDL_IsGameController(j as i32 - 1) != 0 {
             *joystick = Some(joyinfo_t::Controller(
-                safe_SDL_GameControllerOpen(j - 1),
+                safe_SDL_GameControllerOpen(j as i32 - 1),
                 j - 1,
             ));
         } else {
-            *joystick = Some(joyinfo_t::Joy(safe_SDL_JoystickOpen(j - 1), j - 1));
+            *joystick = Some(joyinfo_t::Joy(safe_SDL_JoystickOpen(j as i32 - 1), j - 1));
         }
     }
 }
