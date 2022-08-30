@@ -51,8 +51,8 @@ pub struct PcrlibCState<'t> {
     pub mouseEvent: bool,
     pub demobuffer: [u8; 5000],
     pub demoptr: usize,
-    pub democount: i32,
-    pub lastdemoval: i32,
+    // pub democount: i32,            // Rust port: Never used
+    // pub lastdemoval: i32,          // Rust port: Never used
     pub lastkey: SDL_Scancode,
     // pub window: Window, // Rust port: not needed, as we can get the ref from the renderer
     // Rust port: the Option here is quite ugly, but needed in order to perform drop on _quit().
@@ -114,8 +114,6 @@ impl<'t> PcrlibCState<'t> {
             mouseEvent: false,
             demobuffer: [0; 5000],
             demoptr: 0,
-            democount: 0,
-            lastdemoval: 0,
             lastkey: SDL_SCANCODE_UNKNOWN,
             renderer: Some(renderer),
             sdltexture,
