@@ -86,7 +86,7 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &SdlManager) {
 =======================
 */
 
-pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: SdlManager) {
+pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: &mut SdlManager) {
     unsafe {
         let userdata = &*userdata;
 
@@ -97,7 +97,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: SdlManag
                 // invoked only once a a time.
                 let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
 
-                _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
+                _quit(None, &mut *userdata.pas, &mut *userdata.pcs, sdl);
             }
             Event::Window {
                 win_event: WindowEvent::FocusLost,
@@ -1565,7 +1565,12 @@ pub fn _setupgame<'tc, 'ts>(
 //
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
 // In the original version, there are two cases - out of memory, and a certain EXE file not found.
-pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn _quit(
+    error: Option<String>,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+    sdl: &mut SdlManager,
+) {
     if let Some(error) = &error {
         print!("{}", error);
         println!();

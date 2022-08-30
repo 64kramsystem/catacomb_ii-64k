@@ -533,7 +533,7 @@ pub fn dofkeys(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut key = bioskey(1, pcs, sdl);
     // make ESC into F10
@@ -665,7 +665,7 @@ pub fn dofkeys(
             print_str("QUIT (Y/N)?", gs, pcs);
             let ch = (get(gs, pcs, sdl) as u8).to_ascii_uppercase() as i8;
             if ch == 'Y' as i8 {
-                _quit(None, pas, pcs);
+                _quit(None, pas, pcs, sdl);
             }
         }
         _ => return,
@@ -681,7 +681,7 @@ fn dotitlepage(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14, gs, cps, pcs);
@@ -757,7 +757,7 @@ fn dodemo(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut i: i32 = 0;
     while !gs.exitdemo {
@@ -807,7 +807,7 @@ fn gameover(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut i: i32 = 0;
     expwin(11, 4, gs, pas, pcs);
@@ -854,7 +854,7 @@ fn gameover(
 pub fn original_main() {
     // Rust port: The SDL/Event watch initializations have been moved here, since they must stay in
     // the global scope.
-    let sdl = SdlManager::init_sdl();
+    let mut sdl = SdlManager::init_sdl();
 
     // Rust port: This needs to be on the global scope, because `Timer` lifetime(s) are bound to it;
     // if it's placed inside the SdlManager, the lifetime(s) will be bound to the manager.
@@ -973,9 +973,11 @@ pub fn original_main() {
         pcs: &mut pcs,
     }));
 
+    let mut sdl_clone = sdl.clone();
+
     let _event_watch = sdl
         .event()
-        .add_event_watch(|event| WatchUIEvents(event, userdata, sdl.clone()));
+        .add_event_watch(|event| WatchUIEvents(event, userdata, &mut sdl_clone));
 
     expwin(33, 13, &mut gs, &mut pas, &mut pcs);
     print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);
@@ -998,17 +1000,17 @@ pub fn original_main() {
 
     // go until quit () is called
     loop {
-        dodemo(&mut gs, &mut cps, &mut pas, &mut pcs, &sdl);
+        dodemo(&mut gs, &mut cps, &mut pas, &mut pcs, &mut sdl);
         playsetup(&mut gs, &mut cps, &mut pcs);
         gs.indemo = notdemo;
         gs.gamestate = statetype::ingame;
-        playloop(&mut gs, &mut cps, &mut pas, &mut pcs, &sdl);
+        playloop(&mut gs, &mut cps, &mut pas, &mut pcs, &mut sdl);
         if gs.indemo == notdemo {
             gs.exitdemo = false;
             if pcs.level > numlevels {
                 doendpage(&mut gs, &mut cps, &mut pas, &mut pcs, &sdl); // finished all levels
             }
-            gameover(&mut gs, &mut cps, &mut pas, &mut pcs, &sdl);
+            gameover(&mut gs, &mut cps, &mut pas, &mut pcs, &mut sdl);
         }
     }
 }

@@ -102,7 +102,7 @@ pub fn doall(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     assert!(gs.numobj > 0);
 
