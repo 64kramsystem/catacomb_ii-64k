@@ -11,16 +11,6 @@ extern "C" {
     pub type SDL_semaphore;
 
     fn SDL_IsGameController(joystick_index: i32) -> SDL_bool;
-    fn SDL_GameControllerOpen(joystick_index: i32) -> *mut SDL_GameController;
-    fn SDL_GameControllerGetAxis(
-        gamecontroller: *mut SDL_GameController,
-        axis: SDL_GameControllerAxis,
-    ) -> i16;
-    fn SDL_GameControllerGetButton(
-        gamecontroller: *mut SDL_GameController,
-        button: SDL_GameControllerButton,
-    ) -> u8;
-    fn SDL_GameControllerClose(gamecontroller: *mut SDL_GameController);
     fn SDL_GetError() -> *const i8;
     fn SDL_OpenAudioDevice(
         device: *const i8,
@@ -39,28 +29,6 @@ extern "C" {
 
 pub fn safe_SDL_IsGameController(joystick_index: i32) -> SDL_bool {
     unsafe { SDL_IsGameController(joystick_index) }
-}
-
-pub fn safe_SDL_GameControllerOpen(joystick_index: i32) -> *mut SDL_GameController {
-    unsafe { SDL_GameControllerOpen(joystick_index) }
-}
-
-pub fn safe_SDL_GameControllerGetAxis(
-    gamecontroller: *mut SDL_GameController,
-    axis: SDL_GameControllerAxis,
-) -> i16 {
-    unsafe { SDL_GameControllerGetAxis(gamecontroller, axis) }
-}
-
-pub fn safe_SDL_GameControllerGetButton(
-    gamecontroller: *mut SDL_GameController,
-    button: SDL_GameControllerButton,
-) -> u8 {
-    unsafe { SDL_GameControllerGetButton(gamecontroller, button) }
-}
-
-pub fn safe_SDL_GameControllerClose(gamecontroller: *mut SDL_GameController) {
-    unsafe { SDL_GameControllerClose(gamecontroller) }
 }
 
 pub fn safe_SDL_GetError() -> String {

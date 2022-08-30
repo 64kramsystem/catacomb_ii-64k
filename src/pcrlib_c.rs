@@ -7,6 +7,7 @@ use std::time::Duration;
 use std::{fs, mem, thread};
 
 use ::libc;
+use sdl2::controller::{Axis, Button, GameController};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::joystick::Joystick;
 use sdl2::keyboard::{Keycode, Scancode};
@@ -44,16 +45,8 @@ use crate::{
 
 pub type SDL_bool = u32;
 
-pub type SDL_GameController = _SDL_GameController;
-pub type SDL_GameControllerAxis = i32;
-pub const SDL_CONTROLLER_AXIS_LEFTY: SDL_GameControllerAxis = 1;
-pub const SDL_CONTROLLER_AXIS_LEFTX: SDL_GameControllerAxis = 0;
-pub type SDL_GameControllerButton = i32;
-pub const SDL_CONTROLLER_BUTTON_B: SDL_GameControllerButton = 1;
-pub const SDL_CONTROLLER_BUTTON_A: SDL_GameControllerButton = 0;
-
 pub enum joyinfo_t {
-    Controller(*mut SDL_GameController, u32),
+    Controller(GameController),
     Joy(Joystick),
 }
 
@@ -312,16 +305,9 @@ pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
 
 fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     for joystick in &mut pcs.joystick[1..3] {
-        match joystick {
-            Some(joyinfo_t::Controller(ptr, _)) => {
-                safe_SDL_GameControllerClose(*ptr);
-                *joystick = None;
-            }
-            Some(joyinfo_t::Joy(_)) => {
-                // Rust port: Dropping the instance will close it.
-                *joystick = None;
-            }
-            None => {}
+        if joystick.is_some() {
+            // Rust port: Dropping the instance will close it.
+            *joystick = None;
         }
     }
 }
@@ -350,10 +336,8 @@ pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
         }
 
         if safe_SDL_IsGameController(j as i32 - 1) != 0 {
-            *joystick = Some(joyinfo_t::Controller(
-                safe_SDL_GameControllerOpen(j as i32 - 1),
-                j - 1,
-            ));
+            let controller = sdl.game_controller().open(j - 1).unwrap();
+            *joystick = Some(joyinfo_t::Controller(controller));
         } else {
             let joy = sdl.joystick().open(j - 1).unwrap();
             *joystick = Some(joyinfo_t::Joy(joy));
@@ -386,9 +370,9 @@ pub fn ReadJoystick(
     sdl.joystick().update();
 
     match &pcs.joystick[joynum as usize] {
-        Some(joyinfo_t::Controller(ptr, _)) => {
-            a1 = safe_SDL_GameControllerGetAxis(*ptr, SDL_CONTROLLER_AXIS_LEFTX) as i32;
-            a2 = safe_SDL_GameControllerGetAxis(*ptr, SDL_CONTROLLER_AXIS_LEFTY) as i32;
+        Some(joyinfo_t::Controller(controller)) => {
+            a1 = controller.axis(Axis::LeftX) as i32;
+            a2 = controller.axis(Axis::LeftY) as i32;
         }
         Some(joyinfo_t::Joy(joystick)) => {
             a1 = joystick.axis(0).unwrap() as i32;
@@ -424,9 +408,9 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState, sdl: &RcSdl) -> Cont
 
     /* get all four button status */
     match &pcs.joystick[joynum as usize] {
-        Some(joyinfo_t::Controller(ptr, _)) => {
-            action.button1 = safe_SDL_GameControllerGetButton(*ptr, SDL_CONTROLLER_BUTTON_A) != 0;
-            action.button2 = safe_SDL_GameControllerGetButton(*ptr, SDL_CONTROLLER_BUTTON_B) != 0;
+        Some(joyinfo_t::Controller(controller)) => {
+            action.button1 = controller.button(Button::A);
+            action.button2 = controller.button(Button::B);
         }
         Some(joyinfo_t::Joy(joystick)) => {
             action.button1 = joystick.button(0).unwrap();
