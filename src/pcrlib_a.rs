@@ -224,7 +224,7 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
     if pas.AudioDev == 0 {
         println!("Audio initialization failed: {:?}", safe_SDL_GetError());
         pas.soundmode = off;
-        pas._dontplay = 1;
+        pas._dontplay = true;
         return;
     }
 
@@ -235,7 +235,7 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
 }
 
 pub fn ShutdownSound(pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     _SDL_ShutPC(pas);
@@ -243,7 +243,7 @@ pub fn ShutdownSound(pas: &mut PcrlibAState) {
 }
 
 pub fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     if pas.SoundData.sounds[(sound - 1) as usize].priority as i32 >= pas.SndPriority as i32 {
@@ -254,14 +254,14 @@ pub fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
 // Rust port: unused.
 //
 // fn StopSound(pas: &mut PcrlibAState) {
-//     if pas._dontplay != 0 {
+//     if pas._dontplay {
 //         return;
 //     }
 //     _SDL_PCStopSound(pas);
 // }
 
 pub fn PauseSound(pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     let _lock = AudioMutex.lock().unwrap();
@@ -276,7 +276,7 @@ pub fn PauseSound(pas: &mut PcrlibAState) {
 }
 
 pub fn ContinueSound(pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     pas.pcPhaseTick = 0;
@@ -288,7 +288,7 @@ pub fn ContinueSound(pas: &mut PcrlibAState) {
 }
 
 pub fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     UpdateScreen(gs, pcs);

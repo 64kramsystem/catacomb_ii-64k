@@ -24,7 +24,7 @@ pub struct PcrlibAState<'a> {
     // //////////////////////////////////////////////////////////
 
     pub SndPriority: u8,
-    pub _dontplay: i32,
+    pub _dontplay: bool,
     // Rust port: The audio mutex has been moved to be in the `pcrlib_a` module scope, in order to
     // avoid borrowing contention on the PcrlibAState instance.
     pub AudioSpec: SDL_AudioSpec,
@@ -81,7 +81,7 @@ impl<'a> PcrlibAState<'a> {
     ) -> Self {
         Self {
             SndPriority: 0,
-            _dontplay: 0,
+            _dontplay: false,
             AudioSpec: SDL_AudioSpec {
                 freq: 0,
                 format: 0,
