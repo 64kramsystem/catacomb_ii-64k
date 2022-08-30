@@ -8,10 +8,8 @@ use sdl2::{
     JoystickSubsystem, Sdl, TimerSubsystem, VideoSubsystem,
 };
 
-/// Rust port: A type that wraps the Sdl instance in a Rc, and implements a few subsystem methods,
-/// in order to de-clutter its usage.
 #[derive(Clone)]
-pub struct RcSdl {
+pub struct SdlManager {
     /// The Rc is necessary in order to be used in Sdl events.
     sdl: Rc<Sdl>,
     // The following need to stay in scope (at least currently).
@@ -24,7 +22,7 @@ pub struct RcSdl {
     event_pump: Rc<RefCell<EventPump>>,
 }
 
-impl RcSdl {
+impl SdlManager {
     pub fn init_sdl() -> Self {
         let sdl = sdl2::init().expect("Failed to initialize SDL");
 
@@ -45,7 +43,7 @@ impl RcSdl {
     }
 }
 
-impl RcSdl {
+impl SdlManager {
     pub fn video(&self) -> VideoSubsystem {
         self.sdl.video().unwrap()
     }

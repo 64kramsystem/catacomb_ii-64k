@@ -11,7 +11,7 @@ use crate::{
     pcrlib_a_state::PcrlibAState,
     pcrlib_c::UpdateScreen,
     pcrlib_c_state::PcrlibCState,
-    rc_sdl::RcSdl,
+    sdl_manager::SdlManager,
 };
 
 //========================================================================
@@ -102,7 +102,7 @@ pub fn doall(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     assert!(gs.numobj > 0);
 

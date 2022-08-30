@@ -19,7 +19,7 @@ use crate::{
     pcrlib_c_state::PcrlibCState,
     pic_file_type::picfiletype,
     pic_type::pictype,
-    rc_sdl::RcSdl,
+    sdl_manager::SdlManager,
     scan_codes::*,
     sprite_type::spritetype,
 };
@@ -39,7 +39,7 @@ fn calibratejoy(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
@@ -150,7 +150,7 @@ fn calibratemouse(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut ch: i8 = 0;
     expwin(24, 5, gs, pas, pcs);
@@ -241,7 +241,7 @@ fn calibratekeys(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
@@ -322,7 +322,7 @@ fn calibratekeys(
     erasewindow(gs, pcs);
 }
 
-pub fn getconfig(cps: &mut CpanelState, sdl: &RcSdl) {
+pub fn getconfig(cps: &mut CpanelState, sdl: &SdlManager) {
     cps.spotok[0][0] = true;
     cps.spotok[0][1] = _egaok;
     cps.spotok[0][2] = _vgaok;
@@ -344,7 +344,12 @@ pub fn getconfig(cps: &mut CpanelState, sdl: &RcSdl) {
     cps.spotok[2][4] = false;
 }
 
-fn drawpanel(gs: &mut GlobalState, cps: &mut CpanelState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
+fn drawpanel(
+    gs: &mut GlobalState,
+    cps: &mut CpanelState,
+    pcs: &mut PcrlibCState,
+    sdl: &SdlManager,
+) {
     pcs.leftedge = 1;
     // pas.xormask = 0; // Rust port: Never read
     pcs.sx = 8;
@@ -417,7 +422,7 @@ pub fn controlpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;

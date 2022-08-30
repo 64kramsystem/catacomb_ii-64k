@@ -25,7 +25,7 @@ use crate::input_type::inputtype::*;
 use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
 use crate::pcrlib_c_state::PcrlibCState;
-use crate::rc_sdl::RcSdl;
+use crate::sdl_manager::SdlManager;
 use crate::sound_type::soundtype::{self, *};
 use crate::spkr_table::SPKRtable;
 use crate::{
@@ -54,7 +54,7 @@ pub enum joyinfo_t {
 //     }
 // }
 
-pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &SdlManager) {
     pcs.mouseEvent = false;
 
     for event in sdl.event_pump().poll_iter() {
@@ -84,7 +84,7 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &RcSdl) {
 =======================
 */
 
-pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
+pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: SdlManager) {
     unsafe {
         let userdata = &*userdata;
 
@@ -217,7 +217,7 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
 ============================
 */
 
-pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
+pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &SdlManager) -> ControlStruct {
     /* mickeys the mouse has moved */
 
     let mut action: ControlStruct = ControlStruct {
@@ -322,7 +322,7 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
 ===============================
 */
 
-pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &SdlManager) {
     // Rust port: The conditional is unnecessary, since ShutdownJoystcisk will skip empty slots.
     if pcs.joystick[1].is_some() || pcs.joystick[2].is_some() {
         ShutdownJoysticks(pcs);
@@ -360,7 +360,7 @@ pub fn ReadJoystick(
     xcount: &mut i32,
     ycount: &mut i32,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut a1: i32 = 0;
     let mut a2: i32 = 0;
@@ -394,7 +394,7 @@ pub fn ReadJoystick(
 =============================
 */
 
-pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
+pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState, sdl: &SdlManager) -> ControlStruct {
     let mut joyx: i32 = 0;
     let mut joyy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -484,7 +484,7 @@ pub fn ControlPlayer(
     player: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
@@ -566,7 +566,7 @@ pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 /*=========================================================================*/
 
-pub fn clearkeys(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn clearkeys(pcs: &mut PcrlibCState, sdl: &SdlManager) {
     while bioskey(1, pcs, sdl) != 0 {
         bioskey(0, pcs, sdl);
     }
@@ -792,7 +792,7 @@ fn expwinv(
 //
 /////////////////////////
 
-pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &RcSdl) -> u32 {
+pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
     if pcs.lastkey != 0 {
         let oldkey = pcs.lastkey;
         if cmd != 1 {
@@ -854,7 +854,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.renderer.as_mut().unwrap().present();
 }
 
-pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) -> i32 {
+pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> i32 {
     let mut key = 0;
 
     loop {
@@ -1013,7 +1013,7 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) -> u32 {
+pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
@@ -1062,7 +1062,7 @@ fn _input(
     max: usize,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
@@ -1128,7 +1128,7 @@ pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
 }
 
 // Enable and disable mouse grabbing
-pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &SdlManager) {
     sdl.mouse().set_relative_mouse_mode(
         pcs.hasFocus && (pcs.playermode[1] == mouse || pcs.playermode[2] == mouse),
     )
@@ -1142,7 +1142,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &RcSdl) {
 //
 ////////////////////////
 
-pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     let str = format!("CTLPANEL.{port_temp__extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
@@ -1321,7 +1321,7 @@ pub fn _checkhighscore(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
@@ -1391,7 +1391,7 @@ pub fn _setupgame<'s, 't>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState<'s>,
-    sdl: &'s RcSdl,
+    sdl: &'s SdlManager,
     texture_creator: &'t mut Option<TextureCreator<WindowContext>>,
 ) -> PcrlibCState<'t> {
     let mut windowed = false;

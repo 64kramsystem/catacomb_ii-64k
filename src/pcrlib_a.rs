@@ -9,7 +9,7 @@ use sdl2::sys::AUDIO_S16;
 use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, global_state::GlobalState,
     gr_type::grtype::*, pcrlib_a_state::PcrlibAState, pcrlib_c::UpdateScreen,
-    pcrlib_c_state::PcrlibCState, rc_sdl::RcSdl, safe_sdl::*, sound_type::soundtype::*,
+    pcrlib_c_state::PcrlibCState, sdl_manager::SdlManager, safe_sdl::*, sound_type::soundtype::*,
     spkr_table::SPKRtable,
 };
 
@@ -402,7 +402,7 @@ fn VBLCallback() -> u32 {
 //     safe_SDL_DestroySemaphore(pas.vblsem);
 // }
 
-pub fn SetupEmulatedVBL<'a>(pas: &mut PcrlibAState<'a>, sdl: &'a RcSdl) {
+pub fn SetupEmulatedVBL<'a>(pas: &mut PcrlibAState<'a>, sdl: &'a SdlManager) {
     // Rust port: No need to create the semaphore here
 
     pas.vbltimer = Some(sdl.timer().add_timer(VBL_TIME, Box::new(VBLCallback)));

@@ -28,7 +28,7 @@ use crate::{
         loadFile, print_str, printchartile, SDLEventPayload, WatchUIEvents,
     },
     pcrlib_c_state::PcrlibCState,
-    rc_sdl::RcSdl,
+    sdl_manager::SdlManager,
     rleasm::RLEExpand,
     scan_codes::*,
     state_type::statetype,
@@ -140,7 +140,7 @@ pub fn restore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     simplerefresh(gs, pcs);
 }
 
-fn wantmore(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) -> bool {
+fn wantmore(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> bool {
     pcs.sx = 2;
     pcs.sy = 20;
     print_str("(space for more/esc)", gs, pcs);
@@ -187,7 +187,7 @@ fn charpic(
     }
 }
 
-fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
+fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     centerwindow(20, 20, gs, pcs);
@@ -321,7 +321,7 @@ fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
 /* reset */
 /*       */
 #[allow(dead_code)]
-fn reset(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
+fn reset(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     centerwindow(18, 1, gs, pcs);
     print_str("reset game (y/n)?", gs, pcs);
     let ch = get(gs, pcs, sdl) as i8;
@@ -533,7 +533,7 @@ pub fn dofkeys(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut key = bioskey(1, pcs, sdl);
     // make ESC into F10
@@ -681,7 +681,7 @@ fn dotitlepage(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut i: i32 = 0;
     drawpic(0, 0, 14, gs, cps, pcs);
@@ -719,7 +719,7 @@ fn doendpage(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     WaitEndSound(gs, pas, pcs);
     drawpic(0, 0, 15, gs, cps, pcs);
@@ -757,7 +757,7 @@ fn dodemo(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut i: i32 = 0;
     while !gs.exitdemo {
@@ -807,7 +807,7 @@ fn gameover(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut i: i32 = 0;
     expwin(11, 4, gs, pas, pcs);
@@ -854,7 +854,7 @@ fn gameover(
 pub fn original_main() {
     // Rust port: The SDL/Event watch initializations have been moved here, since they must stay in
     // the global scope.
-    let sdl = RcSdl::init_sdl();
+    let sdl = SdlManager::init_sdl();
 
     // Rust port: Option<TextureCreator<_>> is a workaround necessary to allow Texture live within
     // PcrlibCState, as a texture's lifetime is bound to its texture creator, which therefore needs
