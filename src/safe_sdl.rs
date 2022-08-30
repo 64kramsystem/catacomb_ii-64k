@@ -3,14 +3,11 @@
 
 use std::ffi::CStr;
 
-use crate::{pcrlib_a::SDL_AudioSpec, pcrlib_c::*};
+use crate::pcrlib_a::SDL_AudioSpec;
 
 extern "C" {
-    pub type _SDL_Joystick;
-    pub type _SDL_GameController;
     pub type SDL_semaphore;
 
-    fn SDL_IsGameController(joystick_index: i32) -> SDL_bool;
     fn SDL_GetError() -> *const i8;
     fn SDL_OpenAudioDevice(
         device: *const i8,
@@ -26,10 +23,6 @@ extern "C" {
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 // DIRECT SDL APIS
 // //////////////////////////////////////////////////////////////////////////////////////////////////
-
-pub fn safe_SDL_IsGameController(joystick_index: i32) -> SDL_bool {
-    unsafe { SDL_IsGameController(joystick_index) }
-}
 
 pub fn safe_SDL_GetError() -> String {
     unsafe {

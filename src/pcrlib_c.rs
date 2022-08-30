@@ -38,12 +38,9 @@ use crate::{
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_a::{drawchar, PlaySound, ShutdownSound, WaitVBL},
-    safe_sdl::*,
     scan_codes::*,
     scores::scores,
 };
-
-pub type SDL_bool = u32;
 
 pub enum joyinfo_t {
     Controller(GameController),
@@ -335,7 +332,7 @@ pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
             continue;
         }
 
-        if safe_SDL_IsGameController(j as i32 - 1) != 0 {
+        if sdl.game_controller().is_game_controller(j - 1) {
             let controller = sdl.game_controller().open(j - 1).unwrap();
             *joystick = Some(joyinfo_t::Controller(controller));
         } else {
