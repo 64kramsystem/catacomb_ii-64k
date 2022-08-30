@@ -17,8 +17,8 @@ use crate::{
         print_str, RecordDemo, SaveDemo,
     },
     pcrlib_c_state::PcrlibCState,
-    sdl_manager::SdlManager,
     scan_codes::*,
+    sdl_manager::SdlManager,
     tag_type::tagtype::*,
 };
 

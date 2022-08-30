@@ -28,9 +28,9 @@ use crate::{
         loadFile, print_str, printchartile, SDLEventPayload, WatchUIEvents,
     },
     pcrlib_c_state::PcrlibCState,
-    sdl_manager::SdlManager,
     rleasm::RLEExpand,
     scan_codes::*,
+    sdl_manager::SdlManager,
     state_type::statetype,
 };
 

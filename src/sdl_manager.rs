@@ -11,7 +11,7 @@ use sdl2::{
 #[derive(Clone)]
 pub struct SdlManager {
     /// The Rc is necessary in order to be used in Sdl events.
-    sdl: Rc<Sdl>,
+    sdl: Rc<Option<Sdl>>,
     // The following need to stay in scope (at least currently).
     _audio: AudioSubsystem,
     joystick: JoystickSubsystem,
@@ -33,7 +33,7 @@ impl SdlManager {
         let event_pump = Rc::new(RefCell::new(sdl.event_pump().unwrap()));
 
         Self {
-            sdl: Rc::new(sdl),
+            sdl: Rc::new(Some(sdl)),
             _audio: audio,
             joystick,
             game_controller,
@@ -45,7 +45,7 @@ impl SdlManager {
 
 impl SdlManager {
     pub fn video(&self) -> VideoSubsystem {
-        self.sdl.video().unwrap()
+        self.sdl().video().unwrap()
     }
 
     pub fn timer(&self) -> &TimerSubsystem {
@@ -61,14 +61,18 @@ impl SdlManager {
     }
 
     pub fn event(&self) -> EventSubsystem {
-        self.sdl.event().unwrap()
+        self.sdl().event().unwrap()
     }
 
     pub fn mouse(&self) -> MouseUtil {
-        self.sdl.mouse()
+        self.sdl().mouse()
     }
 
     pub fn event_pump(&self) -> RefMut<EventPump> {
         (*self.event_pump).borrow_mut()
+    }
+
+    fn sdl(&self) -> &Sdl {
+        (*self.sdl).as_ref().unwrap()
     }
 }
