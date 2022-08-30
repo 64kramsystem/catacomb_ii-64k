@@ -6,8 +6,6 @@ use std::ffi::CStr;
 use crate::pcrlib_a::SDL_AudioSpec;
 
 extern "C" {
-    pub type SDL_semaphore;
-
     fn SDL_GetError() -> *const i8;
     fn SDL_OpenAudioDevice(
         device: *const i8,

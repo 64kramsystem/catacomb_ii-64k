@@ -2,7 +2,6 @@ use sdl2::timer::Timer;
 
 use crate::{
     pcrlib_a::{SDL_AudioSpec, SavedSoundStruct},
-    safe_sdl::SDL_semaphore,
     sound_type::soundtype,
     sound_type::soundtype::*,
     spkr_table::SPKRtable,
@@ -46,7 +45,6 @@ pub struct PcrlibAState<'a> {
     pub indexj: u16,
     pub LastRnd: u16,
     pub RndArray: [u16; 17],
-    pub vblsem: *mut SDL_semaphore,
     pub vbltimer: Option<Timer<'a, 'a>>,
 
     // //////////////////////////////////////////////////////////
@@ -116,7 +114,6 @@ impl<'a> PcrlibAState<'a> {
             indexj: 0,
             LastRnd: 0,
             RndArray: [0; 17],
-            vblsem: 0 as *mut SDL_semaphore,
             vbltimer: None,
             SoundData: SPKRtable::default(),
             soundmode: spkr,
