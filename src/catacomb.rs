@@ -856,6 +856,10 @@ pub fn original_main() {
     // the global scope.
     let sdl = SdlManager::init_sdl();
 
+    // Rust port: This needs to be on the global scope, because `Timer` lifetime(s) are bound to it;
+    // if it's placed inside the SdlManager, the lifetime(s) will be bound to the manager.
+    let timer_sys = sdl.timer();
+
     // Rust port: Option<TextureCreator<_>> is a workaround necessary to allow Texture live within
     // PcrlibCState, as a texture's lifetime is bound to its texture creator, which therefore needs
     // to be in a higher scope; this is a problem because both the variables TextureCreator depends
@@ -955,7 +959,14 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
-    let mut pcs = _setupgame(&mut gs, &mut cps, &mut pas, &sdl, &mut texture_creator);
+    let (mut pcs, _vbl_timer) = _setupgame(
+        &mut gs,
+        &mut cps,
+        &mut pas,
+        &sdl,
+        &mut texture_creator,
+        &timer_sys,
+    );
 
     let userdata = Box::into_raw(Box::new(SDLEventPayload {
         pas: &mut pas,

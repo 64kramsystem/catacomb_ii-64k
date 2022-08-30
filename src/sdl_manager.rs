@@ -16,8 +16,6 @@ pub struct SdlManager {
     _audio: AudioSubsystem,
     joystick: JoystickSubsystem,
     game_controller: GameControllerSubsystem,
-    // This also needs to stay in scope due to lifetimes
-    timer: TimerSubsystem,
     // This needs to stay in scope because there can be only one.
     event_pump: Rc<RefCell<EventPump>>,
 }
@@ -29,7 +27,6 @@ impl SdlManager {
         let audio = sdl.audio().unwrap();
         let joystick = sdl.joystick().unwrap();
         let game_controller = sdl.game_controller().unwrap();
-        let timer = sdl.timer().unwrap();
         let event_pump = Rc::new(RefCell::new(sdl.event_pump().unwrap()));
 
         Self {
@@ -37,7 +34,6 @@ impl SdlManager {
             _audio: audio,
             joystick,
             game_controller,
-            timer,
             event_pump,
         }
     }
@@ -48,8 +44,8 @@ impl SdlManager {
         self.sdl().video().unwrap()
     }
 
-    pub fn timer(&self) -> &TimerSubsystem {
-        &self.timer
+    pub fn timer(&self) -> TimerSubsystem {
+        self.sdl().timer().unwrap()
     }
 
     pub fn joystick(&self) -> &JoystickSubsystem {

@@ -4,13 +4,12 @@ use std::{
 };
 
 use ::libc;
-use sdl2::sys::AUDIO_S16;
+use sdl2::{sys::AUDIO_S16, timer::Timer, TimerSubsystem};
 
 use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, global_state::GlobalState,
     gr_type::grtype::*, pcrlib_a_state::PcrlibAState, pcrlib_c::UpdateScreen,
-    pcrlib_c_state::PcrlibCState, sdl_manager::SdlManager, safe_sdl::*, sound_type::soundtype::*,
-    spkr_table::SPKRtable,
+    pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*, spkr_table::SPKRtable,
 };
 
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
@@ -402,10 +401,10 @@ fn VBLCallback() -> u32 {
 //     safe_SDL_DestroySemaphore(pas.vblsem);
 // }
 
-pub fn SetupEmulatedVBL<'a>(pas: &mut PcrlibAState<'a>, sdl: &'a SdlManager) {
+pub fn SetupEmulatedVBL(timer_sys: &TimerSubsystem) -> Timer<'_, '_> {
     // Rust port: No need to create the semaphore here
 
-    pas.vbltimer = Some(sdl.timer().add_timer(VBL_TIME, Box::new(VBLCallback)));
+    timer_sys.add_timer(VBL_TIME, Box::new(VBLCallback))
 
     // Disabled; see comment on ShutdownEmulatedVBL().
     // safe_register_shutdown_vbl_on_exit();

@@ -15,7 +15,9 @@ use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::{TextureAccess, TextureCreator};
 use sdl2::sys::SDL_WindowFlags;
+use sdl2::timer::Timer;
 use sdl2::video::WindowContext;
+use sdl2::TimerSubsystem;
 use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
@@ -1377,7 +1379,7 @@ const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
 pub struct SDLEventPayload<'t> {
-    pub pas: *mut PcrlibAState<'t>,
+    pub pas: *mut PcrlibAState,
     pub pcs: *mut PcrlibCState<'t>,
 }
 
@@ -1387,13 +1389,14 @@ pub struct SDLEventPayload<'t> {
 //
 ////////////////////
 
-pub fn _setupgame<'s, 't>(
+pub fn _setupgame<'tc, 'ts>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
-    pas: &mut PcrlibAState<'s>,
-    sdl: &'s SdlManager,
-    texture_creator: &'t mut Option<TextureCreator<WindowContext>>,
-) -> PcrlibCState<'t> {
+    pas: &mut PcrlibAState,
+    sdl: &SdlManager,
+    texture_creator: &'tc mut Option<TextureCreator<WindowContext>>,
+    timer_sys: &'ts TimerSubsystem,
+) -> (PcrlibCState<'tc>, Timer<'ts, 'ts>) {
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
@@ -1542,9 +1545,12 @@ pub fn _setupgame<'s, 't>(
 
     loadgrfiles(gs, cps, &mut pcs);
 
-    SetupEmulatedVBL(pas, &sdl);
+    // Rust port: This needs to stay outside a global state instance, otherwise the lifetime becomes
+    // too restrictive. It doesn't make much sense anyway, to keep it there, since it's not associated
+    // to a specific scope.
+    let _vbl_timer = SetupEmulatedVBL(timer_sys);
 
-    pcs
+    (pcs, _vbl_timer)
 }
 
 ////////////////////
