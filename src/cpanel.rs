@@ -19,7 +19,7 @@ use crate::{
     pcrlib_c_state::PcrlibCState,
     pic_file_type::picfiletype,
     pic_type::pictype,
-    rc_sdl::RcSdl,
+    sdl_manager::SdlManager,
     scan_codes::*,
     sprite_type::spritetype,
 };
@@ -39,7 +39,7 @@ fn calibratejoy(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
@@ -72,8 +72,8 @@ fn calibratejoy(
             stage = 15;
         }
         ProcessEvents(pcs, sdl);
-        ReadJoystick(joynum, &mut xl, &mut yl, pcs);
-        ctr = ControlJoystick(joynum, pcs);
+        ReadJoystick(joynum, &mut xl, &mut yl, pcs, sdl);
+        ctr = ControlJoystick(joynum, pcs, sdl);
         if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
             current_block = 15976468122069307450;
             break;
@@ -87,7 +87,7 @@ fn calibratejoy(
         8457315219000651999 => {
             drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
             loop {
-                ctr = ControlJoystick(joynum, pcs);
+                ctr = ControlJoystick(joynum, pcs, sdl);
                 if !ctr.button1 {
                     break;
                 }
@@ -109,8 +109,8 @@ fn calibratejoy(
                     stage = 15;
                 }
                 ProcessEvents(pcs, sdl);
-                ReadJoystick(joynum, &mut xh, &mut yh, pcs);
-                ctr = ControlJoystick(joynum, pcs);
+                ReadJoystick(joynum, &mut xh, &mut yh, pcs, sdl);
+                ctr = ControlJoystick(joynum, pcs, sdl);
                 if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
                     current_block = 15976468122069307450;
                     break;
@@ -125,7 +125,7 @@ fn calibratejoy(
                 _ => {
                     drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
                     loop {
-                        ctr = ControlJoystick(joynum, pcs);
+                        ctr = ControlJoystick(joynum, pcs, sdl);
                         if !ctr.button1 {
                             break;
                         }
@@ -150,7 +150,7 @@ fn calibratemouse(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut ch: i8 = 0;
     expwin(24, 5, gs, pas, pcs);
@@ -241,7 +241,7 @@ fn calibratekeys(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
@@ -322,7 +322,7 @@ fn calibratekeys(
     erasewindow(gs, pcs);
 }
 
-pub fn getconfig(cps: &mut CpanelState, sdl: &RcSdl) {
+pub fn getconfig(cps: &mut CpanelState, sdl: &SdlManager) {
     cps.spotok[0][0] = true;
     cps.spotok[0][1] = _egaok;
     cps.spotok[0][2] = _vgaok;
@@ -347,12 +347,11 @@ pub fn getconfig(cps: &mut CpanelState, sdl: &RcSdl) {
 fn drawpanel(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
-    pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     pcs.leftedge = 1;
-    pas.xormask = 0;
+    // pas.xormask = 0; // Rust port: Never read
     pcs.sx = 8;
     pcs.sy = 2;
     print_str("       Control Panel      \n\r", gs, pcs);
@@ -423,7 +422,7 @@ pub fn controlpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
@@ -444,7 +443,7 @@ pub fn controlpanel(
     gs.screencenter.x = 19;
     gs.screencenter.y = 11;
     drawwindow(0, 0, 39, 24, gs, pcs);
-    drawpanel(gs, cps, pas, pcs, sdl);
+    drawpanel(gs, cps, pcs, sdl);
     cps.row = 0;
     cps.collumn = pcs.grmode as i32 - 1;
     loop {
@@ -503,7 +502,7 @@ pub fn controlpanel(
                         pcs.grmode = cps.newgrmode;
                         loadgrfiles(gs, cps, pcs);
                         drawwindow(0, 0, 39, 24, gs, pcs);
-                        drawpanel(gs, cps, pas, pcs, sdl);
+                        drawpanel(gs, cps, pcs, sdl);
                     }
                 }
                 1 => {
@@ -534,7 +533,7 @@ pub fn controlpanel(
                     } else if cps.newplayermode[1] as u32 == joystick2 as i32 as u32 {
                         calibratejoy(2, gs, pas, pcs, sdl);
                     }
-                    drawpanel(gs, cps, pas, pcs, sdl);
+                    drawpanel(gs, cps, pcs, sdl);
                 }
                 _ => {}
             }

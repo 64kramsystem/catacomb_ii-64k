@@ -3,18 +3,21 @@ use std::ffi::CString;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::time::Duration;
-use std::{fs, mem, thread};
+use std::{fs, mem};
 
 use ::libc;
+use sdl2::controller::{Axis, Button, GameController};
 use sdl2::event::{Event, WindowEvent};
+use sdl2::joystick::Joystick;
 use sdl2::keyboard::{Keycode, Scancode};
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
 use sdl2::render::{TextureAccess, TextureCreator};
 use sdl2::sys::SDL_WindowFlags;
+use sdl2::timer::Timer;
 use sdl2::video::WindowContext;
+use sdl2::TimerSubsystem;
 use serdine::{Deserialize, Serialize};
 
 use crate::catacomb::loadgrfiles;
@@ -24,7 +27,7 @@ use crate::input_type::inputtype::*;
 use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
 use crate::pcrlib_c_state::PcrlibCState;
-use crate::rc_sdl::RcSdl;
+use crate::sdl_manager::SdlManager;
 use crate::sound_type::soundtype::{self, *};
 use crate::spkr_table::SPKRtable;
 use crate::{
@@ -35,27 +38,14 @@ use crate::{
     extra_constants::port_temp__extension,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
-    pcrlib_a::{drawchar, PlaySound, ShutdownSound, WaitVBL},
-    safe_sdl::*,
+    pcrlib_a::{drawchar, PlaySound, WaitVBL},
     scan_codes::*,
     scores::scores,
 };
 
-pub type SDL_bool = u32;
-
-pub type SDL_Joystick = _SDL_Joystick;
-pub type SDL_GameController = _SDL_GameController;
-pub type SDL_GameControllerAxis = i32;
-pub const SDL_CONTROLLER_AXIS_LEFTY: SDL_GameControllerAxis = 1;
-pub const SDL_CONTROLLER_AXIS_LEFTX: SDL_GameControllerAxis = 0;
-pub type SDL_GameControllerButton = i32;
-pub const SDL_CONTROLLER_BUTTON_B: SDL_GameControllerButton = 1;
-pub const SDL_CONTROLLER_BUTTON_A: SDL_GameControllerButton = 0;
-
-#[derive(Clone, Copy)]
 pub enum joyinfo_t {
-    Controller(*mut SDL_GameController, i32),
-    Joy(*mut SDL_Joystick, i32),
+    Controller(GameController),
+    Joy(Joystick),
 }
 
 // Rust port: unnecessary in Rust (false is the default)
@@ -66,7 +56,7 @@ pub enum joyinfo_t {
 //     }
 // }
 
-pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &SdlManager) {
     pcs.mouseEvent = false;
 
     for event in sdl.event_pump().poll_iter() {
@@ -96,7 +86,7 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &RcSdl) {
 =======================
 */
 
-pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
+pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: &mut SdlManager) {
     unsafe {
         let userdata = &*userdata;
 
@@ -107,7 +97,7 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
                 // invoked only once a a time.
                 let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
 
-                _quit(None, &mut *userdata.pas, &mut *userdata.pcs);
+                _quit(None, &mut *userdata.pas, &mut *userdata.pcs, sdl);
             }
             Event::Window {
                 win_event: WindowEvent::FocusLost,
@@ -123,19 +113,24 @@ pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: RcSdl) {
             } => {
                 let pcs = &mut *userdata.pcs;
 
-                // Try to wait until the window obtains mouse focus before
-                // regrabbing input in order to try to prevent grabbing while
-                // the user is trying to move the window around.
-                while sdl.mouse().focused_window_id()
-                    != Some(pcs.renderer.as_ref().unwrap().window().id())
-                {
-                    sdl.event_pump().pump_events();
-                    // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
-                    // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
-                    // because `Timer#delay()` requires a mutable sdl instance, which is a problem
-                    // when the timer instance is owned by RcSdl.
-                    thread::sleep(Duration::from_millis(10));
-                }
+                // Rust port: Currently disabled, as this may not be correct (it may be running in a
+                // separate thread, which is discouraged), or at least improper (it may not be the
+                // appropriate way to handle focus). In Rust, is causes a BCK error, since the event
+                // pump can't be accessed by both the main thread and this callback.
+                //
+                // // Try to wait until the window obtains mouse focus before
+                // // regrabbing input in order to try to prevent grabbing while
+                // // the user is trying to move the window around.
+                // while sdl.mouse().focused_window_id()
+                //     != Some(pcs.renderer.as_ref().unwrap().window().id())
+                // {
+                //     sdl.event_pump().pump_events();
+                //     // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
+                //     // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
+                //     // because `Timer#delay()` requires a mutable sdl instance, which is a problem
+                //     // when the timer instance is owned by RcSdl.
+                //     thread::sleep(Duration::from_millis(10));
+                // }
 
                 pcs.hasFocus = true;
                 CheckMouseMode(pcs, &sdl);
@@ -224,7 +219,7 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
 ============================
 */
 
-pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
+pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &SdlManager) -> ControlStruct {
     /* mickeys the mouse has moved */
 
     let mut action: ControlStruct = ControlStruct {
@@ -313,16 +308,9 @@ pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &RcSdl) -> ControlStruct {
 
 fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
     for joystick in &mut pcs.joystick[1..3] {
-        match joystick {
-            Some(joyinfo_t::Controller(ptr, _)) => {
-                safe_SDL_GameControllerClose(*ptr);
-                *joystick = None;
-            }
-            Some(joyinfo_t::Joy(ptr, _)) => {
-                safe_SDL_JoystickClose(*ptr);
-                *joystick = None;
-            }
-            None => {}
+        if joystick.is_some() {
+            // Rust port: Dropping the instance will close it.
+            *joystick = None;
         }
     }
 }
@@ -336,27 +324,26 @@ fn ShutdownJoysticks(pcs: &mut PcrlibCState) {
 ===============================
 */
 
-pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &SdlManager) {
     // Rust port: The conditional is unnecessary, since ShutdownJoystcisk will skip empty slots.
     if pcs.joystick[1].is_some() || pcs.joystick[2].is_some() {
         ShutdownJoysticks(pcs);
     }
 
     for (j, joystick) in pcs.joystick.iter_mut().enumerate().skip(1) {
-        let j = j as i32;
+        let j = j as u32;
 
-        if j - 1 >= sdl.joystick().num_joysticks().unwrap() as i32 {
+        if j - 1 >= sdl.joystick().num_joysticks().unwrap() {
             *joystick = None;
             continue;
         }
 
-        if safe_SDL_IsGameController(j - 1) != 0 {
-            *joystick = Some(joyinfo_t::Controller(
-                safe_SDL_GameControllerOpen(j - 1),
-                j - 1,
-            ));
+        if sdl.game_controller().is_game_controller(j - 1) {
+            let controller = sdl.game_controller().open(j - 1).unwrap();
+            *joystick = Some(joyinfo_t::Controller(controller));
         } else {
-            *joystick = Some(joyinfo_t::Joy(safe_SDL_JoystickOpen(j - 1), j - 1));
+            let joy = sdl.joystick().open(j - 1).unwrap();
+            *joystick = Some(joyinfo_t::Joy(joy));
         }
     }
 }
@@ -370,23 +357,29 @@ pub fn ProbeJoysticks(pcs: &mut PcrlibCState, sdl: &RcSdl) {
 ===============================
 */
 
-pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut PcrlibCState) {
+pub fn ReadJoystick(
+    joynum: i32,
+    xcount: &mut i32,
+    ycount: &mut i32,
+    pcs: &mut PcrlibCState,
+    sdl: &SdlManager,
+) {
     let mut a1: i32 = 0;
     let mut a2: i32 = 0;
 
     *xcount = 0;
     *ycount = 0;
 
-    safe_SDL_JoystickUpdate();
+    sdl.joystick().update();
 
-    match pcs.joystick[joynum as usize] {
-        Some(joyinfo_t::Controller(ptr, _)) => {
-            a1 = safe_SDL_GameControllerGetAxis(ptr, SDL_CONTROLLER_AXIS_LEFTX) as i32;
-            a2 = safe_SDL_GameControllerGetAxis(ptr, SDL_CONTROLLER_AXIS_LEFTY) as i32;
+    match &pcs.joystick[joynum as usize] {
+        Some(joyinfo_t::Controller(controller)) => {
+            a1 = controller.axis(Axis::LeftX) as i32;
+            a2 = controller.axis(Axis::LeftY) as i32;
         }
-        Some(joyinfo_t::Joy(ptr, _)) => {
-            a1 = safe_SDL_JoystickGetAxis(ptr, 0) as i32;
-            a2 = safe_SDL_JoystickGetAxis(ptr, 1) as i32;
+        Some(joyinfo_t::Joy(joystick)) => {
+            a1 = joystick.axis(0).unwrap() as i32;
+            a2 = joystick.axis(1).unwrap() as i32;
         }
         None => unreachable!(),
     }
@@ -403,7 +396,7 @@ pub fn ReadJoystick(joynum: i32, xcount: &mut i32, ycount: &mut i32, pcs: &mut P
 =============================
 */
 
-pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
+pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState, sdl: &SdlManager) -> ControlStruct {
     let mut joyx: i32 = 0;
     let mut joyy: i32 = 0;
     let mut xmove: i32 = 0;
@@ -414,17 +407,17 @@ pub fn ControlJoystick(joynum: i32, pcs: &mut PcrlibCState) -> ControlStruct {
         button2: false,
     };
 
-    ReadJoystick(joynum, &mut joyx, &mut joyy, pcs);
+    ReadJoystick(joynum, &mut joyx, &mut joyy, pcs, sdl);
 
     /* get all four button status */
-    match pcs.joystick[joynum as usize] {
-        Some(joyinfo_t::Controller(ptr, _)) => {
-            action.button1 = safe_SDL_GameControllerGetButton(ptr, SDL_CONTROLLER_BUTTON_A) != 0;
-            action.button2 = safe_SDL_GameControllerGetButton(ptr, SDL_CONTROLLER_BUTTON_B) != 0;
+    match &pcs.joystick[joynum as usize] {
+        Some(joyinfo_t::Controller(controller)) => {
+            action.button1 = controller.button(Button::A);
+            action.button2 = controller.button(Button::B);
         }
-        Some(joyinfo_t::Joy(ptr, _)) => {
-            action.button1 = safe_SDL_JoystickGetButton(ptr, 0) != 0;
-            action.button2 = safe_SDL_JoystickGetButton(ptr, 1) != 0;
+        Some(joyinfo_t::Joy(joystick)) => {
+            action.button1 = joystick.button(0).unwrap();
+            action.button2 = joystick.button(1).unwrap();
         }
         None => unreachable!(),
     }
@@ -493,7 +486,7 @@ pub fn ControlPlayer(
     player: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
@@ -507,10 +500,10 @@ pub fn ControlPlayer(
                 ret = ControlMouse(pcs, sdl);
             }
             2 => {
-                ret = ControlJoystick(1, pcs);
+                ret = ControlJoystick(1, pcs, sdl);
             }
             3 => {
-                ret = ControlJoystick(2, pcs);
+                ret = ControlJoystick(2, pcs, sdl);
             }
             0 | _ => {
                 ret = ControlKBD(pcs);
@@ -575,7 +568,7 @@ pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 /*=========================================================================*/
 
-pub fn clearkeys(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn clearkeys(pcs: &mut PcrlibCState, sdl: &SdlManager) {
     while bioskey(1, pcs, sdl) != 0 {
         bioskey(0, pcs, sdl);
     }
@@ -801,7 +794,7 @@ fn expwinv(
 //
 /////////////////////////
 
-pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &RcSdl) -> u32 {
+pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
     if pcs.lastkey != 0 {
         let oldkey = pcs.lastkey;
         if cmd != 1 {
@@ -863,7 +856,7 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.renderer.as_mut().unwrap().present();
 }
 
-pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) -> i32 {
+pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> i32 {
     let mut key = 0;
 
     loop {
@@ -1022,7 +1015,7 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &RcSdl) -> u32 {
+pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
@@ -1071,7 +1064,7 @@ fn _input(
     max: usize,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
@@ -1137,7 +1130,7 @@ pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
 }
 
 // Enable and disable mouse grabbing
-pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &SdlManager) {
     sdl.mouse().set_relative_mouse_mode(
         pcs.hasFocus && (pcs.playermode[1] == mouse || pcs.playermode[2] == mouse),
     )
@@ -1151,7 +1144,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &RcSdl) {
 //
 ////////////////////////
 
-pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &RcSdl) {
+pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     let str = format!("CTLPANEL.{port_temp__extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
@@ -1330,7 +1323,7 @@ pub fn _checkhighscore(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &SdlManager,
 ) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
@@ -1386,7 +1379,7 @@ const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
 
 pub struct SDLEventPayload<'t> {
-    pub pas: *mut PcrlibAState<'t>,
+    pub pas: *mut PcrlibAState,
     pub pcs: *mut PcrlibCState<'t>,
 }
 
@@ -1396,13 +1389,14 @@ pub struct SDLEventPayload<'t> {
 //
 ////////////////////
 
-pub fn _setupgame<'s, 't>(
+pub fn _setupgame<'tc, 'ts>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
-    pas: &mut PcrlibAState<'s>,
-    sdl: &'s RcSdl,
-    texture_creator: &'t mut Option<TextureCreator<WindowContext>>,
-) -> PcrlibCState<'t> {
+    pas: &mut PcrlibAState,
+    sdl: &SdlManager,
+    texture_creator: &'tc mut Option<TextureCreator<WindowContext>>,
+    timer_sys: &'ts TimerSubsystem,
+) -> (PcrlibCState<'tc>, Timer<'ts, 'ts>) {
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
@@ -1440,7 +1434,7 @@ pub fn _setupgame<'s, 't>(
         }
     }
 
-    let mut pcs_mode = sdl
+    let mut mode = sdl
         .video()
         .current_display_mode(displayindex)
         .expect("Could not get display mode");
@@ -1455,8 +1449,8 @@ pub fn _setupgame<'s, 't>(
         // default behavior, depending on the system.
         bounds.x = sdl2::sys::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
         bounds.y = sdl2::sys::SDL_WINDOWPOS_UNDEFINED_MASK as i32;
-        pcs_mode.w = winWidth as i32;
-        pcs_mode.h = winHeight as i32;
+        mode.w = winWidth as i32;
+        mode.h = winHeight as i32;
         0
         // Rust port: WindowBuilder's defaults are position:undefined and flags:0.
     } else {
@@ -1467,7 +1461,7 @@ pub fn _setupgame<'s, 't>(
 
     let pcs_window = sdl
         .video()
-        .window("The Catacomb", pcs_mode.w as u32, pcs_mode.h as u32)
+        .window("The Catacomb", mode.w as u32, mode.h as u32)
         .set_window_flags(window_flags)
         .position(bounds.x, bounds.y)
         .build()
@@ -1497,16 +1491,16 @@ pub fn _setupgame<'s, 't>(
     let mut pcs_updateRect = Rect::new(0, 0, 0, 0);
 
     // Handle 320x200 and 640x400 specially so they are unscaled.
-    if pcs_mode.w == 320 && pcs_mode.h == 200 || pcs_mode.w == 640 && pcs_mode.h == 400 {
-        pcs_updateRect.w = pcs_mode.w;
-        pcs_updateRect.h = pcs_mode.h;
+    if mode.w == 320 && mode.h == 200 || mode.w == 640 && mode.h == 400 {
+        pcs_updateRect.w = mode.w;
+        pcs_updateRect.h = mode.h;
         pcs_updateRect.y = 0;
         pcs_updateRect.x = pcs_updateRect.y;
     } else {
         // Pillar box the 4:3 game
-        pcs_updateRect.h = pcs_mode.h;
-        pcs_updateRect.w = pcs_mode.h * 4 / 3;
-        pcs_updateRect.x = (pcs_mode.w - pcs_updateRect.w) >> 1;
+        pcs_updateRect.h = mode.h;
+        pcs_updateRect.w = mode.h * 4 / 3;
+        pcs_updateRect.x = (mode.w - pcs_updateRect.w) >> 1;
         pcs_updateRect.y = 0;
     }
 
@@ -1520,15 +1514,9 @@ pub fn _setupgame<'s, 't>(
     // let mut pcs_grmode = EGAgr;
 
     // Invalidate joysticks.
-    let pcs_joystick = [None; 3];
+    let pcs_joystick = [None, None, None];
 
-    let mut pcs = PcrlibCState::new(
-        pcs_renderer,
-        pcs_sdltexture,
-        pcs_updateRect,
-        pcs_mode,
-        pcs_joystick,
-    );
+    let mut pcs = PcrlibCState::new(pcs_renderer, pcs_sdltexture, pcs_updateRect, pcs_joystick);
 
     _loadctrls(pas, &mut pcs, sdl);
 
@@ -1557,9 +1545,12 @@ pub fn _setupgame<'s, 't>(
 
     loadgrfiles(gs, cps, &mut pcs);
 
-    SetupEmulatedVBL(pas, &sdl);
+    // Rust port: This needs to stay outside a global state instance, otherwise the lifetime becomes
+    // too restrictive. It doesn't make much sense anyway, to keep it there, since it's not associated
+    // to a specific scope.
+    let _vbl_timer = SetupEmulatedVBL(timer_sys);
 
-    pcs
+    (pcs, _vbl_timer)
 }
 
 ////////////////////
@@ -1574,7 +1565,12 @@ pub fn _setupgame<'s, 't>(
 //
 // Rust port: There are no occurrences (in the SDL port, at least) where an error is passed.
 // In the original version, there are two cases - out of memory, and a certain EXE file not found.
-pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+pub fn _quit(
+    error: Option<String>,
+    pas: &mut PcrlibAState,
+    pcs: &mut PcrlibCState,
+    sdl: &mut SdlManager,
+) {
     if let Some(error) = &error {
         print!("{}", error);
         println!();
@@ -1588,18 +1584,9 @@ pub fn _quit(error: Option<String>, pas: &mut PcrlibAState, pcs: &mut PcrlibCSta
         _savectrls(pas, pcs);
     }
 
-    ShutdownSound(pas);
-    ShutdownJoysticks(pcs);
-
-    let renderer = pcs.renderer.take().unwrap();
-    let window_context = renderer.window().context();
-
-    drop(renderer);
-    drop(window_context);
-
-    // Rust port: Not necessary to nullify the pointers.
-    // pcs.renderer = ptr::null();
-    // pcs.window = ptr::null();
+    // Rust port: We don't need manual clearing; this will cascade-drop all the systems, since the
+    // Sdl instance is dropped inside the method.
+    sdl.quit();
 
     std::process::exit(0);
 }

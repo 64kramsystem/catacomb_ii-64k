@@ -17,8 +17,8 @@ use crate::{
         print_str, RecordDemo, SaveDemo,
     },
     pcrlib_c_state::PcrlibCState,
-    rc_sdl::RcSdl,
     scan_codes::*,
+    sdl_manager::SdlManager,
     tag_type::tagtype::*,
 };
 
@@ -739,7 +739,7 @@ fn playercmdthink(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &mut SdlManager,
 ) {
     let mut olddir: dirtype = north;
     let mut c: ControlStruct = ControlStruct {
@@ -1202,7 +1202,7 @@ fn think(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &mut SdlManager,
 ) {
     if gs.obj.delay as i32 > 0 {
         gs.obj.delay = (gs.obj.delay).wrapping_sub(1);
@@ -1251,7 +1251,7 @@ pub fn doactive(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &mut SdlManager,
 ) {
     if gs.obj.class as i32 != dead1 as i32
         && ((gs.obj.x as i32) < gs.origin.x - 10
@@ -1290,7 +1290,7 @@ pub fn playloop(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &RcSdl,
+    sdl: &mut SdlManager,
 ) {
     gs.screencenter.x = 11;
     loop {

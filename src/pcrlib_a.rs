@@ -4,13 +4,12 @@ use std::{
 };
 
 use ::libc;
-use sdl2::sys::AUDIO_S16;
+use sdl2::{sys::AUDIO_S16, timer::Timer, TimerSubsystem};
 
 use crate::{
     cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, global_state::GlobalState,
     gr_type::grtype::*, pcrlib_a_state::PcrlibAState, pcrlib_c::UpdateScreen,
-    pcrlib_c_state::PcrlibCState, rc_sdl::RcSdl, safe_sdl::*, sound_type::soundtype::*,
-    spkr_table::SPKRtable,
+    pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*, spkr_table::SPKRtable,
 };
 
 type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
@@ -224,7 +223,7 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
     if pas.AudioDev == 0 {
         println!("Audio initialization failed: {:?}", safe_SDL_GetError());
         pas.soundmode = off;
-        pas._dontplay = 1;
+        pas._dontplay = true;
         return;
     }
 
@@ -234,16 +233,8 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
     safe_SDL_PauseAudioDevice(pas.AudioDev, 0);
 }
 
-pub fn ShutdownSound(pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
-        return;
-    }
-    _SDL_ShutPC(pas);
-    safe_SDL_CloseAudio();
-}
-
 pub fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     if pas.SoundData.sounds[(sound - 1) as usize].priority as i32 >= pas.SndPriority as i32 {
@@ -254,14 +245,14 @@ pub fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
 // Rust port: unused.
 //
 // fn StopSound(pas: &mut PcrlibAState) {
-//     if pas._dontplay != 0 {
+//     if pas._dontplay {
 //         return;
 //     }
 //     _SDL_PCStopSound(pas);
 // }
 
 pub fn PauseSound(pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     let _lock = AudioMutex.lock().unwrap();
@@ -276,7 +267,7 @@ pub fn PauseSound(pas: &mut PcrlibAState) {
 }
 
 pub fn ContinueSound(pas: &mut PcrlibAState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     pas.pcPhaseTick = 0;
@@ -288,7 +279,7 @@ pub fn ContinueSound(pas: &mut PcrlibAState) {
 }
 
 pub fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
-    if pas._dontplay != 0 {
+    if pas._dontplay {
         return;
     }
     UpdateScreen(gs, pcs);
@@ -402,10 +393,10 @@ fn VBLCallback() -> u32 {
 //     safe_SDL_DestroySemaphore(pas.vblsem);
 // }
 
-pub fn SetupEmulatedVBL<'a>(pas: &mut PcrlibAState<'a>, sdl: &'a RcSdl) {
+pub fn SetupEmulatedVBL(timer_sys: &TimerSubsystem) -> Timer<'_, '_> {
     // Rust port: No need to create the semaphore here
 
-    pas.vbltimer = Some(sdl.timer().add_timer(VBL_TIME, Box::new(VBLCallback)));
+    timer_sys.add_timer(VBL_TIME, Box::new(VBLCallback))
 
     // Disabled; see comment on ShutdownEmulatedVBL().
     // safe_register_shutdown_vbl_on_exit();

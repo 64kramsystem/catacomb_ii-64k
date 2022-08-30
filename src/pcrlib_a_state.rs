@@ -1,8 +1,5 @@
-use sdl2::timer::Timer;
-
 use crate::{
     pcrlib_a::{SDL_AudioSpec, SavedSoundStruct},
-    safe_sdl::SDL_semaphore,
     sound_type::soundtype,
     sound_type::soundtype::*,
     spkr_table::SPKRtable,
@@ -12,7 +9,7 @@ use std::ptr;
 // Globals previously belonging to pcrlib_a.rs.
 //
 #[rustfmt::skip]
-pub struct PcrlibAState<'a> {
+pub struct PcrlibAState {
     // //////////////////////////////////////////////////////////
     // Rust port: shared
     // //////////////////////////////////////////////////////////
@@ -25,7 +22,7 @@ pub struct PcrlibAState<'a> {
     // //////////////////////////////////////////////////////////
 
     pub SndPriority: u8,
-    pub _dontplay: i32,
+    pub _dontplay: bool,
     // Rust port: The audio mutex has been moved to be in the `pcrlib_a` module scope, in order to
     // avoid borrowing contention on the PcrlibAState instance.
     pub AudioSpec: SDL_AudioSpec,
@@ -46,16 +43,14 @@ pub struct PcrlibAState<'a> {
     pub indexj: u16,
     pub LastRnd: u16,
     pub RndArray: [u16; 17],
-    pub vblsem: *mut SDL_semaphore,
-    pub vbltimer: Option<Timer<'a, 'a>>,
 
     // //////////////////////////////////////////////////////////
     // Rust port: private to cpanel.rs
     // //////////////////////////////////////////////////////////
 
-    pub xormask: i32,
+    // pub xormask: i32, // Rust port: Set but never read
 }
-impl<'a> PcrlibAState<'a> {
+impl PcrlibAState {
     pub fn new(// SndPriority: u8,
         // _dontplay: i32,
         // AudioSpec: SDL_AudioSpec,
@@ -83,7 +78,7 @@ impl<'a> PcrlibAState<'a> {
     ) -> Self {
         Self {
             SndPriority: 0,
-            _dontplay: 0,
+            _dontplay: false,
             AudioSpec: SDL_AudioSpec {
                 freq: 0,
                 format: 0,
@@ -116,11 +111,8 @@ impl<'a> PcrlibAState<'a> {
             indexj: 0,
             LastRnd: 0,
             RndArray: [0; 17],
-            vblsem: 0 as *mut SDL_semaphore,
-            vbltimer: None,
             SoundData: SPKRtable::default(),
             soundmode: spkr,
-            xormask: 0,
         }
     }
 }
