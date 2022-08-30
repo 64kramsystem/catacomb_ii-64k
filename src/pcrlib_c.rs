@@ -52,7 +52,6 @@ pub type SDL_GameControllerButton = i32;
 pub const SDL_CONTROLLER_BUTTON_B: SDL_GameControllerButton = 1;
 pub const SDL_CONTROLLER_BUTTON_A: SDL_GameControllerButton = 0;
 
-#[derive(Clone, Copy)]
 pub enum joyinfo_t {
     Controller(*mut SDL_GameController, u32),
     Joy(*mut SDL_Joystick, u32),
@@ -1526,7 +1525,7 @@ pub fn _setupgame<'s, 't>(
     // let mut pcs_grmode = EGAgr;
 
     // Invalidate joysticks.
-    let pcs_joystick = [None; 3];
+    let pcs_joystick = [None, None, None];
 
     let mut pcs = PcrlibCState::new(
         pcs_renderer,
