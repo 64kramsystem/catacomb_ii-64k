@@ -28,8 +28,11 @@ pub struct PcrlibAStateExclusive {
     // Rust port: The audio mutex has been moved to be in the `pcrlib_a` module scope, in order to
     // avoid borrowing contention on the PcrlibAState instance.
 
-    pub AudioSpecFreq: i32, // Rust port: The full SDL_AudioSpec was stored, but only freq was used
-    pub AudioDev: u32,
+    // Rust port: In the SDL port, the desired audio spec and device are stored, but only the frequency
+    // is used, so we only store that. Additionally, the port assumed that the obtained spec is the
+    // same as the desired, so this is assumed here as well.
+
+    pub AudioSpecFreq: i32,
     pub pcVolume: i16,
     pub pcPhaseTick: u32,
     pub pcPhaseLength: u32,
@@ -73,7 +76,6 @@ impl PcrlibAState {
         let inner = PcrlibAStateExclusive {
             SndPriority: 0,
             AudioSpecFreq: 0,
-            AudioDev: 0,
             pcVolume: 5000,
             pcPhaseTick: 0,
             pcPhaseLength: 0,

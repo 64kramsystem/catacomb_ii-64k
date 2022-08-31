@@ -959,12 +959,10 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
-    let mut pas_clone = pas.clone();
-    let (mut pcs, _vbl_timer) = _setupgame(
+    let (mut pcs, _vbl_timer, _audio_dev) = _setupgame(
         &mut gs,
         &mut cps,
         &mut pas,
-        &mut pas_clone,
         &sdl,
         &mut texture_creator,
         &timer_sys,

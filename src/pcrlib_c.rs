@@ -5,6 +5,7 @@ use std::io::{self, Read, Write};
 use std::path::Path;
 use std::{fs, mem};
 
+use sdl2::audio::AudioDevice;
 use sdl2::controller::{Axis, Button, GameController};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::joystick::Joystick;
@@ -23,7 +24,7 @@ use crate::catacomb::loadgrfiles;
 use crate::cpanel_state::CpanelState;
 use crate::ctl_panel_type::ctlpaneltype;
 use crate::input_type::inputtype::*;
-use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
+use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, Sound, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
 use crate::pcrlib_c_state::PcrlibCState;
 use crate::sdl_manager::SdlManager;
@@ -1395,11 +1396,14 @@ pub fn _setupgame<'tc, 'ts>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
-    pas_clone: &mut PcrlibAState,
     sdl: &SdlManager,
     texture_creator: &'tc mut Option<TextureCreator<WindowContext>>,
     timer_sys: &'ts TimerSubsystem,
-) -> (PcrlibCState<'tc>, Timer<'ts, 'ts>) {
+) -> (
+    PcrlibCState<'tc>,
+    Timer<'ts, 'ts>,
+    Option<AudioDevice<Sound>>,
+) {
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
@@ -1538,7 +1542,7 @@ pub fn _setupgame<'tc, 'ts>(
         pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
     });
 
-    StartupSound(pas, pas_clone);
+    let audio_dev = StartupSound(pas, sdl);
 
     // Rust port: unnecessary (see method)
     // SetupKBD(&mut pcs);
@@ -1555,7 +1559,7 @@ pub fn _setupgame<'tc, 'ts>(
     // to a specific scope.
     let vbl_timer = SetupEmulatedVBL(timer_sys);
 
-    (pcs, vbl_timer)
+    (pcs, vbl_timer, audio_dev)
 }
 
 ////////////////////
