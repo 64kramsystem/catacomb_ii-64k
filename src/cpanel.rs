@@ -19,8 +19,8 @@ use crate::{
     pcrlib_c_state::PcrlibCState,
     pic_file_type::picfiletype,
     pic_type::pictype,
-    sdl_manager::SdlManager,
     scan_codes::*,
+    sdl_manager::SdlManager,
     sprite_type::spritetype,
 };
 
@@ -432,7 +432,7 @@ pub fn controlpanel(
     ProbeJoysticks(pcs, sdl);
     cps.oldgrmode = pcs.grmode;
     cps.newgrmode = cps.oldgrmode;
-    cps.oldsoundmode = pas.soundmode;
+    cps.oldsoundmode = pas.lock(|pasx| pasx.soundmode);
     cps.newsoundmode = cps.oldsoundmode;
     cps.oldplayermode[1] = pcs.playermode[1];
     cps.newplayermode[1] = cps.oldplayermode[1];
@@ -555,7 +555,7 @@ pub fn controlpanel(
     pcs.grmode = cps.newgrmode;
     gs.screencenter.x = oldcenterx;
     gs.screencenter.y = oldcentery;
-    pas.soundmode = cps.newsoundmode;
+    pas.lock(|pasx| pasx.soundmode = cps.newsoundmode);
     repaintscreen(gs, cps, pcs);
     ContinueSound(pas);
 }

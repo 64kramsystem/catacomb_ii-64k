@@ -1152,7 +1152,9 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManag
         let ctlpanel = ctlpaneltype::deserialize(file);
 
         pcs.grmode = ctlpanel.grmode as grtype;
-        pas.soundmode = ctlpanel.soundmode as soundtype;
+        pas.lock(|pasx| {
+            pasx.soundmode = ctlpanel.soundmode as soundtype;
+        });
         for i in 0..3 {
             pcs.playermode[i] = ctlpanel.playermode[i].into();
             pcs.JoyXlow[i] = ctlpanel.JoyXlow[i] as i32;
@@ -1184,7 +1186,9 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManag
         // set up default control panel settings
         //
         pcs.grmode = VGAgr;
-        pas.soundmode = spkr;
+        pas.lock(|pasx| {
+            pasx.soundmode = spkr;
+        });
         pcs.playermode[1] = keyboard;
         pcs.playermode[2] = joystick1;
 
@@ -1219,7 +1223,7 @@ pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     // simplicity, we do a straight create.
     if let Ok(file) = File::create(str) {
         ctlpanel.grmode = pcs.grmode;
-        ctlpanel.soundmode = pas.soundmode;
+        ctlpanel.soundmode = pas.lock(|pasx| pasx.soundmode);
         for i in 0..3 {
             ctlpanel.playermode[i] = pcs.playermode[i] as u16;
             ctlpanel.JoyXlow[i] = pcs.JoyXlow[i] as i16;
@@ -1531,7 +1535,9 @@ pub fn _setupgame<'tc, 'ts>(
     let filename = format!("SOUNDS.{_extension}");
     let sound_data_buffer = bloadin(&filename).unwrap();
 
-    pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
+    pas.lock(|pas| {
+        pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
+    });
 
     StartupSound(pas);
 

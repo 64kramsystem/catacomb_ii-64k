@@ -4,12 +4,19 @@ use crate::{
     sound_type::soundtype::*,
     spkr_table::SPKRtable,
 };
-use std::ptr;
+use std::{
+    ptr,
+    sync::{Arc, Mutex},
+};
 
-// Globals previously belonging to pcrlib_a.rs.
-//
+/// (Rust port)
+/// Globals previously belonging to pcrlib_a.rs.
+///
+/// This is the type gated by the mutex; functions accept it as parameter, in cases where the mutex
+/// has already been acquired (this makes a nice distinction between functions that need to acquire
+/// the mutex, and those who assume that this has been done).
 #[rustfmt::skip]
-pub struct PcrlibAState {
+pub struct PcrlibAStateExclusive {
     // //////////////////////////////////////////////////////////
     // Rust port: shared
     // //////////////////////////////////////////////////////////
@@ -22,7 +29,7 @@ pub struct PcrlibAState {
     // //////////////////////////////////////////////////////////
 
     pub SndPriority: u8,
-    pub _dontplay: bool,
+
     // Rust port: The audio mutex has been moved to be in the `pcrlib_a` module scope, in order to
     // avoid borrowing contention on the PcrlibAState instance.
     pub AudioSpec: SDL_AudioSpec,
@@ -38,11 +45,6 @@ pub struct PcrlibAState {
     // Rust port: Pointer to SoundData.freqdata
     pub pcSound: Option<usize>,
     pub SavedSound: SavedSoundStruct,
-    pub rndindex: u16,
-    pub indexi: u16,
-    pub indexj: u16,
-    pub LastRnd: u16,
-    pub RndArray: [u16; 17],
 
     // //////////////////////////////////////////////////////////
     // Rust port: private to cpanel.rs
@@ -50,11 +52,31 @@ pub struct PcrlibAState {
 
     // pub xormask: i32, // Rust port: Set but never read
 }
+
+/// Threadsafe wrapper around the actual PrclibAState data type.
+#[rustfmt::skip]
+#[derive(Clone)]
+pub struct PcrlibAState {
+    inner: Arc<Mutex<PcrlibAStateExclusive>>,
+    // //////////////////////////////////////////////////////////
+    // Rust port: private to pcrlib_a.rs
+    // //////////////////////////////////////////////////////////
+
+    pub _dontplay: bool,
+
+    // Randomness data doesn't need to be inside a mutex (it's also messy when so).
+    //
+    pub rndindex: u16,
+    pub indexi: u16,
+    pub indexj: u16,
+    pub LastRnd: u16,
+    pub RndArray: [u16; 17],
+}
+
 impl PcrlibAState {
     pub fn new() -> Self {
-        Self {
+        let inner = PcrlibAStateExclusive {
             SndPriority: 0,
-            _dontplay: false,
             AudioSpec: SDL_AudioSpec {
                 freq: 0,
                 format: 0,
@@ -82,13 +104,25 @@ impl PcrlibAState {
                 pcLengthLeft: 0,
                 pcSound: None,
             },
+            SoundData: SPKRtable::default(),
+            soundmode: spkr,
+        };
+
+        Self {
+            inner: Arc::new(Mutex::new(inner)),
+            _dontplay: false,
             rndindex: 0,
             indexi: 0,
             indexj: 0,
             LastRnd: 0,
             RndArray: [0; 17],
-            SoundData: SPKRtable::default(),
-            soundmode: spkr,
         }
+    }
+}
+
+impl PcrlibAState {
+    pub fn lock<R, F: FnMut(&mut PcrlibAStateExclusive) -> R>(&self, mut fx: F) -> R {
+        let mut lock = (*self.inner).lock().unwrap();
+        fx(&mut lock)
     }
 }
