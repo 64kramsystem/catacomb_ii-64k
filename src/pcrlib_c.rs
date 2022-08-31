@@ -1554,9 +1554,9 @@ pub fn _setupgame<'tc, 'ts>(
     // Rust port: This needs to stay outside a global state instance, otherwise the lifetime becomes
     // too restrictive. It doesn't make much sense anyway, to keep it there, since it's not associated
     // to a specific scope.
-    let _vbl_timer = SetupEmulatedVBL(timer_sys);
+    let vbl_timer = SetupEmulatedVBL(timer_sys);
 
-    (pcs, _vbl_timer)
+    (pcs, vbl_timer)
 }
 
 ////////////////////
