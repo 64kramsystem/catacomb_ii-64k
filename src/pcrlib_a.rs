@@ -50,8 +50,7 @@ pub struct SavedSoundStruct {
 }
 
 pub const screenpitch: usize = 320;
-type C2RustUnnamed_2 = u32;
-const VBL_TIME: C2RustUnnamed_2 = 14;
+const VBL_TIME: u32 = 14;
 
 #[inline]
 pub fn EGA(chan: &[u8], ofs: u8) -> u8 {

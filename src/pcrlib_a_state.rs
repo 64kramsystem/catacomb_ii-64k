@@ -34,7 +34,7 @@ pub struct PcrlibAStateExclusive {
     // avoid borrowing contention on the PcrlibAState instance.
     pub AudioSpec: SDL_AudioSpec,
     pub AudioDev: u32,
-    pub pcVolume: libc::c_short,
+    pub pcVolume: i16,
     pub pcPhaseTick: u32,
     pub pcPhaseLength: u32,
     pub pcActive: bool,

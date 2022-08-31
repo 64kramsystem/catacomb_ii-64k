@@ -5,7 +5,6 @@ use std::io::{self, Read, Write};
 use std::path::Path;
 use std::{fs, mem};
 
-use ::libc;
 use sdl2::controller::{Axis, Button, GameController};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::joystick::Joystick;
@@ -967,7 +966,7 @@ pub fn _Verify(filename: &str) -> u64 {
 //
 ////////////////////////////////////////////////////////////////////
 /// Rust port: Prints a byte in padded hex.
-fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+fn _printhexb(value: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("{:02X}", value);
     print_str(&fmt_value, gs, pcs);
 }
