@@ -1397,6 +1397,7 @@ pub fn _setupgame<'tc, 'ts>(
     gs: &mut GlobalState,
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
+    pas_clone: &mut PcrlibAState,
     sdl: &SdlManager,
     texture_creator: &'tc mut Option<TextureCreator<WindowContext>>,
     timer_sys: &'ts TimerSubsystem,
@@ -1539,7 +1540,7 @@ pub fn _setupgame<'tc, 'ts>(
         pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
     });
 
-    StartupSound(pas);
+    StartupSound(pas, pas_clone);
 
     // Rust port: unnecessary (see method)
     // SetupKBD(&mut pcs);

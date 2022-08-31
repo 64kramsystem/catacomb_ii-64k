@@ -201,7 +201,7 @@ unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, le
 //
 //========
 
-pub fn StartupSound(pas: &mut PcrlibAState) {
+pub fn StartupSound(pas: &mut PcrlibAState, pas_clone: &mut PcrlibAState) {
     let mut desired = SDL_AudioSpec {
         freq: 0,
         format: 0,
@@ -220,7 +220,7 @@ pub fn StartupSound(pas: &mut PcrlibAState) {
     desired.samples = 4096;
     desired.callback =
         Some(UpdateSPKR as unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ());
-    desired.userdata = &mut pas.clone() as *mut PcrlibAState as *mut libc::c_void;
+    desired.userdata = pas_clone as *mut PcrlibAState as *mut libc::c_void;
 
     let dontplay = pas.lock(|pasx| {
         pasx.AudioDev =
