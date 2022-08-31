@@ -65,7 +65,7 @@ fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAStateExclusive) {
     // There is a bug in the SDL port; the data types used don't cover the range of values.
     // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
-    pas.pcPhaseLength = pcSample as u32 * pas.AudioSpec.freq as u32 / (2 * PC_BASE_TIMER);
+    pas.pcPhaseLength = pcSample as u32 * pas.AudioSpecFreq as u32 / (2 * PC_BASE_TIMER);
     pas.pcActive = true;
 }
 
@@ -108,7 +108,7 @@ fn _SDL_PCPlaySound(sound_i: i32, pas: &mut PcrlibAStateExclusive) {
         - SPKRtable::start_of_freqdata();
     pas.pcSound = Some(sound_data_i / 2);
     pas.SndPriority = pas.SoundData.sounds[(sound_i - 1) as usize].priority;
-    pas.pcSamplesPerTick = (pas.AudioSpec.freq
+    pas.pcSamplesPerTick = (pas.AudioSpecFreq
         / ((1193181 * pas.SoundData.sounds[(sound_i - 1) as usize].samplerate as i32) >> 16))
         as u32;
 }
@@ -222,16 +222,29 @@ pub fn StartupSound(pas: &mut PcrlibAState, pas_clone: &mut PcrlibAState) {
     desired.userdata = pas_clone as *mut PcrlibAState as *mut libc::c_void;
 
     let dontplay = pas.lock(|pasx| {
-        pasx.AudioDev =
-            safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut pasx.AudioSpec, 0);
+        let mut obtained = SDL_AudioSpec {
+            freq: 0,
+            format: 0,
+            channels: 0,
+            silence: 0,
+            samples: 0,
+            padding: 0,
+            size: 0,
+            callback: None,
+            userdata: 0 as *const libc::c_void as *mut libc::c_void,
+        };
+
+        pasx.AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut obtained, 0);
         if pasx.AudioDev == 0 {
             println!("Audio initialization failed: {:?}", safe_SDL_GetError());
             pasx.soundmode = off;
             return Some(true);
         }
 
+        pasx.AudioSpecFreq = obtained.freq;
+
         // Typical value for init since samplerate is usually 8
-        pasx.pcSamplesPerTick = (pasx.AudioSpec.freq / 145) as u32;
+        pasx.pcSamplesPerTick = (pasx.AudioSpecFreq / 145) as u32;
         pasx.soundmode = spkr;
         safe_SDL_PauseAudioDevice(pasx.AudioDev, 0);
         None

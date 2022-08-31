@@ -1,13 +1,8 @@
 use crate::{
-    pcrlib_a::{SDL_AudioSpec, SavedSoundStruct},
-    sound_type::soundtype,
-    sound_type::soundtype::*,
+    pcrlib_a::SavedSoundStruct, sound_type::soundtype, sound_type::soundtype::*,
     spkr_table::SPKRtable,
 };
-use std::{
-    ptr,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 /// (Rust port)
 /// Globals previously belonging to pcrlib_a.rs.
@@ -32,7 +27,8 @@ pub struct PcrlibAStateExclusive {
 
     // Rust port: The audio mutex has been moved to be in the `pcrlib_a` module scope, in order to
     // avoid borrowing contention on the PcrlibAState instance.
-    pub AudioSpec: SDL_AudioSpec,
+
+    pub AudioSpecFreq: i32, // Rust port: The full SDL_AudioSpec was stored, but only freq was used
     pub AudioDev: u32,
     pub pcVolume: i16,
     pub pcPhaseTick: u32,
@@ -77,17 +73,7 @@ impl PcrlibAState {
     pub fn new() -> Self {
         let inner = PcrlibAStateExclusive {
             SndPriority: 0,
-            AudioSpec: SDL_AudioSpec {
-                freq: 0,
-                format: 0,
-                channels: 0,
-                silence: 0,
-                samples: 0,
-                padding: 0,
-                size: 0,
-                callback: None,
-                userdata: ptr::null_mut(),
-            },
+            AudioSpecFreq: 0,
             AudioDev: 0,
             pcVolume: 5000,
             pcPhaseTick: 0,
