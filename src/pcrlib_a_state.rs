@@ -51,31 +51,7 @@ pub struct PcrlibAState {
     // pub xormask: i32, // Rust port: Set but never read
 }
 impl PcrlibAState {
-    pub fn new(// SndPriority: u8,
-        // _dontplay: i32,
-        // AudioSpec: SDL_AudioSpec,
-        // AudioDev: u32,
-        // pcVolume: libc::c_short,
-        // pcPhaseTick: u32,
-        // pcPhaseLength: u32,
-        // pcActive: bool,
-        // pcSamplesPerTick: u32,
-        // pcNumReadySamples: u32,
-        // pcLastSample: u16,
-        // pcLengthLeft: u32,
-        // pcSound: Option<usize>,
-        // SavedSound: SavedSoundStruct,
-        // rndindex: u16,
-        // indexi: u16,
-        // indexj: u16,
-        // LastRnd: u16,
-        // RndArray: [u16; 17],
-        // vblsem: *mut SDL_semaphore,
-        // vbltimer: i32,
-        // SoundData: SPKRtable,
-        // soundmode: soundtype,
-        // xormask: i32,
-    ) -> Self {
+    pub fn new() -> Self {
         Self {
             SndPriority: 0,
             _dontplay: false,
