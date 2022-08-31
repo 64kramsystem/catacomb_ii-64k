@@ -1571,22 +1571,23 @@ pub fn _quit(
     pcs: &mut PcrlibCState,
     sdl: &mut SdlManager,
 ) {
-    if let Some(error) = &error {
+    let exit_code = if let Some(error) = &error {
         print!("{}", error);
         println!();
         println!();
         println!("For techinical assistance with running this software");
         println!("    call Softdisk Publishing at 1-318-221-8311");
         println!();
-        std::process::exit(1);
+        1
     } else {
         _savehighscores(pcs);
         _savectrls(pas, pcs);
-    }
+        0
+    };
 
     // Rust port: We don't need manual clearing; this will cascade-drop all the systems, since the
     // Sdl instance is dropped inside the method.
     sdl.quit();
 
-    std::process::exit(0);
+    std::process::exit(exit_code);
 }
