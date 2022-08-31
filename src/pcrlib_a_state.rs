@@ -35,7 +35,6 @@ pub struct PcrlibAStateExclusive {
     pub pcPhaseLength: u32,
     pub pcActive: bool,
     pub pcSamplesPerTick: u32,
-    pub pcNumReadySamples: u32,
     pub pcLastSample: u16,
     pub pcLengthLeft: u32,
     // Rust port: Pointer to SoundData.freqdata
@@ -80,7 +79,6 @@ impl PcrlibAState {
             pcPhaseLength: 0,
             pcActive: false,
             pcSamplesPerTick: 0,
-            pcNumReadySamples: 0,
             pcLastSample: 0,
             pcLengthLeft: 0,
             pcSound: None,

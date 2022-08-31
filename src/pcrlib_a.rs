@@ -139,50 +139,39 @@ unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, le
             return;
         }
 
-        let mut sampleslen = len >> 1;
         let mut stream16 = stream as *mut i16; // expect correct alignment
+        let stream_len = len >> 1;
 
-        loop {
-            if pasx.pcNumReadySamples != 0 {
-                if pasx.pcActive {
-                    while pasx.pcNumReadySamples != 0 && sampleslen != 0 {
-                        pasx.pcNumReadySamples -= 1;
-                        sampleslen -= 1;
+        let mut pcNumReadySamples = pasx.pcSamplesPerTick;
 
-                        *stream16 = pasx.pcVolume;
-                        stream16 = stream16.offset(1);
+        for i in 0..stream_len {
+            if pasx.pcActive {
+                *stream16 = pasx.pcVolume;
 
-                        if pasx.pcPhaseTick >= pasx.pcPhaseLength {
-                            pasx.pcVolume = -pasx.pcVolume;
-                            pasx.pcPhaseTick = 0;
-                        } else {
-                            pasx.pcPhaseTick += 1;
-                        }
-                    }
+                if pasx.pcPhaseTick >= pasx.pcPhaseLength {
+                    pasx.pcVolume = -pasx.pcVolume;
+                    pasx.pcPhaseTick = 0;
                 } else {
-                    while pasx.pcNumReadySamples != 0 && sampleslen != 0 {
-                        pasx.pcNumReadySamples -= 1;
-                        sampleslen -= 1;
-
-                        *stream16 = 0;
-                        stream16 = stream16.offset(1);
-                        // stream16 += 2;	// No need to set it to 0. SDL should have done
-                        // that already.
-                    }
+                    pasx.pcPhaseTick += 1;
                 }
-
-                if sampleslen == 0 {
-                    // Rust port: The comment below doesn't apply to the Rust port.
-                    break; // We need to unlock the mutex, so we cannot just return!
-                }
+            } else {
+                *stream16 = 0;
             }
 
-            _SDL_PCService(pasx);
+            stream16 = stream16.offset(1);
 
-            pasx.pcNumReadySamples = pasx.pcSamplesPerTick;
+            pcNumReadySamples -= 1;
 
-            if pasx.pcNumReadySamples == 0 {
-                break;
+            // Rust port: The conditionals below match the logic of the SDL port, where the inner block
+            // is not executed when the buffer is emptied.
+            // This condition `(i < stream_len - 1)` should possibly (but not 100% sure) be removed, as
+            // sound (sample) should still be progressed also on the last last buffer write.
+            //
+            if i < stream_len - 1 {
+                if pcNumReadySamples == 0 {
+                    _SDL_PCService(pasx);
+                    pcNumReadySamples = pasx.pcSamplesPerTick;
+                }
             }
         }
     });

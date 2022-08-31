@@ -947,7 +947,6 @@ pub fn printchartile(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState)
 //
 ////////////////////////////////////////////////////////////////////
 /// Rust port: returns 0 if the file doesn't exist, otherwise its length.
-#[allow(dead_code)]
 pub fn _Verify(filename: &str) -> u64 {
     let filepath = Path::new(filename);
 
