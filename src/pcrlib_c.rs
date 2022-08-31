@@ -35,7 +35,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::*,
-    extra_constants::port_temp__extension,
+    extra_constants::_extension,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_a::{drawchar, PlaySound, WaitVBL},
@@ -541,7 +541,7 @@ pub fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 ////////////////////////
 
 pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let filename = format!("DEMO{demonum}.{port_temp__extension}");
+    let filename = format!("DEMO{demonum}.{_extension}");
     let mut temp_port_demobuffer = [0; 5000];
 
     loadFile(&filename, &mut temp_port_demobuffer);
@@ -553,7 +553,7 @@ pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 }
 
 pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let str = format!("DEMO{demonum}.{port_temp__extension}");
+    let str = format!("DEMO{demonum}.{_extension}");
 
     SaveFile(&str, &pcs.demobuffer[..pcs.demoptr]);
 
@@ -1145,7 +1145,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &SdlManager) {
 ////////////////////////
 
 pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
-    let str = format!("CTLPANEL.{port_temp__extension}");
+    let str = format!("CTLPANEL.{_extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
     if let Ok(file) = File::open(&str) {
@@ -1213,7 +1213,7 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManag
 
 pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ctlpanel = ctlpaneltype::default();
-    let str = format!("CTLPANEL.{port_temp__extension}");
+    let str = format!("CTLPANEL.{_extension}");
 
     // Rust port: Original flags: (O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE); for
     // simplicity, we do a straight create.
@@ -1239,7 +1239,7 @@ pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
 }
 
 pub fn _loadhighscores(pcs: &mut PcrlibCState) {
-    let filename = format!("SCORES.{port_temp__extension}");
+    let filename = format!("SCORES.{_extension}");
     let mut buffer = [0_u8; scores::ondisk_struct_size() * 5];
 
     let bytes_loaded = loadFile(&filename, &mut buffer);
@@ -1268,7 +1268,7 @@ pub fn _savehighscores(pcs: &mut PcrlibCState) {
 
     Serialize::serialize(&pcs.highscores, &mut buffer);
 
-    let str = format!("SCORES.{port_temp__extension}");
+    let str = format!("SCORES.{_extension}");
 
     SaveFile(&str, &buffer);
 }
@@ -1528,7 +1528,7 @@ pub fn _setupgame<'tc, 'ts>(
         pcs.grmode = CGAgr;
     }
 
-    let filename = format!("SOUNDS.{port_temp__extension}");
+    let filename = format!("SOUNDS.{_extension}");
     let sound_data_buffer = bloadin(&filename).unwrap();
 
     pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
