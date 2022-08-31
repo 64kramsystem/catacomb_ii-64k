@@ -959,7 +959,7 @@ pub fn original_main() {
 
     //  _dontplay = 1;	// no sounds for debugging and profiling
 
-    let (mut pcs, _vbl_timer) = _setupgame(
+    let (mut pcs, _vbl_timer, _audio_dev) = _setupgame(
         &mut gs,
         &mut cps,
         &mut pas,

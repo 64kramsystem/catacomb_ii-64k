@@ -13,7 +13,7 @@ pub struct SdlManager {
     /// The Rc is necessary in order to be used in Sdl events.
     sdl: Rc<Option<Sdl>>,
     // The following need to stay in scope (at least currently).
-    _audio: AudioSubsystem,
+    audio: AudioSubsystem,
     joystick: JoystickSubsystem,
     game_controller: GameControllerSubsystem,
     // This needs to stay in scope because there can be only one.
@@ -31,7 +31,7 @@ impl SdlManager {
 
         Self {
             sdl: Rc::new(Some(sdl)),
-            _audio: audio,
+            audio: audio,
             joystick,
             game_controller,
             event_pump,
@@ -42,6 +42,10 @@ impl SdlManager {
 impl SdlManager {
     pub fn video(&self) -> VideoSubsystem {
         self.sdl().video().unwrap()
+    }
+
+    pub fn audio(&self) -> &AudioSubsystem {
+        &self.audio
     }
 
     pub fn timer(&self) -> TimerSubsystem {

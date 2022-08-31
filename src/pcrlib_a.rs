@@ -3,36 +3,29 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use ::libc;
-use sdl2::{sys::AUDIO_S16, timer::Timer, TimerSubsystem};
-
-use crate::{
-    cpanel_state::CpanelState, extra_constants::PC_BASE_TIMER, global_state::GlobalState,
-    gr_type::grtype::*, pcrlib_a_state::PcrlibAState, pcrlib_c::UpdateScreen,
-    pcrlib_c_state::PcrlibCState, safe_sdl::*, sound_type::soundtype::*, spkr_table::SPKRtable,
+use sdl2::{
+    audio::{AudioCallback, AudioDevice, AudioSpecDesired},
+    timer::Timer,
+    TimerSubsystem,
 };
 
-type SDL_AudioCallback = Option<unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ()>;
+use crate::{
+    cpanel_state::CpanelState,
+    global_state::GlobalState,
+    gr_type::grtype::*,
+    pcrlib_a_state::{PcrlibAState, PcrlibAStateExclusive},
+    pcrlib_c::UpdateScreen,
+    pcrlib_c_state::PcrlibCState,
+    sdl_manager::SdlManager,
+    sound_type::soundtype::*,
+    spkr_table::SPKRtable,
+};
 
-static AudioMutex: Mutex<()> = Mutex::new(());
+pub const PC_BASE_TIMER: u32 = 1193181;
 
 // Rust port: Simulation of the SDL Semaphore
 static vblSemMutex: Mutex<u32> = Mutex::new(0);
 static vblSemCondvar: Condvar = Condvar::new();
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct SDL_AudioSpec {
-    pub freq: i32,
-    pub format: u16,
-    pub channels: u8,
-    pub silence: u8,
-    pub samples: u16,
-    pub padding: u16,
-    pub size: u32,
-    pub callback: SDL_AudioCallback,
-    pub userdata: *mut libc::c_void,
-}
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -45,8 +38,7 @@ pub struct SavedSoundStruct {
 }
 
 pub const screenpitch: usize = 320;
-type C2RustUnnamed_2 = u32;
-const VBL_TIME: C2RustUnnamed_2 = 14;
+const VBL_TIME: u32 = 14;
 
 #[inline]
 pub fn EGA(chan: &[u8], ofs: u8) -> u8 {
@@ -57,22 +49,22 @@ pub fn EGA(chan: &[u8], ofs: u8) -> u8 {
 }
 
 #[inline]
-fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAState) {
+fn _SDL_turnOnPCSpeaker(pcSample: u16, pas: &mut PcrlibAStateExclusive) {
     // There is a bug in the SDL port; the data types used don't cover the range of values.
     // See [here](https://github.com/Blzut3/CatacombSDL/issues/4).
     //
-    pas.pcPhaseLength = pcSample as u32 * pas.AudioSpec.freq as u32 / (2 * PC_BASE_TIMER);
+    pas.pcPhaseLength = pcSample as u32 * pas.AudioSpecFreq as u32 / (2 * PC_BASE_TIMER);
     pas.pcActive = true;
 }
 
 #[inline]
-fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAState) {
+fn _SDL_turnOffPCSpeaker(pas: &mut PcrlibAStateExclusive) {
     pas.pcActive = false;
     pas.pcPhaseTick = 0;
 }
 
 #[inline]
-fn _SDL_PCService(pas: &mut PcrlibAState) {
+fn _SDL_PCService(pas: &mut PcrlibAStateExclusive) {
     if let Some(pcSound) = pas.pcSound {
         let pcCurrSample = pas.SoundData.freqdata[pcSound];
 
@@ -94,8 +86,7 @@ fn _SDL_PCService(pas: &mut PcrlibAState) {
     }
 }
 
-fn _SDL_PCPlaySound(sound_i: i32, pas: &mut PcrlibAState) {
-    let _lock = AudioMutex.lock().unwrap();
+fn _SDL_PCPlaySound(sound_i: i32, pas: &mut PcrlibAStateExclusive) {
     pas.pcPhaseTick = 0;
     pas.pcLastSample = 0;
     pas.pcLengthLeft = ((pas.SoundData.sounds[sound_i as usize].start as i32
@@ -105,15 +96,15 @@ fn _SDL_PCPlaySound(sound_i: i32, pas: &mut PcrlibAState) {
         - SPKRtable::start_of_freqdata();
     pas.pcSound = Some(sound_data_i / 2);
     pas.SndPriority = pas.SoundData.sounds[(sound_i - 1) as usize].priority;
-    pas.pcSamplesPerTick = (pas.AudioSpec.freq
+    pas.pcSamplesPerTick = (pas.AudioSpecFreq
         / ((1193181 * pas.SoundData.sounds[(sound_i - 1) as usize].samplerate as i32) >> 16))
         as u32;
 }
 
-fn _SDL_PCStopSound(pas: &mut PcrlibAState) {
-    let _lock = AudioMutex.lock().unwrap();
-    pas.pcSound = None;
-    _SDL_turnOffPCSpeaker(pas);
+fn _SDL_PCStopSound(pasx: &mut PcrlibAState) {
+    pasx.lock(|pas| {
+        pas.pcSound = None;
+    })
 }
 
 fn _SDL_ShutPC(pas: &mut PcrlibAState) {
@@ -126,61 +117,52 @@ fn _SDL_ShutPC(pas: &mut PcrlibAState) {
 //      (replaces SDL_IMFMusicPlayer if no AdLib emulator is present)
 //
 ///////////////////////////////////////////////////////////////////////////
-#[no_mangle]
-unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, len: i32) {
-    let pas = &mut *(userdata as *mut PcrlibAState);
+pub struct Sound {
+    pas: PcrlibAState,
+}
 
-    if pas.soundmode != spkr {
-        stream.write_bytes(0, len as usize);
-        return;
-    }
+impl AudioCallback for Sound {
+    type Channel = i16;
 
-    let mut sampleslen = len >> 1;
-    let mut stream16 = stream as *mut i16; // expect correct alignment
+    fn callback(&mut self, out: &mut [Self::Channel]) {
+        self.pas.lock(|pasx| {
+            if pasx.soundmode != spkr {
+                out.fill(0);
+                return;
+            }
 
-    let _lock = AudioMutex.lock().unwrap();
+            let mut pcNumReadySamples = pasx.pcSamplesPerTick;
+            let out_len = out.len();
 
-    loop {
-        if pas.pcNumReadySamples != 0 {
-            if pas.pcActive {
-                while pas.pcNumReadySamples != 0 && sampleslen != 0 {
-                    pas.pcNumReadySamples -= 1;
-                    sampleslen -= 1;
+            for (i, w) in out.iter_mut().enumerate() {
+                if pasx.pcActive {
+                    *w = pasx.pcVolume;
 
-                    *stream16 = pas.pcVolume;
-                    stream16 = stream16.offset(1);
-
-                    if pas.pcPhaseTick >= pas.pcPhaseLength {
-                        pas.pcVolume = -pas.pcVolume;
-                        pas.pcPhaseTick = 0;
+                    if pasx.pcPhaseTick >= pasx.pcPhaseLength {
+                        pasx.pcVolume = -pasx.pcVolume;
+                        pasx.pcPhaseTick = 0;
                     } else {
-                        pas.pcPhaseTick += 1;
+                        pasx.pcPhaseTick += 1;
+                    }
+                } else {
+                    *w = 0;
+                }
+
+                pcNumReadySamples -= 1;
+
+                // Rust port: The conditionals below match the logic of the SDL port, where the inner block
+                // is not executed when the buffer is emptied.
+                // This condition `(i < ount.len() - 1)` should possibly (but not 100% sure) be removed, as
+                // sound (sample) should still be progressed also on the last last buffer write.
+                //
+                if i < out_len - 1 {
+                    if pcNumReadySamples == 0 {
+                        _SDL_PCService(pasx);
+                        pcNumReadySamples = pasx.pcSamplesPerTick;
                     }
                 }
-            } else {
-                while pas.pcNumReadySamples != 0 && sampleslen != 0 {
-                    pas.pcNumReadySamples -= 1;
-                    sampleslen -= 1;
-
-                    *stream16 = 0;
-                    stream16 = stream16.offset(1);
-                    // stream16 += 2;	// No need to set it to 0. SDL should have done
-                    // that already.
-                }
             }
-
-            if sampleslen == 0 {
-                break; // We need to unlock the mutex, so we cannot just return!
-            }
-        }
-
-        _SDL_PCService(pas);
-
-        pas.pcNumReadySamples = pas.pcSamplesPerTick;
-
-        if pas.pcNumReadySamples == 0 {
-            break;
-        }
+        });
     }
 }
 
@@ -196,50 +178,54 @@ unsafe extern "C" fn UpdateSPKR(userdata: *mut libc::c_void, stream: *mut u8, le
 //
 //========
 
-pub fn StartupSound(pas: &mut PcrlibAState) {
-    let mut desired = SDL_AudioSpec {
-        freq: 0,
-        format: 0,
-        channels: 0,
-        silence: 0,
-        samples: 0,
-        padding: 0,
-        size: 0,
-        callback: None,
-        userdata: 0 as *const libc::c_void as *mut libc::c_void,
-    };
-    // Rust port: Setting `desired` bytes to 0 is not necessary in Rust.
-    desired.freq = 48000;
-    desired.format = AUDIO_S16 as u16;
-    desired.channels = 1;
-    desired.samples = 4096;
-    desired.callback =
-        Some(UpdateSPKR as unsafe extern "C" fn(*mut libc::c_void, *mut u8, i32) -> ());
-    desired.userdata = pas as *mut PcrlibAState as *mut libc::c_void;
+pub fn StartupSound(pas: &mut PcrlibAState, sdl: &SdlManager) -> Option<AudioDevice<Sound>> {
+    let pas_clone = pas.clone();
 
-    // Rust port: We don't need to create/test the audio mutex (here).
+    let audio_dev = pas.lock(|pasx| {
+        let desired = AudioSpecDesired {
+            freq: Some(48000),
+            channels: Some(1),
+            samples: Some(4096),
+        };
+        let pas_clone = pas_clone.clone();
 
-    pas.AudioDev = safe_SDL_OpenAudioDevice(0 as *const i8, 0, &desired, &mut pas.AudioSpec, 0);
-    if pas.AudioDev == 0 {
-        println!("Audio initialization failed: {:?}", safe_SDL_GetError());
-        pas.soundmode = off;
+        let audio_dev = sdl
+            .audio()
+            .open_playback(None, &desired, |_spec| Sound { pas: pas_clone });
+
+        match audio_dev {
+            Err(err) => {
+                println!("Audio initialization failed: {}", err);
+                pasx.soundmode = off;
+                None
+            }
+            Ok(audio_dev) => {
+                pasx.AudioSpecFreq = audio_dev.spec().freq;
+                // Typical value for init since samplerate is usually 8
+                pasx.pcSamplesPerTick = (pasx.AudioSpecFreq / 145) as u32;
+                pasx.soundmode = spkr;
+                audio_dev.resume();
+                Some(audio_dev)
+            }
+        }
+    });
+
+    if audio_dev.is_none() {
         pas._dontplay = true;
-        return;
     }
 
-    // Typical value for init since samplerate is usually 8
-    pas.pcSamplesPerTick = (pas.AudioSpec.freq / 145) as u32;
-    pas.soundmode = spkr;
-    safe_SDL_PauseAudioDevice(pas.AudioDev, 0);
+    audio_dev
 }
 
 pub fn PlaySound(sound: i32, pas: &mut PcrlibAState) {
     if pas._dontplay {
         return;
     }
-    if pas.SoundData.sounds[(sound - 1) as usize].priority as i32 >= pas.SndPriority as i32 {
-        _SDL_PCPlaySound(sound, pas);
-    }
+    pas.lock(|pasx| {
+        if pasx.SoundData.sounds[(sound - 1) as usize].priority as i32 >= pasx.SndPriority as i32 {
+            _SDL_PCPlaySound(sound, pasx);
+        }
+    });
 }
 
 // Rust port: unused.
@@ -255,27 +241,30 @@ pub fn PauseSound(pas: &mut PcrlibAState) {
     if pas._dontplay {
         return;
     }
-    let _lock = AudioMutex.lock().unwrap();
-    pas.SavedSound.SndPriority = pas.SndPriority;
-    pas.SavedSound.pcSamplesPerTick = pas.pcSamplesPerTick;
-    pas.SavedSound.pcLengthLeft = pas.pcLengthLeft;
-    pas.SavedSound.pcSound = pas.pcSound;
-    pas.SndPriority = 0;
-    pas.pcLengthLeft = 0;
-    pas.pcSound = None;
-    _SDL_turnOffPCSpeaker(pas);
+    pas.lock(|pasx| {
+        pasx.SavedSound.SndPriority = pasx.SndPriority;
+        pasx.SavedSound.pcSamplesPerTick = pasx.pcSamplesPerTick;
+        pasx.SavedSound.pcLengthLeft = pasx.pcLengthLeft;
+        pasx.SavedSound.pcSound = pasx.pcSound;
+        pasx.SndPriority = 0;
+        pasx.pcLengthLeft = 0;
+        pasx.pcSound = None;
+        _SDL_turnOffPCSpeaker(pasx);
+    });
 }
 
 pub fn ContinueSound(pas: &mut PcrlibAState) {
     if pas._dontplay {
         return;
     }
-    pas.pcPhaseTick = 0;
-    pas.pcLastSample = 0;
-    pas.SndPriority = pas.SavedSound.SndPriority;
-    pas.pcSamplesPerTick = pas.SavedSound.pcSamplesPerTick;
-    pas.pcLengthLeft = pas.SavedSound.pcLengthLeft;
-    pas.pcSound = pas.SavedSound.pcSound;
+    pas.lock(|pasx| {
+        pasx.pcPhaseTick = 0;
+        pasx.pcLastSample = 0;
+        pasx.SndPriority = pasx.SavedSound.SndPriority;
+        pasx.pcSamplesPerTick = pasx.SavedSound.pcSamplesPerTick;
+        pasx.pcLengthLeft = pasx.SavedSound.pcLengthLeft;
+        pasx.pcSound = pasx.SavedSound.pcSound;
+    });
 }
 
 pub fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
@@ -283,7 +272,7 @@ pub fn WaitEndSound(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut Pcrl
         return;
     }
     UpdateScreen(gs, pcs);
-    while pas.pcSound.is_some() {
+    while pas.lock(|pasx| pasx.pcSound.is_some()) {
         WaitVBL();
     }
 }

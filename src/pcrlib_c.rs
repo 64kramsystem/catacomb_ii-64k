@@ -5,7 +5,7 @@ use std::io::{self, Read, Write};
 use std::path::Path;
 use std::{fs, mem};
 
-use ::libc;
+use sdl2::audio::AudioDevice;
 use sdl2::controller::{Axis, Button, GameController};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::joystick::Joystick;
@@ -24,7 +24,7 @@ use crate::catacomb::loadgrfiles;
 use crate::cpanel_state::CpanelState;
 use crate::ctl_panel_type::ctlpaneltype;
 use crate::input_type::inputtype::*;
-use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, StartupSound};
+use crate::pcrlib_a::{initrnd, initrndt, SetupEmulatedVBL, Sound, StartupSound};
 use crate::pcrlib_a_state::PcrlibAState;
 use crate::pcrlib_c_state::PcrlibCState;
 use crate::sdl_manager::SdlManager;
@@ -35,7 +35,7 @@ use crate::{
     control_struct::ControlStruct,
     demo_enum::demoenum,
     dir_type::dirtype::*,
-    extra_constants::port_temp__extension,
+    extra_constants::_extension,
     global_state::GlobalState,
     gr_type::grtype::{self, *},
     pcrlib_a::{drawchar, PlaySound, WaitVBL},
@@ -541,7 +541,7 @@ pub fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 ////////////////////////
 
 pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let filename = format!("DEMO{demonum}.{port_temp__extension}");
+    let filename = format!("DEMO{demonum}.{_extension}");
     let mut temp_port_demobuffer = [0; 5000];
 
     loadFile(&filename, &mut temp_port_demobuffer);
@@ -553,7 +553,7 @@ pub fn LoadDemo(demonum: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 }
 
 pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
-    let str = format!("DEMO{demonum}.{port_temp__extension}");
+    let str = format!("DEMO{demonum}.{_extension}");
 
     SaveFile(&str, &pcs.demobuffer[..pcs.demoptr]);
 
@@ -948,7 +948,6 @@ pub fn printchartile(str_0: &[u8], gs: &mut GlobalState, pcs: &mut PcrlibCState)
 //
 ////////////////////////////////////////////////////////////////////
 /// Rust port: returns 0 if the file doesn't exist, otherwise its length.
-#[allow(dead_code)]
 pub fn _Verify(filename: &str) -> u64 {
     let filepath = Path::new(filename);
 
@@ -967,7 +966,7 @@ pub fn _Verify(filename: &str) -> u64 {
 //
 ////////////////////////////////////////////////////////////////////
 /// Rust port: Prints a byte in padded hex.
-fn _printhexb(value: libc::c_uchar, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
+fn _printhexb(value: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("{:02X}", value);
     print_str(&fmt_value, gs, pcs);
 }
@@ -1145,14 +1144,16 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &SdlManager) {
 ////////////////////////
 
 pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
-    let str = format!("CTLPANEL.{port_temp__extension}");
+    let str = format!("CTLPANEL.{_extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
     if let Ok(file) = File::open(&str) {
         let ctlpanel = ctlpaneltype::deserialize(file);
 
         pcs.grmode = ctlpanel.grmode as grtype;
-        pas.soundmode = ctlpanel.soundmode as soundtype;
+        pas.lock(|pasx| {
+            pasx.soundmode = ctlpanel.soundmode as soundtype;
+        });
         for i in 0..3 {
             pcs.playermode[i] = ctlpanel.playermode[i].into();
             pcs.JoyXlow[i] = ctlpanel.JoyXlow[i] as i32;
@@ -1184,7 +1185,9 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManag
         // set up default control panel settings
         //
         pcs.grmode = VGAgr;
-        pas.soundmode = spkr;
+        pas.lock(|pasx| {
+            pasx.soundmode = spkr;
+        });
         pcs.playermode[1] = keyboard;
         pcs.playermode[2] = joystick1;
 
@@ -1213,13 +1216,13 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManag
 
 pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ctlpanel = ctlpaneltype::default();
-    let str = format!("CTLPANEL.{port_temp__extension}");
+    let str = format!("CTLPANEL.{_extension}");
 
     // Rust port: Original flags: (O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE); for
     // simplicity, we do a straight create.
     if let Ok(file) = File::create(str) {
         ctlpanel.grmode = pcs.grmode;
-        ctlpanel.soundmode = pas.soundmode;
+        ctlpanel.soundmode = pas.lock(|pasx| pasx.soundmode);
         for i in 0..3 {
             ctlpanel.playermode[i] = pcs.playermode[i] as u16;
             ctlpanel.JoyXlow[i] = pcs.JoyXlow[i] as i16;
@@ -1239,7 +1242,7 @@ pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
 }
 
 pub fn _loadhighscores(pcs: &mut PcrlibCState) {
-    let filename = format!("SCORES.{port_temp__extension}");
+    let filename = format!("SCORES.{_extension}");
     let mut buffer = [0_u8; scores::ondisk_struct_size() * 5];
 
     let bytes_loaded = loadFile(&filename, &mut buffer);
@@ -1268,7 +1271,7 @@ pub fn _savehighscores(pcs: &mut PcrlibCState) {
 
     Serialize::serialize(&pcs.highscores, &mut buffer);
 
-    let str = format!("SCORES.{port_temp__extension}");
+    let str = format!("SCORES.{_extension}");
 
     SaveFile(&str, &buffer);
 }
@@ -1396,7 +1399,11 @@ pub fn _setupgame<'tc, 'ts>(
     sdl: &SdlManager,
     texture_creator: &'tc mut Option<TextureCreator<WindowContext>>,
     timer_sys: &'ts TimerSubsystem,
-) -> (PcrlibCState<'tc>, Timer<'ts, 'ts>) {
+) -> (
+    PcrlibCState<'tc>,
+    Timer<'ts, 'ts>,
+    Option<AudioDevice<Sound>>,
+) {
     let mut windowed = false;
     let mut winWidth = 640;
     let mut winHeight = 480;
@@ -1528,12 +1535,14 @@ pub fn _setupgame<'tc, 'ts>(
         pcs.grmode = CGAgr;
     }
 
-    let filename = format!("SOUNDS.{port_temp__extension}");
+    let filename = format!("SOUNDS.{_extension}");
     let sound_data_buffer = bloadin(&filename).unwrap();
 
-    pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
+    pas.lock(|pas| {
+        pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
+    });
 
-    StartupSound(pas);
+    let audio_dev = StartupSound(pas, sdl);
 
     // Rust port: unnecessary (see method)
     // SetupKBD(&mut pcs);
@@ -1548,9 +1557,9 @@ pub fn _setupgame<'tc, 'ts>(
     // Rust port: This needs to stay outside a global state instance, otherwise the lifetime becomes
     // too restrictive. It doesn't make much sense anyway, to keep it there, since it's not associated
     // to a specific scope.
-    let _vbl_timer = SetupEmulatedVBL(timer_sys);
+    let vbl_timer = SetupEmulatedVBL(timer_sys);
 
-    (pcs, _vbl_timer)
+    (pcs, vbl_timer, audio_dev)
 }
 
 ////////////////////
@@ -1571,22 +1580,23 @@ pub fn _quit(
     pcs: &mut PcrlibCState,
     sdl: &mut SdlManager,
 ) {
-    if let Some(error) = &error {
+    let exit_code = if let Some(error) = &error {
         print!("{}", error);
         println!();
         println!();
         println!("For techinical assistance with running this software");
         println!("    call Softdisk Publishing at 1-318-221-8311");
         println!();
-        std::process::exit(1);
+        1
     } else {
         _savehighscores(pcs);
         _savectrls(pas, pcs);
-    }
+        0
+    };
 
     // Rust port: We don't need manual clearing; this will cascade-drop all the systems, since the
     // Sdl instance is dropped inside the method.
     sdl.quit();
 
-    std::process::exit(0);
+    std::process::exit(exit_code);
 }

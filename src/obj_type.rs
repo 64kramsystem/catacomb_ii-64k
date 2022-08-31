@@ -1,6 +1,4 @@
-use crate::{
-    active_obj::activeobj, class_type::classtype, obj_def_type::objdeftype,
-};
+use crate::{active_obj::activeobj, class_type::classtype, obj_def_type::objdeftype};
 
 #[derive(Copy, Clone)]
 #[repr(C, packed)]

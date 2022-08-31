@@ -49,7 +49,6 @@ mod pcrlib_c_state;
 mod pic_file_type;
 mod pic_type;
 mod rleasm;
-mod safe_sdl;
 mod scan_codes;
 mod scores;
 mod sdl_manager;

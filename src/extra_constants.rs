@@ -2,8 +2,6 @@
 
 pub const NUM_DEMOS: u16 = 1;
 
-pub const PC_BASE_TIMER: u32 = 1193181;
-
 pub const maxpics: usize = 2047;
 // pub const NUMTILES: usize = 24 * 24; /*number of tiles displayed on screen*/
 pub const numlevels: i16 = 30;
@@ -18,5 +16,4 @@ pub const tile2s: usize = 256; /*tile number where the 2*2 pictures start*/
 // pub const tile5s: usize = tile4s + 19 * 16;
 // pub const lasttile: usize = tile5s + 19 * 25;
 
-pub const _extension: *const i8 = b"CA2\0" as *const _ as *const i8;
-pub const port_temp__extension: &str = "CA2";
+pub const _extension: &str = "CA2";

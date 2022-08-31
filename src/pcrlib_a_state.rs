@@ -1,15 +1,17 @@
 use crate::{
-    pcrlib_a::{SDL_AudioSpec, SavedSoundStruct},
-    sound_type::soundtype,
-    sound_type::soundtype::*,
+    pcrlib_a::SavedSoundStruct, sound_type::soundtype, sound_type::soundtype::*,
     spkr_table::SPKRtable,
 };
-use std::ptr;
+use std::sync::{Arc, Mutex};
 
-// Globals previously belonging to pcrlib_a.rs.
-//
+/// (Rust port)
+/// Globals previously belonging to pcrlib_a.rs.
+///
+/// This is the type gated by the mutex; functions accept it as parameter, in cases where the mutex
+/// has already been acquired (this makes a nice distinction between functions that need to acquire
+/// the mutex, and those who assume that this has been done).
 #[rustfmt::skip]
-pub struct PcrlibAState {
+pub struct PcrlibAStateExclusive {
     // //////////////////////////////////////////////////////////
     // Rust port: shared
     // //////////////////////////////////////////////////////////
@@ -22,27 +24,25 @@ pub struct PcrlibAState {
     // //////////////////////////////////////////////////////////
 
     pub SndPriority: u8,
-    pub _dontplay: bool,
+
     // Rust port: The audio mutex has been moved to be in the `pcrlib_a` module scope, in order to
     // avoid borrowing contention on the PcrlibAState instance.
-    pub AudioSpec: SDL_AudioSpec,
-    pub AudioDev: u32,
-    pub pcVolume: libc::c_short,
+
+    // Rust port: In the SDL port, the desired audio spec and device are stored, but only the frequency
+    // is used, so we only store that. Additionally, the port assumed that the obtained spec is the
+    // same as the desired, so this is assumed here as well.
+
+    pub AudioSpecFreq: i32,
+    pub pcVolume: i16,
     pub pcPhaseTick: u32,
     pub pcPhaseLength: u32,
     pub pcActive: bool,
     pub pcSamplesPerTick: u32,
-    pub pcNumReadySamples: u32,
     pub pcLastSample: u16,
     pub pcLengthLeft: u32,
     // Rust port: Pointer to SoundData.freqdata
     pub pcSound: Option<usize>,
     pub SavedSound: SavedSoundStruct,
-    pub rndindex: u16,
-    pub indexi: u16,
-    pub indexj: u16,
-    pub LastRnd: u16,
-    pub RndArray: [u16; 17],
 
     // //////////////////////////////////////////////////////////
     // Rust port: private to cpanel.rs
@@ -50,53 +50,37 @@ pub struct PcrlibAState {
 
     // pub xormask: i32, // Rust port: Set but never read
 }
+
+/// Threadsafe wrapper around the actual PrclibAState data type.
+#[rustfmt::skip]
+#[derive(Clone)]
+pub struct PcrlibAState {
+    inner: Arc<Mutex<PcrlibAStateExclusive>>,
+    // //////////////////////////////////////////////////////////
+    // Rust port: private to pcrlib_a.rs
+    // //////////////////////////////////////////////////////////
+
+    pub _dontplay: bool,
+
+    // Randomness data doesn't need to be inside a mutex (it's also messy when so).
+    //
+    pub rndindex: u16,
+    pub indexi: u16,
+    pub indexj: u16,
+    pub LastRnd: u16,
+    pub RndArray: [u16; 17],
+}
+
 impl PcrlibAState {
-    pub fn new(// SndPriority: u8,
-        // _dontplay: i32,
-        // AudioSpec: SDL_AudioSpec,
-        // AudioDev: u32,
-        // pcVolume: libc::c_short,
-        // pcPhaseTick: u32,
-        // pcPhaseLength: u32,
-        // pcActive: bool,
-        // pcSamplesPerTick: u32,
-        // pcNumReadySamples: u32,
-        // pcLastSample: u16,
-        // pcLengthLeft: u32,
-        // pcSound: Option<usize>,
-        // SavedSound: SavedSoundStruct,
-        // rndindex: u16,
-        // indexi: u16,
-        // indexj: u16,
-        // LastRnd: u16,
-        // RndArray: [u16; 17],
-        // vblsem: *mut SDL_semaphore,
-        // vbltimer: i32,
-        // SoundData: SPKRtable,
-        // soundmode: soundtype,
-        // xormask: i32,
-    ) -> Self {
-        Self {
+    pub fn new() -> Self {
+        let inner = PcrlibAStateExclusive {
             SndPriority: 0,
-            _dontplay: false,
-            AudioSpec: SDL_AudioSpec {
-                freq: 0,
-                format: 0,
-                channels: 0,
-                silence: 0,
-                samples: 0,
-                padding: 0,
-                size: 0,
-                callback: None,
-                userdata: ptr::null_mut(),
-            },
-            AudioDev: 0,
+            AudioSpecFreq: 0,
             pcVolume: 5000,
             pcPhaseTick: 0,
             pcPhaseLength: 0,
             pcActive: false,
             pcSamplesPerTick: 0,
-            pcNumReadySamples: 0,
             pcLastSample: 0,
             pcLengthLeft: 0,
             pcSound: None,
@@ -106,13 +90,25 @@ impl PcrlibAState {
                 pcLengthLeft: 0,
                 pcSound: None,
             },
+            SoundData: SPKRtable::default(),
+            soundmode: spkr,
+        };
+
+        Self {
+            inner: Arc::new(Mutex::new(inner)),
+            _dontplay: false,
             rndindex: 0,
             indexi: 0,
             indexj: 0,
             LastRnd: 0,
             RndArray: [0; 17],
-            SoundData: SPKRtable::default(),
-            soundmode: spkr,
         }
+    }
+}
+
+impl PcrlibAState {
+    pub fn lock<R, F: FnMut(&mut PcrlibAStateExclusive) -> R>(&self, mut fx: F) -> R {
+        let mut lock = (*self.inner).lock().unwrap();
+        fx(&mut lock)
     }
 }
