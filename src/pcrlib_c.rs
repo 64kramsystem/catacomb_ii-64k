@@ -56,7 +56,7 @@ pub enum joyinfo_t {
 //     }
 // }
 
-pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &SdlManager) {
+pub fn ProcessEvents(pcs: &mut PcrlibCState, pas: &mut PcrlibAState, sdl: &mut SdlManager) {
     pcs.mouseEvent = false;
 
     for event in sdl.event_pump().poll_iter() {
@@ -486,14 +486,15 @@ pub fn ControlPlayer(
     player: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
 ) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
         button1: false,
         button2: false,
     };
-    ProcessEvents(pcs, sdl);
+    ProcessEvents(pcs, pas, sdl);
     if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
         match pcs.playermode[player as usize] as u32 {
             1 => {
@@ -568,9 +569,9 @@ pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 /*=========================================================================*/
 
-pub fn clearkeys(pcs: &mut PcrlibCState, sdl: &SdlManager) {
-    while bioskey(1, pcs, sdl) != 0 {
-        bioskey(0, pcs, sdl);
+pub fn clearkeys(pcs: &mut PcrlibCState, pas: &mut PcrlibAState, sdl: &mut SdlManager) {
+    while bioskey(1, pcs, pas, sdl) != 0 {
+        bioskey(0, pcs, pas, sdl);
     }
     for i in 0..128 {
         pcs.keydown[i] = false;
@@ -794,7 +795,12 @@ fn expwinv(
 //
 /////////////////////////
 
-pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
+pub fn bioskey(
+    cmd: i32,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) -> u32 {
     if pcs.lastkey != 0 {
         let oldkey = pcs.lastkey;
         if cmd != 1 {
@@ -856,13 +862,18 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.renderer.as_mut().unwrap().present();
 }
 
-pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> i32 {
+pub fn get(
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) -> i32 {
     let mut key = 0;
 
     loop {
         let mut cycle = 9;
         loop {
-            key = bioskey(0, pcs, sdl);
+            key = bioskey(0, pcs, pas, sdl);
             if key != 0 || cycle == 13 {
                 break;
             }
@@ -1014,12 +1025,17 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
+pub fn _inputint(
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
 
-    _input(&mut string, 17, gs, pcs, sdl);
+    _input(&mut string, 17, gs, pcs, pas, sdl);
 
     if string[0] == b'$' {
         let digits = port_temp_strlen(&string) as isize - 2;
@@ -1063,13 +1079,14 @@ fn _input(
     max: usize,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
 ) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
 
     loop {
-        key_ = (get(gs, pcs, sdl) as u8).to_ascii_uppercase();
+        key_ = (get(gs, pcs, pas, sdl) as u8).to_ascii_uppercase();
         if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
             drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
@@ -1326,7 +1343,7 @@ pub fn _checkhighscore(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
@@ -1352,12 +1369,12 @@ pub fn _checkhighscore(
     UpdateScreen(gs, pcs);
     if i < 5 {
         PlaySound(16, pas);
-        clearkeys(pcs, sdl);
+        clearkeys(pcs, pas, sdl);
         pcs.sx = gs.screencenter.x - 17 / 2 + 14;
         pcs.sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
-            k = get(gs, pcs, sdl);
+            k = get(gs, pcs, pas, sdl);
             let ch = k as i8;
             if ch >= ' ' as i8 && j < 3 {
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);

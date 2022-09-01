@@ -39,7 +39,7 @@ fn calibratejoy(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
@@ -71,7 +71,7 @@ fn calibratejoy(
         if stage == 23 {
             stage = 15;
         }
-        ProcessEvents(pcs, sdl);
+        ProcessEvents(pcs, pas, sdl);
         ReadJoystick(joynum, &mut xl, &mut yl, pcs, sdl);
         ctr = ControlJoystick(joynum, pcs, sdl);
         if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
@@ -108,7 +108,7 @@ fn calibratejoy(
                 if stage == 23 {
                     stage = 15;
                 }
-                ProcessEvents(pcs, sdl);
+                ProcessEvents(pcs, pas, sdl);
                 ReadJoystick(joynum, &mut xh, &mut yh, pcs, sdl);
                 ctr = ControlJoystick(joynum, pcs, sdl);
                 if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
@@ -142,7 +142,7 @@ fn calibratejoy(
         }
         _ => {}
     }
-    clearkeys(pcs, sdl);
+    clearkeys(pcs, pas, sdl);
     erasewindow(gs, pcs);
 }
 
@@ -150,7 +150,7 @@ fn calibratemouse(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut ch: i8 = 0;
     expwin(24, 5, gs, pas, pcs);
@@ -160,7 +160,7 @@ fn calibratemouse(
     print_str("of the mouse, 1 being   \n\r", gs, pcs);
     print_str("slow, 9 being fast:", gs, pcs);
     loop {
-        ch = (get(gs, pcs, sdl) % 256) as i8;
+        ch = (get(gs, pcs, pas, sdl) % 256) as i8;
         if ch as i32 == 27 {
             ch = '5' as i32 as i8;
         }
@@ -241,7 +241,7 @@ fn calibratekeys(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
@@ -281,22 +281,22 @@ fn calibratekeys(
     loop {
         pcs.sx = hx;
         pcs.sy = hy;
-        ch = (get(gs, pcs, sdl) % 256) as i8;
+        ch = (get(gs, pcs, pas, sdl) % 256) as i8;
         if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
             select = ch as i32 - '0' as i32;
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
             select = ch as i32 - '0' as i32;
             print_str("\n\rPress the new key:", gs, pcs);
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             UpdateScreen(gs, pcs);
             loop {
-                new = bioskey(1, pcs, sdl);
+                new = bioskey(1, pcs, pas, sdl);
                 if !(new == 0) {
                     break;
                 }
                 WaitVBL();
             }
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             print_str("\r                  ", gs, pcs);
             if select < 8 {
                 pcs.key[select as usize] = new;
@@ -313,7 +313,7 @@ fn calibratekeys(
             pcs.sx = 22;
             printscan(new as i32, gs, pcs);
             ch = '0' as i32 as i8;
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
         }
         if !(ch as i32 >= '0' as i32 && ch as i32 <= '9' as i32) {
             break;
@@ -422,12 +422,12 @@ pub fn controlpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
     let mut oldcentery: i32 = 0;
-    clearkeys(pcs, sdl);
+    clearkeys(pcs, pas, sdl);
     PauseSound(pas);
     ProbeJoysticks(pcs, sdl);
     cps.oldgrmode = pcs.grmode;
@@ -449,7 +449,7 @@ pub fn controlpanel(
     loop {
         pcs.sx = collumnx[cps.collumn as usize] + 2;
         pcs.sy = rowy[cps.row as usize] + 3;
-        chf = get(gs, pcs, sdl);
+        chf = get(gs, pcs, pas, sdl);
         if chf == SDLK_UP as i32 {
             cps.row -= 1;
             if cps.row < 0 {
