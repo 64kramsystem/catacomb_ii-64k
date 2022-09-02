@@ -1,5 +1,6 @@
-/// Rust port: This could be an usize; the problem is that it'd be semantically inconsistent, because
-/// SDL returns a u32.
+/// Rust port: This could be simplified (removed) by using the Rust library enums, although it's a lot
+/// of tedious work (in particular, because the key semantics are different; here the unknown key is 0,
+/// in the Rust library are None, so the logic must be changed to be Option).
 pub type SDL_Scancode = u32;
 
 pub const SDL_SCANCODE_RSHIFT: SDL_Scancode = 229;
