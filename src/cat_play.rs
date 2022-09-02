@@ -564,7 +564,7 @@ fn intomonster(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
         }
         _ => {}
     }
-    return false;
+    false
 }
 
 fn walkthrough(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> bool {
@@ -660,7 +660,7 @@ fn walkthrough(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
     if gs.chkspot >= 29 && gs.chkspot <= 31 {
         return true;
     }
-    return false;
+    false
 }
 
 fn walk(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) -> bool {
@@ -727,7 +727,7 @@ fn walk(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState) ->
     gs.obj.x = newx as u8;
     gs.obj.y = newy as u8;
     gs.obj.stage = (gs.obj.stage as i32 ^ 1) as u8;
-    return true;
+    true
 }
 
 fn playercmdthink(
@@ -1072,7 +1072,6 @@ fn gargthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCStat
             }
             _ => {}
         }
-        return;
     } else {
         chasethink(false, gs, pas, pcs);
     };
@@ -1109,7 +1108,6 @@ fn dragonthink(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
             }
             _ => {}
         }
-        return;
     } else {
         chasethink(false, gs, pas, pcs);
     };

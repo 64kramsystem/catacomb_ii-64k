@@ -157,7 +157,7 @@ fn wantmore(
     if ch == 27 {
         return false;
     }
-    return true;
+    true
 }
 
 fn charpic(

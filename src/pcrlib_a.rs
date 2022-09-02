@@ -343,7 +343,7 @@ pub fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     if val > maxval as i32 {
         val >>= 1;
     }
-    return val;
+    val
 }
 
 pub fn initrndt(randomize: bool, pas: &mut PcrlibAState) {
@@ -359,7 +359,7 @@ pub fn initrndt(randomize: bool, pas: &mut PcrlibAState) {
 
 pub fn rndt(pas: &mut PcrlibAState) -> i32 {
     pas.rndindex = ((pas.rndindex as i32 + 1) & 0xff as i32) as u16;
-    return rndtable[pas.rndindex as usize] as i32;
+    rndtable[pas.rndindex as usize] as i32
 }
 
 fn VBLCallback() -> u32 {

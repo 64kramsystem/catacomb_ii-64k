@@ -228,7 +228,7 @@ fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     }
     action.button1 = pcs.keydown[pcs.keyB1 as usize];
     action.button2 = pcs.keydown[pcs.keyB2 as usize];
-    return action;
+    action
 }
 
 /*
@@ -544,7 +544,7 @@ pub fn ControlPlayer(
         ret.button2 = ((val & 2) >> 1) != 0;
         ret.dir = ((val & (4 + 8 + 16 + 32)) >> 2).into();
     }
-    return ret;
+    ret
 }
 
 pub fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
@@ -1176,7 +1176,7 @@ pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
         }
         i += 1;
     }
-    return 0;
+    0
 }
 
 // Enable and disable mouse grabbing
