@@ -15,7 +15,7 @@ extern "C" {
     fn fstat(__fd: libc::c_int, __buf: *mut stat) -> libc::c_int;
     fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
     fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
-    fn atexit(__func: Option::<unsafe extern "C" fn() -> ()>) -> libc::c_int;
+    fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> libc::c_int;
     fn exit(_: libc::c_int) -> !;
     fn toupper(_: libc::c_int) -> libc::c_int;
     static mut stderr: *mut FILE;
@@ -32,11 +32,7 @@ extern "C" {
     fn strlen(_: *const libc::c_char) -> libc::c_ulong;
     fn strcat(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
-    fn memset(
-        _: *mut libc::c_void,
-        _: libc::c_int,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
+    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
     fn US_CheckParm(_: *mut libc::c_char, _: *mut *mut libc::c_char) -> libc::c_int;
     static mut _argc: libc::c_int;
     static mut _argv: *mut *mut libc::c_char;
@@ -85,10 +81,7 @@ extern "C" {
     fn SDL_AddEventWatch(filter: SDL_EventFilter, userdata: *mut libc::c_void);
     fn SDL_PollEvent(event: *mut SDL_Event) -> libc::c_int;
     fn SDL_PumpEvents();
-    fn SDL_GetDisplayBounds(
-        displayIndex: libc::c_int,
-        rect: *mut SDL_Rect,
-    ) -> libc::c_int;
+    fn SDL_GetDisplayBounds(displayIndex: libc::c_int, rect: *mut SDL_Rect) -> libc::c_int;
     fn SDL_GetCurrentDisplayMode(
         displayIndex: libc::c_int,
         mode_0: *mut SDL_DisplayMode,
@@ -110,10 +103,7 @@ extern "C" {
     fn SDL_JoystickOpen(device_index: libc::c_int) -> *mut SDL_Joystick;
     fn SDL_JoystickUpdate();
     fn SDL_JoystickGetAxis(joystick_0: *mut SDL_Joystick, axis: libc::c_int) -> Sint16;
-    fn SDL_JoystickGetButton(
-        joystick_0: *mut SDL_Joystick,
-        button: libc::c_int,
-    ) -> Uint8;
+    fn SDL_JoystickGetButton(joystick_0: *mut SDL_Joystick, button: libc::c_int) -> Uint8;
     fn SDL_JoystickClose(joystick_0: *mut SDL_Joystick);
     fn SDL_IsGameController(joystick_index: libc::c_int) -> SDL_bool;
     fn SDL_GameControllerOpen(joystick_index: libc::c_int) -> *mut SDL_GameController;
@@ -988,9 +978,8 @@ pub union SDL_Event {
     pub drop: SDL_DropEvent,
     pub padding: [Uint8; 56],
 }
-pub type SDL_EventFilter = Option::<
-    unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> libc::c_int,
->;
+pub type SDL_EventFilter =
+    Option<unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> libc::c_int>;
 pub type C2RustUnnamed_4 = libc::c_uint;
 pub const SDL_TEXTUREACCESS_TARGET: C2RustUnnamed_4 = 2;
 pub const SDL_TEXTUREACCESS_STREAMING: C2RustUnnamed_4 = 1;
@@ -1123,8 +1112,7 @@ pub static mut keyB2: libc::c_int = 0;
 #[no_mangle]
 pub static mut demobuffer: [libc::c_char; 5000] = [0; 5000];
 #[no_mangle]
-pub static mut demoptr: *mut libc::c_char = 0 as *const libc::c_char
-    as *mut libc::c_char;
+pub static mut demoptr: *mut libc::c_char = 0 as *const libc::c_char as *mut libc::c_char;
 #[no_mangle]
 pub static mut democount: libc::c_int = 0;
 #[no_mangle]
@@ -1135,13 +1123,16 @@ static mut lastkey: SDL_Scancode = SDL_SCANCODE_UNKNOWN;
 #[no_mangle]
 pub static mut window: *mut SDL_Window = 0 as *const SDL_Window as *mut SDL_Window;
 #[no_mangle]
-pub static mut renderer: *mut SDL_Renderer = 0 as *const SDL_Renderer
-    as *mut SDL_Renderer;
+pub static mut renderer: *mut SDL_Renderer = 0 as *const SDL_Renderer as *mut SDL_Renderer;
 #[no_mangle]
-pub static mut sdltexture: *mut SDL_Texture = 0 as *const SDL_Texture
-    as *mut SDL_Texture;
+pub static mut sdltexture: *mut SDL_Texture = 0 as *const SDL_Texture as *mut SDL_Texture;
 #[no_mangle]
-pub static mut updateRect: SDL_Rect = SDL_Rect { x: 0, y: 0, w: 0, h: 0 };
+pub static mut updateRect: SDL_Rect = SDL_Rect {
+    x: 0,
+    y: 0,
+    w: 0,
+    h: 0,
+};
 #[no_mangle]
 pub static mut mode: SDL_DisplayMode = SDL_DisplayMode {
     format: 0,
@@ -1173,12 +1164,10 @@ pub unsafe extern "C" fn ProcessEvents() {
     let mut event: SDL_Event = SDL_Event { type_0: 0 };
     while SDL_PollEvent(&mut event) != 0 {
         if event.type_0 == SDL_KEYDOWN as libc::c_int as libc::c_uint {
-            keydown[event.key.keysym.scancode
-                as usize] = true_0 as libc::c_int as boolean;
+            keydown[event.key.keysym.scancode as usize] = true_0 as libc::c_int as boolean;
             lastkey = event.key.keysym.scancode;
         } else if event.type_0 == SDL_KEYUP as libc::c_int as libc::c_uint {
-            keydown[event.key.keysym.scancode
-                as usize] = false_0 as libc::c_int as boolean;
+            keydown[event.key.keysym.scancode as usize] = false_0 as libc::c_int as boolean;
         } else if event.type_0 == SDL_MOUSEMOTION as libc::c_int as libc::c_uint {
             mouseEvent = true_0 as libc::c_int as boolean;
         }
@@ -1292,14 +1281,11 @@ pub unsafe extern "C" fn ControlMouse() -> ControlStruct {
         button1: 0,
         button2: 0,
     };
-    let mut buttons: libc::c_int = SDL_GetRelativeMouseState(&mut newx, &mut newy)
-        as libc::c_int;
-    action
-        .button1 = (buttons & (1 as libc::c_int) << 1 as libc::c_int - 1 as libc::c_int)
-        as boolean;
-    action
-        .button2 = (buttons & (1 as libc::c_int) << 3 as libc::c_int - 1 as libc::c_int)
-        as boolean;
+    let mut buttons: libc::c_int = SDL_GetRelativeMouseState(&mut newx, &mut newy) as libc::c_int;
+    action.button1 =
+        (buttons & (1 as libc::c_int) << 1 as libc::c_int - 1 as libc::c_int) as boolean;
+    action.button2 =
+        (buttons & (1 as libc::c_int) << 3 as libc::c_int - 1 as libc::c_int) as boolean;
     if mouseEvent as libc::c_int == false_0 as libc::c_int {
         action.dir = nodir;
         return action;
@@ -1375,17 +1361,13 @@ pub unsafe extern "C" fn ProbeJoysticks() {
             joystick[j as usize].device = -(1 as libc::c_int);
         } else {
             joystick[j as usize].device = j - 1 as libc::c_int;
-            joystick[j as usize]
-                .isgamecontroller = SDL_IsGameController(j - 1 as libc::c_int)
-                as boolean;
+            joystick[j as usize].isgamecontroller =
+                SDL_IsGameController(j - 1 as libc::c_int) as boolean;
             if SDL_IsGameController(j - 1 as libc::c_int) as u64 != 0 {
-                joystick[j as usize]
-                    .c2rust_unnamed
-                    .controller = SDL_GameControllerOpen(j - 1 as libc::c_int);
+                joystick[j as usize].c2rust_unnamed.controller =
+                    SDL_GameControllerOpen(j - 1 as libc::c_int);
             } else {
-                joystick[j as usize]
-                    .c2rust_unnamed
-                    .joy = SDL_JoystickOpen(j - 1 as libc::c_int);
+                joystick[j as usize].c2rust_unnamed.joy = SDL_JoystickOpen(j - 1 as libc::c_int);
             }
         }
         j += 1;
@@ -1437,27 +1419,27 @@ pub unsafe extern "C" fn ControlJoystick(mut joynum: libc::c_int) -> ControlStru
     };
     ReadJoystick(joynum, &mut joyx, &mut joyy);
     if joystick[joynum as usize].isgamecontroller != 0 {
-        action
-            .button1 = (SDL_GameControllerGetButton(
+        action.button1 = (SDL_GameControllerGetButton(
             joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_BUTTON_A,
-        ) as libc::c_int != 0 as libc::c_int) as libc::c_int as boolean;
-        action
-            .button2 = (SDL_GameControllerGetButton(
+        ) as libc::c_int
+            != 0 as libc::c_int) as libc::c_int as boolean;
+        action.button2 = (SDL_GameControllerGetButton(
             joystick[joynum as usize].c2rust_unnamed.controller,
             SDL_CONTROLLER_BUTTON_B,
-        ) as libc::c_int != 0 as libc::c_int) as libc::c_int as boolean;
+        ) as libc::c_int
+            != 0 as libc::c_int) as libc::c_int as boolean;
     } else {
-        action
-            .button1 = (SDL_JoystickGetButton(
+        action.button1 = (SDL_JoystickGetButton(
             joystick[joynum as usize].c2rust_unnamed.joy,
             0 as libc::c_int,
-        ) as libc::c_int != 0 as libc::c_int) as libc::c_int as boolean;
-        action
-            .button2 = (SDL_JoystickGetButton(
+        ) as libc::c_int
+            != 0 as libc::c_int) as libc::c_int as boolean;
+        action.button2 = (SDL_JoystickGetButton(
             joystick[joynum as usize].c2rust_unnamed.joy,
             1 as libc::c_int,
-        ) as libc::c_int != 0 as libc::c_int) as libc::c_int as boolean;
+        ) as libc::c_int
+            != 0 as libc::c_int) as libc::c_int as boolean;
     }
     if joyx == 0 as libc::c_int && joyy == 0 as libc::c_int {
         action.dir = nodir;
@@ -1545,38 +1527,41 @@ pub unsafe extern "C" fn ControlPlayer(mut player: libc::c_int) -> ControlStruct
         val = *fresh1 as libc::c_int;
         ret.button1 = (val & 1 as libc::c_int) as boolean;
         ret.button2 = ((val & 2 as libc::c_int) >> 1 as libc::c_int) as boolean;
-        ret
-            .dir = ((val
-            & 4 as libc::c_int + 8 as libc::c_int + 16 as libc::c_int
-                + 32 as libc::c_int) >> 2 as libc::c_int) as dirtype;
+        ret.dir = ((val
+            & 4 as libc::c_int + 8 as libc::c_int + 16 as libc::c_int + 32 as libc::c_int)
+            >> 2 as libc::c_int) as dirtype;
     }
     return ret;
 }
 #[no_mangle]
 pub unsafe extern "C" fn RecordDemo() {
     demobuffer[0 as libc::c_int as usize] = level as libc::c_char;
-    demoptr = &mut *demobuffer.as_mut_ptr().offset(1 as libc::c_int as isize)
-        as *mut libc::c_char;
+    demoptr = &mut *demobuffer.as_mut_ptr().offset(1 as libc::c_int as isize) as *mut libc::c_char;
     indemo = recording;
 }
 #[no_mangle]
 pub unsafe extern "C" fn LoadDemo(mut demonum: libc::c_int) {
     let mut st2: [libc::c_char; 5] = [0; 5];
-    strcpy(str.as_mut_ptr(), b"DEMO\0" as *const u8 as *const libc::c_char);
+    strcpy(
+        str.as_mut_ptr(),
+        b"DEMO\0" as *const u8 as *const libc::c_char,
+    );
     itoa(demonum, st2.as_mut_ptr(), 10 as libc::c_int);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
     strcat(str.as_mut_ptr(), b".\0" as *const u8 as *const libc::c_char);
     strcat(str.as_mut_ptr(), _extension);
     LoadFile(str.as_mut_ptr(), demobuffer.as_mut_ptr());
     level = demobuffer[0 as libc::c_int as usize] as sword;
-    demoptr = &mut *demobuffer.as_mut_ptr().offset(1 as libc::c_int as isize)
-        as *mut libc::c_char;
+    demoptr = &mut *demobuffer.as_mut_ptr().offset(1 as libc::c_int as isize) as *mut libc::c_char;
     indemo = demoplay;
 }
 #[no_mangle]
 pub unsafe extern "C" fn SaveDemo(mut demonum: libc::c_int) {
     let mut st2: [libc::c_char; 5] = [0; 5];
-    strcpy(str.as_mut_ptr(), b"DEMO\0" as *const u8 as *const libc::c_char);
+    strcpy(
+        str.as_mut_ptr(),
+        b"DEMO\0" as *const u8 as *const libc::c_char,
+    );
     itoa(demonum, st2.as_mut_ptr(), 10 as libc::c_int);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
     strcat(str.as_mut_ptr(), b".\0" as *const u8 as *const libc::c_char);
@@ -1584,11 +1569,9 @@ pub unsafe extern "C" fn SaveDemo(mut demonum: libc::c_int) {
     SaveFile(
         str.as_mut_ptr(),
         demobuffer.as_mut_ptr(),
-        demoptr
-            .offset_from(
-                &mut *demobuffer.as_mut_ptr().offset(0 as libc::c_int as isize)
-                    as *mut libc::c_char,
-            ) as libc::c_long,
+        demoptr.offset_from(
+            &mut *demobuffer.as_mut_ptr().offset(0 as libc::c_int as isize) as *mut libc::c_char,
+        ) as libc::c_long,
     );
     indemo = notdemo;
 }
@@ -1617,9 +1600,18 @@ unsafe extern "C" fn filelength(mut fd: libc::c_int) -> libc::c_long {
         st_size: 0,
         st_blksize: 0,
         st_blocks: 0,
-        st_atim: timespec { tv_sec: 0, tv_nsec: 0 },
-        st_mtim: timespec { tv_sec: 0, tv_nsec: 0 },
-        st_ctim: timespec { tv_sec: 0, tv_nsec: 0 },
+        st_atim: timespec {
+            tv_sec: 0,
+            tv_nsec: 0,
+        },
+        st_mtim: timespec {
+            tv_sec: 0,
+            tv_nsec: 0,
+        },
+        st_ctim: timespec {
+            tv_sec: 0,
+            tv_nsec: 0,
+        },
         __glibc_reserved: [0; 3],
     };
     if fstat(fd, &mut s) != 0 {
@@ -1651,8 +1643,7 @@ pub unsafe extern "C" fn SaveFile(
     let mut fd: libc::c_int = 0;
     fd = open(
         filename,
-        0o1 as libc::c_int | 0 as libc::c_int | 0o100 as libc::c_int
-            | 0o1000 as libc::c_int,
+        0o1 as libc::c_int | 0 as libc::c_int | 0o100 as libc::c_int | 0o1000 as libc::c_int,
         0o400 as libc::c_int | 0o200 as libc::c_int,
     );
     if fd < 0 as libc::c_int {
@@ -1674,22 +1665,19 @@ pub unsafe extern "C" fn bloadin(mut filename: *mut libc::c_char) -> *mut libc::
         LoadFile(filename, location);
         return location as *mut libc::c_void;
     } else {
-        return 0 as *mut libc::c_void
+        return 0 as *mut libc::c_void;
     };
 }
 #[no_mangle]
 pub static mut grmode: grtype = text;
 #[no_mangle]
-pub static mut charptr: *mut libc::c_void = 0 as *const libc::c_void
-    as *mut libc::c_void;
+pub static mut charptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
 #[no_mangle]
-pub static mut tileptr: *mut libc::c_void = 0 as *const libc::c_void
-    as *mut libc::c_void;
+pub static mut tileptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
 #[no_mangle]
 pub static mut picptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
 #[no_mangle]
-pub static mut spriteptr: *mut libc::c_void = 0 as *const libc::c_void
-    as *mut libc::c_void;
+pub static mut spriteptr: *mut libc::c_void = 0 as *const libc::c_void as *mut libc::c_void;
 #[no_mangle]
 pub static mut egaplaneofs: [dword; 4] = [0; 4];
 #[no_mangle]
@@ -1780,7 +1768,12 @@ pub unsafe extern "C" fn erasewindow() {
 pub unsafe extern "C" fn centerwindow(mut width: libc::c_int, mut height: libc::c_int) {
     let mut xl: libc::c_int = screencenterx - width / 2 as libc::c_int;
     let mut yl: libc::c_int = screencentery - height / 2 as libc::c_int;
-    drawwindow(xl, yl, xl + width + 1 as libc::c_int, yl + height + 1 as libc::c_int);
+    drawwindow(
+        xl,
+        yl,
+        xl + width + 1 as libc::c_int,
+        yl + height + 1 as libc::c_int,
+    );
 }
 #[no_mangle]
 pub unsafe extern "C" fn expwin(mut width: libc::c_int, mut height: libc::c_int) {
@@ -1875,20 +1868,17 @@ pub unsafe extern "C" fn UpdateScreen() {
             i = i.wrapping_add(1);
         }
     } else if false_0 as libc::c_int != 0
-            && !(b"VGA Palette conversion not implemented.\0" as *const u8
-                as *const libc::c_char)
-                .is_null()
-        {} else {
+        && !(b"VGA Palette conversion not implemented.\0" as *const u8 as *const libc::c_char)
+            .is_null()
+    {
+    } else {
         __assert_fail(
             b"false && \"VGA Palette conversion not implemented.\"\0" as *const u8
                 as *const libc::c_char,
-            b"/home/saverio/code/catacomb_ii-64k/source_project/pcrlib_c.c\0"
-                as *const u8 as *const libc::c_char,
+            b"/home/saverio/code/catacomb_ii-64k/source_project/pcrlib_c.c\0" as *const u8
+                as *const libc::c_char,
             865 as libc::c_int as libc::c_uint,
-            (*::core::mem::transmute::<
-                &[u8; 20],
-                &[libc::c_char; 20],
-            >(b"void UpdateScreen()\0"))
+            (*::core::mem::transmute::<&[u8; 20], &[libc::c_char; 20]>(b"void UpdateScreen()\0"))
                 .as_ptr(),
         );
     }
@@ -1897,8 +1887,7 @@ pub unsafe extern "C" fn UpdateScreen() {
         0 as *const SDL_Rect,
         conv.as_mut_ptr() as *const libc::c_void,
         (320 as libc::c_int as libc::c_ulong)
-            .wrapping_mul(::core::mem::size_of::<Uint32>() as libc::c_ulong)
-            as libc::c_int,
+            .wrapping_mul(::core::mem::size_of::<Uint32>() as libc::c_ulong) as libc::c_int,
     );
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, sdltexture, 0 as *const SDL_Rect, &mut updateRect);
@@ -1953,7 +1942,7 @@ pub unsafe extern "C" fn print(mut str_0: *const libc::c_char) {
             sx = sx + 1;
             drawchar(fresh4, sy, ch_0 as byte as libc::c_int);
         }
-    };
+    }
 }
 #[no_mangle]
 pub unsafe extern "C" fn printchartile(mut str_0: *const libc::c_char) {
@@ -1975,7 +1964,7 @@ pub unsafe extern "C" fn printchartile(mut str_0: *const libc::c_char) {
             sx = sx + 1;
             drawchartile(fresh6, sy, ch_0 as byte as libc::c_int);
         }
-    };
+    }
 }
 #[no_mangle]
 pub unsafe extern "C" fn printint(mut val: libc::c_int) {
@@ -2002,20 +1991,15 @@ pub unsafe extern "C" fn _Verify(mut filename: *mut libc::c_char) -> libc::c_lon
 #[no_mangle]
 pub unsafe extern "C" fn _printhexb(mut value: libc::c_uchar) {
     let mut loop_0: libc::c_int = 0;
-    let mut hexstr: [libc::c_char; 16] = *::core::mem::transmute::<
-        &[u8; 16],
-        &mut [libc::c_char; 16],
-    >(b"0123456789ABCDEF");
-    let mut str_0: [libc::c_char; 2] = *::core::mem::transmute::<
-        &[u8; 2],
-        &mut [libc::c_char; 2],
-    >(b"\0\0");
+    let mut hexstr: [libc::c_char; 16] =
+        *::core::mem::transmute::<&[u8; 16], &mut [libc::c_char; 16]>(b"0123456789ABCDEF");
+    let mut str_0: [libc::c_char; 2] =
+        *::core::mem::transmute::<&[u8; 2], &mut [libc::c_char; 2]>(b"\0\0");
     loop_0 = 0 as libc::c_int;
     while loop_0 < 2 as libc::c_int {
-        str_0[0 as libc::c_int
-            as usize] = hexstr[(value as libc::c_int
-            >> (1 as libc::c_int - loop_0) * 4 as libc::c_int & 15 as libc::c_int)
-            as usize];
+        str_0[0 as libc::c_int as usize] = hexstr[(value as libc::c_int
+            >> (1 as libc::c_int - loop_0) * 4 as libc::c_int
+            & 15 as libc::c_int) as usize];
         print(str_0.as_mut_ptr());
         loop_0 += 1;
     }
@@ -2043,8 +2027,7 @@ pub unsafe extern "C" fn _printbin(mut value: libc::c_uint) {
 #[no_mangle]
 pub unsafe extern "C" fn _printc(mut string: *mut libc::c_char) {
     sx = 1 as libc::c_int + screencenterx
-        - (strlen(string)).wrapping_div(2 as libc::c_int as libc::c_ulong)
-            as libc::c_int;
+        - (strlen(string)).wrapping_div(2 as libc::c_int as libc::c_ulong) as libc::c_int;
     print(string);
 }
 #[no_mangle]
@@ -2054,18 +2037,16 @@ pub unsafe extern "C" fn _inputint() -> libc::c_uint {
         &mut [libc::c_char; 18],
     >(b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
     let mut digit: libc::c_char = 0;
-    let mut hexstr: [libc::c_char; 16] = *::core::mem::transmute::<
-        &[u8; 16],
-        &mut [libc::c_char; 16],
-    >(b"0123456789ABCDEF");
+    let mut hexstr: [libc::c_char; 16] =
+        *::core::mem::transmute::<&[u8; 16], &mut [libc::c_char; 16]>(b"0123456789ABCDEF");
     let mut value: libc::c_uint = 0;
     let mut loop_0: libc::c_uint = 0;
     let mut loop1: libc::c_uint = 0;
     _input(string.as_mut_ptr(), 17 as libc::c_int);
     if string[0 as libc::c_int as usize] as libc::c_int == '$' as i32 {
         let mut digits: ssize_t = 0;
-        digits = (strlen(string.as_mut_ptr()))
-            .wrapping_sub(2 as libc::c_int as libc::c_ulong) as ssize_t;
+        digits = (strlen(string.as_mut_ptr())).wrapping_sub(2 as libc::c_int as libc::c_ulong)
+            as ssize_t;
         if digits < 0 as libc::c_int as libc::c_long {
             return 0 as libc::c_int as libc::c_uint;
         }
@@ -2079,10 +2060,8 @@ pub unsafe extern "C" fn _inputint() -> libc::c_uint {
             loop_0 = 0 as libc::c_int as libc::c_uint;
             while loop_0 < 16 as libc::c_int as libc::c_uint {
                 if digit as libc::c_int == hexstr[loop_0 as usize] as libc::c_int {
-                    value
-                        |= loop_0
-                            << (digits - loop1 as libc::c_long)
-                                * 4 as libc::c_int as libc::c_long;
+                    value |= loop_0
+                        << (digits - loop1 as libc::c_long) * 4 as libc::c_int as libc::c_long;
                     break;
                 } else {
                     loop_0 = loop_0.wrapping_add(1);
@@ -2092,8 +2071,8 @@ pub unsafe extern "C" fn _inputint() -> libc::c_uint {
         }
     } else if string[0 as libc::c_int as usize] as libc::c_int == '%' as i32 {
         let mut digits_0: ssize_t = 0;
-        digits_0 = (strlen(string.as_mut_ptr()))
-            .wrapping_sub(2 as libc::c_int as libc::c_ulong) as ssize_t;
+        digits_0 = (strlen(string.as_mut_ptr())).wrapping_sub(2 as libc::c_int as libc::c_ulong)
+            as ssize_t;
         if digits_0 < 0 as libc::c_int as libc::c_long {
             return 0 as libc::c_int as libc::c_uint;
         }
@@ -2101,16 +2080,18 @@ pub unsafe extern "C" fn _inputint() -> libc::c_uint {
         loop1 = 0 as libc::c_int as libc::c_uint;
         while loop1 as libc::c_ulong <= digits_0 as size_t {
             if (string[loop1.wrapping_add(1 as libc::c_int as libc::c_uint) as usize]
-                as libc::c_int) < '0' as i32
+                as libc::c_int)
+                < '0' as i32
                 || string[loop1.wrapping_add(1 as libc::c_int as libc::c_uint) as usize]
-                    as libc::c_int > '1' as i32
+                    as libc::c_int
+                    > '1' as i32
             {
                 return 0 as libc::c_int as libc::c_uint;
             }
-            value
-                |= ((string[loop1.wrapping_add(1 as libc::c_int as libc::c_uint)
-                    as usize] as libc::c_int - '0' as i32)
-                    << digits_0 - loop1 as libc::c_long) as libc::c_uint;
+            value |= ((string[loop1.wrapping_add(1 as libc::c_int as libc::c_uint) as usize]
+                as libc::c_int
+                - '0' as i32)
+                << digits_0 - loop1 as libc::c_long) as libc::c_uint;
             loop1 = loop1.wrapping_add(1);
         }
     } else {
@@ -2128,16 +2109,14 @@ pub unsafe extern "C" fn _input(
     let mut loop_0: libc::c_int = 0;
     loop {
         key_0 = toupper(get() & 0xff as libc::c_int) as libc::c_char;
-        if (key_0 as libc::c_int == 127 as libc::c_int
-            || key_0 as libc::c_int == 8 as libc::c_int) && count > 0 as libc::c_int
+        if (key_0 as libc::c_int == 127 as libc::c_int || key_0 as libc::c_int == 8 as libc::c_int)
+            && count > 0 as libc::c_int
         {
             count -= 1;
             drawchar(sx, sy, ' ' as i32);
             sx -= 1;
         }
-        if key_0 as libc::c_int >= ' ' as i32 && key_0 as libc::c_int <= 'z' as i32
-            && count < max
-        {
+        if key_0 as libc::c_int >= ' ' as i32 && key_0 as libc::c_int <= 'z' as i32 && count < max {
             let fresh7 = count;
             count = count + 1;
             *string.offset(fresh7 as isize) = key_0;
@@ -2145,8 +2124,7 @@ pub unsafe extern "C" fn _input(
             sx = sx + 1;
             drawchar(fresh8, sy, key_0 as libc::c_int);
         }
-        if !(key_0 as libc::c_int != 27 as libc::c_int
-            && key_0 as libc::c_int != 13 as libc::c_int)
+        if !(key_0 as libc::c_int != 27 as libc::c_int && key_0 as libc::c_int != 13 as libc::c_int)
         {
             break;
         }
@@ -2182,8 +2160,7 @@ pub static mut _numlevels: libc::c_int = 0;
 #[no_mangle]
 pub static mut _maxplayers: libc::c_int = 0;
 #[no_mangle]
-pub static mut _extension: *const libc::c_char = b"PCR\0" as *const u8
-    as *const libc::c_char;
+pub static mut _extension: *const libc::c_char = b"PCR\0" as *const u8 as *const libc::c_char;
 #[no_mangle]
 pub static mut _cgaok: boolean = true_0 as libc::c_int as boolean;
 #[no_mangle]
@@ -2345,7 +2322,10 @@ pub unsafe extern "C" fn CheckMouseMode() {
 #[no_mangle]
 pub unsafe extern "C" fn _loadctrls() {
     let mut handle: libc::c_int = 0;
-    strcpy(str.as_mut_ptr(), b"CTLPANEL.\0" as *const u8 as *const libc::c_char);
+    strcpy(
+        str.as_mut_ptr(),
+        b"CTLPANEL.\0" as *const u8 as *const libc::c_char,
+    );
     strcat(str.as_mut_ptr(), _extension);
     handle = open(
         str.as_mut_ptr(),
@@ -2406,13 +2386,10 @@ pub unsafe extern "C" fn _loadctrls() {
             JoyYlow[i as usize] = ctlpanel.JoyYlow[i as usize] as libc::c_int;
             JoyXhigh[i as usize] = ctlpanel.JoyXhigh[i as usize] as libc::c_int;
             JoyYhigh[i as usize] = ctlpanel.JoyYhigh[i as usize] as libc::c_int;
-            if playermode[i as usize] as libc::c_uint
-                == mouse as libc::c_int as libc::c_uint
-            {
+            if playermode[i as usize] as libc::c_uint == mouse as libc::c_int as libc::c_uint {
                 CheckMouseMode();
             }
-            if playermode[i as usize] as libc::c_uint
-                == joystick1 as libc::c_int as libc::c_uint
+            if playermode[i as usize] as libc::c_uint == joystick1 as libc::c_int as libc::c_uint
                 || playermode[i as usize] as libc::c_uint
                     == joystick2 as libc::c_int as libc::c_uint
             {
@@ -2432,9 +2409,7 @@ pub unsafe extern "C" fn _loadctrls() {
         MouseSensitivity = ctlpanel.MouseSensitivity as libc::c_int;
         i = 0 as libc::c_int as libc::c_uint;
         while i < 8 as libc::c_int as libc::c_uint {
-            key[i
-                as usize] = DOSScanCodeMap[ctlpanel.key[i as usize] as usize]
-                as libc::c_int;
+            key[i as usize] = DOSScanCodeMap[ctlpanel.key[i as usize] as usize] as libc::c_int;
             i = i.wrapping_add(1);
         }
         keyB1 = DOSScanCodeMap[ctlpanel.keyB1 as usize] as libc::c_int;
@@ -2457,12 +2432,14 @@ pub unsafe extern "C" fn _savectrls() {
         keyB1: 0,
         keyB2: 0,
     };
-    strcpy(str.as_mut_ptr(), b"CTLPANEL.\0" as *const u8 as *const libc::c_char);
+    strcpy(
+        str.as_mut_ptr(),
+        b"CTLPANEL.\0" as *const u8 as *const libc::c_char,
+    );
     strcat(str.as_mut_ptr(), _extension);
     handle = open(
         str.as_mut_ptr(),
-        0o1 as libc::c_int | 0 as libc::c_int | 0o100 as libc::c_int
-            | 0o1000 as libc::c_int,
+        0o1 as libc::c_int | 0 as libc::c_int | 0o100 as libc::c_int | 0o1000 as libc::c_int,
         0o400 as libc::c_int | 0o200 as libc::c_int,
     );
     if handle == -(1 as libc::c_int) {
@@ -2483,8 +2460,7 @@ pub unsafe extern "C" fn _savectrls() {
     ctlpanel.MouseSensitivity = MouseSensitivity as sword;
     i = 0 as libc::c_int as libc::c_uint;
     while i < 8 as libc::c_int as libc::c_uint {
-        ctlpanel
-            .key[i as usize] = ScancodeToDOS(key[i as usize] as SDL_Scancode) as byte;
+        ctlpanel.key[i as usize] = ScancodeToDOS(key[i as usize] as SDL_Scancode) as byte;
         i = i.wrapping_add(1);
     }
     ctlpanel.keyB1 = ScancodeToDOS(keyB1 as SDL_Scancode) as byte;
@@ -2499,10 +2475,15 @@ pub unsafe extern "C" fn _savectrls() {
 #[no_mangle]
 pub unsafe extern "C" fn _loadhighscores() {
     let mut i: libc::c_int = 0;
-    strcpy(str.as_mut_ptr(), b"SCORES.\0" as *const u8 as *const libc::c_char);
+    strcpy(
+        str.as_mut_ptr(),
+        b"SCORES.\0" as *const u8 as *const libc::c_char,
+    );
     strcat(str.as_mut_ptr(), _extension);
-    if LoadFile(str.as_mut_ptr(), highscores.as_mut_ptr() as *mut libc::c_char)
-        == 0 as libc::c_int as libc::c_ulong
+    if LoadFile(
+        str.as_mut_ptr(),
+        highscores.as_mut_ptr() as *mut libc::c_char,
+    ) == 0 as libc::c_int as libc::c_ulong
     {
         i = 0 as libc::c_int;
         while i < 5 as libc::c_int {
@@ -2518,7 +2499,10 @@ pub unsafe extern "C" fn _loadhighscores() {
 }
 #[no_mangle]
 pub unsafe extern "C" fn _savehighscores() {
-    strcpy(str.as_mut_ptr(), b"SCORES.\0" as *const u8 as *const libc::c_char);
+    strcpy(
+        str.as_mut_ptr(),
+        b"SCORES.\0" as *const u8 as *const libc::c_char,
+    );
     strcat(str.as_mut_ptr(), _extension);
     SaveFile(
         str.as_mut_ptr(),
@@ -2573,7 +2557,10 @@ pub unsafe extern "C" fn _showhighscores() {
         print(b"\n\n\0" as *const u8 as *const libc::c_char);
         i += 1;
     }
-    strcpy(str.as_mut_ptr(), b"SCORE:\0" as *const u8 as *const libc::c_char);
+    strcpy(
+        str.as_mut_ptr(),
+        b"SCORE:\0" as *const u8 as *const libc::c_char,
+    );
     ltoa(score, st2.as_mut_ptr(), 10 as libc::c_int);
     strcat(str.as_mut_ptr(), st2.as_mut_ptr());
     _printc(str.as_mut_ptr());
@@ -2609,7 +2596,8 @@ pub unsafe extern "C" fn _checkhighscore() {
         PlaySound(16 as libc::c_int);
         clearkeys();
         sx = screencenterx - 17 as libc::c_int / 2 as libc::c_int + 14 as libc::c_int;
-        sy = screencentery - 17 as libc::c_int / 2 as libc::c_int + 6 as libc::c_int
+        sy = screencentery - 17 as libc::c_int / 2 as libc::c_int
+            + 6 as libc::c_int
             + i * 2 as libc::c_int;
         j = 0 as libc::c_int;
         loop {
@@ -2643,8 +2631,7 @@ static mut VideoParmStrings: [*const libc::c_char; 3] = [
 #[no_mangle]
 pub unsafe extern "C" fn _setupgame() {
     if SDL_Init(
-        0x20 as libc::c_uint | 0x1 as libc::c_uint | 0x200 as libc::c_uint
-            | 0x2000 as libc::c_uint,
+        0x20 as libc::c_uint | 0x1 as libc::c_uint | 0x200 as libc::c_uint | 0x2000 as libc::c_uint,
     ) < 0 as libc::c_int
     {
         fprintf(
@@ -2657,8 +2644,7 @@ pub unsafe extern "C" fn _setupgame() {
     atexit(Some(SDL_Quit as unsafe extern "C" fn() -> ()));
     SDL_AddEventWatch(
         Some(
-            WatchUIEvents
-                as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> libc::c_int,
+            WatchUIEvents as unsafe extern "C" fn(*mut libc::c_void, *mut SDL_Event) -> libc::c_int,
         ),
         0 as *mut libc::c_void,
     );
@@ -2694,7 +2680,12 @@ pub unsafe extern "C" fn _setupgame() {
         }
         i += 1;
     }
-    let mut bounds: SDL_Rect = SDL_Rect { x: 0, y: 0, w: 0, h: 0 };
+    let mut bounds: SDL_Rect = SDL_Rect {
+        x: 0,
+        y: 0,
+        w: 0,
+        h: 0,
+    };
     if SDL_GetCurrentDisplayMode(displayindex, &mut mode) < -(1 as libc::c_int)
         || SDL_GetDisplayBounds(displayindex, &mut bounds) < 0 as libc::c_int
     {
@@ -2706,12 +2697,8 @@ pub unsafe extern "C" fn _setupgame() {
         exit(1 as libc::c_int);
     }
     if windowed != 0 {
-        bounds
-            .x = (0x1fff0000 as libc::c_uint | 0 as libc::c_int as libc::c_uint)
-            as libc::c_int;
-        bounds
-            .y = (0x1fff0000 as libc::c_uint | 0 as libc::c_int as libc::c_uint)
-            as libc::c_int;
+        bounds.x = (0x1fff0000 as libc::c_uint | 0 as libc::c_int as libc::c_uint) as libc::c_int;
+        bounds.y = (0x1fff0000 as libc::c_uint | 0 as libc::c_int as libc::c_uint) as libc::c_int;
         mode.w = winWidth as libc::c_int;
         mode.h = winHeight as libc::c_int;
     }
@@ -2727,16 +2714,10 @@ pub unsafe extern "C" fn _setupgame() {
             SDL_WINDOW_FULLSCREEN_DESKTOP as libc::c_int
         }) as Uint32,
     );
-    if window.is_null()
-        || {
-            renderer = SDL_CreateRenderer(
-                window,
-                -(1 as libc::c_int),
-                0 as libc::c_int as Uint32,
-            );
-            renderer.is_null()
-        }
-    {
+    if window.is_null() || {
+        renderer = SDL_CreateRenderer(window, -(1 as libc::c_int), 0 as libc::c_int as Uint32);
+        renderer.is_null()
+    } {
         fprintf(
             stderr,
             b"Failed to create SDL window: %s\n\0" as *const u8 as *const libc::c_char,
@@ -2779,21 +2760,22 @@ pub unsafe extern "C" fn _setupgame() {
     );
     grmode = EGAgr;
     joystick[2 as libc::c_int as usize].device = -(1 as libc::c_int);
-    joystick[1 as libc::c_int as usize]
-        .device = joystick[2 as libc::c_int as usize].device;
+    joystick[1 as libc::c_int as usize].device = joystick[2 as libc::c_int as usize].device;
     _loadctrls();
-    if grmode as libc::c_uint == VGAgr as libc::c_int as libc::c_uint
-        && _vgaok as libc::c_int != 0
+    if grmode as libc::c_uint == VGAgr as libc::c_int as libc::c_uint && _vgaok as libc::c_int != 0
     {
         grmode = VGAgr;
     } else if grmode as libc::c_uint >= EGAgr as libc::c_int as libc::c_uint
-            && _egaok as libc::c_int != 0
-        {
+        && _egaok as libc::c_int != 0
+    {
         grmode = EGAgr;
     } else {
         grmode = CGAgr;
     }
-    strcpy(str.as_mut_ptr(), b"SOUNDS.\0" as *const u8 as *const libc::c_char);
+    strcpy(
+        str.as_mut_ptr(),
+        b"SOUNDS.\0" as *const u8 as *const libc::c_char,
+    );
     strcat(str.as_mut_ptr(), _extension);
     SoundData = bloadin(str.as_mut_ptr()) as *mut SPKRtable;
     StartupSound();

@@ -1,15 +1,7 @@
 use ::libc;
 extern "C" {
-    fn memset(
-        _: *mut libc::c_void,
-        _: libc::c_int,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
-    fn memcpy(
-        _: *mut libc::c_void,
-        _: *const libc::c_void,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
+    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
+    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
 }
 pub type __uint8_t = libc::c_uchar;
 pub type uint8_t = __uint8_t;
@@ -26,8 +18,8 @@ pub unsafe extern "C" fn RLEExpand(
         source = source.offset(1);
         let mut val: byte = *(fresh0 as *mut byte);
         if val as libc::c_int & 0x80 as libc::c_int != 0 {
-            let mut len: byte = ((val as libc::c_int & 0x7f as libc::c_int)
-                + 1 as libc::c_int) as byte;
+            let mut len: byte =
+                ((val as libc::c_int & 0x7f as libc::c_int) + 1 as libc::c_int) as byte;
             memcpy(
                 dest as *mut libc::c_void,
                 source as *const libc::c_void,
