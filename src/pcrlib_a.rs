@@ -21,7 +21,7 @@ use crate::{
     spkr_table::SPKRtable,
 };
 
-pub const PC_BASE_TIMER: u32 = 1193181;
+const PC_BASE_TIMER: u32 = 1193181;
 
 // Rust port: Simulation of the SDL Semaphore
 static vblSemMutex: Mutex<u32> = Mutex::new(0);

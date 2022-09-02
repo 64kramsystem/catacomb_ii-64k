@@ -50,7 +50,7 @@ pub enum joyinfo_t {
 
 // Rust port: unnecessary in Rust (false is the default)
 //
-// pub fn SetupKBD(pcs: &mut PcrlibCState) {
+// fn SetupKBD(pcs: &mut PcrlibCState) {
 //     for i in 0..128 {
 //         pcs.keydown[i] = false;
 //     }
@@ -101,7 +101,7 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState, pas: &mut PcrlibAState, sdl: &mut S
 // and they are only two. The downside is that in Rust, we need refcounting, which is a hassle to add
 // (in terms of noise; it should be added to PcrlibCState).
 // For this reason, approach 2 is overall more convenient.
-pub fn WatchUIEvents(
+fn WatchUIEvents(
     event: Event,
     pcs: &mut PcrlibCState,
     pas: &mut PcrlibAState,
@@ -151,7 +151,7 @@ pub fn WatchUIEvents(
     }
 }
 
-pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
+fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     let mut xmove: i32 = 0;
     let mut ymove: i32 = 0;
     let mut action: ControlStruct = ControlStruct {
@@ -230,7 +230,7 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
 ============================
 */
 
-pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &SdlManager) -> ControlStruct {
+fn ControlMouse(pcs: &mut PcrlibCState, sdl: &SdlManager) -> ControlStruct {
     /* mickeys the mouse has moved */
 
     let mut action: ControlStruct = ControlStruct {
@@ -623,7 +623,7 @@ pub fn loadFile(filename: &str, dest: &mut [u8]) -> usize {
 ==============================================
 */
 
-pub fn SaveFile(filename: &str, buffer: &[u8]) {
+fn SaveFile(filename: &str, buffer: &[u8]) {
     // Flags originally used: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
     //
     // Rust port: In the original project, this is written in ASM (https://github.com/64kramsystem/catacomb_ii-64k/blob/db8017c1aba84823cb5116ca2f819e5c77636c9e/original_project/PCRLIB_C.C#L649).
@@ -1041,7 +1041,7 @@ fn _printc(string: &CString, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 // Rust port: Avoids importing strlen, and also, works on u8.
 //
-pub fn port_temp_strlen(string: &[u8]) -> usize {
+fn port_temp_strlen(string: &[u8]) -> usize {
     string.iter().position(|c| *c == 0).unwrap()
 }
 
@@ -1185,7 +1185,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &SdlManager) {
 //
 ////////////////////////
 
-pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
+fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     let str = format!("CTLPANEL.{_extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
@@ -1256,7 +1256,7 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManag
     }
 }
 
-pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ctlpanel = ctlpaneltype::default();
     let str = format!("CTLPANEL.{_extension}");
 
@@ -1283,7 +1283,7 @@ pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub fn _loadhighscores(pcs: &mut PcrlibCState) {
+fn _loadhighscores(pcs: &mut PcrlibCState) {
     let filename = format!("SCORES.{_extension}");
     let mut buffer = [0_u8; scores::ondisk_struct_size() * 5];
 
@@ -1308,7 +1308,7 @@ pub fn _loadhighscores(pcs: &mut PcrlibCState) {
     }
 }
 
-pub fn _savehighscores(pcs: &mut PcrlibCState) {
+fn _savehighscores(pcs: &mut PcrlibCState) {
     let mut buffer = Vec::new();
 
     Serialize::serialize(&pcs.highscores, &mut buffer);
