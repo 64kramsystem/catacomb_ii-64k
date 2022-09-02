@@ -1050,7 +1050,7 @@ fn _printc(string: &CString, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 // Rust port: Avoids importing strlen, and also, works on u8.
 //
-fn port_temp_strlen(string: &[u8]) -> usize {
+fn strlen(string: &[u8]) -> usize {
     string.iter().position(|c| *c == 0).unwrap()
 }
 
@@ -1072,7 +1072,7 @@ pub fn _inputint(
     _input(&mut string, 17, gs, pcs, pas, sdl);
 
     if string[0] == b'$' {
-        let digits = port_temp_strlen(&string) as isize - 2;
+        let digits = strlen(&string) as isize - 2;
         if digits < 0 {
             return 0;
         }
@@ -1087,7 +1087,7 @@ pub fn _inputint(
             }
         }
     } else if string[0] == b'%' {
-        let digits_0 = (port_temp_strlen(&string)) as isize - 2;
+        let digits_0 = (strlen(&string)) as isize - 2;
         if digits_0 < 0 {
             return 0;
         }
