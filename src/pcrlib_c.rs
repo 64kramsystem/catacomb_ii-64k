@@ -125,24 +125,33 @@ fn WatchUIEvents(
         } => {
             let pcs = pcs;
 
-            // Rust port: Currently disabled, as this may not be correct (it may be running in a
-            // separate thread, which is discouraged), or at least improper (it may not be the
-            // appropriate way to handle focus). In Rust, is causes a BCK error, since the event
-            // pump can't be accessed by both the main thread and this callback.
+            // Try to wait until the window obtains mouse focus before
+            // regrabbing input in order to try to prevent grabbing while
+            // the user is trying to move the window around.
             //
-            // // Try to wait until the window obtains mouse focus before
-            // // regrabbing input in order to try to prevent grabbing while
-            // // the user is trying to move the window around.
-            // while sdl.mouse().focused_window_id()
-            //     != Some(pcs.renderer.as_ref().unwrap().window().id())
-            // {
-            //     sdl.event_pump().pump_events();
-            //     // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
-            //     // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
-            //     // because `Timer#delay()` requires a mutable sdl instance, which is a problem
-            //     // when the timer instance is owned by RcSdl.
-            //     thread::sleep(Duration::from_millis(10));
-            // }
+            // Rust port: It's not 100% clear how this works, and under which exact cirmustances, since
+            // it's still possible to move the window, although it's a bit tricky, as the window grabs
+            // the mouse immediately if it's inside it.
+            // With or without this workaround, there are no visible differences, at least, when testing
+            // on X11.
+            // Pumping the events doesn't directly work in Rust, since the event subsystem is locked
+            // during events iteration (which is the location when event watchers are invoked by SDL).
+            // Since adjusting this logic requires some restructuring, and it's not really clear if
+            // it works as intended, it's kept commented out.
+            //
+            /*
+            while sdl.mouse().focused_window_id()
+                != Some(pcs.renderer.as_ref().unwrap().window().id())
+            {
+                // sdl.event_pump().pump_events();
+
+                // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
+                // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
+                // because `Timer#delay()` requires a mutable sdl instance, which is a problem
+                // when the timer instance is owned by RcSdl.
+                thread::sleep(Duration::from_millis(10));
+            }
+            */
 
             pcs.hasFocus = true;
             CheckMouseMode(pcs, &sdl);
