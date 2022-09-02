@@ -39,7 +39,7 @@ fn calibratejoy(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut current_block: u64;
     let mut stage: i32 = 0;
@@ -71,7 +71,7 @@ fn calibratejoy(
         if stage == 23 {
             stage = 15;
         }
-        ProcessEvents(pcs, sdl);
+        ProcessEvents(pcs, pas, sdl);
         ReadJoystick(joynum, &mut xl, &mut yl, pcs, sdl);
         ctr = ControlJoystick(joynum, pcs, sdl);
         if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
@@ -83,66 +83,63 @@ fn calibratejoy(
             break;
         }
     }
-    match current_block {
-        8457315219000651999 => {
-            drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
-            loop {
-                ctr = ControlJoystick(joynum, pcs, sdl);
-                if !ctr.button1 {
-                    break;
-                }
+    if current_block == 8457315219000651999 {
+        drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
+        loop {
+            ctr = ControlJoystick(joynum, pcs, sdl);
+            if !ctr.button1 {
+                break;
             }
+        }
+        UpdateScreen(gs, pcs);
+        WaitVBL();
+        WaitVBL();
+        print_str("\n\n\rHold the joystick in the\n\r", gs, pcs);
+        print_str("lower right\n\r", gs, pcs);
+        print_str("corner and hit fire:", gs, pcs);
+        loop {
+            drawchar(pcs.sx, pcs.sy, stage, gs, pcs);
             UpdateScreen(gs, pcs);
             WaitVBL();
             WaitVBL();
-            print_str("\n\n\rHold the joystick in the\n\r", gs, pcs);
-            print_str("lower right\n\r", gs, pcs);
-            print_str("corner and hit fire:", gs, pcs);
-            loop {
-                drawchar(pcs.sx, pcs.sy, stage, gs, pcs);
-                UpdateScreen(gs, pcs);
-                WaitVBL();
-                WaitVBL();
-                WaitVBL();
-                stage += 1;
-                if stage == 23 {
-                    stage = 15;
-                }
-                ProcessEvents(pcs, sdl);
-                ReadJoystick(joynum, &mut xh, &mut yh, pcs, sdl);
-                ctr = ControlJoystick(joynum, pcs, sdl);
-                if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
-                    current_block = 15976468122069307450;
-                    break;
-                }
-                if !(ctr.button1 as i32 != 1) {
-                    current_block = 15597372965620363352;
-                    break;
-                }
+            WaitVBL();
+            stage += 1;
+            if stage == 23 {
+                stage = 15;
             }
-            match current_block {
-                15976468122069307450 => {}
-                _ => {
-                    drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
-                    loop {
-                        ctr = ControlJoystick(joynum, pcs, sdl);
-                        if !ctr.button1 {
-                            break;
-                        }
-                    }
-                    UpdateScreen(gs, pcs);
-                    dx = (xh - xl) / 4;
-                    dy = (yh - yl) / 4;
-                    pcs.JoyXlow[joynum as usize] = xl + dx;
-                    pcs.JoyXhigh[joynum as usize] = xh - dx;
-                    pcs.JoyYlow[joynum as usize] = yl + dy;
-                    pcs.JoyYhigh[joynum as usize] = yh - dy;
-                }
+            ProcessEvents(pcs, pas, sdl);
+            ReadJoystick(joynum, &mut xh, &mut yh, pcs, sdl);
+            ctr = ControlJoystick(joynum, pcs, sdl);
+            if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
+                current_block = 15976468122069307450;
+                break;
+            }
+            if !(ctr.button1 as i32 != 1) {
+                current_block = 15597372965620363352;
+                break;
             }
         }
-        _ => {}
+        match current_block {
+            15976468122069307450 => {}
+            _ => {
+                drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
+                loop {
+                    ctr = ControlJoystick(joynum, pcs, sdl);
+                    if !ctr.button1 {
+                        break;
+                    }
+                }
+                UpdateScreen(gs, pcs);
+                dx = (xh - xl) / 4;
+                dy = (yh - yl) / 4;
+                pcs.JoyXlow[joynum as usize] = xl + dx;
+                pcs.JoyXhigh[joynum as usize] = xh - dx;
+                pcs.JoyYlow[joynum as usize] = yl + dy;
+                pcs.JoyYhigh[joynum as usize] = yh - dy;
+            }
+        }
     }
-    clearkeys(pcs, sdl);
+    clearkeys(pcs, pas, sdl);
     erasewindow(gs, pcs);
 }
 
@@ -150,7 +147,7 @@ fn calibratemouse(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut ch: i8 = 0;
     expwin(24, 5, gs, pas, pcs);
@@ -160,7 +157,7 @@ fn calibratemouse(
     print_str("of the mouse, 1 being   \n\r", gs, pcs);
     print_str("slow, 9 being fast:", gs, pcs);
     loop {
-        ch = (get(gs, pcs, sdl) % 256) as i8;
+        ch = (get(gs, pcs, pas, sdl) % 256) as i8;
         if ch as i32 == 27 {
             ch = '5' as i32 as i8;
         }
@@ -187,48 +184,48 @@ fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     sc = ScancodeToDOS(sc as SDL_Scancode);
     if sc == 1 {
         print_str("ESC", gs, pcs);
-    } else if sc == 0xe as i32 {
+    } else if sc == 0xe_i32 {
         print_str("BKSP", gs, pcs);
-    } else if sc == 0xf as i32 {
+    } else if sc == 0xf_i32 {
         print_str("TAB", gs, pcs);
-    } else if sc == 0x1d as i32 {
+    } else if sc == 0x1d_i32 {
         print_str("CTRL", gs, pcs);
-    } else if sc == 0x2a as i32 {
+    } else if sc == 0x2a_i32 {
         print_str("LSHIFT", gs, pcs);
-    } else if sc == 0x39 as i32 {
+    } else if sc == 0x39_i32 {
         print_str("SPACE", gs, pcs);
-    } else if sc == 0x3a as i32 {
+    } else if sc == 0x3a_i32 {
         print_str("CAPSLK", gs, pcs);
-    } else if sc >= 0x3b as i32 && sc <= 0x44 as i32 {
-        let str = format!("F{}", sc - 0x3a as i32);
+    } else if sc >= 0x3b_i32 && sc <= 0x44_i32 {
+        let str = format!("F{}", sc - 0x3a_i32);
         print_str(&str, gs, pcs);
-    } else if sc == 0x57 as i32 {
+    } else if sc == 0x57_i32 {
         print_str("F11", gs, pcs);
-    } else if sc == 0x59 as i32 {
+    } else if sc == 0x59_i32 {
         print_str("F12", gs, pcs);
-    } else if sc == 0x46 as i32 {
+    } else if sc == 0x46_i32 {
         print_str("SCRLLK", gs, pcs);
-    } else if sc == 0x1c as i32 {
+    } else if sc == 0x1c_i32 {
         print_str("ENTER", gs, pcs);
-    } else if sc == 0x36 as i32 {
+    } else if sc == 0x36_i32 {
         print_str("RSHIFT", gs, pcs);
-    } else if sc == 0x37 as i32 {
+    } else if sc == 0x37_i32 {
         print_str("PRTSC", gs, pcs);
-    } else if sc == 0x38 as i32 {
+    } else if sc == 0x38_i32 {
         print_str("ALT", gs, pcs);
-    } else if sc == 0x47 as i32 {
+    } else if sc == 0x47_i32 {
         print_str("HOME", gs, pcs);
-    } else if sc == 0x49 as i32 {
+    } else if sc == 0x49_i32 {
         print_str("PGUP", gs, pcs);
-    } else if sc == 0x4f as i32 {
+    } else if sc == 0x4f_i32 {
         print_str("END", gs, pcs);
-    } else if sc == 0x51 as i32 {
+    } else if sc == 0x51_i32 {
         print_str("PGDN", gs, pcs);
-    } else if sc == 0x52 as i32 {
+    } else if sc == 0x52_i32 {
         print_str("INS", gs, pcs);
-    } else if sc == 0x53 as i32 {
+    } else if sc == 0x53_i32 {
         print_str("DEL", gs, pcs);
-    } else if sc == 0x45 as i32 {
+    } else if sc == 0x45_i32 {
         print_str("NUMLK", gs, pcs);
     } else {
         let fresh0 = pcs.sx;
@@ -241,7 +238,7 @@ fn calibratekeys(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut ch: i8 = 0;
     let mut hx: i32 = 0;
@@ -281,22 +278,22 @@ fn calibratekeys(
     loop {
         pcs.sx = hx;
         pcs.sy = hy;
-        ch = (get(gs, pcs, sdl) % 256) as i8;
+        ch = (get(gs, pcs, pas, sdl) % 256) as i8;
         if !((ch as i32) < '0' as i32 || ch as i32 > '9' as i32) {
             select = ch as i32 - '0' as i32;
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
             select = ch as i32 - '0' as i32;
             print_str("\n\rPress the new key:", gs, pcs);
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             UpdateScreen(gs, pcs);
             loop {
-                new = bioskey(1, pcs, sdl);
+                new = bioskey(1, pcs, pas, sdl);
                 if !(new == 0) {
                     break;
                 }
                 WaitVBL();
             }
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             print_str("\r                  ", gs, pcs);
             if select < 8 {
                 pcs.key[select as usize] = new;
@@ -313,7 +310,7 @@ fn calibratekeys(
             pcs.sx = 22;
             printscan(new as i32, gs, pcs);
             ch = '0' as i32 as i8;
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
         }
         if !(ch as i32 >= '0' as i32 && ch as i32 <= '9' as i32) {
             break;
@@ -422,12 +419,12 @@ pub fn controlpanel(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut chf: i32 = 0;
     let mut oldcenterx: i32 = 0;
     let mut oldcentery: i32 = 0;
-    clearkeys(pcs, sdl);
+    clearkeys(pcs, pas, sdl);
     PauseSound(pas);
     ProbeJoysticks(pcs, sdl);
     cps.oldgrmode = pcs.grmode;
@@ -449,7 +446,7 @@ pub fn controlpanel(
     loop {
         pcs.sx = collumnx[cps.collumn as usize] + 2;
         pcs.sy = rowy[cps.row as usize] + 3;
-        chf = get(gs, pcs, sdl);
+        chf = get(gs, pcs, pas, sdl);
         if chf == SDLK_UP as i32 {
             cps.row -= 1;
             if cps.row < 0 {
@@ -567,7 +564,7 @@ pub fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCSta
     // - char data (currently retained inside picfile_data)
     // - pic data (currently retained inside picfile_data)
     //
-    let picfile_data = bloadin(&filename).unwrap();
+    let picfile_data = bloadin(filename).unwrap();
     let picfile: picfiletype = Deserialize::deserialize(&picfile_data[..]);
     cps.numchars = picfile.numchars as i32;
     cps.numtiles = picfile.numtiles as i32;

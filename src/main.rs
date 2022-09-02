@@ -1,26 +1,24 @@
-#![allow(clippy::all)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
-#![allow(unused_assignments)]
-#![feature(extern_types)]
-#![warn(
-    clippy::assign_op_pattern,
-    clippy::correctness,
-    clippy::precedence,
-    clippy::unnecessary_mut_passed,
-    dead_code,
-    unused_mut
-)]
 #![allow(
-    clippy::identity_op,
+    non_camel_case_types,
+    non_snake_case,
+    non_upper_case_globals,
+    unused_assignments,              // there are a lot, and can't be automatically fixed
+    clippy::assign_op_pattern,
+    clippy::collapsible_else_if,
+    clippy::collapsible_if,
+    clippy::comparison_chain,
+    clippy::derive_partial_eq_without_eq,
+    clippy::expect_fun_call,         // meh
+    clippy::identity_op,             // actually more readable
     clippy::int_plus_one,
+    clippy::len_zero,
+    clippy::manual_range_contains,
     clippy::missing_safety_doc,
-    clippy::needless_return,
-    clippy::nonminimal_bool,
-    clippy::unnecessary_cast,
-    clippy::wildcard_in_or_patterns,
-    clippy::zero_ptr
+    clippy::new_without_default,
+    clippy::nonminimal_bool,         // actually more readable
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::wildcard_in_or_patterns, // actually more readable
 )]
 
 mod active_obj;

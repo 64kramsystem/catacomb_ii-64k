@@ -31,7 +31,7 @@ impl SdlManager {
 
         Self {
             sdl: Rc::new(Some(sdl)),
-            audio: audio,
+            audio,
             joystick,
             game_controller,
             event_pump,

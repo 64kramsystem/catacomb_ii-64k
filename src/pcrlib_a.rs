@@ -21,7 +21,7 @@ use crate::{
     spkr_table::SPKRtable,
 };
 
-pub const PC_BASE_TIMER: u32 = 1193181;
+const PC_BASE_TIMER: u32 = 1193181;
 
 // Rust port: Simulation of the SDL Semaphore
 static vblSemMutex: Mutex<u32> = Mutex::new(0);
@@ -309,7 +309,7 @@ pub fn initrnd(randomize: bool, pas: &mut PcrlibAState) {
         pas.RndArray[16] = (now & 0xffff) as u16;
         pas.RndArray[4] = (now & 0xffff ^ now >> 16 & 0xffff) as u16;
     }
-    rnd(0xffff as i32 as u16, pas);
+    rnd(0xffff_i32 as u16, pas);
 }
 
 pub fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
@@ -319,9 +319,9 @@ pub fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     if maxval as i32 == 0 {
         return 0;
     }
-    mask = 0xffff as i32 as u16;
+    mask = 0xffff_i32 as u16;
     shift = maxval;
-    while shift as i32 & 0x8000 as i32 == 0 {
+    while shift as i32 & 0x8000_i32 == 0 {
         shift = ((shift as i32) << 1) as u16;
         mask = (mask as i32 >> 1) as u16;
     }
@@ -343,7 +343,7 @@ pub fn rnd(maxval: u16, pas: &mut PcrlibAState) -> i32 {
     if val > maxval as i32 {
         val >>= 1;
     }
-    return val;
+    val
 }
 
 pub fn initrndt(randomize: bool, pas: &mut PcrlibAState) {
@@ -358,8 +358,8 @@ pub fn initrndt(randomize: bool, pas: &mut PcrlibAState) {
 }
 
 pub fn rndt(pas: &mut PcrlibAState) -> i32 {
-    pas.rndindex = ((pas.rndindex as i32 + 1) & 0xff as i32) as u16;
-    return rndtable[pas.rndindex as usize] as i32;
+    pas.rndindex = ((pas.rndindex as i32 + 1) & 0xff_i32) as u16;
+    rndtable[pas.rndindex as usize] as i32
 }
 
 fn VBLCallback() -> u32 {

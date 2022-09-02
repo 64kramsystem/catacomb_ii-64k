@@ -25,7 +25,7 @@ use crate::{
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        loadFile, print_str, printchartile, SDLEventPayload, WatchUIEvents,
+        loadFile, print_str, printchartile,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -83,6 +83,8 @@ pub fn refresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 
     if gs.indemo != notdemo {
+        // Using an iterator makes this less readable.
+        #[allow(clippy::needless_range_loop)]
         for y in 0..=4 {
             for x in 0..=15 {
                 gs.view[y + basey][x + basex] = underwin[y][x] as i32;
@@ -140,17 +142,22 @@ pub fn restore(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     simplerefresh(gs, pcs);
 }
 
-fn wantmore(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> bool {
+fn wantmore(
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) -> bool {
     pcs.sx = 2;
     pcs.sy = 20;
     print_str("(space for more/esc)", gs, pcs);
     pcs.sx = 12;
     pcs.sy = 21;
-    let ch = get(gs, pcs, sdl) as i8;
+    let ch = get(gs, pcs, pas, sdl) as i8;
     if ch == 27 {
         return false;
     }
-    return true;
+    true
 }
 
 fn charpic(
@@ -187,7 +194,12 @@ fn charpic(
     }
 }
 
-fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
+fn help(
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) {
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     centerwindow(20, 20, gs, pcs);
@@ -206,7 +218,7 @@ fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     print_str("\n", gs, pcs);
     print_str("hit fire at the demo\n", gs, pcs);
     print_str("to begin playing.   \n", gs, pcs);
-    if !wantmore(gs, pcs, sdl) {
+    if !wantmore(gs, pcs, pas, sdl) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -217,7 +229,7 @@ fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     print_str("\nTo switch to mouse \n", gs, pcs);
     print_str("or joystick control,\n", gs, pcs);
     print_str("hit f2             \n", gs, pcs);
-    if !wantmore(gs, pcs, sdl) {
+    if !wantmore(gs, pcs, pas, sdl) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -244,7 +256,7 @@ fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     charpic(17, 14, shot, east, 0, gs, pcs);
     charpic(15, 15, shot, east, 1, gs, pcs);
     charpic(8, 14, bigshot, east, 0, gs, pcs);
-    if !wantmore(gs, pcs, sdl) {
+    if !wantmore(gs, pcs, pas, sdl) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -274,7 +286,7 @@ fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     pcs.sx = 6;
     pcs.sy = 15;
     print_str("\x1D\x1D\x1E\x1E\x1F\x1F", gs, pcs);
-    if !wantmore(gs, pcs, sdl) {
+    if !wantmore(gs, pcs, pas, sdl) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -294,7 +306,7 @@ fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     print_str("down a lot of       \n", gs, pcs);
     print_str("monsters with a bit \n", gs, pcs);
     print_str("of skill.           \n", gs, pcs);
-    if !wantmore(gs, pcs, sdl) {
+    if !wantmore(gs, pcs, pas, sdl) {
         return;
     }
     centerwindow(20, 20, gs, pcs);
@@ -314,17 +326,22 @@ fn help(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     printchartile(b"TREASURE:      \x80\xA7\x80\n\0", gs, pcs);
     printchartile(b" (POINTS)      \x80\x80\x80\n\0", gs, pcs);
     printchartile(b"               \x80\x80\x80\n\0", gs, pcs);
-    wantmore(gs, pcs, sdl);
+    wantmore(gs, pcs, pas, sdl);
 }
 
 /*       */
 /* reset */
 /*       */
 #[allow(dead_code)]
-fn reset(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
+fn reset(
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) {
     centerwindow(18, 1, gs, pcs);
     print_str("reset game (y/n)?", gs, pcs);
-    let ch = get(gs, pcs, sdl) as i8;
+    let ch = get(gs, pcs, pas, sdl) as i8;
     if ch == 'y' as i8 {
         gs.gamexit = killed;
         gs.playdone = true;
@@ -356,7 +373,7 @@ pub fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
     gs.o[0].dir = east as i32 as u16;
     gs.o[0].oldx = 0;
     gs.o[0].oldy = 0;
-    gs.o[0].oldtile = -1 as i16;
+    gs.o[0].oldtile = -1_i16;
     yy = 0;
     while yy < 64 {
         xx = 0;
@@ -383,7 +400,7 @@ pub fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
                         gs.objdef[gs.o[gs.numobj as usize].class as usize].hitpoints as i8;
                     gs.o[gs.numobj as usize].oldx = gs.o[gs.numobj as usize].x;
                     gs.o[gs.numobj as usize].oldy = gs.o[gs.numobj as usize].y;
-                    gs.o[gs.numobj as usize].oldtile = -1 as i16;
+                    gs.o[gs.numobj as usize].oldtile = -1_i16;
                 }
             }
             xx += 1;
@@ -535,7 +552,7 @@ pub fn dofkeys(
     pcs: &mut PcrlibCState,
     sdl: &mut SdlManager,
 ) {
-    let mut key = bioskey(1, pcs, sdl);
+    let mut key = bioskey(1, pcs, pas, sdl);
     // make ESC into F10
     if key == SDL_SCANCODE_ESCAPE {
         key = SDL_SCANCODE_F10;
@@ -546,35 +563,35 @@ pub fn dofkeys(
     match key {
         // F1
         SDL_SCANCODE_F1 => {
-            clearkeys(pcs, sdl);
-            help(gs, pcs, sdl);
+            clearkeys(pcs, pas, sdl);
+            help(gs, pcs, pas, sdl);
         }
         // F2
         SDL_SCANCODE_F2 => {
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             controlpanel(gs, cps, pas, pcs, sdl);
         }
         // F3
         SDL_SCANCODE_F3 => {
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             expwin(18, 1, gs, pas, pcs);
             print_str("RESET GAME (Y/N)?", gs, pcs);
-            let ch = (get(gs, pcs, sdl) as u8).to_ascii_uppercase() as i8;
+            let ch = (get(gs, pcs, pas, sdl) as u8).to_ascii_uppercase() as i8;
             if ch as i32 == 'Y' as i32 {
                 gs.resetgame = true;
             }
         }
         // F4
         SDL_SCANCODE_F4 => {
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             expwin(22, 4, gs, pas, pcs);
             if gs.indemo != notdemo {
                 print_str("Can't save game here!", gs, pcs);
-                get(gs, pcs, sdl);
+                get(gs, pcs, pas, sdl);
             } else {
                 print_str("Save as game #(1-9):", gs, pcs);
                 // Rust port: The upper casing is in the original, and it's redundant.
-                let ch1 = (get(gs, pcs, sdl) as u8).to_ascii_uppercase();
+                let ch1 = (get(gs, pcs, pas, sdl) as u8).to_ascii_uppercase();
                 drawchar(pcs.sx, pcs.sy, ch1 as i32, gs, pcs);
                 if ch1 >= b'1' && ch1 <= b'9' {
                     let mut save_game = true;
@@ -585,7 +602,7 @@ pub fn dofkeys(
                     let str = format!("GAME{}.CA2", ch1 - b'0');
                     if _Verify(&str) != 0 {
                         print_str("\nGame exists,\noverwrite (Y/N)?", gs, pcs);
-                        let ch2 = get(gs, pcs, sdl) as u8;
+                        let ch2 = get(gs, pcs, pas, sdl) as u8;
                         if ch2 != b'Y' && ch2 != b'y' {
                             save_game = false;
                         } else {
@@ -610,7 +627,7 @@ pub fn dofkeys(
                             print_str("\nGame saved.  Hit F5\n", gs, pcs);
                             print_str("when you wish to\n", gs, pcs);
                             print_str("restart the game.", gs, pcs);
-                            get(gs, pcs, sdl);
+                            get(gs, pcs, pas, sdl);
                         } else {
                             return;
                         }
@@ -620,11 +637,11 @@ pub fn dofkeys(
         }
         // F5
         SDL_SCANCODE_F5 => {
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             expwin(22, 4, gs, pas, pcs);
             print_str("Load game #(1-9):", gs, pcs);
             // Rust port: The upper casing is in the original, and it's redundant.
-            let ch = (get(gs, pcs, sdl) as u8).to_ascii_uppercase();
+            let ch = (get(gs, pcs, pas, sdl) as u8).to_ascii_uppercase();
             drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
             if ch >= b'1' && ch <= b'9' {
                 //
@@ -647,23 +664,23 @@ pub fn dofkeys(
                     gs.leveldone = true;
                 } else {
                     print_str("\nGame not found.", gs, pcs);
-                    get(gs, pcs, sdl);
+                    get(gs, pcs, pas, sdl);
                 }
             }
         }
         // F9
         SDL_SCANCODE_F9 => {
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             expwin(7, 1, gs, pas, pcs);
             print_str("PAUSED", gs, pcs);
-            get(gs, pcs, sdl);
+            get(gs, pcs, pas, sdl);
         }
         // F10
         SDL_SCANCODE_F10 => {
-            clearkeys(pcs, sdl);
+            clearkeys(pcs, pas, sdl);
             expwin(12, 1, gs, pas, pcs);
             print_str("QUIT (Y/N)?", gs, pcs);
-            let ch = (get(gs, pcs, sdl) as u8).to_ascii_uppercase() as i8;
+            let ch = (get(gs, pcs, pas, sdl) as u8).to_ascii_uppercase() as i8;
             if ch == 'Y' as i8 {
                 _quit(None, pas, pcs, sdl);
             }
@@ -672,7 +689,7 @@ pub fn dofkeys(
     }
 
     clearold(&mut gs.oldtiles);
-    clearkeys(pcs, sdl);
+    clearkeys(pcs, pas, sdl);
     repaintscreen(gs, cps, pcs);
 }
 
@@ -691,7 +708,7 @@ fn dotitlepage(
     while i < 300 {
         WaitVBL();
         gs.indemo = notdemo;
-        gs.ctrl = ControlPlayer(1, gs, pcs, sdl);
+        gs.ctrl = ControlPlayer(1, gs, pcs, pas, sdl);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
             || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -701,7 +718,7 @@ fn dotitlepage(
             break;
         } else {
             gs.indemo = demoplay;
-            if bioskey(1, pcs, sdl) != 0 {
+            if bioskey(1, pcs, pas, sdl) != 0 {
                 dofkeys(gs, cps, pas, pcs, sdl);
                 UpdateScreen(gs, pcs);
             }
@@ -719,7 +736,7 @@ fn doendpage(
     cps: &mut CpanelState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     WaitEndSound(gs, pas, pcs);
     drawpic(0, 0, 15, gs, cps, pcs);
@@ -739,8 +756,8 @@ fn doendpage(
     print_str("10,000,000 gold \n", gs, pcs);
     print_str("you pulled out  \n", gs, pcs);
     print_str("of the palace! ", gs, pcs);
-    clearkeys(pcs, sdl);
-    get(gs, pcs, sdl);
+    clearkeys(pcs, pas, sdl);
+    get(gs, pcs, pas, sdl);
     drawwindow(0, 0, 17, 9, gs, pcs);
     print_str("Let us know what\n", gs, pcs);
     print_str("you enjoyed     \n", gs, pcs);
@@ -749,7 +766,7 @@ fn doendpage(
     print_str("you more of it. \n", gs, pcs);
     print_str("Thank you for   \n", gs, pcs);
     print_str("playing!", gs, pcs);
-    get(gs, pcs, sdl);
+    get(gs, pcs, pas, sdl);
 }
 
 fn dodemo(
@@ -782,7 +799,7 @@ fn dodemo(
         while i < 500 {
             WaitVBL();
             gs.indemo = notdemo;
-            gs.ctrl = ControlPlayer(1, gs, pcs, sdl);
+            gs.ctrl = ControlPlayer(1, gs, pcs, pas, sdl);
             if gs.ctrl.button1 as i32 != 0
                 || gs.ctrl.button2 as i32 != 0
                 || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
@@ -790,7 +807,7 @@ fn dodemo(
                 gs.exitdemo = true;
                 break;
             } else {
-                if bioskey(1, pcs, sdl) != 0 {
+                if bioskey(1, pcs, pas, sdl) != 0 {
                     dofkeys(gs, cps, pas, pcs, sdl);
                 }
                 if gs.exitdemo {
@@ -825,14 +842,14 @@ fn gameover(
     i = 0;
     while i < 500 {
         WaitVBL();
-        gs.ctrl = ControlPlayer(1, gs, pcs, sdl);
+        gs.ctrl = ControlPlayer(1, gs, pcs, pas, sdl);
         if gs.ctrl.button1 as i32 != 0
             || gs.ctrl.button2 as i32 != 0
             || pcs.keydown[SDL_SCANCODE_SPACE as usize] as i32 != 0
         {
             break;
         }
-        if bioskey(1, pcs, sdl) != 0 {
+        if bioskey(1, pcs, pas, sdl) != 0 {
             dofkeys(gs, cps, pas, pcs, sdl);
         }
         if gs.exitdemo as i32 != 0 || gs.indemo == demoplay {
@@ -968,17 +985,6 @@ pub fn original_main() {
         &timer_sys,
     );
 
-    let userdata = Box::into_raw(Box::new(SDLEventPayload {
-        pas: &mut pas,
-        pcs: &mut pcs,
-    }));
-
-    let mut sdl_clone = sdl.clone();
-
-    let _event_watch = sdl
-        .event()
-        .add_event_watch(|event| WatchUIEvents(event, userdata, &mut sdl_clone));
-
     expwin(33, 13, &mut gs, &mut pas, &mut pcs);
     print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);
     print_str("          The Catacomb\n\n", &mut gs, &mut pcs);
@@ -988,9 +994,9 @@ pub fn original_main() {
     print_str("\n\n", &mut gs, &mut pcs);
     print_str("\n\n", &mut gs, &mut pcs);
     print_str("         Press a key:", &mut gs, &mut pcs);
-    get(&mut gs, &mut pcs, &sdl);
+    get(&mut gs, &mut pcs, &mut pas, &mut sdl);
 
-    clearkeys(&mut pcs, &sdl);
+    clearkeys(&mut pcs, &mut pas, &mut sdl);
 
     gs.screencenter.x = 11;
     gs.screencenter.y = 11;
@@ -1008,7 +1014,7 @@ pub fn original_main() {
         if gs.indemo == notdemo {
             gs.exitdemo = false;
             if pcs.level > numlevels {
-                doendpage(&mut gs, &mut cps, &mut pas, &mut pcs, &sdl); // finished all levels
+                doendpage(&mut gs, &mut cps, &mut pas, &mut pcs, &mut sdl); // finished all levels
             }
             gameover(&mut gs, &mut cps, &mut pas, &mut pcs, &mut sdl);
         }

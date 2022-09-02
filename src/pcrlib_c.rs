@@ -50,16 +50,18 @@ pub enum joyinfo_t {
 
 // Rust port: unnecessary in Rust (false is the default)
 //
-// pub fn SetupKBD(pcs: &mut PcrlibCState) {
+// fn SetupKBD(pcs: &mut PcrlibCState) {
 //     for i in 0..128 {
 //         pcs.keydown[i] = false;
 //     }
 // }
 
-pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &SdlManager) {
+pub fn ProcessEvents(pcs: &mut PcrlibCState, pas: &mut PcrlibAState, sdl: &mut SdlManager) {
     pcs.mouseEvent = false;
 
-    for event in sdl.event_pump().poll_iter() {
+    let polled_events = sdl.event_pump().poll_iter().collect::<Vec<_>>();
+
+    for event in polled_events {
         match event {
             Event::KeyDown { scancode, .. } => {
                 pcs.keydown[scancode.unwrap() as usize] = true;
@@ -71,7 +73,9 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &SdlManager) {
             Event::MouseMotion { .. } => {
                 pcs.mouseEvent = true;
             }
-            _ => {}
+            event => {
+                WatchUIEvents(event, pcs, pas, sdl);
+            }
         }
     }
 }
@@ -86,61 +90,77 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState, sdl: &SdlManager) {
 =======================
 */
 
-pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: &mut SdlManager) {
-    unsafe {
-        let userdata = &*userdata;
-
-        match event {
-            Event::Quit { .. } => {
-                // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
-                // This approach works because we're not in a multithreaded contenxt, so this function is
-                // invoked only once a a time.
-                let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
-
-                _quit(None, &mut *userdata.pas, &mut *userdata.pcs, sdl);
-            }
-            Event::Window {
-                win_event: WindowEvent::FocusLost,
-                ..
-            } => {
-                let pcs = &mut *userdata.pcs;
-                pcs.hasFocus = false;
-                CheckMouseMode(pcs, &sdl);
-            }
-            Event::Window {
-                win_event: WindowEvent::FocusGained,
-                ..
-            } => {
-                let pcs = &mut *userdata.pcs;
-
-                // Rust port: Currently disabled, as this may not be correct (it may be running in a
-                // separate thread, which is discouraged), or at least improper (it may not be the
-                // appropriate way to handle focus). In Rust, is causes a BCK error, since the event
-                // pump can't be accessed by both the main thread and this callback.
-                //
-                // // Try to wait until the window obtains mouse focus before
-                // // regrabbing input in order to try to prevent grabbing while
-                // // the user is trying to move the window around.
-                // while sdl.mouse().focused_window_id()
-                //     != Some(pcs.renderer.as_ref().unwrap().window().id())
-                // {
-                //     sdl.event_pump().pump_events();
-                //     // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
-                //     // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
-                //     // because `Timer#delay()` requires a mutable sdl instance, which is a problem
-                //     // when the timer instance is owned by RcSdl.
-                //     thread::sleep(Duration::from_millis(10));
-                // }
-
-                pcs.hasFocus = true;
-                CheckMouseMode(pcs, &sdl);
-            }
-            _ => {}
+// Rust port: There are two different approaches to this:
+//
+// 1. maintaining the SDL port strategy, that is, to hook this in the SDL events; SDL will then invoke
+//    it any time the the events are looped, which current happens in ProcessEvents() and partially
+//    (due to early termination) in bioskey()
+// 2. manually add this to the ProcessEvents() and bioskey() loops
+//
+// The first approach is more solid on in general, however, in this project, the hook points are known,
+// and they are only two. The downside is that in Rust, we need refcounting, which is a hassle to add
+// (in terms of noise; it should be added to PcrlibCState).
+// For this reason, approach 2 is overall more convenient.
+fn WatchUIEvents(
+    event: Event,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) {
+    match event {
+        Event::Quit { .. } => {
+            _quit(None, pas, pcs, sdl);
         }
+        Event::Window {
+            win_event: WindowEvent::FocusLost,
+            ..
+        } => {
+            let pcs = pcs;
+            pcs.hasFocus = false;
+            CheckMouseMode(pcs, sdl);
+        }
+        Event::Window {
+            win_event: WindowEvent::FocusGained,
+            ..
+        } => {
+            let pcs = pcs;
+
+            // Try to wait until the window obtains mouse focus before
+            // regrabbing input in order to try to prevent grabbing while
+            // the user is trying to move the window around.
+            //
+            // Rust port: It's not 100% clear how this works, and under which exact cirmustances, since
+            // it's still possible to move the window, although it's a bit tricky, as the window grabs
+            // the mouse immediately if it's inside it.
+            // With or without this workaround, there are no visible differences, at least, when testing
+            // on X11.
+            // Pumping the events doesn't directly work in Rust, since the event subsystem is locked
+            // during events iteration (which is the location when event watchers are invoked by SDL).
+            // Since adjusting this logic requires some restructuring, and it's not really clear if
+            // it works as intended, it's kept commented out.
+            //
+            /*
+            while sdl.mouse().focused_window_id()
+                != Some(pcs.renderer.as_ref().unwrap().window().id())
+            {
+                // sdl.event_pump().pump_events();
+
+                // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
+                // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
+                // because `Timer#delay()` requires a mutable sdl instance, which is a problem
+                // when the timer instance is owned by RcSdl.
+                thread::sleep(Duration::from_millis(10));
+            }
+            */
+
+            pcs.hasFocus = true;
+            CheckMouseMode(pcs, sdl);
+        }
+        _ => {}
     }
 }
 
-pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
+fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     let mut xmove: i32 = 0;
     let mut ymove: i32 = 0;
     let mut action: ControlStruct = ControlStruct {
@@ -208,7 +228,7 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
     }
     action.button1 = pcs.keydown[pcs.keyB1 as usize];
     action.button2 = pcs.keydown[pcs.keyB2 as usize];
-    return action;
+    action
 }
 
 /*
@@ -219,7 +239,7 @@ pub fn ControlKBD(pcs: &mut PcrlibCState) -> ControlStruct {
 ============================
 */
 
-pub fn ControlMouse(pcs: &mut PcrlibCState, sdl: &SdlManager) -> ControlStruct {
+fn ControlMouse(pcs: &mut PcrlibCState, sdl: &SdlManager) -> ControlStruct {
     /* mickeys the mouse has moved */
 
     let mut action: ControlStruct = ControlStruct {
@@ -486,14 +506,15 @@ pub fn ControlPlayer(
     player: i32,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
 ) -> ControlStruct {
     let mut ret: ControlStruct = ControlStruct {
         dir: north,
         button1: false,
         button2: false,
     };
-    ProcessEvents(pcs, sdl);
+    ProcessEvents(pcs, pas, sdl);
     if gs.indemo == demoenum::notdemo || gs.indemo == demoenum::recording {
         match pcs.playermode[player as usize] as u32 {
             1 => {
@@ -523,7 +544,7 @@ pub fn ControlPlayer(
         ret.button2 = ((val & 2) >> 1) != 0;
         ret.dir = ((val & (4 + 8 + 16 + 32)) >> 2).into();
     }
-    return ret;
+    ret
 }
 
 pub fn RecordDemo(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
@@ -568,9 +589,9 @@ pub fn SaveDemo(demonum: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 /*=========================================================================*/
 
-pub fn clearkeys(pcs: &mut PcrlibCState, sdl: &SdlManager) {
-    while bioskey(1, pcs, sdl) != 0 {
-        bioskey(0, pcs, sdl);
+pub fn clearkeys(pcs: &mut PcrlibCState, pas: &mut PcrlibAState, sdl: &mut SdlManager) {
+    while bioskey(1, pcs, pas, sdl) != 0 {
+        bioskey(0, pcs, pas, sdl);
     }
     for i in 0..128 {
         pcs.keydown[i] = false;
@@ -611,7 +632,7 @@ pub fn loadFile(filename: &str, dest: &mut [u8]) -> usize {
 ==============================================
 */
 
-pub fn SaveFile(filename: &str, buffer: &[u8]) {
+fn SaveFile(filename: &str, buffer: &[u8]) {
     // Flags originally used: O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE
     //
     // Rust port: In the original project, this is written in ASM (https://github.com/64kramsystem/catacomb_ii-64k/blob/db8017c1aba84823cb5116ca2f819e5c77636c9e/original_project/PCRLIB_C.C#L649).
@@ -794,7 +815,12 @@ fn expwinv(
 //
 /////////////////////////
 
-pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
+pub fn bioskey(
+    cmd: i32,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) -> u32 {
     if pcs.lastkey != 0 {
         let oldkey = pcs.lastkey;
         if cmd != 1 {
@@ -803,14 +829,28 @@ pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
         return oldkey;
     }
 
-    for event in sdl.event_pump().poll_iter() {
-        if let Event::KeyDown { scancode, .. } = event {
-            if cmd == 1 {
-                pcs.lastkey = scancode.unwrap() as u32;
-                return pcs.lastkey;
+    let polled_events = sdl.event_pump().poll_iter().collect::<Vec<_>>();
+    let mut returnKey = None;
+
+    // Rust port: Slightly different from the the SDL port - here, we iterate all the events
+    // instead of terminating on the first key down, so that we can also process the UI events;
+    // see WatchUIEvents() for context.
+    for event in polled_events {
+        match event {
+            Event::KeyDown { scancode, .. } if returnKey.is_none() => {
+                returnKey = Some(scancode.unwrap() as u32);
+                if cmd == 1 {
+                    pcs.lastkey = returnKey.unwrap();
+                }
             }
-            return scancode.unwrap() as u32;
+            event => {
+                WatchUIEvents(event, pcs, pas, sdl);
+            }
         }
+    }
+
+    if let Some(returnKey) = returnKey {
+        return returnKey;
     }
 
     pcs.lastkey
@@ -856,13 +896,18 @@ pub fn UpdateScreen(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     pcs.renderer.as_mut().unwrap().present();
 }
 
-pub fn get(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> i32 {
+pub fn get(
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) -> i32 {
     let mut key = 0;
 
     loop {
         let mut cycle = 9;
         loop {
-            key = bioskey(0, pcs, sdl);
+            key = bioskey(0, pcs, pas, sdl);
             if key != 0 || cycle == 13 {
                 break;
             }
@@ -1005,7 +1050,7 @@ fn _printc(string: &CString, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 
 // Rust port: Avoids importing strlen, and also, works on u8.
 //
-pub fn port_temp_strlen(string: &[u8]) -> usize {
+fn strlen(string: &[u8]) -> usize {
     string.iter().position(|c| *c == 0).unwrap()
 }
 
@@ -1014,15 +1059,20 @@ pub fn port_temp_strlen(string: &[u8]) -> usize {
 // input unsigned
 //
 ////////////////////////////////////////////////////////////////////
-pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
+pub fn _inputint(
+    gs: &mut GlobalState,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) -> u32 {
     let mut string = vec![0; 18];
     let hexstr = b"0123456789ABCDEF";
     let mut value = 0;
 
-    _input(&mut string, 17, gs, pcs, sdl);
+    _input(&mut string, 17, gs, pcs, pas, sdl);
 
     if string[0] == b'$' {
-        let digits = port_temp_strlen(&string) as isize - 2;
+        let digits = strlen(&string) as isize - 2;
         if digits < 0 {
             return 0;
         }
@@ -1037,7 +1087,7 @@ pub fn _inputint(gs: &mut GlobalState, pcs: &mut PcrlibCState, sdl: &SdlManager)
             }
         }
     } else if string[0] == b'%' {
-        let digits_0 = (port_temp_strlen(&string)) as isize - 2;
+        let digits_0 = (strlen(&string)) as isize - 2;
         if digits_0 < 0 {
             return 0;
         }
@@ -1063,13 +1113,14 @@ fn _input(
     max: usize,
     gs: &mut GlobalState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
 ) -> i32 {
     let mut key_ = 0;
     let mut count = 0;
 
     loop {
-        key_ = (get(gs, pcs, sdl) as u8).to_ascii_uppercase();
+        key_ = (get(gs, pcs, pas, sdl) as u8).to_ascii_uppercase();
         if (key_ == 127 || key_ == 8) && count > 0 {
             count -= 1;
             drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
@@ -1087,8 +1138,8 @@ fn _input(
             break;
         }
     }
-    for loop_ in count..max {
-        string[loop_] = 0;
+    for c in &mut string[count..max] {
+        *c = 0;
     }
     if key_ == 13 {
         return 1;
@@ -1125,7 +1176,7 @@ pub fn ScancodeToDOS(sc: SDL_Scancode) -> i32 {
         }
         i += 1;
     }
-    return 0;
+    0
 }
 
 // Enable and disable mouse grabbing
@@ -1143,7 +1194,7 @@ pub fn CheckMouseMode(pcs: &mut PcrlibCState, sdl: &SdlManager) {
 //
 ////////////////////////
 
-pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
+fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) {
     let str = format!("CTLPANEL.{_extension}");
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
@@ -1214,7 +1265,7 @@ pub fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManag
     }
 }
 
-pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
+fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     let mut ctlpanel = ctlpaneltype::default();
     let str = format!("CTLPANEL.{_extension}");
 
@@ -1241,7 +1292,7 @@ pub fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
     }
 }
 
-pub fn _loadhighscores(pcs: &mut PcrlibCState) {
+fn _loadhighscores(pcs: &mut PcrlibCState) {
     let filename = format!("SCORES.{_extension}");
     let mut buffer = [0_u8; scores::ondisk_struct_size() * 5];
 
@@ -1266,7 +1317,7 @@ pub fn _loadhighscores(pcs: &mut PcrlibCState) {
     }
 }
 
-pub fn _savehighscores(pcs: &mut PcrlibCState) {
+fn _savehighscores(pcs: &mut PcrlibCState) {
     let mut buffer = Vec::new();
 
     Serialize::serialize(&pcs.highscores, &mut buffer);
@@ -1312,8 +1363,7 @@ pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         let str = { pcs.highscores[i as usize].level }.to_string();
         print_str(&str, gs, pcs);
         pcs.sx += 1;
-        // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
-        let highscore_bytes = &pcs.highscores[i as usize].initials.map(|f| f as u8)[0..=2];
+        let highscore_bytes = &pcs.highscores[i as usize].initials.clone();
         print(highscore_bytes, gs, pcs);
         print_str("\n\n", gs, pcs);
         i += 1;
@@ -1326,7 +1376,7 @@ pub fn _checkhighscore(
     gs: &mut GlobalState,
     pas: &mut PcrlibAState,
     pcs: &mut PcrlibCState,
-    sdl: &SdlManager,
+    sdl: &mut SdlManager,
 ) {
     let mut i: i32 = 0;
     let mut j: i32 = 0;
@@ -1352,12 +1402,12 @@ pub fn _checkhighscore(
     UpdateScreen(gs, pcs);
     if i < 5 {
         PlaySound(16, pas);
-        clearkeys(pcs, sdl);
+        clearkeys(pcs, pas, sdl);
         pcs.sx = gs.screencenter.x - 17 / 2 + 14;
         pcs.sy = gs.screencenter.y - 17 / 2 + 6 + i * 2;
         j = 0;
         loop {
-            k = get(gs, pcs, sdl);
+            k = get(gs, pcs, pas, sdl);
             let ch = k as i8;
             if ch >= ' ' as i8 && j < 3 {
                 drawchar(pcs.sx, pcs.sy, ch as i32, gs, pcs);
@@ -1380,11 +1430,6 @@ pub fn _checkhighscore(
 
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
-
-pub struct SDLEventPayload<'t> {
-    pub pas: *mut PcrlibAState,
-    pub pcs: *mut PcrlibCState<'t>,
-}
 
 ////////////////////
 //

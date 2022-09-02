@@ -56,14 +56,17 @@ pub struct PcrlibAStateExclusive {
 #[derive(Clone)]
 pub struct PcrlibAState {
     inner: Arc<Mutex<PcrlibAStateExclusive>>,
+    // Rust port: the following are behind a smart pointer, and on cloning, they will be duplicated.
+    // This is acceptable, because:
+    // - _dontplay is set before cloning, and after, it's used only within the sound thread;
+    // - the random vars are used only in the main thread (they could even be split).
+
     // //////////////////////////////////////////////////////////
     // Rust port: private to pcrlib_a.rs
     // //////////////////////////////////////////////////////////
 
     pub _dontplay: bool,
 
-    // Randomness data doesn't need to be inside a mutex (it's also messy when so).
-    //
     pub rndindex: u16,
     pub indexi: u16,
     pub indexj: u16,
