@@ -805,11 +805,11 @@ pub fn bioskey(cmd: i32, pcs: &mut PcrlibCState, sdl: &SdlManager) -> u32 {
 
     for event in sdl.event_pump().poll_iter() {
         if let Event::KeyDown { scancode, .. } = event {
+            let returnKey = scancode.unwrap() as u32;
             if cmd == 1 {
-                pcs.lastkey = scancode.unwrap() as u32;
-                return pcs.lastkey;
+                pcs.lastkey = returnKey;
             }
-            return scancode.unwrap() as u32;
+            return returnKey;
         }
     }
 
