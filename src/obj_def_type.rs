@@ -1,5 +1,4 @@
 #[derive(Clone, Copy)]
-#[repr(C, packed)]
 pub struct objdeftype {
     pub think: u8,
     pub contact: u8,
