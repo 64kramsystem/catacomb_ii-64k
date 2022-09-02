@@ -25,7 +25,7 @@ use crate::{
     pcrlib_c::{
         ControlPlayer, LoadDemo, UpdateScreen, _Verify, _checkhighscore, _quit, _setupgame,
         _showhighscores, bar, bioskey, bloadin, centerwindow, clearkeys, drawwindow, expwin, get,
-        loadFile, print_str, printchartile, SDLEventPayload, WatchUIEvents,
+        loadFile, print_str, printchartile,
     },
     pcrlib_c_state::PcrlibCState,
     rleasm::RLEExpand,
@@ -982,17 +982,6 @@ pub fn original_main() {
         &mut texture_creator,
         &timer_sys,
     );
-
-    let userdata = Box::into_raw(Box::new(SDLEventPayload {
-        pas: &mut pas,
-        pcs: &mut pcs,
-    }));
-
-    let mut sdl_clone = sdl.clone();
-
-    let _event_watch = sdl
-        .event()
-        .add_event_watch(|event| WatchUIEvents(event, userdata, &mut sdl_clone));
 
     expwin(33, 13, &mut gs, &mut pas, &mut pcs);
     print_str("  Softdisk Publishing presents\n\n", &mut gs, &mut pcs);

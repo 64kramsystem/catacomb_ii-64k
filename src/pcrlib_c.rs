@@ -59,7 +59,9 @@ pub enum joyinfo_t {
 pub fn ProcessEvents(pcs: &mut PcrlibCState, pas: &mut PcrlibAState, sdl: &mut SdlManager) {
     pcs.mouseEvent = false;
 
-    for event in sdl.event_pump().poll_iter() {
+    let polled_events = sdl.event_pump().poll_iter().collect::<Vec<_>>();
+
+    for event in polled_events {
         match event {
             Event::KeyDown { scancode, .. } => {
                 pcs.keydown[scancode.unwrap() as usize] = true;
@@ -71,7 +73,9 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState, pas: &mut PcrlibAState, sdl: &mut S
             Event::MouseMotion { .. } => {
                 pcs.mouseEvent = true;
             }
-            _ => {}
+            event => {
+                WatchUIEvents(event, pcs, pas, sdl);
+            }
         }
     }
 }
@@ -86,57 +90,64 @@ pub fn ProcessEvents(pcs: &mut PcrlibCState, pas: &mut PcrlibAState, sdl: &mut S
 =======================
 */
 
-pub fn WatchUIEvents(event: Event, userdata: *mut SDLEventPayload, sdl: &mut SdlManager) {
-    unsafe {
-        let userdata = &*userdata;
-
-        match event {
-            Event::Quit { .. } => {
-                // We're quitting, so we can deallocate the userdata (although it's not strictly necessary).
-                // This approach works because we're not in a multithreaded contenxt, so this function is
-                // invoked only once a a time.
-                let userdata = Box::from_raw(userdata as *const _ as *mut SDLEventPayload);
-
-                _quit(None, &mut *userdata.pas, &mut *userdata.pcs, sdl);
-            }
-            Event::Window {
-                win_event: WindowEvent::FocusLost,
-                ..
-            } => {
-                let pcs = &mut *userdata.pcs;
-                pcs.hasFocus = false;
-                CheckMouseMode(pcs, &sdl);
-            }
-            Event::Window {
-                win_event: WindowEvent::FocusGained,
-                ..
-            } => {
-                let pcs = &mut *userdata.pcs;
-
-                // Rust port: Currently disabled, as this may not be correct (it may be running in a
-                // separate thread, which is discouraged), or at least improper (it may not be the
-                // appropriate way to handle focus). In Rust, is causes a BCK error, since the event
-                // pump can't be accessed by both the main thread and this callback.
-                //
-                // // Try to wait until the window obtains mouse focus before
-                // // regrabbing input in order to try to prevent grabbing while
-                // // the user is trying to move the window around.
-                // while sdl.mouse().focused_window_id()
-                //     != Some(pcs.renderer.as_ref().unwrap().window().id())
-                // {
-                //     sdl.event_pump().pump_events();
-                //     // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
-                //     // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
-                //     // because `Timer#delay()` requires a mutable sdl instance, which is a problem
-                //     // when the timer instance is owned by RcSdl.
-                //     thread::sleep(Duration::from_millis(10));
-                // }
-
-                pcs.hasFocus = true;
-                CheckMouseMode(pcs, &sdl);
-            }
-            _ => {}
+// Rust port: There are two different approaches to this:
+//
+// 1. maintaining the SDL port strategy, that is, to hook this in the SDL events; SDL will then invoke
+//    it any time the the events are looped, which current happens in ProcessEvents() and partially
+//    (due to early termination) in bioskey()
+// 2. manually add this to the ProcessEvents() and bioskey() loops
+//
+// The first approach is more solid on in general, however, in this project, the hook points are known,
+// and they are only two. The downside is that in Rust, we need refcounting, which is a hassle to add
+// (in terms of noise; it should be added to PcrlibCState).
+// For this reason, approach 2 is overall more convenient.
+pub fn WatchUIEvents(
+    event: Event,
+    pcs: &mut PcrlibCState,
+    pas: &mut PcrlibAState,
+    sdl: &mut SdlManager,
+) {
+    match event {
+        Event::Quit { .. } => {
+            _quit(None, pas, pcs, sdl);
         }
+        Event::Window {
+            win_event: WindowEvent::FocusLost,
+            ..
+        } => {
+            let pcs = pcs;
+            pcs.hasFocus = false;
+            CheckMouseMode(pcs, &sdl);
+        }
+        Event::Window {
+            win_event: WindowEvent::FocusGained,
+            ..
+        } => {
+            let pcs = pcs;
+
+            // Rust port: Currently disabled, as this may not be correct (it may be running in a
+            // separate thread, which is discouraged), or at least improper (it may not be the
+            // appropriate way to handle focus). In Rust, is causes a BCK error, since the event
+            // pump can't be accessed by both the main thread and this callback.
+            //
+            // // Try to wait until the window obtains mouse focus before
+            // // regrabbing input in order to try to prevent grabbing while
+            // // the user is trying to move the window around.
+            // while sdl.mouse().focused_window_id()
+            //     != Some(pcs.renderer.as_ref().unwrap().window().id())
+            // {
+            //     sdl.event_pump().pump_events();
+            //     // Rust port: in the SDL port, this called `SDL_Delay`, however, the Rust sdl2
+            //     // crate recommeds to use thread::sleep(). This also simplifies a BCK issue,
+            //     // because `Timer#delay()` requires a mutable sdl instance, which is a problem
+            //     // when the timer instance is owned by RcSdl.
+            //     thread::sleep(Duration::from_millis(10));
+            // }
+
+            pcs.hasFocus = true;
+            CheckMouseMode(pcs, &sdl);
+        }
+        _ => {}
     }
 }
 
@@ -809,14 +820,28 @@ pub fn bioskey(
         return oldkey;
     }
 
-    for event in sdl.event_pump().poll_iter() {
-        if let Event::KeyDown { scancode, .. } = event {
-            let returnKey = scancode.unwrap() as u32;
-            if cmd == 1 {
-                pcs.lastkey = returnKey;
+    let polled_events = sdl.event_pump().poll_iter().collect::<Vec<_>>();
+    let mut returnKey = None;
+
+    // Rust port: Slightly different from the the SDL port - here, we iterate all the events
+    // instead of terminating on the first key down, so that we can also process the UI events;
+    // see WatchUIEvents() for context.
+    for event in polled_events {
+        match event {
+            Event::KeyDown { scancode, .. } if returnKey.is_none() => {
+                returnKey = Some(scancode.unwrap() as u32);
+                if cmd == 1 {
+                    pcs.lastkey = returnKey.unwrap();
+                }
             }
-            return returnKey;
+            event => {
+                WatchUIEvents(event, pcs, pas, sdl);
+            }
         }
+    }
+
+    if let Some(returnKey) = returnKey {
+        return returnKey;
     }
 
     pcs.lastkey
@@ -1397,11 +1422,6 @@ pub fn _checkhighscore(
 
 const VIDEO_PARAM_WINDOWED: &str = "windowed";
 const VIDEO_PARAM_FULLSCREEN: &str = "screen";
-
-pub struct SDLEventPayload<'t> {
-    pub pas: *mut PcrlibAState,
-    pub pcs: *mut PcrlibCState<'t>,
-}
 
 ////////////////////
 //
