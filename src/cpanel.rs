@@ -83,64 +83,61 @@ fn calibratejoy(
             break;
         }
     }
-    match current_block {
-        8457315219000651999 => {
-            drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
-            loop {
-                ctr = ControlJoystick(joynum, pcs, sdl);
-                if !ctr.button1 {
-                    break;
-                }
+    if current_block == 8457315219000651999 {
+        drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
+        loop {
+            ctr = ControlJoystick(joynum, pcs, sdl);
+            if !ctr.button1 {
+                break;
             }
+        }
+        UpdateScreen(gs, pcs);
+        WaitVBL();
+        WaitVBL();
+        print_str("\n\n\rHold the joystick in the\n\r", gs, pcs);
+        print_str("lower right\n\r", gs, pcs);
+        print_str("corner and hit fire:", gs, pcs);
+        loop {
+            drawchar(pcs.sx, pcs.sy, stage, gs, pcs);
             UpdateScreen(gs, pcs);
             WaitVBL();
             WaitVBL();
-            print_str("\n\n\rHold the joystick in the\n\r", gs, pcs);
-            print_str("lower right\n\r", gs, pcs);
-            print_str("corner and hit fire:", gs, pcs);
-            loop {
-                drawchar(pcs.sx, pcs.sy, stage, gs, pcs);
-                UpdateScreen(gs, pcs);
-                WaitVBL();
-                WaitVBL();
-                WaitVBL();
-                stage += 1;
-                if stage == 23 {
-                    stage = 15;
-                }
-                ProcessEvents(pcs, pas, sdl);
-                ReadJoystick(joynum, &mut xh, &mut yh, pcs, sdl);
-                ctr = ControlJoystick(joynum, pcs, sdl);
-                if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
-                    current_block = 15976468122069307450;
-                    break;
-                }
-                if !(ctr.button1 as i32 != 1) {
-                    current_block = 15597372965620363352;
-                    break;
-                }
+            WaitVBL();
+            stage += 1;
+            if stage == 23 {
+                stage = 15;
             }
-            match current_block {
-                15976468122069307450 => {}
-                _ => {
-                    drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
-                    loop {
-                        ctr = ControlJoystick(joynum, pcs, sdl);
-                        if !ctr.button1 {
-                            break;
-                        }
-                    }
-                    UpdateScreen(gs, pcs);
-                    dx = (xh - xl) / 4;
-                    dy = (yh - yl) / 4;
-                    pcs.JoyXlow[joynum as usize] = xl + dx;
-                    pcs.JoyXhigh[joynum as usize] = xh - dx;
-                    pcs.JoyYlow[joynum as usize] = yl + dy;
-                    pcs.JoyYhigh[joynum as usize] = yh - dy;
-                }
+            ProcessEvents(pcs, pas, sdl);
+            ReadJoystick(joynum, &mut xh, &mut yh, pcs, sdl);
+            ctr = ControlJoystick(joynum, pcs, sdl);
+            if pcs.keydown[SDL_SCANCODE_ESCAPE as usize] {
+                current_block = 15976468122069307450;
+                break;
+            }
+            if !(ctr.button1 as i32 != 1) {
+                current_block = 15597372965620363352;
+                break;
             }
         }
-        _ => {}
+        match current_block {
+            15976468122069307450 => {}
+            _ => {
+                drawchar(pcs.sx, pcs.sy, ' ' as i32, gs, pcs);
+                loop {
+                    ctr = ControlJoystick(joynum, pcs, sdl);
+                    if !ctr.button1 {
+                        break;
+                    }
+                }
+                UpdateScreen(gs, pcs);
+                dx = (xh - xl) / 4;
+                dy = (yh - yl) / 4;
+                pcs.JoyXlow[joynum as usize] = xl + dx;
+                pcs.JoyXhigh[joynum as usize] = xh - dx;
+                pcs.JoyYlow[joynum as usize] = yl + dy;
+                pcs.JoyYhigh[joynum as usize] = yh - dy;
+            }
+        }
     }
     clearkeys(pcs, pas, sdl);
     erasewindow(gs, pcs);

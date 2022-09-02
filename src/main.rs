@@ -14,8 +14,6 @@
     non_upper_case_globals,
     unused_assignments,              // there are a lot, and can't be automatically fixed
     clippy::expect_fun_call,         // meh
-    // Temporary
-    clippy::single_match,
     clippy::identity_op,
     clippy::int_plus_one,
     clippy::missing_safety_doc,
