@@ -606,11 +606,7 @@ fn walkthrough(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCSt
             gs.o[new as usize].stage = 0;
             gs.o[new as usize].delay = 2;
             gs.o[new as usize].class = dead1;
-            if gs.obj.contact as i32 == pshot as i32 {
-                return false;
-            } else {
-                return true;
-            }
+            return gs.obj.contact != pshot as u8;
         } else {
             return false;
         }

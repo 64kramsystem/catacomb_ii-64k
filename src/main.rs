@@ -15,7 +15,6 @@
     unused_assignments,              // there are a lot, and can't be automatically fixed
     clippy::expect_fun_call,         // meh
     // Temporary
-    clippy::needless_bool,
     clippy::single_match,
     clippy::identity_op,
     clippy::int_plus_one,
