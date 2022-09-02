@@ -1,8 +1,10 @@
-#![allow(clippy::all)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
-#![allow(unused_assignments)]
+#![allow(
+    clippy::all,
+    non_camel_case_types,
+    non_snake_case,
+    non_upper_case_globals,
+    unused_assignments
+)]
 #![warn(
     clippy::assign_op_pattern,
     clippy::correctness,
