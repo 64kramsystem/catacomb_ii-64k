@@ -1138,8 +1138,8 @@ fn _input(
             break;
         }
     }
-    for loop_ in count..max {
-        string[loop_] = 0;
+    for c in &mut string[count..max] {
+        *c = 0;
     }
     if key_ == 13 {
         return 1;

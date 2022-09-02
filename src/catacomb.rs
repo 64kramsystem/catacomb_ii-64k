@@ -83,6 +83,8 @@ pub fn refresh(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     }
 
     if gs.indemo != notdemo {
+        // Using an iterator makes this less readable.
+        #[allow(clippy::needless_range_loop)]
         for y in 0..=4 {
             for x in 0..=15 {
                 gs.view[y + basey][x + basex] = underwin[y][x] as i32;
