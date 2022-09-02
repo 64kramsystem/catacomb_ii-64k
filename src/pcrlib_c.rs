@@ -1363,8 +1363,7 @@ pub fn _showhighscores(gs: &mut GlobalState, pcs: &mut PcrlibCState) {
         let str = { pcs.highscores[i as usize].level }.to_string();
         print_str(&str, gs, pcs);
         pcs.sx += 1;
-        // Rust port: Watch out! Entries includes the cstring terminator, which we must skip!
-        let highscore_bytes = &pcs.highscores[i as usize].initials.map(|f| f as u8)[0..=2];
+        let highscore_bytes = &pcs.highscores[i as usize].initials.clone();
         print(highscore_bytes, gs, pcs);
         print_str("\n\n", gs, pcs);
         i += 1;
