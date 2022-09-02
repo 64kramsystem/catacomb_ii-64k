@@ -117,7 +117,7 @@ fn WatchUIEvents(
         } => {
             let pcs = pcs;
             pcs.hasFocus = false;
-            CheckMouseMode(pcs, &sdl);
+            CheckMouseMode(pcs, sdl);
         }
         Event::Window {
             win_event: WindowEvent::FocusGained,
@@ -154,7 +154,7 @@ fn WatchUIEvents(
             */
 
             pcs.hasFocus = true;
-            CheckMouseMode(pcs, &sdl);
+            CheckMouseMode(pcs, sdl);
         }
         _ => {}
     }

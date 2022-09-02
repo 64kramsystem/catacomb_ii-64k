@@ -567,7 +567,7 @@ pub fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCSta
     // - char data (currently retained inside picfile_data)
     // - pic data (currently retained inside picfile_data)
     //
-    let picfile_data = bloadin(&filename).unwrap();
+    let picfile_data = bloadin(filename).unwrap();
     let picfile: picfiletype = Deserialize::deserialize(&picfile_data[..]);
     cps.numchars = picfile.numchars as i32;
     cps.numtiles = picfile.numtiles as i32;
