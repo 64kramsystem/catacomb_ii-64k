@@ -1,23 +1,23 @@
 #![allow(
+    non_camel_case_types,
+    non_snake_case,
+    non_upper_case_globals,
+    unused_assignments,              // there are a lot, and can't be automatically fixed
     clippy::assign_op_pattern,
     clippy::collapsible_else_if,
     clippy::collapsible_if,
     clippy::comparison_chain,
     clippy::derive_partial_eq_without_eq,
-    clippy::len_zero,
-    clippy::manual_range_contains,
-    clippy::new_without_default,
-    clippy::too_many_arguments,
-    clippy::type_complexity,
-    non_camel_case_types,
-    non_snake_case,
-    non_upper_case_globals,
-    unused_assignments,              // there are a lot, and can't be automatically fixed
     clippy::expect_fun_call,         // meh
     clippy::identity_op,             // actually more readable
     clippy::int_plus_one,
+    clippy::len_zero,
+    clippy::manual_range_contains,
     clippy::missing_safety_doc,
+    clippy::new_without_default,
     clippy::nonminimal_bool,         // actually more readable
+    clippy::too_many_arguments,
+    clippy::type_complexity,
     clippy::wildcard_in_or_patterns, // actually more readable
 )]
 
