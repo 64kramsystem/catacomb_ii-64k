@@ -1,27 +1,32 @@
 #![allow(
-    clippy::all,
+    clippy::assign_op_pattern,
+    clippy::collapsible_else_if,
+    clippy::collapsible_if,
+    clippy::comparison_chain,
+    clippy::derive_partial_eq_without_eq,
+    clippy::len_zero,
+    clippy::manual_range_contains,
+    clippy::new_without_default,
+    clippy::too_many_arguments,
+    clippy::type_complexity,
     non_camel_case_types,
     non_snake_case,
     non_upper_case_globals,
-    unused_assignments
-)]
-#![warn(
-    clippy::assign_op_pattern,
-    clippy::correctness,
-    clippy::precedence,
-    clippy::unnecessary_mut_passed,
-    dead_code,
-    unused_mut
-)]
-#![allow(
+    unused_assignments,              // there are a lot, and can't be automatically fixed
+    clippy::expect_fun_call,         // meh
+    // Temporary
+    clippy::needless_borrow,
+    clippy::needless_range_loop,
+    clippy::redundant_field_names,
+    clippy::needless_bool,
+    clippy::single_match,
     clippy::identity_op,
     clippy::int_plus_one,
     clippy::missing_safety_doc,
     clippy::needless_return,
-    clippy::nonminimal_bool,
+    clippy::nonminimal_bool,         // actually more readable
     clippy::unnecessary_cast,
-    clippy::wildcard_in_or_patterns,
-    clippy::zero_ptr
+    clippy::wildcard_in_or_patterns, // actually more readable
 )]
 
 mod active_obj;
