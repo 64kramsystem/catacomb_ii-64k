@@ -2,20 +2,20 @@
 
 ![Screenshot](/misc/readme_screenshot.png?raw=true)
 
-Catacomb II-64k is a experimental project in porting a moderately complex project first from C to unsafe Rust, then to (fully) safe Rust. A detailed article is going to be published [on my blog](https://saveriomiroddi.github.io/) in September 2022.
+Catacomb II-64k is a experimental project in porting a moderately complex project, first from C to unsafe Rust, then to (fully) safe Rust. A detailed article is going to be published [on my blog](https://saveriomiroddi.github.io/) in September 2022.
 
 The [game](https://en.wikipedia.org/wiki/Catacomb_(video_game)) has been written by the id Software team (J.Carmack, J.Romero, A.Carmack) before they founded their own company.
 
 ## The project
 
-The idea is the same in spirit as [Rust out your C](https://www.youtube.com/watch?v=SKGVItFlK3w), but the port is significantly more complex, due a few factors:
+The idea is the same in spirit as [Rust out your C](https://www.youtube.com/watch?v=SKGVItFlK3w), but the port is significantly more complex, due to a few factors:
 
-- the codebase has not been written applying best practices (e.g. it uses many globals);
+- the codebase has not been written following best practices (e.g. it uses many globals);
 - the call graph is significantly more intricate;
 - a C library is used (SDL2);
 - the program is hard to continuously test, because of its nature and design.
 
-The codebase using as starting point is [Catacomb SDL](https://github.com/Blzut3/CatacombSDL), a port which removed the assembler, and implemented SDL calls (and graphic/sound emulation), in order to make the project compatible with modern O/Ss.
+The codebase used as starting point is [Catacomb SDL](https://github.com/Blzut3/CatacombSDL), a port that removed the assembler, and implemented SDL calls (and graphic/sound emulation), in order to make the project compatible with modern O/Ss.
 
 The conversion from C to unsafe Rust has been performed via the [C2Rust transpiler](https://github.com/immunant/c2rust), which produced a running but unsafe Rust project (essentially, a "C project with Rust syntax").
 
@@ -28,16 +28,16 @@ I've performed the port in many small, incremental steps, leaving the program st
 
 Unsurprisingly, porting to Rust brought to light several bugs in the C codebase.
 
-There are several conclusions that can be drawn, most importantly::
+Several conclusions can be drawn, most importantly:
 
 - it is generally possible to port a project from C to safe Rust, in an incremental fashion (note that I'm in no way implying that this is something that should be done);
 - in particular, ports based on the SDL allow coexistence of calls to both the C library and the Rust one;
-- the safe Rust port will likely bring to light bugs of the C project;
-- porting from unsafe to safe Rust is currently a grueling operation, due to lack of refactoring tooling; refactoring the boilerplate itself is not a large part of the project, but every small change counts, as this type of port requires a very high amount of precision.
+- porting to safe Rust likely brings to light bugs of the original C projects;
+- porting from unsafe to safe Rust is currently a grueling task, due to lack of refactoring tooling; refactoring the boilerplate itself is not a large part of the project, but every small change counts, as this type of port requires a very high amount of precision.
 
 ## Project objective and tools
 
-It's not an objective of the project to redesign the codebase to make it clean; such operation is a generic software engineering task that is not inherent in this type of project.
+It's not an objective of the project, to redesign the codebase in order to make it clean; such operation is a generic software engineering task that is not inherent in this type of project.
 
 By contrast, some transformations are (considered) inherent, for example:
 
