@@ -323,7 +323,7 @@ fn castnuke(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibCState
     base.y = gs.obj.y;
     base.oldx = base.x;
     base.oldy = base.y;
-    base.oldtile = -1 as i16;
+    base.oldtile = -1_i16;
     base.class = bigshot;
     x = -1;
     while x <= 1 {

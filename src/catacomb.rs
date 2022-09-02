@@ -373,7 +373,7 @@ pub fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
     gs.o[0].dir = east as i32 as u16;
     gs.o[0].oldx = 0;
     gs.o[0].oldy = 0;
-    gs.o[0].oldtile = -1 as i16;
+    gs.o[0].oldtile = -1_i16;
     yy = 0;
     while yy < 64 {
         xx = 0;
@@ -400,7 +400,7 @@ pub fn loadlevel(gs: &mut GlobalState, pas: &mut PcrlibAState, pcs: &mut PcrlibC
                         gs.objdef[gs.o[gs.numobj as usize].class as usize].hitpoints as i8;
                     gs.o[gs.numobj as usize].oldx = gs.o[gs.numobj as usize].x;
                     gs.o[gs.numobj as usize].oldy = gs.o[gs.numobj as usize].y;
-                    gs.o[gs.numobj as usize].oldtile = -1 as i16;
+                    gs.o[gs.numobj as usize].oldtile = -1_i16;
                 }
             }
             xx += 1;

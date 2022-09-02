@@ -184,48 +184,48 @@ fn printscan(mut sc: i32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     sc = ScancodeToDOS(sc as SDL_Scancode);
     if sc == 1 {
         print_str("ESC", gs, pcs);
-    } else if sc == 0xe as i32 {
+    } else if sc == 0xe_i32 {
         print_str("BKSP", gs, pcs);
-    } else if sc == 0xf as i32 {
+    } else if sc == 0xf_i32 {
         print_str("TAB", gs, pcs);
-    } else if sc == 0x1d as i32 {
+    } else if sc == 0x1d_i32 {
         print_str("CTRL", gs, pcs);
-    } else if sc == 0x2a as i32 {
+    } else if sc == 0x2a_i32 {
         print_str("LSHIFT", gs, pcs);
-    } else if sc == 0x39 as i32 {
+    } else if sc == 0x39_i32 {
         print_str("SPACE", gs, pcs);
-    } else if sc == 0x3a as i32 {
+    } else if sc == 0x3a_i32 {
         print_str("CAPSLK", gs, pcs);
-    } else if sc >= 0x3b as i32 && sc <= 0x44 as i32 {
-        let str = format!("F{}", sc - 0x3a as i32);
+    } else if sc >= 0x3b_i32 && sc <= 0x44_i32 {
+        let str = format!("F{}", sc - 0x3a_i32);
         print_str(&str, gs, pcs);
-    } else if sc == 0x57 as i32 {
+    } else if sc == 0x57_i32 {
         print_str("F11", gs, pcs);
-    } else if sc == 0x59 as i32 {
+    } else if sc == 0x59_i32 {
         print_str("F12", gs, pcs);
-    } else if sc == 0x46 as i32 {
+    } else if sc == 0x46_i32 {
         print_str("SCRLLK", gs, pcs);
-    } else if sc == 0x1c as i32 {
+    } else if sc == 0x1c_i32 {
         print_str("ENTER", gs, pcs);
-    } else if sc == 0x36 as i32 {
+    } else if sc == 0x36_i32 {
         print_str("RSHIFT", gs, pcs);
-    } else if sc == 0x37 as i32 {
+    } else if sc == 0x37_i32 {
         print_str("PRTSC", gs, pcs);
-    } else if sc == 0x38 as i32 {
+    } else if sc == 0x38_i32 {
         print_str("ALT", gs, pcs);
-    } else if sc == 0x47 as i32 {
+    } else if sc == 0x47_i32 {
         print_str("HOME", gs, pcs);
-    } else if sc == 0x49 as i32 {
+    } else if sc == 0x49_i32 {
         print_str("PGUP", gs, pcs);
-    } else if sc == 0x4f as i32 {
+    } else if sc == 0x4f_i32 {
         print_str("END", gs, pcs);
-    } else if sc == 0x51 as i32 {
+    } else if sc == 0x51_i32 {
         print_str("PGDN", gs, pcs);
-    } else if sc == 0x52 as i32 {
+    } else if sc == 0x52_i32 {
         print_str("INS", gs, pcs);
-    } else if sc == 0x53 as i32 {
+    } else if sc == 0x53_i32 {
         print_str("DEL", gs, pcs);
-    } else if sc == 0x45 as i32 {
+    } else if sc == 0x45_i32 {
         print_str("NUMLK", gs, pcs);
     } else {
         let fresh0 = pcs.sx;

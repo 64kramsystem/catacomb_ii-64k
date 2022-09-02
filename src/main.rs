@@ -18,7 +18,6 @@
     clippy::int_plus_one,
     clippy::missing_safety_doc,
     clippy::nonminimal_bool,         // actually more readable
-    clippy::unnecessary_cast,
     clippy::wildcard_in_or_patterns, // actually more readable
 )]
 
