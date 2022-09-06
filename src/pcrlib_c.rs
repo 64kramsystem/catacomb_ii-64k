@@ -1199,7 +1199,7 @@ fn _loadctrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState, sdl: &SdlManager) 
     // Rust port: the original flags where O_RDONLY, O_BINARY, S_IRUSR, S_IWUSR.
     // For simplicity, we do a standard file open.
     if let Ok(file) = File::open(&str) {
-        let ctlpanel = ctlpaneltype::deserialize(file);
+        let ctlpanel = ctlpaneltype::deserialize(file).unwrap();
 
         pcs.grmode = ctlpanel.grmode as grtype;
         pas.lock(|pasx| {
@@ -1288,7 +1288,7 @@ fn _savectrls(pas: &mut PcrlibAState, pcs: &mut PcrlibCState) {
         ctlpanel.keyB1 = ScancodeToDOS(pcs.keyB1 as SDL_Scancode) as u8;
         ctlpanel.keyB2 = ScancodeToDOS(pcs.keyB2 as SDL_Scancode) as u8;
 
-        ctlpanel.serialize(file);
+        ctlpanel.serialize(file).unwrap();
     }
 }
 
@@ -1306,7 +1306,7 @@ fn _loadhighscores(pcs: &mut PcrlibCState) {
             .iter_mut()
             .zip(buffer.chunks_exact(scores::ondisk_struct_size()))
         {
-            *highscore = Deserialize::deserialize(score_buffer);
+            *highscore = Deserialize::deserialize(score_buffer).unwrap();
         }
     } else {
         for i in 0..5 {
@@ -1320,7 +1320,7 @@ fn _loadhighscores(pcs: &mut PcrlibCState) {
 fn _savehighscores(pcs: &mut PcrlibCState) {
     let mut buffer = Vec::new();
 
-    Serialize::serialize(&pcs.highscores, &mut buffer);
+    Serialize::serialize(&pcs.highscores, &mut buffer).unwrap();
 
     let str = format!("SCORES.{_extension}");
 
@@ -1584,7 +1584,7 @@ pub fn _setupgame<'tc, 'ts>(
     let sound_data_buffer = bloadin(&filename).unwrap();
 
     pas.lock(|pas| {
-        pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice());
+        pas.SoundData = SPKRtable::deserialize(sound_data_buffer.as_slice()).unwrap();
     });
 
     let audio_dev = StartupSound(pas, sdl);

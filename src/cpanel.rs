@@ -565,7 +565,7 @@ pub fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCSta
     // - pic data (currently retained inside picfile_data)
     //
     let picfile_data = bloadin(filename).unwrap();
-    let picfile: picfiletype = Deserialize::deserialize(&picfile_data[..]);
+    let picfile: picfiletype = Deserialize::deserialize(&picfile_data[..]).unwrap();
     cps.numchars = picfile.numchars as i32;
     cps.numtiles = picfile.numtiles as i32;
     cps.numpics = picfile.numpics as i32;
@@ -582,7 +582,7 @@ pub fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCSta
         let start = picfile.pictableptr.flatptr() as usize + i * mem::size_of::<pictype>();
         let end = start + mem::size_of::<pictype>();
 
-        let picinfile = Deserialize::deserialize(&pcs.picfile_data[start..end]);
+        let picinfile = Deserialize::deserialize(&pcs.picfile_data[start..end]).unwrap();
         cps.pictable[i as usize] = picinfile;
     }
 
@@ -590,7 +590,7 @@ pub fn installgrfile(filename: &str, cps: &mut CpanelState, pcs: &mut PcrlibCSta
         let start = picfile.spritetableptr.flatptr() as usize + i * mem::size_of::<spritetype>();
         let end = start + mem::size_of::<spritetype>();
 
-        let spriteinfile = Deserialize::deserialize(&pcs.picfile_data[start..end]);
+        let spriteinfile = Deserialize::deserialize(&pcs.picfile_data[start..end]).unwrap();
         cps.spritetable[i] = spriteinfile
     }
 }

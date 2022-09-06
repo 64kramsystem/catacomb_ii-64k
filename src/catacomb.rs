@@ -619,10 +619,10 @@ pub fn dofkeys(
                         // Rust port: Former flags: (O_WRONLY | O_BINARY | O_CREAT | O_TRUNC,
                         // S_IREAD | S_IWRITE).
                         if let Ok(mut file) = File::create(str) {
-                            gs.saveitems.serialize(&mut file);
-                            gs.savescore.serialize(&mut file);
-                            pcs.level.serialize(&mut file);
-                            gs.saveo.serialize(&mut file);
+                            gs.saveitems.serialize(&mut file).unwrap();
+                            gs.savescore.serialize(&mut file).unwrap();
+                            pcs.level.serialize(&mut file).unwrap();
+                            gs.saveo.serialize(&mut file).unwrap();
 
                             print_str("\nGame saved.  Hit F5\n", gs, pcs);
                             print_str("when you wish to\n", gs, pcs);
@@ -652,10 +652,10 @@ pub fn dofkeys(
                 // Rust port: Flags in the original port = (O_RDONLY | O_BINARY, S_IWRITE | S_IREAD);
                 // oddly, O_RDONLY == O_BINARY == 0.
                 if let Ok(mut file) = File::open(str) {
-                    gs.items = Deserialize::deserialize(&mut file);
-                    pcs.score = Deserialize::deserialize(&mut file);
-                    pcs.level = Deserialize::deserialize(&mut file);
-                    gs.o[0] = Deserialize::deserialize(&mut file);
+                    gs.items = Deserialize::deserialize(&mut file).unwrap();
+                    pcs.score = Deserialize::deserialize(&mut file).unwrap();
+                    pcs.level = Deserialize::deserialize(&mut file).unwrap();
+                    gs.o[0] = Deserialize::deserialize(&mut file).unwrap();
                     gs.exitdemo = true;
                     if gs.indemo != notdemo {
                         gs.playdone = true;
