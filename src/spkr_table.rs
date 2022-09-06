@@ -14,13 +14,14 @@ pub struct SPKRtable {
     pub freqdata: Vec<u16>,
 }
 
-fn deserialize_freqdata<R: Read>(mut r: R) -> Vec<u16> {
+fn deserialize_freqdata<R: Read>(mut r: R) -> Result<Vec<u16>, std::io::Error> {
     let mut buffer = Vec::new();
     r.read_to_end(&mut buffer).unwrap();
-    buffer
+    let result = buffer
         .chunks_exact(2)
         .map(|word_bytes| u16::from_le_bytes(word_bytes.try_into().unwrap()))
-        .collect()
+        .collect();
+    Ok(result)
 }
 
 impl Default for SPKRtable {
