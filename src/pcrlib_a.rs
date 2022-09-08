@@ -107,10 +107,6 @@ fn _SDL_PCStopSound(pasx: &mut PcrlibAState) {
     })
 }
 
-fn _SDL_ShutPC(pas: &mut PcrlibAState) {
-    _SDL_PCStopSound(pas);
-}
-
 ///////////////////////////////////////////////////////////////////////////
 //
 //      SDL_PCSpeakerEmulator() - Emulates the pc speaker
