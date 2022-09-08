@@ -1010,7 +1010,7 @@ pub fn _Verify(filename: &str) -> u64 {
 // print hex byte
 //
 ////////////////////////////////////////////////////////////////////
-/// Rust port: Prints a byte in padded hex.
+/// Rust port: Prints a byte in padded hex; unused, likely debug.
 fn _printhexb(value: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("{:02X}", value);
     print_str(&fmt_value, gs, pcs);
@@ -1021,7 +1021,7 @@ fn _printhexb(value: u8, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 // print hex
 //
 ////////////////////////////////////////////////////////////////////
-/// Rust port: Prints a word in padded hex, prefixed by `$`.
+/// Rust port: Prints a word in padded hex, prefixed by `$`; unused, likely debug.
 fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("${:04X}", value);
     print_str(&fmt_value, gs, pcs);
@@ -1032,7 +1032,7 @@ fn _printhex(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
 // print bin
 //
 ////////////////////////////////////////////////////////////////////
-/// Rust port: Prints a word in padded binary, prefixed by `%`; dead code.
+/// Rust port: Prints a word in padded binary, prefixed by `%`; unused, likely debug.
 fn _printbin(value: u32, gs: &mut GlobalState, pcs: &mut PcrlibCState) {
     let fmt_value = format!("%{:016b}", value);
     print_str(&fmt_value, gs, pcs);
