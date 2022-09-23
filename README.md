@@ -2,7 +2,9 @@
 
 ![Screenshot](/misc/readme_screenshot.png?raw=true)
 
-Catacomb II-64k is a experimental project in porting a moderately complex project, first from C to unsafe Rust, then to (fully) safe Rust. A detailed article is going to be published [on my blog](https://saveriomiroddi.github.io/) in September 2022.
+Catacomb II-64k is a experimental project in porting a moderately complex project, first from C to unsafe Rust, then to (fully) safe Rust.
+
+~~A detailed article is going to be published [on my blog](https://saveriomiroddi.github.io/) in September 2022.~~ I've put my blog on hold, so I will likely not write any article.
 
 The [game](https://en.wikipedia.org/wiki/Catacomb_(video_game)) has been written by the id Software team (J.Carmack, J.Romero, A.Carmack) before they founded their own company.
 
