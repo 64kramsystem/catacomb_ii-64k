@@ -4,8 +4,6 @@
 
 Catacomb II-64k is a experimental project in porting a moderately complex project, first from C to unsafe Rust, then to (fully) safe Rust.
 
-~~A detailed article is going to be published [on my blog](https://saveriomiroddi.github.io/) in September 2022.~~ I've put my blog on hold, so I will likely not write any article.
-
 The [game](https://en.wikipedia.org/wiki/Catacomb_(video_game)) has been written by the id Software team (J.Carmack, J.Romero, A.Carmack) before they founded their own company.
 
 ## The project
@@ -17,7 +15,7 @@ The idea is the same in spirit as [Rust out your C](https://www.youtube.com/watc
 - a C library is used (SDL2);
 - the program is hard to continuously test, because of its nature and design.
 
-The codebase used as starting point is [Catacomb SDL](https://github.com/Blzut3/CatacombSDL), a port that removed the assembler, and implemented SDL calls (and graphic/sound emulation), in order to make the project compatible with modern O/Ss.
+The codebase used as starting point is [Catacomb SDL](https://github.com/Blzut3/CatacombSDL), a port that removed the assembly, and implemented SDL calls (and graphic/sound emulation), in order to make the project compatible with modern O/Ss.
 
 The conversion from C to unsafe Rust has been performed via the [C2Rust transpiler](https://github.com/immunant/c2rust), which produced a running but unsafe Rust project (essentially, a "C project with Rust syntax").
 
@@ -39,7 +37,7 @@ Several conclusions can be drawn, most importantly:
 
 ## Project objective and tools
 
-It's not an objective of the project, to redesign the codebase in order to make it clean; such operation is a generic software engineering task that is not inherent in this type of project.
+Refactoring the codebase has not been considered in the scope of this project; although a necessary task in real-world porting projects, it's not the focus of this project.
 
 By contrast, some transformations are (considered) inherent, for example:
 
@@ -52,7 +50,7 @@ I developer a small serialization library, [Serdine](https://github.com/64kramsy
 
 ## Project status
 
-The project itself is completed (the codebase is 100% safe), although I'm still performing further, minor, cleanups.
+The project itself is completed (the codebase is 100% safe).
 
 ## Running the game
 
